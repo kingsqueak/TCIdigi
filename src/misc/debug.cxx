@@ -55,6 +55,7 @@
 #include "threads.h"
 
 #ifndef FLARQ_VERSION
+#	include "status.h"
 #	include "fl_digi.h"
 #endif
 
@@ -80,7 +81,6 @@ static string linebuf;
 
 debug* debug::inst = 0;
 debug::level_e debug::level = debug::INFO_LEVEL;
-uint32_t debug::mask = ~0u;
 
 bool debug_pskmail = false;
 bool debug_audio = false;
@@ -94,19 +94,51 @@ static void src_menu_cb(Fl_Widget* w, void*);
 
 static void clear_cb(Fl_Widget *w, void*);
 
+uint32_t debug::mask = 0;
+
+#ifdef FLARQ_DEBUG
 Fl_Menu_Item src_menu[] = {
-	{ _("ARQ control"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE },
-	{ _("Audio"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE },
-	{ _("Modem"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE },
-	{ _("Rig control"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE },
-	{ _("Flrig I/O"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE },
-	{ _("RPC"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE },
-	{ _("Spotter"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE },
-	{ _("KISS control"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE },
-	{ _("Mac Logger"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE | FL_MENU_DIVIDER },
-	{ _("Other"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_VALUE },
+	{ _("ARQ control"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Xmlrpc"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Other"), 0, 0, 0, FL_MENU_TOGGLE },
 	{ 0 }
 };
+#else
+// 000000000000000
+// ||||||||||||||_ARQ control
+// |||||||||||||__Audio
+// ||||||||||||___Modem
+// |||||||||||____Rig Control
+// ||||||||||_____Xmlrpc
+// |||||||||______Spotter
+// ||||||||_______Data Sources
+// |||||||________Synop
+// ||||||_________KML
+// |||||__________KISS control
+// ||||___________Mac Logger
+// |||____________Field Day Logger
+// ||_____________N3FJP Logger
+// |______________Other
+
+Fl_Menu_Item src_menu[] = {
+	{ _("ARQ control"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Audio"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Modem"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Rig control"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Xmlrpc"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Spotter"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Data Sources"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Synop"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("KML"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("KISS control"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_DIVIDER  },
+	{ _("Mac Logger"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("Field Day Logger"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ _("N3FJP Logger"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_DIVIDER  },
+	{ _("Other"), 0, 0, 0, FL_MENU_TOGGLE },
+	{ 0 }
+};
+//	{ _("Flrig i/o"), 0, 0, 0, FL_MENU_TOGGLE | FL_MENU_DIVIDER  },
+#endif
 
 #include <iostream>
 
@@ -179,6 +211,7 @@ void debug::start(const char* filename)
 	window->resizable(btext);
 
 	window->end();
+
 }
 
 void debug::stop(void)
@@ -347,6 +380,14 @@ static void src_menu_cb(Fl_Widget* w, void*)
 {
 	debug::mask ^= 1 << ((Fl_Menu_*)w)->value();
 }
+
+void set_debug_mask(int mask)
+{
+	debug::mask = mask;
+	for (int n = 0; n < 15; n++)
+		src_menu[n].flags ^= ((debug::mask & 1 << n) ? FL_MENU_VALUE : 0);
+}
+
 
 static void clear_cb(Fl_Widget* w, void*)
 {
