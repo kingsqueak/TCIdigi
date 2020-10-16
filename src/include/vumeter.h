@@ -83,6 +83,21 @@ public:
 	void	set_scalecolor(Fl_Color c3) { scale_color = c3; redraw(); }
 	void	set_peakcolor(Fl_Color c4) { peak_color = c4; redraw(); }
 
+	int		handle(int e) {
+		if (Fl::event_inside( this )) {
+			if (e == FL_RELEASE) {
+				do_callback();
+				return 1;
+			}
+		}
+		return 0;
+	}
+
+	void callback (void (*cbf)(Fl_Widget *, void *) ){ cbFunc = cbf;}
+	void do_callback() { 
+		if (cbFunc) cbFunc(this, (void*)0);
+	}
+
 };
 
 #endif // !vumeter
