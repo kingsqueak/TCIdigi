@@ -3139,6 +3139,37 @@ public:
 	}
 };
 
+extern Fl_Value_Input2 *nbrContestStart;
+int contest_start_number = 0;
+
+static void set_contest_counter() {
+	nbrContestStart->value(contest_start_number);
+	progdefaults.ContestStart = contest_start_number;
+	cb_ResetSerNbr();
+	progdefaults.changed = true;
+}
+
+class Log_set_contest_counter : public xmlrpc_c::method
+{
+public:
+	Log_set_contest_counter()
+	{
+		_signature = "n:s";
+		_help = "Sets the starting contest number field contents.";
+	}
+	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+	{
+		XMLRPC_LOCK;
+		std::string snbr = std::string(params.getString(0));
+		LOG_INFO("[%s] log.set_counter_counter: %s",
+			XmlRpc::client_id.c_str(),
+			snbr.c_str());
+		contest_start_number = atol( snbr.c_str() );
+		REQ(set_contest_counter);
+		*retval = xmlrpc_c::value_nil();
+	}
+};
+
 class Log_get_exchange : public xmlrpc_c::method
 {
 public:
@@ -4270,7 +4301,6 @@ ELEM_(Log_get_rst_out, "log.get_rst_out")                              \
 ELEM_(Log_set_rst_in, "log.set_rst_in")                                \
 ELEM_(Log_set_rst_out, "log.set_rst_out")                              \
 ELEM_(Log_get_serial_number, "log.get_serial_number")                  \
-ELEM_(Log_set_serial_number, "log.set_serial_number")                  \
 ELEM_(Log_get_serial_number_sent, "log.get_serial_number_sent")        \
 ELEM_(Log_get_exchange, "log.get_exchange")                            \
 ELEM_(Log_set_exchange, "log.set_exchange")                            \
@@ -4291,6 +4321,8 @@ ELEM_(Log_set_qth, "log.set_qth")                                      \
 ELEM_(Log_set_locator, "log.set_locator")                              \
 ELEM_(Log_set_rst_in, "log.set_rst_in")                                \
 ELEM_(Log_set_rst_out, "log.set_rst_out")                              \
+ELEM_(Log_set_serial_number, "log.set_serial_number")                  \
+ELEM_(Log_set_contest_counter, "log.set_contest_counter")              \
 \
 ELEM_(Logbook_last_record, "logbook.last_record")                      \
 ELEM_(Logbook_all_records, "logbook.all_records")                      \
