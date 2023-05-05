@@ -799,6 +799,9 @@
         ELEM_(bool, PKT_unitsEnglish, "PKTUNITSENGLISH",                                \
               "display decoded data in English units",                                  \
               false)                                                                    \
+        ELEM_(std::string, thor_avatar_image_file, "THOR_AVATAR_IMAGE_FILE",            \
+              "THOR avatar image to transmit",                                          \
+              "")                                                                       \
         /* DOMINOEX */                                                                  \
         ELEM_(double, DOMINOEX_BW, "DOMINOEXBW",                                        \
               "Filter bandwidth factor (bandwidth relative to signal width)",           \
@@ -944,6 +947,9 @@
               "0 - NO, 1 - YES\n"                                                       \
               "Always t/r at 1500 Hz",                                                  \
               1)                                                                        \
+        ELEM_(std::string, ifkp_avatar_image_file, "IFKP_AVATAR_IMAGE_FILE",            \
+              "IFKP avatar image to transmit",                                          \
+              "")                                                                       \
        /* Waterfall & UI */                                                             \
         ELEM_(uchar, red, "", "",  0)                                                   \
         ELEM_(uchar, green, "", "",  255)                                               \

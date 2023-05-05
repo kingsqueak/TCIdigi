@@ -183,4 +183,6 @@ public:
 	void	toggle_logs();
 };
 
+extern void init_def_ifkp_avatar(Fl_Group *w);
+
 #endif

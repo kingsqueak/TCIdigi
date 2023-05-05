@@ -1431,11 +1431,12 @@ void thor::thor_send_avatar() {
 
 void thor::m_thor_send_avatar()
 {
-	std::string mycall = progdefaults.myCall;
-	for (size_t n = 0; n < mycall.length(); n++)
-		mycall[n] = tolower(mycall[n]);
+//	std::string mycall = progdefaults.myCall;
+//	for (size_t n = 0; n < mycall.length(); n++)
+//		mycall[n] = tolower(mycall[n]);
 	std::string fname = AvatarDir;
-	fname.append(mycall).append(".png");
+//	fname.append(mycall).append(".png");
+	fname.append(progdefaults.thor_avatar_image_file);
 
 	my_avatar_img = Fl_Shared_Image::get(fname.c_str(), 59, 74);
 	if (!my_avatar_img) return;

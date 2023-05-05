@@ -107,6 +107,12 @@ decl {\#include "fileselect.h"} {private local
 decl {\#include "psm/psm.h"} {private local
 }
 
+decl {\#include "thor.h"} {private local
+}
+
+decl {\#include "ifkp.h"} {private local
+}
+
 decl {\#include "dx_cluster.h"} {private local
 }
 
@@ -479,7 +485,7 @@ static const char szBaudRates[] = "300|600|1200|2400|4800|9600|19200|38400|57600
 static const char szProsigns[] = "~|%|&|+|=|{|}|<|>|[|]| ";} {}
   Fl_Window {} {
     label {Fldigi configuration} open
-    xywh {487 80 800 380} type Double color 45 selection_color 51 labelsize 18 align 80 resizable size_range {750 380 0 380} visible
+    xywh {1081 44 800 380} type Double color 45 selection_color 51 labelsize 18 align 80 resizable size_range {750 380 0 380} visible
   } {
     Fl_Group {} {
       xywh {0 0 201 380} resizable
@@ -3102,7 +3108,7 @@ o->label((inpLOTW_pwd->type() & FL_SECRET_INPUT) ? _("Show") : _("Hide"));}
       }
     }
     Fl_Group {} {
-      label {Logging/Cloudlog} open selected
+      label {Logging/Cloudlog}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Logging/Cloudlog"));}
       code1 {config_pages.push_back(p);}
@@ -5634,7 +5640,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/IFKP}
+      label {Modem/IFKP} open
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/IFKP"));}
       code1 {config_pages.push_back(p);}
@@ -5642,7 +5648,7 @@ progdefaults.changed = true;}
     } {
       Fl_Group {} {
         label {Tx Parameters} open
-        xywh {208 46 587 120} box ENGRAVED_BOX align 21
+        xywh {208 25 587 110} box ENGRAVED_BOX align 21
       } {
         Fl_Round_Button {btn_ifkpbaud[0]} {
           label {1/2 speed}
@@ -5652,7 +5658,7 @@ btn_ifkpbaud[1]->value(0);
 btn_ifkpbaud[2]->value(0);
 }
 progdefaults.changed = true;}
-          xywh {303 74 100 17} down_box ROUND_DOWN_BOX
+          xywh {303 53 100 17} down_box ROUND_DOWN_BOX
           code0 {o->value(progdefaults.ifkp_baud == 0);}
         }
         Fl_Round_Button {btn_ifkpbaud[1]} {
@@ -5663,7 +5669,7 @@ btn_ifkpbaud[0]->value(0);
 btn_ifkpbaud[2]->value(0);
 }
 progdefaults.changed = true;}
-          tooltip default xywh {411 74 100 17} down_box ROUND_DOWN_BOX
+          tooltip default xywh {411 53 100 17} down_box ROUND_DOWN_BOX
           code0 {o->value(progdefaults.ifkp_baud == 1);}
         }
         Fl_Round_Button {btn_ifkpbaud[2]} {
@@ -5674,21 +5680,21 @@ btn_ifkpbaud[0]->value(0);
 btn_ifkpbaud[1]->value(0);
 }
 progdefaults.changed = true;}
-          xywh {519 74 100 17} down_box ROUND_DOWN_BOX
+          xywh {519 53 100 17} down_box ROUND_DOWN_BOX
           code0 {o->value(progdefaults.ifkp_baud == 2);}
         }
         Fl_Check_Button btn_ifkp_lowercase {
           label {MYCALL always lower case}
           callback {progdefaults.ifkp_lowercase=o->value();
 progdefaults.changed = true;}
-          tooltip {convert operator callsign to lower case} xywh {303 106 220 15} down_box DOWN_BOX
+          tooltip {convert operator callsign to lower case} xywh {303 82 220 15} down_box DOWN_BOX
           code0 {o->value(progdefaults.ifkp_lowercase);}
         }
         Fl_Check_Button btn_ifkp_lowercase_call {
           label {CALLSIGN always lower case}
           callback {progdefaults.ifkp_lowercase_call=o->value();
 progdefaults.changed = true;}
-          tooltip {convert other callsign to lower case} xywh {528 106 220 15} down_box DOWN_BOX
+          tooltip {convert other callsign to lower case} xywh {528 82 220 15} down_box DOWN_BOX
           code0 {o->value(progdefaults.ifkp_lowercase_call);}
         }
         Fl_Check_Button btn_ifkp_freqlock {
@@ -5698,25 +5704,25 @@ if (active_modem == ifkp_modem &&
   o->value() )
   active_modem->set_freq(1500);
 progdefaults.changed = true;}
-          tooltip {Always transmit at 1500 Hertz center freq.} xywh {303 136 220 15} down_box DOWN_BOX
+          tooltip {Always transmit at 1500 Hertz center freq.} xywh {303 109 220 15} down_box DOWN_BOX
           code0 {\#include "trx.h"}
           code1 {o->value(progdefaults.ifkp_freqlock);}
         }
       }
       Fl_Group {} {
         label Logging open
-        xywh {208 171 587 100} box ENGRAVED_BOX align 21
+        xywh {208 138 587 92} box ENGRAVED_BOX align 21
       } {
         Fl_Output txt_ifkp_audit_log {
           label {Audit log}
-          xywh {295 201 323 25}
+          xywh {295 164 323 25}
           code0 {o->value(progdefaults.ifkp_audit_log.c_str());}
         }
         Fl_Light_Button btn_enable_ifkp_audit_log {
           label Enable
           callback {progdefaults.ifkp_enable_audit_log = o->value();
 progdefaults.changed = true;}
-          xywh {632 201 73 25} selection_color 2
+          xywh {632 164 73 25} selection_color 2
           code0 {o->value(progdefaults.ifkp_enable_audit_log);}
         }
         Fl_Button btn_ifkp_select_auditlog {
@@ -5729,18 +5735,18 @@ if (!*fname) return;
 progdefaults.ifkp_audit_log = fl_filename_name(fname);
 txt_ifkp_audit_log->value(progdefaults.ifkp_audit_log.c_str());
 progdefaults.changed = true;}
-          xywh {713 201 70 25}
+          xywh {713 164 70 25}
         }
         Fl_Output txt_ifkp_heard_log {
           label {Heard log}
-          xywh {295 230 323 25}
+          xywh {295 193 323 25}
           code0 {o->value(progdefaults.ifkp_heard_log.c_str());}
         }
         Fl_Light_Button btn_enable_ifkp_heard_log {
           label Enable
           callback {progdefaults.ifkp_enable_heard_log = o->value();
 progdefaults.changed = true;}
-          xywh {632 230 73 25} selection_color 2
+          xywh {632 193 73 25} selection_color 2
           code0 {o->value(progdefaults.ifkp_enable_heard_log);}
         }
         Fl_Button btn_select_ifkp_heard_log {
@@ -5753,8 +5759,15 @@ if (!*fname) return;
 progdefaults.ifkp_heard_log = fl_filename_name(fname);
 txt_ifkp_heard_log->value(progdefaults.ifkp_heard_log.c_str());
 progdefaults.changed = true;}
-          xywh {713 230 70 25}
+          xywh {713 193 70 25}
         }
+      }
+      Fl_Box ifkp_image_box {
+        label {
+Operator avatar}
+        xywh {295 236 59 74} box FLAT_BOX color 56 align 2
+        code0 {init_def_ifkp_avatar(o);}
+        class Fl_Group
       }
     }
     Fl_Group {} {
@@ -7035,84 +7048,87 @@ WKFSK_init();} open
       }
     }
     Fl_Group {} {
-      label {Modem/Thor}
+      label {Modem/Thor} open
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/Thor"));}
       code1 {config_pages.push_back(p);}
       code2 {tab_tree->add(_("Modem/Thor"));}
     } {
-      Fl_Group {} {open
-        xywh {262 40 490 270} box ENGRAVED_FRAME
-      } {
-        Fl_Input txtTHORSecondary {
-          label {Secondary Text}
-          callback {progdefaults.THORsecText = o->value();
+      Fl_Input txtTHORSecondary {
+        label {Secondary Text}
+        callback {progdefaults.THORsecText = o->value();
 progdefaults.changed = true;}
-          tooltip {Text to send during keyboard idle times} xywh {291 67 430 40} type Multiline align 5 when 1
-          code0 {txtTHORSecondary->labelsize(FL_NORMAL_SIZE);}
-          class Fl_Input2
-        }
-        Fl_Check_Button valTHOR_FILTER {
-          label Filtering
-          callback {progdefaults.THOR_FILTER = o->value();
+        tooltip {Text to send during keyboard idle times} xywh {245 51 430 40} type Multiline align 5 when 1
+        code0 {txtTHORSecondary->labelsize(FL_NORMAL_SIZE);}
+        class Fl_Input2
+      }
+      Fl_Check_Button valTHOR_FILTER {
+        label Filtering
+        callback {progdefaults.THOR_FILTER = o->value();
 resetTHOR();
 progdefaults.changed = true;}
-          tooltip {Enable DSP prior to decoder} xywh {291 121 80 20} down_box DOWN_BOX value 1
-          code0 {o->value(progdefaults.THOR_FILTER);}
-        }
-        Fl_Counter valTHOR_BW {
-          label {Filter bandwidth factor}
-          callback {progdefaults.THOR_BW = o->value();
+        tooltip {Enable DSP prior to decoder} xywh {245 105 80 20} down_box DOWN_BOX value 1
+        code0 {o->value(progdefaults.THOR_FILTER);}
+      }
+      Fl_Counter valTHOR_BW {
+        label {Filter bandwidth factor}
+        callback {progdefaults.THOR_BW = o->value();
 resetTHOR();
 progdefaults.changed = true;}
-          tooltip {Filter bandwidth relative to signal width} xywh {436 121 63 20} type Simple align 8 minimum 1 maximum 2 value 1.5
-          code0 {o->value(progdefaults.THOR_BW);}
-          code1 {o->labelsize(FL_NORMAL_SIZE);}
-          class Fl_Counter2
-        }
-        Fl_Value_Slider valThorCWI {
-          label {CWI threshold}
-          callback {progdefaults.ThorCWI = o->value();
+        tooltip {Filter bandwidth relative to signal width} xywh {390 105 63 20} type Simple align 8 minimum 1 maximum 2 value 1.5
+        code0 {o->value(progdefaults.THOR_BW);}
+        code1 {o->labelsize(FL_NORMAL_SIZE);}
+        class Fl_Counter2
+      }
+      Fl_Value_Slider valThorCWI {
+        label {CWI threshold}
+        callback {progdefaults.ThorCWI = o->value();
 progdefaults.changed = true;}
-          tooltip {CWI detection and suppression} xywh {291 174 260 20} type Horizontal align 1 textsize 14
-          code0 {o->value(progdefaults.ThorCWI);}
-          code1 {o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);}
-          class Fl_Value_Slider2
-        }
-        Fl_Check_Button valTHOR_PREAMBLE {
-          label {Preamble Detection}
-          callback {progdefaults.THOR_PREAMBLE = o->value();
+        tooltip {CWI detection and suppression} xywh {245 158 260 20} type Horizontal align 1 textsize 14
+        code0 {o->value(progdefaults.ThorCWI);}
+        code1 {o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);}
+        class Fl_Value_Slider2
+      }
+      Fl_Check_Button valTHOR_PREAMBLE {
+        label {Preamble Detection}
+        callback {progdefaults.THOR_PREAMBLE = o->value();
 progdefaults.changed = true;}
-          tooltip {Detect the THOR preamble
-Clear the Rx pipeline} xywh {291 216 200 20} down_box DOWN_BOX
-          code0 {o->value(progdefaults.THOR_PREAMBLE);}
-        }
-        Fl_Check_Button valTHOR_SOFTSYMBOLS {
-          label {Soft-symbol decoding}
-          callback {progdefaults.THOR_SOFTSYMBOLS = o->value();
+        tooltip {Detect the THOR preamble
+Clear the Rx pipeline} xywh {245 200 200 20} down_box DOWN_BOX
+        code0 {o->value(progdefaults.THOR_PREAMBLE);}
+      }
+      Fl_Check_Button valTHOR_SOFTSYMBOLS {
+        label {Soft-symbol decoding}
+        callback {progdefaults.THOR_SOFTSYMBOLS = o->value();
 progdefaults.changed = true;}
-          tooltip {Use soft-decision decoding for symbol detection
-Assists soft-bit decoding} xywh {291 246 190 20} down_box DOWN_BOX
-          code0 {o->value(progdefaults.THOR_SOFTSYMBOLS);}
-        }
-        Fl_Check_Button valTHOR_SOFTBITS {
-          label {Soft-bit decoding}
-          callback {progdefaults.THOR_SOFTBITS = o->value();
+        tooltip {Use soft-decision decoding for symbol detection
+Assists soft-bit decoding} xywh {245 230 190 20} down_box DOWN_BOX
+        code0 {o->value(progdefaults.THOR_SOFTSYMBOLS);}
+      }
+      Fl_Check_Button valTHOR_SOFTBITS {
+        label {Soft-bit decoding}
+        callback {progdefaults.THOR_SOFTBITS = o->value();
 progdefaults.changed = true;}
-          tooltip {Use soft-bit viterbi decoding for better Forward Error Correction
-Works best with soft-symbol decoding enabled} xywh {291 276 170 20} down_box DOWN_BOX
-          code0 {o->value(progdefaults.THOR_SOFTBITS);}
-        }
-        Fl_Counter valTHOR_PATHS {
-          label {Paths (hidden)}
-          callback {progdefaults.THOR_PATHS = (int)o->value();
+        tooltip {Use soft-bit viterbi decoding for better Forward Error Correction
+Works best with soft-symbol decoding enabled} xywh {245 260 170 20} down_box DOWN_BOX
+        code0 {o->value(progdefaults.THOR_SOFTBITS);}
+      }
+      Fl_Counter valTHOR_PATHS {
+        label {Paths (hidden)}
+        callback {progdefaults.THOR_PATHS = (int)o->value();
 progdefaults.changed = true;}
-          xywh {638 265 75 21} type Simple align 1 minimum 4 maximum 8 step 1 value 5
-          code0 {o->value(progdefaults.THOR_PATHS);}
-          code1 {o->labelsize(FL_NORMAL_SIZE);}
-          code2 {o->hide();}
-          class Fl_Counter2
-        }
+        xywh {255 314 75 21} type Simple align 1 minimum 4 maximum 8 step 1 value 5
+        code0 {o->value(progdefaults.THOR_PATHS);}
+        code1 {o->labelsize(FL_NORMAL_SIZE);}
+        code2 {o->hide();}
+        class Fl_Counter2
+      }
+      Fl_Box thor_image_box {
+        label {
+Operator Avatar} selected
+        xywh {616 158 59 74} box FLAT_BOX color 0 align 2
+        code0 {init_def_thor_avatar(o);}
+        class Fl_Group
       }
     }
     Fl_Group {} {

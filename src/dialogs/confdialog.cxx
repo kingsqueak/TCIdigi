@@ -28,8 +28,9 @@
 #include "macroedit.h"
 #include "fileselect.h"
 #include "psm/psm.h"
+#include "thor.h"
+#include "ifkp.h"
 #include "dx_cluster.h"
-#include "network.h"
 extern void WefaxDestDirSet(Fl_File_Chooser *w, void *userdata);
 #include "dx_dialog.h"
 #if USE_HAMLIB
@@ -2509,15 +2510,7 @@ progdefaults.changed = true;
 Fl_Input2 *txt_cloudlog_api_url=(Fl_Input2 *)0;
 
 static void cb_txt_cloudlog_api_url(Fl_Input2* o, void*) {
-  std::string url;
-  url = o->value();
-  if (url[url.length()-1] == '/') {
-    url = url.substr(0, url.length()-1);
-  }
-  if (url.find("/index.php/api/qso") != std::string::npos) {
-    url.erase(url.find("/index.php/api/qso"), 18);
-  }
-  progdefaults.cloudlog_api_url = url;
+  progdefaults.cloudlog_api_url = o->value();
 progdefaults.changed = true;
 }
 
@@ -2538,19 +2531,9 @@ progdefaults.changed = true;
 Fl_Button *btnTestApiKey=(Fl_Button *)0;
 
 static void cb_btnTestApiKey(Fl_Button* o, void*) {
-  std::string url;
-  std::string apiKey;
-  url = txt_cloudlog_api_url->value();
-  apiKey = txt_cloudlog_api_key->value();
-  if (url.empty() || apiKey.empty()) {
-    btnTestApiKey->labelcolor(FL_RED);
-    return;
-  }
-  if (test_api_key(url.c_str(), apiKey.c_str(), 5.0)) {
-    btnTestApiKey->labelcolor(FL_GREEN);
-  } else {
-    btnTestApiKey->labelcolor(FL_RED);
-  }
+  progdefaults.initInterface();
+        o->labelcolor(FL_FOREGROUND_COLOR);
+progdefaults.changed = true;
 }
 
 Fl_Check_Button *btnNagMe=(Fl_Check_Button *)0;
@@ -4567,6 +4550,8 @@ txt_ifkp_heard_log->value(progdefaults.ifkp_heard_log.c_str());
 progdefaults.changed = true;
 }
 
+Fl_Group *ifkp_image_box=(Fl_Group *)0;
+
 Fl_Check_Button *btnMT63_8bit=(Fl_Check_Button *)0;
 
 static void cb_btnMT63_8bit(Fl_Check_Button* o, void*) {
@@ -5575,6 +5560,8 @@ static void cb_valTHOR_PATHS(Fl_Counter2* o, void*) {
   progdefaults.THOR_PATHS = (int)o->value();
 progdefaults.changed = true;
 }
+
+Fl_Group *thor_image_box=(Fl_Group *)0;
 
 Fl_Check_Button *btnNvtxAdifLog=(Fl_Check_Button *)0;
 
@@ -9651,7 +9638,6 @@ static void cb_btnSaveConfig(Fl_Button*, void*) {
 Fl_Return_Button *btnCloseConfig=(Fl_Return_Button *)0;
 
 static void cb_btnCloseConfig(Fl_Return_Button*, void*) {
-  btnTestApiKey->labelcolor(FL_FOREGROUND_COLOR);
   closeDialog();
 }
 
@@ -11509,7 +11495,7 @@ work!"));
         sp_cloudlog_station_id->callback((Fl_Callback*)cb_sp_cloudlog_station_id);
         o->value(progdefaults.cloudlog_station_id);
       } // Fl_Spinner* sp_cloudlog_station_id
-      { btnTestApiKey = new Fl_Button(676, 313, 100, 24, _("Test API Key"));
+      { btnTestApiKey = new Fl_Button(696, 313, 80, 24, _("Initialize"));
         btnTestApiKey->tooltip(_("Test API Key"));
         btnTestApiKey->callback((Fl_Callback*)cb_btnTestApiKey);
       } // Fl_Button* btnTestApiKey
@@ -13880,38 +13866,38 @@ ver a +/- 10 WPM range.  Calibration/Test is 1 minute of\n\'PARIS \'."));
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
-      { Fl_Group* o = new Fl_Group(208, 46, 587, 120, _("Tx Parameters"));
+      { Fl_Group* o = new Fl_Group(208, 25, 587, 110, _("Tx Parameters"));
         o->box(FL_ENGRAVED_BOX);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { Fl_Round_Button* o = btn_ifkpbaud[0] = new Fl_Round_Button(303, 74, 100, 17, _("1/2 speed"));
+        { Fl_Round_Button* o = btn_ifkpbaud[0] = new Fl_Round_Button(303, 53, 100, 17, _("1/2 speed"));
           btn_ifkpbaud[0]->down_box(FL_ROUND_DOWN_BOX);
           btn_ifkpbaud[0]->callback((Fl_Callback*)cb_btn_ifkpbaud);
           o->value(progdefaults.ifkp_baud == 0);
         } // Fl_Round_Button* btn_ifkpbaud[0]
-        { Fl_Round_Button* o = btn_ifkpbaud[1] = new Fl_Round_Button(411, 74, 100, 17, _("1x speed"));
+        { Fl_Round_Button* o = btn_ifkpbaud[1] = new Fl_Round_Button(411, 53, 100, 17, _("1x speed"));
           btn_ifkpbaud[1]->tooltip(_("default"));
           btn_ifkpbaud[1]->down_box(FL_ROUND_DOWN_BOX);
           btn_ifkpbaud[1]->callback((Fl_Callback*)cb_btn_ifkpbaud1);
           o->value(progdefaults.ifkp_baud == 1);
         } // Fl_Round_Button* btn_ifkpbaud[1]
-        { Fl_Round_Button* o = btn_ifkpbaud[2] = new Fl_Round_Button(519, 74, 100, 17, _("2x speed"));
+        { Fl_Round_Button* o = btn_ifkpbaud[2] = new Fl_Round_Button(519, 53, 100, 17, _("2x speed"));
           btn_ifkpbaud[2]->down_box(FL_ROUND_DOWN_BOX);
           btn_ifkpbaud[2]->callback((Fl_Callback*)cb_btn_ifkpbaud2);
           o->value(progdefaults.ifkp_baud == 2);
         } // Fl_Round_Button* btn_ifkpbaud[2]
-        { Fl_Check_Button* o = btn_ifkp_lowercase = new Fl_Check_Button(303, 106, 220, 15, _("MYCALL always lower case"));
+        { Fl_Check_Button* o = btn_ifkp_lowercase = new Fl_Check_Button(303, 82, 220, 15, _("MYCALL always lower case"));
           btn_ifkp_lowercase->tooltip(_("convert operator callsign to lower case"));
           btn_ifkp_lowercase->down_box(FL_DOWN_BOX);
           btn_ifkp_lowercase->callback((Fl_Callback*)cb_btn_ifkp_lowercase);
           o->value(progdefaults.ifkp_lowercase);
         } // Fl_Check_Button* btn_ifkp_lowercase
-        { Fl_Check_Button* o = btn_ifkp_lowercase_call = new Fl_Check_Button(528, 106, 220, 15, _("CALLSIGN always lower case"));
+        { Fl_Check_Button* o = btn_ifkp_lowercase_call = new Fl_Check_Button(528, 82, 220, 15, _("CALLSIGN always lower case"));
           btn_ifkp_lowercase_call->tooltip(_("convert other callsign to lower case"));
           btn_ifkp_lowercase_call->down_box(FL_DOWN_BOX);
           btn_ifkp_lowercase_call->callback((Fl_Callback*)cb_btn_ifkp_lowercase_call);
           o->value(progdefaults.ifkp_lowercase_call);
         } // Fl_Check_Button* btn_ifkp_lowercase_call
-        { Fl_Check_Button* o = btn_ifkp_freqlock = new Fl_Check_Button(303, 136, 220, 15, _("lock WF at 1500 Hz"));
+        { Fl_Check_Button* o = btn_ifkp_freqlock = new Fl_Check_Button(303, 109, 220, 15, _("lock WF at 1500 Hz"));
           btn_ifkp_freqlock->tooltip(_("Always transmit at 1500 Hertz center freq."));
           btn_ifkp_freqlock->down_box(FL_DOWN_BOX);
           btn_ifkp_freqlock->callback((Fl_Callback*)cb_btn_ifkp_freqlock);
@@ -13919,33 +13905,45 @@ ver a +/- 10 WPM range.  Calibration/Test is 1 minute of\n\'PARIS \'."));
         } // Fl_Check_Button* btn_ifkp_freqlock
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(208, 171, 587, 100, _("Logging"));
+      { Fl_Group* o = new Fl_Group(208, 138, 587, 92, _("Logging"));
         o->box(FL_ENGRAVED_BOX);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { Fl_Output* o = txt_ifkp_audit_log = new Fl_Output(295, 201, 323, 25, _("Audit log"));
+        { Fl_Output* o = txt_ifkp_audit_log = new Fl_Output(295, 164, 323, 25, _("Audit log"));
           o->value(progdefaults.ifkp_audit_log.c_str());
         } // Fl_Output* txt_ifkp_audit_log
-        { Fl_Light_Button* o = btn_enable_ifkp_audit_log = new Fl_Light_Button(632, 201, 73, 25, _("Enable"));
+        { Fl_Light_Button* o = btn_enable_ifkp_audit_log = new Fl_Light_Button(632, 164, 73, 25, _("Enable"));
           btn_enable_ifkp_audit_log->selection_color((Fl_Color)2);
           btn_enable_ifkp_audit_log->callback((Fl_Callback*)cb_btn_enable_ifkp_audit_log);
           o->value(progdefaults.ifkp_enable_audit_log);
         } // Fl_Light_Button* btn_enable_ifkp_audit_log
-        { btn_ifkp_select_auditlog = new Fl_Button(713, 201, 70, 25, _("Select"));
+        { btn_ifkp_select_auditlog = new Fl_Button(713, 164, 70, 25, _("Select"));
           btn_ifkp_select_auditlog->callback((Fl_Callback*)cb_btn_ifkp_select_auditlog);
         } // Fl_Button* btn_ifkp_select_auditlog
-        { Fl_Output* o = txt_ifkp_heard_log = new Fl_Output(295, 230, 323, 25, _("Heard log"));
+        { Fl_Output* o = txt_ifkp_heard_log = new Fl_Output(295, 193, 323, 25, _("Heard log"));
           o->value(progdefaults.ifkp_heard_log.c_str());
         } // Fl_Output* txt_ifkp_heard_log
-        { Fl_Light_Button* o = btn_enable_ifkp_heard_log = new Fl_Light_Button(632, 230, 73, 25, _("Enable"));
+        { Fl_Light_Button* o = btn_enable_ifkp_heard_log = new Fl_Light_Button(632, 193, 73, 25, _("Enable"));
           btn_enable_ifkp_heard_log->selection_color((Fl_Color)2);
           btn_enable_ifkp_heard_log->callback((Fl_Callback*)cb_btn_enable_ifkp_heard_log);
           o->value(progdefaults.ifkp_enable_heard_log);
         } // Fl_Light_Button* btn_enable_ifkp_heard_log
-        { btn_select_ifkp_heard_log = new Fl_Button(713, 230, 70, 25, _("Select"));
+        { btn_select_ifkp_heard_log = new Fl_Button(713, 193, 70, 25, _("Select"));
           btn_select_ifkp_heard_log->callback((Fl_Callback*)cb_btn_select_ifkp_heard_log);
         } // Fl_Button* btn_select_ifkp_heard_log
         o->end();
       } // Fl_Group* o
+      { Fl_Group* o = ifkp_image_box = new Fl_Group(295, 236, 59, 74, _("\nOperator avatar"));
+        ifkp_image_box->box(FL_FLAT_BOX);
+        ifkp_image_box->color(FL_BLACK);
+        ifkp_image_box->selection_color(FL_BACKGROUND_COLOR);
+        ifkp_image_box->labeltype(FL_NORMAL_LABEL);
+        ifkp_image_box->labelfont(0);
+        ifkp_image_box->labelsize(14);
+        ifkp_image_box->labelcolor(FL_FOREGROUND_COLOR);
+        ifkp_image_box->align(Fl_Align(FL_ALIGN_BOTTOM));
+        ifkp_image_box->when(FL_WHEN_RELEASE);
+        init_def_ifkp_avatar(o);
+      } // Fl_Group* ifkp_image_box
       CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/IFKP"));
       config_pages.push_back(p);
       tab_tree->add(_("Modem/IFKP"));
@@ -15391,107 +15389,115 @@ le Earth)"));
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
-      { Fl_Group* o = new Fl_Group(262, 40, 490, 270);
-        o->box(FL_ENGRAVED_FRAME);
-        { txtTHORSecondary = new Fl_Input2(291, 67, 430, 40, _("Secondary Text"));
-          txtTHORSecondary->tooltip(_("Text to send during keyboard idle times"));
-          txtTHORSecondary->type(4);
-          txtTHORSecondary->box(FL_DOWN_BOX);
-          txtTHORSecondary->color(FL_BACKGROUND2_COLOR);
-          txtTHORSecondary->selection_color(FL_SELECTION_COLOR);
-          txtTHORSecondary->labeltype(FL_NORMAL_LABEL);
-          txtTHORSecondary->labelfont(0);
-          txtTHORSecondary->labelsize(14);
-          txtTHORSecondary->labelcolor(FL_FOREGROUND_COLOR);
-          txtTHORSecondary->callback((Fl_Callback*)cb_txtTHORSecondary);
-          txtTHORSecondary->align(Fl_Align(FL_ALIGN_TOP_LEFT));
-          txtTHORSecondary->when(FL_WHEN_CHANGED);
-          txtTHORSecondary->labelsize(FL_NORMAL_SIZE);
-        } // Fl_Input2* txtTHORSecondary
-        { Fl_Check_Button* o = valTHOR_FILTER = new Fl_Check_Button(291, 121, 80, 20, _("Filtering"));
-          valTHOR_FILTER->tooltip(_("Enable DSP prior to decoder"));
-          valTHOR_FILTER->down_box(FL_DOWN_BOX);
-          valTHOR_FILTER->value(1);
-          valTHOR_FILTER->callback((Fl_Callback*)cb_valTHOR_FILTER);
-          o->value(progdefaults.THOR_FILTER);
-        } // Fl_Check_Button* valTHOR_FILTER
-        { Fl_Counter2* o = valTHOR_BW = new Fl_Counter2(436, 121, 63, 20, _("Filter bandwidth factor"));
-          valTHOR_BW->tooltip(_("Filter bandwidth relative to signal width"));
-          valTHOR_BW->type(1);
-          valTHOR_BW->box(FL_UP_BOX);
-          valTHOR_BW->color(FL_BACKGROUND_COLOR);
-          valTHOR_BW->selection_color(FL_INACTIVE_COLOR);
-          valTHOR_BW->labeltype(FL_NORMAL_LABEL);
-          valTHOR_BW->labelfont(0);
-          valTHOR_BW->labelsize(14);
-          valTHOR_BW->labelcolor(FL_FOREGROUND_COLOR);
-          valTHOR_BW->minimum(1);
-          valTHOR_BW->maximum(2);
-          valTHOR_BW->value(1.5);
-          valTHOR_BW->callback((Fl_Callback*)cb_valTHOR_BW);
-          valTHOR_BW->align(Fl_Align(FL_ALIGN_RIGHT));
-          valTHOR_BW->when(FL_WHEN_CHANGED);
-          o->value(progdefaults.THOR_BW);
-          o->labelsize(FL_NORMAL_SIZE);
-        } // Fl_Counter2* valTHOR_BW
-        { Fl_Value_Slider2* o = valThorCWI = new Fl_Value_Slider2(291, 174, 260, 20, _("CWI threshold"));
-          valThorCWI->tooltip(_("CWI detection and suppression"));
-          valThorCWI->type(1);
-          valThorCWI->box(FL_DOWN_BOX);
-          valThorCWI->color(FL_BACKGROUND_COLOR);
-          valThorCWI->selection_color(FL_BACKGROUND_COLOR);
-          valThorCWI->labeltype(FL_NORMAL_LABEL);
-          valThorCWI->labelfont(0);
-          valThorCWI->labelsize(14);
-          valThorCWI->labelcolor(FL_FOREGROUND_COLOR);
-          valThorCWI->textsize(14);
-          valThorCWI->callback((Fl_Callback*)cb_valThorCWI);
-          valThorCWI->align(Fl_Align(FL_ALIGN_TOP));
-          valThorCWI->when(FL_WHEN_CHANGED);
-          o->value(progdefaults.ThorCWI);
-          o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);
-        } // Fl_Value_Slider2* valThorCWI
-        { Fl_Check_Button* o = valTHOR_PREAMBLE = new Fl_Check_Button(291, 216, 200, 20, _("Preamble Detection"));
-          valTHOR_PREAMBLE->tooltip(_("Detect the THOR preamble\nClear the Rx pipeline"));
-          valTHOR_PREAMBLE->down_box(FL_DOWN_BOX);
-          valTHOR_PREAMBLE->callback((Fl_Callback*)cb_valTHOR_PREAMBLE);
-          o->value(progdefaults.THOR_PREAMBLE);
-        } // Fl_Check_Button* valTHOR_PREAMBLE
-        { Fl_Check_Button* o = valTHOR_SOFTSYMBOLS = new Fl_Check_Button(291, 246, 190, 20, _("Soft-symbol decoding"));
-          valTHOR_SOFTSYMBOLS->tooltip(_("Use soft-decision decoding for symbol detection\nAssists soft-bit decoding"));
-          valTHOR_SOFTSYMBOLS->down_box(FL_DOWN_BOX);
-          valTHOR_SOFTSYMBOLS->callback((Fl_Callback*)cb_valTHOR_SOFTSYMBOLS);
-          o->value(progdefaults.THOR_SOFTSYMBOLS);
-        } // Fl_Check_Button* valTHOR_SOFTSYMBOLS
-        { Fl_Check_Button* o = valTHOR_SOFTBITS = new Fl_Check_Button(291, 276, 170, 20, _("Soft-bit decoding"));
-          valTHOR_SOFTBITS->tooltip(_("Use soft-bit viterbi decoding for better Forward Error Correction\nWorks best\
+      { txtTHORSecondary = new Fl_Input2(245, 51, 430, 40, _("Secondary Text"));
+        txtTHORSecondary->tooltip(_("Text to send during keyboard idle times"));
+        txtTHORSecondary->type(4);
+        txtTHORSecondary->box(FL_DOWN_BOX);
+        txtTHORSecondary->color(FL_BACKGROUND2_COLOR);
+        txtTHORSecondary->selection_color(FL_SELECTION_COLOR);
+        txtTHORSecondary->labeltype(FL_NORMAL_LABEL);
+        txtTHORSecondary->labelfont(0);
+        txtTHORSecondary->labelsize(14);
+        txtTHORSecondary->labelcolor(FL_FOREGROUND_COLOR);
+        txtTHORSecondary->callback((Fl_Callback*)cb_txtTHORSecondary);
+        txtTHORSecondary->align(Fl_Align(FL_ALIGN_TOP_LEFT));
+        txtTHORSecondary->when(FL_WHEN_CHANGED);
+        txtTHORSecondary->labelsize(FL_NORMAL_SIZE);
+      } // Fl_Input2* txtTHORSecondary
+      { Fl_Check_Button* o = valTHOR_FILTER = new Fl_Check_Button(245, 105, 80, 20, _("Filtering"));
+        valTHOR_FILTER->tooltip(_("Enable DSP prior to decoder"));
+        valTHOR_FILTER->down_box(FL_DOWN_BOX);
+        valTHOR_FILTER->value(1);
+        valTHOR_FILTER->callback((Fl_Callback*)cb_valTHOR_FILTER);
+        o->value(progdefaults.THOR_FILTER);
+      } // Fl_Check_Button* valTHOR_FILTER
+      { Fl_Counter2* o = valTHOR_BW = new Fl_Counter2(390, 105, 63, 20, _("Filter bandwidth factor"));
+        valTHOR_BW->tooltip(_("Filter bandwidth relative to signal width"));
+        valTHOR_BW->type(1);
+        valTHOR_BW->box(FL_UP_BOX);
+        valTHOR_BW->color(FL_BACKGROUND_COLOR);
+        valTHOR_BW->selection_color(FL_INACTIVE_COLOR);
+        valTHOR_BW->labeltype(FL_NORMAL_LABEL);
+        valTHOR_BW->labelfont(0);
+        valTHOR_BW->labelsize(14);
+        valTHOR_BW->labelcolor(FL_FOREGROUND_COLOR);
+        valTHOR_BW->minimum(1);
+        valTHOR_BW->maximum(2);
+        valTHOR_BW->value(1.5);
+        valTHOR_BW->callback((Fl_Callback*)cb_valTHOR_BW);
+        valTHOR_BW->align(Fl_Align(FL_ALIGN_RIGHT));
+        valTHOR_BW->when(FL_WHEN_CHANGED);
+        o->value(progdefaults.THOR_BW);
+        o->labelsize(FL_NORMAL_SIZE);
+      } // Fl_Counter2* valTHOR_BW
+      { Fl_Value_Slider2* o = valThorCWI = new Fl_Value_Slider2(245, 158, 260, 20, _("CWI threshold"));
+        valThorCWI->tooltip(_("CWI detection and suppression"));
+        valThorCWI->type(1);
+        valThorCWI->box(FL_DOWN_BOX);
+        valThorCWI->color(FL_BACKGROUND_COLOR);
+        valThorCWI->selection_color(FL_BACKGROUND_COLOR);
+        valThorCWI->labeltype(FL_NORMAL_LABEL);
+        valThorCWI->labelfont(0);
+        valThorCWI->labelsize(14);
+        valThorCWI->labelcolor(FL_FOREGROUND_COLOR);
+        valThorCWI->textsize(14);
+        valThorCWI->callback((Fl_Callback*)cb_valThorCWI);
+        valThorCWI->align(Fl_Align(FL_ALIGN_TOP));
+        valThorCWI->when(FL_WHEN_CHANGED);
+        o->value(progdefaults.ThorCWI);
+        o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);
+      } // Fl_Value_Slider2* valThorCWI
+      { Fl_Check_Button* o = valTHOR_PREAMBLE = new Fl_Check_Button(245, 200, 200, 20, _("Preamble Detection"));
+        valTHOR_PREAMBLE->tooltip(_("Detect the THOR preamble\nClear the Rx pipeline"));
+        valTHOR_PREAMBLE->down_box(FL_DOWN_BOX);
+        valTHOR_PREAMBLE->callback((Fl_Callback*)cb_valTHOR_PREAMBLE);
+        o->value(progdefaults.THOR_PREAMBLE);
+      } // Fl_Check_Button* valTHOR_PREAMBLE
+      { Fl_Check_Button* o = valTHOR_SOFTSYMBOLS = new Fl_Check_Button(245, 230, 190, 20, _("Soft-symbol decoding"));
+        valTHOR_SOFTSYMBOLS->tooltip(_("Use soft-decision decoding for symbol detection\nAssists soft-bit decoding"));
+        valTHOR_SOFTSYMBOLS->down_box(FL_DOWN_BOX);
+        valTHOR_SOFTSYMBOLS->callback((Fl_Callback*)cb_valTHOR_SOFTSYMBOLS);
+        o->value(progdefaults.THOR_SOFTSYMBOLS);
+      } // Fl_Check_Button* valTHOR_SOFTSYMBOLS
+      { Fl_Check_Button* o = valTHOR_SOFTBITS = new Fl_Check_Button(245, 260, 170, 20, _("Soft-bit decoding"));
+        valTHOR_SOFTBITS->tooltip(_("Use soft-bit viterbi decoding for better Forward Error Correction\nWorks best\
  with soft-symbol decoding enabled"));
-          valTHOR_SOFTBITS->down_box(FL_DOWN_BOX);
-          valTHOR_SOFTBITS->callback((Fl_Callback*)cb_valTHOR_SOFTBITS);
-          o->value(progdefaults.THOR_SOFTBITS);
-        } // Fl_Check_Button* valTHOR_SOFTBITS
-        { Fl_Counter2* o = valTHOR_PATHS = new Fl_Counter2(638, 265, 75, 21, _("Paths (hidden)"));
-          valTHOR_PATHS->type(1);
-          valTHOR_PATHS->box(FL_UP_BOX);
-          valTHOR_PATHS->color(FL_BACKGROUND_COLOR);
-          valTHOR_PATHS->selection_color(FL_INACTIVE_COLOR);
-          valTHOR_PATHS->labeltype(FL_NORMAL_LABEL);
-          valTHOR_PATHS->labelfont(0);
-          valTHOR_PATHS->labelsize(14);
-          valTHOR_PATHS->labelcolor(FL_FOREGROUND_COLOR);
-          valTHOR_PATHS->minimum(4);
-          valTHOR_PATHS->maximum(8);
-          valTHOR_PATHS->step(1);
-          valTHOR_PATHS->value(5);
-          valTHOR_PATHS->callback((Fl_Callback*)cb_valTHOR_PATHS);
-          valTHOR_PATHS->align(Fl_Align(FL_ALIGN_TOP));
-          valTHOR_PATHS->when(FL_WHEN_CHANGED);
-          o->value(progdefaults.THOR_PATHS);
-          o->labelsize(FL_NORMAL_SIZE);
-          o->hide();
-        } // Fl_Counter2* valTHOR_PATHS
-        o->end();
-      } // Fl_Group* o
+        valTHOR_SOFTBITS->down_box(FL_DOWN_BOX);
+        valTHOR_SOFTBITS->callback((Fl_Callback*)cb_valTHOR_SOFTBITS);
+        o->value(progdefaults.THOR_SOFTBITS);
+      } // Fl_Check_Button* valTHOR_SOFTBITS
+      { Fl_Counter2* o = valTHOR_PATHS = new Fl_Counter2(255, 314, 75, 21, _("Paths (hidden)"));
+        valTHOR_PATHS->type(1);
+        valTHOR_PATHS->box(FL_UP_BOX);
+        valTHOR_PATHS->color(FL_BACKGROUND_COLOR);
+        valTHOR_PATHS->selection_color(FL_INACTIVE_COLOR);
+        valTHOR_PATHS->labeltype(FL_NORMAL_LABEL);
+        valTHOR_PATHS->labelfont(0);
+        valTHOR_PATHS->labelsize(14);
+        valTHOR_PATHS->labelcolor(FL_FOREGROUND_COLOR);
+        valTHOR_PATHS->minimum(4);
+        valTHOR_PATHS->maximum(8);
+        valTHOR_PATHS->step(1);
+        valTHOR_PATHS->value(5);
+        valTHOR_PATHS->callback((Fl_Callback*)cb_valTHOR_PATHS);
+        valTHOR_PATHS->align(Fl_Align(FL_ALIGN_TOP));
+        valTHOR_PATHS->when(FL_WHEN_CHANGED);
+        o->value(progdefaults.THOR_PATHS);
+        o->labelsize(FL_NORMAL_SIZE);
+        o->hide();
+      } // Fl_Counter2* valTHOR_PATHS
+      { Fl_Group* o = thor_image_box = new Fl_Group(616, 158, 59, 74, _("\nOperator Avatar"));
+        thor_image_box->box(FL_FLAT_BOX);
+        thor_image_box->color(FL_FOREGROUND_COLOR);
+        thor_image_box->selection_color(FL_BACKGROUND_COLOR);
+        thor_image_box->labeltype(FL_NORMAL_LABEL);
+        thor_image_box->labelfont(0);
+        thor_image_box->labelsize(14);
+        thor_image_box->labelcolor(FL_FOREGROUND_COLOR);
+        thor_image_box->align(Fl_Align(FL_ALIGN_BOTTOM));
+        thor_image_box->when(FL_WHEN_RELEASE);
+        init_def_thor_avatar(o);
+      } // Fl_Group* thor_image_box
       CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/Thor"));
       config_pages.push_back(p);
       tab_tree->add(_("Modem/Thor"));

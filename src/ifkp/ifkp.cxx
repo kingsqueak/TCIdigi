@@ -872,38 +872,178 @@ void ifkp::ifkp_send_avatar() {
 	start_tx();
 }
 
+static picture *def_ifkp_avatar = (picture *)0; 
+
+void load_default_ifkp_image(std::string fname, int W, int H)
+{
+	static Fl_Shared_Image	*shared_image = (Fl_Shared_Image *)0;
+	static unsigned char *image_array = (unsigned char *)0;
+	int D = 0;
+	unsigned char *img_data;
+
+	shared_image = Fl_Shared_Image::get(fname.c_str(), W, H);
+
+	if (!shared_image) {
+		def_ifkp_avatar->video(tux_img, W * H * 3);
+		return;
+	}
+
+// force image to be retrieved from hard drive vice shared image memory
+	shared_image->reload(); 
+
+	if (shared_image->count() > 1) {
+		shared_image->release();
+		shared_image = 0;
+		def_ifkp_avatar->video(tux_img, W * H * 3);
+		return;
+	}
+
+	img_data = (unsigned char *)shared_image->data()[0];
+
+	D = shared_image->d();
+
+	if (image_array) delete [] image_array;
+
+	image_array = new unsigned char [W * H * 3];
+	if (D == 3)
+		memcpy(image_array, img_data, W*H*3);
+	else if (D == 4) {
+		int i, j, k;
+		for (i = 0; i < W*H; i++) {
+			j = i*3; k = i*4;
+			image_array[j] = img_data[k];
+			image_array[j+1] = img_data[k+1];
+			image_array[j+2] = img_data[k+2];
+		}
+	} else if (D == 1) {
+		int i, j;
+		for (i = 0; i < W*H; i++) {
+			j = i * 3;
+			image_array[j] = image_array[j+1] = image_array[j+2] = img_data[i];
+		}
+	} else {
+		def_ifkp_avatar->video(tux_img, W * H * 3);
+		return;
+	}
+	def_ifkp_avatar->video(image_array, W * H * 3);
+
+	shared_image->release();
+	shared_image = 0;
+
+	return;
+}
+
+void select_ifkp_avatar(Fl_Widget *w, void *d)
+{
+	const char *p = FSEL::select(
+			_("Select operator avatar image"), "Avatar\t*.{gif,jpg,jpeg,png}\n", AvatarDir.c_str());
+
+	if (!p || !*p) return;
+
+	std::string avatar_file;
+	avatar_file.assign(p);
+
+	load_default_ifkp_image(avatar_file, 59, 74);
+
+	progdefaults.ifkp_avatar_image_file = avatar_file;
+}
+
+void init_def_ifkp_avatar(Fl_Group *w)
+{
+	if (def_ifkp_avatar == (picture *)0) {
+		def_ifkp_avatar = new picture(w->x(), w->y(), w->w(), w->h());
+		def_ifkp_avatar->noslant();
+		def_ifkp_avatar->callback(select_ifkp_avatar);
+		def_ifkp_avatar->tooltip(_("Select operator avatar"));
+		w->add(def_ifkp_avatar);
+	}
+	def_ifkp_avatar->show();
+
+	int W = w->w();
+	int H = w->h();
+
+	std::string image_fname = progdefaults.ifkp_avatar_image_file;
+
+	if (image_fname.empty()) {
+		image_fname = progdefaults.operCall;
+		if (image_fname.empty()) {
+			image_fname = progdefaults.myCall;
+			if (image_fname.empty()) {
+				def_ifkp_avatar->video(tux_img, W * H * 3);
+				return;
+			}
+		}
+	}
+
+	if (image_fname.find(".gif") == std::string::npos &&
+		image_fname.find(".png") == std::string::npos &&
+		image_fname.find(".PNG") == std::string::npos &&
+		image_fname.find(".jp") == std::string::npos &&  // jpg, jpeg
+		image_fname.find(".JP") == std::string::npos ) { // JPG, JPEG
+
+		for (size_t n = 0; n < image_fname.length(); n++)
+			image_fname[n] = tolower(image_fname[n]);
+		std::string fname = AvatarDir;
+		fname.append(image_fname).append(".png");
+	}
+
+	load_default_ifkp_image(image_fname, 59, 74);
+}
+
 void ifkp::m_ifkp_send_avatar()
 {
-	std::string mycall = progdefaults.myCall;
-	for (size_t n = 0; n < mycall.length(); n++)
-		mycall[n] = tolower(mycall[n]);
-	std::string fname = AvatarDir;
-	fname.append(mycall).append(".png");
+	std::string image_fname = progdefaults.ifkp_avatar_image_file;
 
-	my_avatar_img = Fl_Shared_Image::get(fname.c_str(), 59, 74);
-	if (!my_avatar_img) return;
+	if (image_fname.empty()) {
+		image_fname = progdefaults.operCall;
+		if (image_fname.empty()) {
+			image_fname = progdefaults.myCall;
+			if (image_fname.empty()) {
+				def_ifkp_avatar->video(tux_img, 59 * 74 * 3);
+				return;
+			}
+		}
+	}
+
+	if (image_fname.find(".gif") == std::string::npos &&
+		image_fname.find(".png") == std::string::npos &&
+		image_fname.find(".PNG") == std::string::npos &&
+		image_fname.find(".jp") == std::string::npos &&  // jpg, jpeg
+		image_fname.find(".JP") == std::string::npos ) { // JPG, JPEG
+
+		for (size_t n = 0; n < image_fname.length(); n++)
+			image_fname[n] = tolower(image_fname[n]);
+		std::string fname = AvatarDir;
+		fname.append(image_fname).append(".png");
+	}
+
+	my_avatar_img = Fl_Shared_Image::get(image_fname.c_str(), 59, 74);
+	if (!my_avatar_img) {
+		return;
+	}
 	unsigned char *img_data = (unsigned char *)my_avatar_img->data()[0];
 	memset(avatar, 0, sizeof(avatar));
 	int D = my_avatar_img->d();
 
 	if (D == 3)
-		memcpy(avatar, img_data, 59*74*3);
+		memcpy(avatar, img_data, 59 * 74 * 3);
 	else if (D == 4) {
 		int i, j, k;
-		for (i = 0; i < 59*74; i++) {
-			j = i*3; k = i*4;
+		for (i = 0; i < 59 * 74; i++) {
+			j = i * 3; k = i * 4;
 			avatar[j] = img_data[k];
 			avatar[j+1] = img_data[k+1];
 			avatar[j+2] = img_data[k+2];
 		}
 	} else if (D == 1) {
 		int i, j;
-		for (i = 0; i < 59*74; i++) {
+		for (i = 0; i < 59 * 74; i++) {
 			j = i * 3;
 			avatar[j] = avatar[j+1] = avatar[j+2] = img_data[i];
 		}
-	} else
+	} else {
 		return;
+	}
 
 	ifkp_send_avatar();
 }
@@ -929,11 +1069,14 @@ int ifkp::tx_process()
 		img_str.clear();
 
 		if (TX_IMAGE) {
+			stopflag = false;
 			send_image();
 			ifkppicTxWin->hide();
 		}
-		if (TX_AVATAR)
+		if (TX_AVATAR) {
+			stopflag = false;
 			send_avatar();
+		}
 
 		send_char(0);
 

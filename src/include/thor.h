@@ -256,4 +256,6 @@ public:
 
 };
 
+extern void init_def_thor_avatar(Fl_Group *w);
+
 #endif
