@@ -665,5 +665,9 @@ int Fl_ComboBox::find_index(const char *str)
 void Fl_ComboBox::position(int n)
 {
 	if (type_ != LISTBOX)
+#if FLDIGI_FLTK_API_MINOR < 4
 		val->position(n, n);
+#else
+		val->Fl_Widget::position(n, n);
+#endif
 }

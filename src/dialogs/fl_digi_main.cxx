@@ -1100,10 +1100,14 @@ void create_fl_digi_main_primary() {
 				Logging_frame_1->end();
 }
 {  // NFtabs groups // Logging frame 2
+
 				int nfx = rightof(Logging_frame_1) + pad;
 				int nfy = Logging_frame_1->y();
 				int nfw = W - nfx - pad - 59 - pad;
 				int nfh = Logging_frame_1->h();
+
+				NFtabs_group = new Fl_Group(nfx, nfy, nfw, nfh, "");
+				NFtabs_group->box(FL_FLAT_BOX);
 
 				NFtabs = new Fl_Tabs(nfx, nfy, nfw, nfh, "");
 
@@ -1139,6 +1143,10 @@ void create_fl_digi_main_primary() {
 					NotesFrame->end();
 
 				NFtabs->end();
+
+				NFtabs_group->end();
+				NFtabs_group->show();
+
 } 
 // NFtabs end
 
@@ -2888,8 +2896,7 @@ Logging_frame->resizable(NFtabs);
 		Y += Hmacros;
 }
 { // Waterfall group
-		wf_group = new Fl_Pack(0, Y, W, Hwfall);
-			wf_group->type(1);
+		wf_group = new Fl_Group(0, Y, W, Hwfall);
 
 			wf = new waterfall(0, Y, Wwfall, Hwfall);
 			wf->end();
@@ -2912,7 +2919,6 @@ Logging_frame->resizable(NFtabs);
 			sldrSquelch->callback((Fl_Callback*)cb_sldrSquelch);
 			sldrSquelch->color(FL_INACTIVE_COLOR);
 			sldrSquelch->tooltip(_("Squelch level"));
-//				Fl_Group::current()->resizable(wf);
 		wf_group->end();
 		wf_group->resizable(wf);
 }
