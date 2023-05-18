@@ -974,7 +974,6 @@ int main (int argc, char *argv[])
 		}
 	}
 
-	set_unexpected(handle_unexpected);
 	set_terminate(diediedie);
 	setup_signal_handlers();
 

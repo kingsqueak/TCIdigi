@@ -1806,7 +1806,6 @@ int main (int argc, char *argv[] )
 {
 	sscanf(VERSION, "%f", &version);
 
-	std::set_unexpected(handle_unexpected);
 	std::set_terminate(diediedie);
 	setup_signal_handlers();
 

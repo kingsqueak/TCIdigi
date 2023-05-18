@@ -163,12 +163,6 @@ void pstack_maybe(void)
 #endif
 }
 
-void handle_unexpected(void)
-{
-        std::cerr << "Uncaught exception. Not again!\n";
-        abort();
-}
-
 // this may not give us anything useful, but we can try...
 void handle_signal(int s)
 {
