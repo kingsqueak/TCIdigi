@@ -727,9 +727,7 @@ void parse_callook(std::string& xmlpage)
 bool CALLOOKGetXML(std::string& xmlpage)
 {
 	std::string url = progdefaults.callookurl;
-	size_t p = 0;
-	if ((p = url.find("https")) != std::string::npos)
-		url.erase(p+4,1);
+
 	url.append(callsign).append("/xml");
 	bool res = get_http(url, xmlpage, 5.0);
 	LOG_VERBOSE("result = %d", res);
