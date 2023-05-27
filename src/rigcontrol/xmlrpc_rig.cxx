@@ -657,7 +657,7 @@ void flrig_get_bw()
 pthread_mutex_t mutex_flrig_bws = PTHREAD_MUTEX_INITIALIZER;
 void xmlrpc_rig_post_bws(void *)
 {
-	if (!qso_opBW) return;
+	if (!qso_opBW || !qso_opBW1 || !qso_opBW2) return;
 
 	int nargs;
 
