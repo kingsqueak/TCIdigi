@@ -38,6 +38,7 @@
 #endif
 
 enum savetype {ADIF, CSV, TEXT, LOTW, LO};
+enum sorttype {NONE, SORTCALL, SORTDATE, SORTFREQ, SORTMODE};
 
 enum logtype {
   LOG_QSO, 			// No Contest

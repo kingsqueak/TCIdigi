@@ -2665,7 +2665,7 @@ public:
 		for (size_t n = 0; n < bws.size(); n++)
 			sbws.append("\n").append(std::string(bws[n]));
 
-		LOG_INFO("[%s] rig.get_modes:%s",
+		LOG_INFO("[%s] rig.get_bandwidths:%s",
 			XmlRpc::client_id.c_str(),
 			sbws.c_str());
 

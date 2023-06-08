@@ -763,8 +763,36 @@ void makeEQSL(const char *message)
 {
 	cQsoRec *rec;
 	if (qsodb.nbrRecs() <= 0) return;
+
+	bool rev = progStatus.logbook_reverse;
+
+	qsodb.reverse = false;
+	qsodb.SortByDate(progdefaults.sort_date_time_off);
+
 	rec = qsodb.getRec(qsodb.nbrRecs() - 1); // last record
 	submit_eQSL(*rec, message);
+
+	extern sorttype lastsort;
+	switch (lastsort) {
+		case SORTCALL :
+			cQsoDb::reverse = rev;
+			qsodb.SortByCall();
+			break;
+		case SORTDATE :
+			cQsoDb::reverse = rev;
+			qsodb.SortByDate(progdefaults.sort_date_time_off);
+			break;
+		case SORTFREQ :
+			cQsoDb::reverse = rev;
+			qsodb.SortByFreq();
+			break;
+		case SORTMODE :
+			cQsoDb::reverse = rev;
+			qsodb.SortByMode();
+			break;
+		default: break;
+	}
+
 }
 
 void submit_cloudlog(cQsoRec &rec)

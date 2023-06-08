@@ -46,6 +46,7 @@
 #include "adif_io.h"
 #include "textio.h"
 #include "logbook.h"
+#include "logsupport.h"
 #include "rigsupport.h"
 #include "fd_logger.h"
 
@@ -80,7 +81,6 @@ cTextFile	txtFile;
 
 std::string		logbook_filename;
 
-enum sorttype {NONE, SORTCALL, SORTDATE, SORTFREQ, SORTMODE};
 sorttype lastsort = SORTDATE;
 bool callfwd = true;
 bool modefwd = true;
