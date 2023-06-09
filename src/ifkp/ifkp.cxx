@@ -126,7 +126,7 @@ ifkp::ifkp(trx_mode md) : modem()
 
 	mode = md;
 	fft = new g_fft<double>(IFKP_FFTSIZE);
-	snfilt = new Cmovavg(64);
+	snfilt = new Cmovavg(32);
 	movavg_size = 4;
 	for (int i = 0; i < IFKP_NUMBINS; i++) binfilt[i] = new Cmovavg(movavg_size);
 	txphase = 0;
@@ -479,6 +479,8 @@ void ifkp::process_symbol(int sym)
 	prev_symbol = symbol;
 }
 
+int no_signal = 0;
+
 void ifkp::process_tones()
 {
 	max = 0;
@@ -488,44 +490,21 @@ void ifkp::process_tones()
 	peak = IFKP_NUMBINS / 2;
 
 	int firstbin = frequency * IFKP_SYMLEN / samplerate - IFKP_NUMBINS / 2;
-
 	double sigval = 0;
-
-	double mins[3];
 	double min = 3.0e8;
-	double temp;
 
-	mins[0] = mins[1] = mins[2] = 1.0e8;
 	for (int i = 0; i < IFKP_NUMBINS; ++i) {
 		val = norm(fft_data[i + firstbin]);
-// looking for maximum signal
+// search for minimum and maximum signalx
 		tones[i] = binfilt[i]->run(val);
 		if (tones[i] > max) {
 			max = tones[i];
 			peak = i;
 		}
-// looking for minimum signal in a 3 bin sequence
-		mins[2] = tones[i];
-		temp = mins[0] + mins[1] + mins[2];
-		mins[0] = mins[1];
-		mins[1] = mins[2];
-		if (temp < min) min = temp;
+		if (tones[i] < min) {
+			min = tones[i];
+		}
 	}
-
-	sigval = tones[peak-1] + tones[peak] + tones[peak+1];
-	if (min == 0) min = 1e-10;
-
-	s2n = 10 * log10( snfilt->run(sigval/min)) - 36.0;
-
-//scale to -25 to +45 db range
-// -25 -> 0 linear
-// 0 - > 45 compressed by 2
-
-	if (s2n <= 0) metric = 2 * (25 + s2n);
-	if (s2n > 0) metric = 50 * ( 1 + s2n / 45);
-	metric = clamp(metric, 0, 100);
-
-	display_metric(metric);
 
 	if (peak == prev_peak) {
 		peak_counter++;
@@ -534,12 +513,38 @@ void ifkp::process_tones()
 	}
 
 	if ((peak_counter >= peak_hits) &&
-		(peak != last_peak) &&
-		(metric >= progStatus.sldrSquelchValue ||
-		 progStatus.sqlonoff == false)) {
-		process_symbol(peak);
+		(peak != last_peak)) {
+		sigval = (tones[peak-1] + tones[peak] + tones[peak+1]);
+		if (min == 0) min = max / 1000;
+		if (min > 0 && max > 0) {
+			s2n = 20 * log10( snfilt->run(sigval/min));
+			s2n -= 64;
+			s2n *= 40;
+			s2n /= 75;
+			s2n -= 20;
+		} else
+			s2n = -25;
+
+//scale to -25 to +45 db range
+// -25 -> 0 linear
+// 0 - > 45 compressed by 2
+
+		if (s2n <= 0) metric = 2 * (25 + s2n);
+		if (s2n > 0) metric = 50 * ( 1 + s2n / 45);
+			metric = clamp(metric, 0, 100);
+
+		display_metric(metric);
+
+		if (metric >= progStatus.sldrSquelchValue ||
+			progStatus.sqlonoff == false) { //) {
+			process_symbol(peak);
+		}
 		peak_counter = 0;
 		last_peak = peak;
+		no_signal = 0;
+	} else if (++no_signal > 128) { // reset the filter and zero the s/n display
+		snfilt->reset();
+		display_metric(0);
 	}
 
 	prev_peak = peak;
