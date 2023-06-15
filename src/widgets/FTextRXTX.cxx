@@ -2244,6 +2244,17 @@ int FTextTX::handle_key(int key)
 			break;
 		// fall through to (un)pause for M-r or A-r
 
+	case 'p': // same as Pause/Break key
+		if (Fl::event_state() & FL_CTRL) {
+			if (trx_state != STATE_TX) {
+				start_tx();
+			} else {
+				PauseBreak = true;
+			}
+			return 1;
+		}
+		break;
+
 	case FL_Pause:
 		if (trx_state != STATE_TX) {
 			start_tx();
@@ -2251,18 +2262,22 @@ int FTextTX::handle_key(int key)
 		else
 			PauseBreak = true;
 		return 1;
+
 	case (FL_KP + '+'):
 		if (active_modem == cw_modem)
 			active_modem->incWPM();
 		return 1;
+
 	case (FL_KP + '-'):
 		if (active_modem == cw_modem)
 			active_modem->decWPM();
 		return 1;
+
 	case (FL_KP + '*'):
 		if (active_modem == cw_modem)
 			active_modem->toggleWPM();
 		return 1;
+
 	case FL_Tab:
 		if (active_modem == fsq_modem) return 1;
 		// In non-CW modes: Tab and Ctrl-tab both pause until user moves the
@@ -2288,6 +2303,7 @@ int FTextTX::handle_key(int key)
 		}
 		return 1;
 	// Move cursor, or search up/down with the Meta/Alt modifiers
+
 	case FL_Left:
 		if (Fl::event_state() & (FL_META | FL_ALT)) {
 			if (active_modem == fsq_modem) return 1;
@@ -2295,6 +2311,7 @@ int FTextTX::handle_key(int key)
 			return 1;
 		}
 		return 0;
+
 	case FL_Right:
 		if (Fl::event_state() & (FL_META | FL_ALT)) {
 			if (active_modem == fsq_modem) return 1;
@@ -2303,6 +2320,7 @@ int FTextTX::handle_key(int key)
 		}
 		return 0;
 		// queue a BS and decr. the txpos, unless the cursor is in the tx text
+
 	case FL_BackSpace:
 	{
 		int ipos = insert_position();
