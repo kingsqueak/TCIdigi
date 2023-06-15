@@ -352,6 +352,7 @@ void submit_ADIF(cQsoRec &rec)
 	putadif(SRX, rec.getField(SRX));
 	putadif(XCHG1, rec.getField(XCHG1));
 	putadif(MYXCHG, rec.getField(MYXCHG));
+	putadif(TEN_TEN, rec.getField(TEN_TEN));
 	notes = rec.getField(NOTES);
 	for (size_t i = 0; i < notes.length(); i++)
 	    if (notes[i] == '\n') notes[i] = ';';
