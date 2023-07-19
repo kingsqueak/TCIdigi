@@ -1,7 +1,10 @@
-2023-03-14  dave-w1hkj  <w1hkj@bellsouth.net>
+2023-05-15  dave-w1hkj  <w1hkj@bellsouth.net>
 
-	1ac0d07ab: Version 4.1.26
-	ff11160bd: Audio Monitor
+	f12de9caa: Version 4.1.27
+	1787a8a29: named avatar image file
+	c0f7d2ccd: Set contest start nbr XMLRPC
+	fcc16248d: Version 4.1.26
+	6365bb193: Audio Monitor Segmentation Fault
 	3c32f3fb4: musl file conflict
 
 2023-03-10  Florian Wolters  <github@florian-wolters.de>
