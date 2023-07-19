@@ -2148,7 +2148,7 @@ static void pPAUSE(std::string &s, size_t &i, size_t endbracket)
 		substitute(s, i, endbracket, "");
 		return;
 	}
-	substitute(s, i, endbracket, "");
+	substitute(s, i, endbracket, "^p");
 }
 
 static void pRX(std::string &s, size_t &i, size_t endbracket)
