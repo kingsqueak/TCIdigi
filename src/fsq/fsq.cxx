@@ -168,7 +168,7 @@ fsq::fsq(trx_mode md) : modem()
 	mode = md;
 	samplerate = SR;
 	fft = new g_fft<double>(FFTSIZE);
-	snfilt = new Cmovavg(32);
+	snfilt = new Cmovavg(SQLFILT_SIZE);
 
 	noisefilt = new Cmovavg(32);
 	sigfilt = new Cmovavg(8);
@@ -1113,33 +1113,56 @@ void fsq::process_symbol(int sym)
 // 908 Hz and 1351 Hz respectively for original center frequency of 1145 Hz
 // 1280 to 1720 for a 1500 Hz center frequency
 
-static int no_signal = 0;
-
 void fsq::process_tones()
 {
 	max = 0;
-	peak = 0;
-
-	max = 0;
 	peak = NUMBINS / 2;
 
+// examine FFT bin contents over bandwidth +/- ~ 50 Hz
 	int firstbin = frequency * FSQ_SYMLEN / samplerate - NUMBINS / 2;
+
 	double sigval = 0;
+
 	double min = 3.0e8;
+    int minbin = NUMBINS / 2;
 
 	for (int i = 0; i < NUMBINS; ++i) {
 		val = norm(fft_data[i + firstbin]);
-// search for minimum and maximum signalx
+// looking for maximum signal
 		tones[i] = binfilt[i]->run(val);
 		if (tones[i] > max) {
 			max = tones[i];
 			peak = i;
 		}
-		if (tones[i] < min) {
-			min = tones[i];
-		}
+// looking for minimum signal in a 3 bin sequence
+        if (tones[i] < min) {
+            min = tones[i];
+            minbin = i;
+        }
 	}
 
+	sigval = tones[(peak-1) < 0 ? (NUMBINS - 1) : (peak - 1)] + 
+             tones[peak] + 
+             tones[(peak+1) == NUMBINS ? 0 : (peak + 1)];
+
+	min = tones[(minbin-1) < 0 ? (NUMBINS - 1) : (minbin - 1)] + 
+          tones[minbin] + 
+          tones[(minbin+1) == NUMBINS ? 0 : (minbin + 1)];
+
+	if (min == 0) min = 1e-10;
+
+	s2n = 10 * log10( snfilt->run(sigval/min)) - 34.0 + movavg_size / 4;
+
+	if (s2n <= 0) metric = 2 * (25 + s2n);
+	if (s2n > 0) metric = 50 * ( 1 + s2n / 45);
+	metric = clamp(metric, 0, 100);
+
+	display_metric(metric);
+
+	if (metric < progStatus.sldrSquelchValue && ch_sqlch_open)
+		ch_sqlch_open = false;
+
+// requires consecutive hits
 	if (peak == prev_peak) {
 		peak_counter++;
 	} else {
@@ -1147,43 +1170,11 @@ void fsq::process_tones()
 	}
 
 	if ((peak_counter >= peak_hits) &&
-		(peak != last_peak)) {
-		sigval = (tones[peak-1] + tones[peak] + tones[peak+1]);
-		if (min == 0) min = max / 1000;
-		if (min > 0 && max > 0) {
-			s2n = 20 * log10( snfilt->run(sigval/min));
-			s2n -= 64;
-			s2n *= 40;
-			s2n /= 75;
-			s2n -= 14;
-		} else
-			s2n = -25;
-std::cout << "s/n: " << s2n << std::endl;
-
-//scale to -25 to +45 db range
-// -25 -> 0 linear
-// 0 - > 45 compressed by 2
-
-		if (s2n <= 0) metric = 2 * (25 + s2n);
-		if (s2n > 0) metric = 50 * ( 1 + s2n / 45);
-			metric = clamp(metric, 0, 100);
-
-		display_metric(metric);
-
-		if (metric < progStatus.sldrSquelchValue && ch_sqlch_open)
-			ch_sqlch_open = false;
-
-		if (metric >= progStatus.sldrSquelchValue ||
-			progStatus.sqlonoff == false) { //) {
-			process_symbol(peak);
-		}
+		(peak != last_peak) &&
+		(fsq_squelch_open() || !progStatus.sqlonoff)) {
+		process_symbol(peak);
 		peak_counter = 0;
 		last_peak = peak;
-		no_signal = 0;
-	} else if (++no_signal > 128) { // reset the filter and zero the s/n display
-		snfilt->reset();
-		display_metric(0);
-		ch_sqlch_open = false;
 	}
 
 	prev_peak = peak;
