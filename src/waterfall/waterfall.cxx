@@ -102,15 +102,14 @@
 
 extern modem *active_modem;
 
-static	RGB RGByellow	= {254,254,0};
-//static	RGB RGBgreen	= {0,254,0};
-//static	RGB RGBdkgreen	= {0,128,0};
-//static	RGB RGBblue		= {0,0,255};
-static	RGB RGBred		= {254,0,0};
-//static	RGB RGBwhite	= {254,254,254};
-//static	RGB RGBblack	= {0,0,0};
-//static RGB RGBmagenta = {196,0,196};
+static RGB RGByellow  = {254,254,0};
+//static RGB RGBgreen   = {0,254,0};
+//static RGB RGBdkgreen = {0,128,0};
+//static RGB RGBblue    = {0,0,255};
+static RGB RGBred     = {254,0,0};
+static RGB RGBwhite   = {254,254,254};
 //static RGB RGBblack   = {0,0,0};
+//static RGB RGBmagenta = {196,0,196};
 
 // RGBI is a structure consisting of the values RED, GREEN, BLUE, INTENSITY
 // each value can range from 0 (extinguished) to 255 (full on)
@@ -396,9 +395,9 @@ void WFdisp::makeMarker()
 
 	for (int y = 0; y < WFMARKER - 2; y++) {
 		int incr = y * scale_width;
-		int msize = (WFMARKER - 2 - y)*RGBsize*step/4;
-		for (int m = -step; m < step; m++)
-			*(clrM + incr + m) = RGBcursor;
+		int msize = (y + 1) * RGBsize * step / 4;
+		for (int i = -msize; i <= msize; i++)
+			*(clrM + i + incr) = RGBwhite;
 
 		if (xp - (bw_lo + msize) > 0)
 			for (int i = bw_lo - msize; i <= bw_lo + msize; i++)
@@ -1028,19 +1027,15 @@ void WFdisp::drawScale() {
 void WFdisp::drawMarker() {
 	if (mode == SCOPE) return;
 	int msize = RGBsize * scale_width;
-	int psize = scale_width * WFMARKER;
 	uchar *pixmap = (uchar *)(markerimage + (int)(offset));
 	uchar map[msize];
 	memset(map, 0, sizeof(map));
 	int y1 = y() + WFSCALE + WFTEXT;
 	for (int yp = 0; yp < WFMARKER; yp++) {
 		for (int xp = 0; xp < scale_width; xp++) {
-			if ((RGBsize * xp + 2 < msize) && 
-				(RGBsize * (yp * scale_width + xp * step + 2) < psize)) {
-				map[RGBsize * xp] = pixmap[RGBsize * (yp * scale_width + xp * step)];
-				map[RGBsize * xp + 1] = pixmap[RGBsize * (yp * scale_width + xp * step) + 1];
-				map[RGBsize * xp + 2] = pixmap[RGBsize * (yp * scale_width + xp * step) + 2];
-			}
+			map[RGBsize * xp] = pixmap[RGBsize * (yp * scale_width + xp * step)];
+			map[RGBsize * xp + 1] = pixmap[RGBsize * (yp * scale_width + xp * step) + 1];
+			map[RGBsize * xp + 2] = pixmap[RGBsize * (yp * scale_width + xp * step) + 2];
 		}
 		fl_draw_image((const uchar *)map, x(), y1 + yp, w(), 1, RGBsize, 0);
 	}
