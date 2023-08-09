@@ -477,6 +477,10 @@ extern modem *thor8_modem;
 extern modem *thor11_modem;
 extern modem *thor16_modem;
 extern modem *thor22_modem;
+
+extern modem *thor32_modem;
+extern modem *thor44_modem;
+
 extern modem *thor25x4_modem;
 extern modem *thor50x1_modem;
 extern modem *thor50x2_modem;

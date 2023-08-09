@@ -236,6 +236,13 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 		samplerate = 11025;
 		break;
 
+	case MODE_THOR44:
+		cap |= CAP_IMG;
+		symlen = 256;
+		doublespaced = 1;
+		samplerate = 11025;
+		break;
+
 // 8kHz modes
 	case MODE_THORMICRO:
 		symlen = 4000; 
@@ -286,6 +293,13 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 		samplerate = 8000;
 		idepth = 50; // 0.5 sec interleave
 		flushlength = 40;
+		break;
+
+	case MODE_THOR32:
+		cap |= CAP_IMG;
+		symlen = 256;
+		doublespaced = 1;
+		samplerate = 8000;
 		break;
 
 	case MODE_THOR16:
