@@ -200,6 +200,7 @@ const struct mode_info_t mode_info[NUM_MODES] = {
 
 {MODE_THOR32,&thor32_modem,"THOR32","THOR 32","THOR32","THOR32","THOR","","TH32", ARQ_IO | KISS_IO },
 {MODE_THOR44,&thor44_modem,"THOR44","THOR 44","THOR44","THOR44","THOR","","TH44", ARQ_IO | KISS_IO },
+{MODE_THOR56,&thor56_modem,"THOR56","THOR 56","THOR56","THOR56","THOR","","TH56", ARQ_IO | KISS_IO },
 
 {MODE_THOR25x4,&thor25x4_modem,"THOR25x4","THOR 25 x4","THOR25x4","THOR-25X4","THOR","","TH25", ARQ_IO | KISS_IO },
 {MODE_THOR50x1,&thor50x1_modem,"THOR50x1","THOR 50 x1","THOR50x1","THOR-50X1","THOR","","TH51", ARQ_IO | KISS_IO },

@@ -981,6 +981,7 @@ static const Fl_Menu_Item quick_change_thor[] = {
 
 	{ mode_info[MODE_THOR32].name, 0, cb_init_mode, (void *)MODE_THOR32 },
 	{ mode_info[MODE_THOR44].name, 0, cb_init_mode, (void *)MODE_THOR44 },
+	{ mode_info[MODE_THOR56].name, 0, cb_init_mode, (void *)MODE_THOR56 },
 
 	{ mode_info[MODE_THOR25x4].name, 0, cb_init_mode, (void *)MODE_THOR25x4 },
 	{ mode_info[MODE_THOR50x1].name, 0, cb_init_mode, (void *)MODE_THOR50x1 },
@@ -1528,7 +1529,7 @@ void set_mode_controls(trx_mode id)
 				ifkp_load_avatar(inpCall->value());
 			else
 				ifkp_load_avatar();
-		} else if ( ((id >= MODE_THOR11) && (id <= MODE_THOR44))) {
+		} else if ( ((id >= MODE_THOR11) && (id <= MODE_THOR56))) {
 			thor_avatar->resize(fl_digi_main->w() - 59 - pad, NFtabs_group->y(), 59, 74);
 			ifkp_avatar->resize(fl_digi_main->w() - pad - 1, NFtabs_group->y(), 1, 74);
 			NFtabs_group->resize(
@@ -1813,7 +1814,7 @@ void init_modem(trx_mode mode, int freq)
 
 	case MODE_THORMICRO: case MODE_THOR4: case MODE_THOR5: case MODE_THOR8:
 	case MODE_THOR11:case MODE_THOR16: case MODE_THOR22:
-	case MODE_THOR32: case MODE_THOR44:
+	case MODE_THOR32: case MODE_THOR44: case MODE_THOR56:
 	case MODE_THOR25x4: case MODE_THOR50x1: case MODE_THOR50x2: case MODE_THOR100:
 		startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
 				  *mode_info[mode].modem = new thor(mode), freq);
@@ -2369,7 +2370,7 @@ void cb_mnuConfigModems(Fl_Menu_*, void*) {
 			break;
 		case MODE_THORMICRO: case MODE_THOR4: case MODE_THOR5: case MODE_THOR8:
 		case MODE_THOR11: case MODE_THOR16: case MODE_THOR22:
-		case MODE_THOR32: case MODE_THOR44:
+		case MODE_THOR32: case MODE_THOR44: case MODE_THOR56:
 		case MODE_THOR25x4: case MODE_THOR50x1: case MODE_THOR50x2: case MODE_THOR100:
 			open_config(TAB_THOR);
 			break;
@@ -3724,7 +3725,7 @@ if (bWF_only) return;
 		ifkp_load_avatar(inpCall->value());
 
 	if (active_modem->get_mode() >= MODE_THOR11 &&
-		active_modem->get_mode() <= MODE_THOR44)
+		active_modem->get_mode() <= MODE_THOR56)
 		thor_load_avatar(inpCall->value());
 
 	const struct dxcc* e = dxcc_lookup(inpCall->value());
@@ -4139,7 +4140,7 @@ void qsoClear_cb(Fl_Widget *b, void *)
 	if (active_modem->get_mode() == MODE_IFKP)
 		ifkp_clear_avatar();
 	if (active_modem->get_mode() >= MODE_THOR11 &&
-		active_modem->get_mode() <= MODE_THOR44)
+		active_modem->get_mode() <= MODE_THOR56)
 		thor_clear_avatar();
 	qsodb.isdirty(0);
 }
@@ -6153,6 +6154,7 @@ static Fl_Menu_Item menu_[] = {
 
 { mode_info[MODE_THOR32].name, 0, cb_init_mode, (void *)MODE_THOR32, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR44].name, 0, cb_init_mode, (void *)MODE_THOR44, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_THOR56].name, 0, cb_init_mode, (void *)MODE_THOR56, 0, FL_NORMAL_LABEL, 0, 14, 0},
 
 { mode_info[MODE_THOR25x4].name, 0,  cb_init_mode, (void *)MODE_THOR25x4, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR50x1].name, 0,  cb_init_mode, (void *)MODE_THOR50x1, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -7792,6 +7794,7 @@ static Fl_Menu_Item alt_menu_[] = {
 
 { mode_info[MODE_THOR32].name, 0, cb_init_mode, (void *)MODE_THOR32, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR44].name, 0, cb_init_mode, (void *)MODE_THOR44, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_THOR56].name, 0, cb_init_mode, (void *)MODE_THOR56, 0, FL_NORMAL_LABEL, 0, 14, 0},
 
 { mode_info[MODE_THOR25x4].name, 0,  cb_init_mode, (void *)MODE_THOR25x4, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR50x1].name, 0,  cb_init_mode, (void *)MODE_THOR50x1, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -9398,7 +9401,7 @@ void resetTHOR() {
 	if (md == MODE_THORMICRO || md == MODE_THOR4 || md == MODE_THOR5 || md == MODE_THOR8 ||
 		md == MODE_THOR11 ||
 		md == MODE_THOR16 || md == MODE_THOR22 ||
-		md == MODE_THOR32 || md == MODE_THOR44 ||
+		md == MODE_THOR32 || md == MODE_THOR44 || md == MODE_THOR56 ||
 		md == MODE_THOR25x4 || md == MODE_THOR50x1 ||
 		md == MODE_THOR50x2 || md == MODE_THOR100 )
 		trx_start_modem(active_modem);

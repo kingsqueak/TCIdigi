@@ -480,6 +480,7 @@ extern modem *thor22_modem;
 
 extern modem *thor32_modem;
 extern modem *thor44_modem;
+extern modem *thor56_modem;
 
 extern modem *thor25x4_modem;
 extern modem *thor50x1_modem;

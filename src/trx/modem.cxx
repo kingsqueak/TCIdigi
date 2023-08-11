@@ -217,6 +217,7 @@ modem *thor16_modem = 0;
 modem *thor22_modem = 0;
 modem *thor32_modem = 0;
 modem *thor44_modem = 0;
+modem *thor56_modem = 0;
 modem *thor25x4_modem = 0;
 modem *thor50x1_modem = 0;
 modem *thor50x2_modem = 0;

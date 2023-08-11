@@ -302,6 +302,17 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 		samplerate = 8000;
 		break;
 
+// 16000 samplerate modes
+
+	case MODE_THOR56:
+		cap |= CAP_IMG;
+		symlen = 290;
+		doublespaced = 1;
+		samplerate = 16000;
+		break;
+
+// default mode
+
 	case MODE_THOR16:
 	default:
 		cap |= CAP_IMG;
