@@ -7623,8 +7623,9 @@ progdefaults.changed = true;
 
 Fl_ComboBox *inpTTYdev=(Fl_ComboBox *)0;
 
-static void cb_inpTTYdev(Fl_ComboBox*, void*) {
-  btnInitHWPTT->labelcolor(FL_RED);
+static void cb_inpTTYdev(Fl_ComboBox* o, void*) {
+  progdefaults.PTTdev = o->value();
+btnInitHWPTT->labelcolor(FL_RED);
 btnInitHWPTT->redraw();
 progdefaults.changed = true;
 }
@@ -17887,6 +17888,7 @@ i.e. localhost"));
           inpTTYdev->align(Fl_Align(FL_ALIGN_TOP_LEFT));
           inpTTYdev->when(FL_WHEN_RELEASE);
           o->labelsize(FL_NORMAL_SIZE);
+          o->value(progdefaults.PTTdev.c_str());
           inpTTYdev->end();
         } // Fl_ComboBox* inpTTYdev
         { Fl_Round_Button* o = btnSCU_17 = new Fl_Round_Button(459, 94, 236, 20, _("Port is second SCU-17 device"));

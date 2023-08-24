@@ -232,7 +232,8 @@ void Cserial::SetPTT(bool b)
 		LOG_DEBUG("Status %02X, %s", status & 0xFF, uint2bin(status, 8));
 		ioctl(fd, TIOCMSET, &status);
 	}
-	LOG_DEBUG("No PTT specified");
+//	LOG_DEBUG("No PTT specified");
+	LOG_INFO("No PTT specified");
 }
 
 ///////////////////////////////////////////////////////
@@ -365,6 +366,7 @@ void Cserial::FlushBuffer()
 // Return type		: BOOL
 // Argument		 : CString strPortName
 ///////////////////////////////////////////////////////
+
 BOOL Cserial::OpenPort()
 {
 	std::string COMportname = "//./";
@@ -372,17 +374,21 @@ BOOL Cserial::OpenPort()
 	tty_to_com(device);
 	COMportname += device;
 
-	hComm = CreateFile(COMportname.c_str(),
-			  GENERIC_READ | GENERIC_WRITE,
-			  0,
-			  0,
-			  OPEN_EXISTING,
-			  0,
-			  0);
+	hComm = CreateFile(
+				COMportname.c_str(),			// lpFileName
+				GENERIC_READ | GENERIC_WRITE,	// dwDesiredAccess
+				0,								// dwSharedMode
+				0,								// lpSecurityAttributes
+				OPEN_EXISTING,					// dwCreationDisposition
+				0,								// dwFlagAndAttributes
+				0);								// hTemplateFile
+
+	if (HCOMM_DEBUG)
+		LOG_INFO("Open COM port %s, handle = %p", device.c_str(), hComm);
 
 	if(hComm == INVALID_HANDLE_VALUE) {
 		errno = GetLastError();
-		LOG_PERROR(win_error_string(errno).c_str());
+		LOG_ERROR("%s", win_error_string(errno).c_str());
 		return FALSE;
 	}
 
@@ -390,10 +396,9 @@ BOOL Cserial::OpenPort()
 		errno = GetLastError();
 		CloseHandle(hComm);
 		hComm = INVALID_HANDLE_VALUE;
-		LOG_PERROR(win_error_string(errno).c_str());
+		LOG_ERROR("%s", win_error_string(errno).c_str());
 		return FALSE;
 	}
-	LOG_INFO("COM port %s opened, handle = %p", device.c_str(), hComm);
 
 	FlushBuffer();
 
@@ -409,10 +414,12 @@ BOOL Cserial::OpenPort()
 
 void Cserial::ClosePort()
 {
+	if (HCOMM_DEBUG)
+		LOG_INFO("Close port, handle = %p", hComm);
+
 	if (hComm == INVALID_HANDLE_VALUE)
 		return;
-	if (HCOMM_DEBUG)
-		LOG_INFO("Closing COM port, handle = %p", hComm);
+
 	if (restore_tio) {
 		if (HCOMM_DEBUG)
 			LOG_INFO("Closing COM port#1, handle = %p", hComm);
@@ -429,7 +436,7 @@ void Cserial::ClosePort()
 			LOG_INFO("Closing COM port#4, handle = %p", hComm);
 	}
 	if (HCOMM_DEBUG)
-		LOG_INFO("Closing COM port#5, handle = %p", hComm);
+		LOG_INFO("COM, handle = %p closed", hComm);
 
 	hComm = INVALID_HANDLE_VALUE;
 	return;
@@ -441,19 +448,33 @@ int  Cserial::ReadData (unsigned char *buf, int nchars)
 		return 0;
 
 	DWORD dwRead = 0;
-	if (ReadFile(hComm, buf, nchars, &dwRead, NULL))
+	int numread = ReadFile(hComm, buf, nchars, &dwRead, NULL);
+
+	if (HCOMM_DEBUG)
+		LOG_INFO("Read %ld bytes from handle %p", dwRead, hComm);
+
+	if (numread)
 		return static_cast<int>(dwRead);
+
 	if (dwRead == 0) return 0;
 
-	errno = GetLastError();
-	LOG_PERROR(win_error_string(errno).c_str());
+	if (HCOMM_DEBUG) {
+		errno = GetLastError();
+		LOG_ERROR(win_error_string(errno).c_str());
+	}
+
 	return 0;
 }
 
 BOOL Cserial::ReadByte(unsigned char & by)
 {
-static	BYTE byResByte[2];
-	if (ReadData(byResByte, 1) == 1) {
+	static	BYTE byResByte[2];
+	int got_one = ReadData(byResByte, 1);
+
+	if (HCOMM_DEBUG)
+		LOG_INFO("Read %d byte on handle %p", got_one, hComm);
+
+	if (got_one == 1) {
 		by = byResByte[0];
 		return true;
 	}
@@ -514,7 +535,7 @@ int Cserial::WriteBuffer(unsigned char *buff, int n)
 // Argument		 : DWORD ReadIntervalTimeout
 // Argument		 : DWORD ReadTotalTimeoutMultiplier
 // Argument		 : DWORD ReadTotalTimeoutConstant
-// Argument		 : DWORD WriteTotalTimeoutMultiplier
+// Argument		 : DWORD WriteTotalTimeoutMultiplierCOMM
 // Argument		 : DWORD WriteTotalTimeoutConstant
 ///////////////////////////////////////////////////////
 BOOL Cserial::SetCommunicationTimeouts(
@@ -531,7 +552,8 @@ BOOL Cserial::SetCommunicationTimeouts(
 	CommTimeouts.WriteTotalTimeoutConstant = WriteTotalTimeoutConstant;
 	CommTimeouts.WriteTotalTimeoutMultiplier = WriteTotalTimeoutMultiplier;
 
-	LOG_DEBUG("\n\
+//	LOG_DEBUG("\n
+	LOG_INFO("\n\
 Read Interval Timeout............... %8ld %8ld\n\
 Read Total Timeout Multiplier....... %8ld %8ld\n\
 Read Total Timeout Constant Timeout. %8ld %8ld\n\
@@ -644,15 +666,20 @@ BOOL Cserial::SetCommTimeout() {
 // Argument		 : BYTE  Parity
 // Argument		 : BYTE StopBits
 ///////////////////////////////////////////////////////
-BOOL Cserial::ConfigurePort(DWORD	BaudRate,
-				BYTE	ByteSize,
-				DWORD	dwParity,
-				BYTE	Parity,
-				BYTE	StopBits)
+BOOL Cserial::ConfigurePort (
+		DWORD	BaudRate,
+		BYTE	ByteSize,
+		DWORD	dwParity,
+		BYTE	Parity,
+		BYTE	StopBits)
 {
+	LOG_INFO("Try ConfigurePort: %p", hComm);
+
+	if (hComm == INVALID_HANDLE_VALUE) return false;
+
 	if((bPortReady = GetCommState(hComm, &dcb))==0) {
 		errno = GetLastError();
-		LOG_PERROR(win_error_string(errno).c_str());
+		LOG_ERROR( "GetCommState: %s", win_error_string(errno).c_str());
 		CloseHandle(hComm);
 		hComm = INVALID_HANDLE_VALUE;
 		return FALSE;
@@ -660,6 +687,7 @@ BOOL Cserial::ConfigurePort(DWORD	BaudRate,
 
 	LOG_INFO("\n\
 Get Comm State:\n\
+hComm               %p\n\
 DCB.DCBlength       %d\n\
 DCB.Baudrate        %d\n\
 DCB.ByteSize        %d\n\
@@ -678,6 +706,7 @@ DCB.XoffChar        %d\n\
 DCB.fAbortOnError   %d\n\
 DCB.fOutxCtsFlow    %d\n\
 DCB.fOutxDsrFlow    %d\n",
+	hComm,
 	(int)dcb.DCBlength,
 	(int)dcb.BaudRate,
 	(int)dcb.ByteSize,
@@ -697,19 +726,22 @@ DCB.fOutxDsrFlow    %d\n",
 	(int)dcb.fOutxCtsFlow,
 	(int)dcb.fOutxDsrFlow);
 
+	dcb.DCBlength			= sizeof (dcb);
 	dcb.BaudRate			= BaudRate;
 	dcb.ByteSize			= ByteSize;
-	dcb.Parity				= Parity;
-	dcb.StopBits			= (StopBits == 1) ? 0 : 2;
-//	dcb.fBinary				= TRUE;
-//	dcb.fDsrSensitivity		= FALSE;
-//	dcb.fParity				= dwParity;
-//	dcb.fOutX				= FALSE;
-//	dcb.fInX				= FALSE;
-//	dcb.fNull				= FALSE;
-//	dcb.fAbortOnError		= TRUE;
-//	dcb.fOutxCtsFlow		= FALSE;
-//	dcb.fOutxDsrFlow		= FALSE;
+	dcb.Parity				= Parity ;
+	if (dcb.StopBits) // corrects a driver malfunction in the Yaesu SCU-17
+		dcb.StopBits			= (StopBits == 1 ? ONESTOPBIT : TWOSTOPBITS);
+	dcb.fBinary				= true;
+	dcb.fDsrSensitivity		= false;
+	dcb.fParity				= false;
+	dcb.fOutX				= false;
+	dcb.fInX				= false;
+	dcb.fNull				= false;
+	dcb.fAbortOnError		= false;
+	dcb.fOutxCtsFlow		= false;
+	dcb.fOutxDsrFlow		= false;
+	dcb.fErrorChar			= false;
 
 	if (dtr)
 		dcb.fDtrControl = DTR_CONTROL_ENABLE;
@@ -729,6 +761,7 @@ DCB.fOutxDsrFlow    %d\n",
 
 	LOG_INFO("\n\
 Set Comm State:\n\
+hComm               %p\n\
 DCB.DCBlength       %d\n\
 DCB.Baudrate        %d\n\
 DCB.ByteSize        %d\n\
@@ -747,6 +780,7 @@ DCB.XoffChar        %d\n\
 DCB.fAbortOnError   %d\n\
 DCB.fOutxCtsFlow    %d\n\
 DCB.fOutxDsrFlow    %d\n",
+	hComm,
 	(int)dcb.DCBlength,
 	(int)dcb.BaudRate,
 	(int)dcb.ByteSize,
@@ -770,14 +804,14 @@ DCB.fOutxDsrFlow    %d\n",
 
 	if(bPortReady == 0) {
 		errno = GetLastError();
-		LOG_PERROR(win_error_string(errno).c_str());
+		LOG_ERROR("SetCommState: %s", win_error_string(errno).c_str());
 		CloseHandle(hComm);
 		hComm = INVALID_HANDLE_VALUE;
 		return FALSE;
 	}
 
-	if ( (bPortReady = GetCommTimeouts (hComm, &CommTimeoutsSaved) ) == 0)
-		return FALSE;
+//	if ( (bPortReady = GetCommTimeouts (hComm, &CommTimeoutsSaved) ) == 0)
+//		return FALSE;
 
 	return SetCommTimeout();
 }
@@ -786,40 +820,40 @@ DCB.fOutxDsrFlow    %d\n",
 // Function name	: Cserial::setPTT
 // Return type	  : void
 ///////////////////////////////////////////////////////
-void Cserial::SetPTT(bool b)
+
+void Cserial::SetPTT(bool ON)
 {
-	if ( !(dtrptt || rtsptt) )
-		return;
 	if(hComm == INVALID_HANDLE_VALUE) {
 		LOG_PERROR("Invalid handle");
 		return;
 	}
-	LOG_DEBUG("PTT = %d, DTRptt = %d, DTR = %d, RTSptt = %d, RTS = %d",
-		  b, dtrptt, dtr, rtsptt, rts);
+	LOG_INFO("PTT = %d, hcomm = %p, DTRptt = %d, DTR = %d, RTSptt = %d, RTS = %d",
+		  ON, hComm, dtrptt, dtr, rtsptt, rts);
 
-	if (b == true) {				// ptt enabled
+	if (ON) {
 		if (dtrptt && dtr)
-			SetDTR(0);
+			dcb.fDtrControl = DTR_CONTROL_DISABLE;
 		if (dtrptt && !dtr)
-			SetDTR(1);
-		if (rtscts == false) {
+			dcb.fDtrControl = DTR_CONTROL_ENABLE;
+		if (!rtscts) {
 			if (rtsptt && rts)
-				SetRTS(0);
+				dcb.fRtsControl = RTS_CONTROL_DISABLE;
 			if (rtsptt && !rts)
-				SetRTS(1);
+				dcb.fRtsControl = RTS_CONTROL_ENABLE;
 		}
-	} else {						// ptt disabled
+	} else {
 		if (dtrptt && dtr)
-			SetDTR(1);
+			dcb.fDtrControl = DTR_CONTROL_ENABLE;
 		if (dtrptt && !dtr)
-			SetDTR(0);
-		if (rtscts == false) {
+			dcb.fDtrControl = DTR_CONTROL_DISABLE;
+		if (!rtscts) {
 			if (rtsptt && rts)
-				SetRTS(1);
+				dcb.fRtsControl = RTS_CONTROL_ENABLE;
 			if (rtsptt && !rts)
-				SetRTS(0);
+				dcb.fRtsControl = RTS_CONTROL_DISABLE;
 		}
 	}
+	SetCommState(hComm, &dcb);
 }
 
 void Cserial::SetDTR(bool b)

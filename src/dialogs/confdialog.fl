@@ -7125,7 +7125,7 @@ progdefaults.changed = true;}
       }
       Fl_Box thor_image_box {
         label {
-Operator Avatar} selected
+Operator Avatar}
         xywh {616 158 59 74} box FLAT_BOX color 0 align 2
         code0 {init_def_thor_avatar(o);}
         class Fl_Group
@@ -8721,7 +8721,7 @@ progdefaults.changed=true;}
       }
     }
     Fl_Group grpRigCat {
-      label {Rig Control/CAT (rigcat)}
+      label {Rig Control/CAT (rigcat)} selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Rig Control/CAT (rigcat)"));}
       code1 {config_pages.push_back(p);}
@@ -9644,7 +9644,7 @@ hamlib_get_defaults();
       }
     }
     Fl_Group grpRigHardware {
-      label {Rig Control/Hardware PTT}
+      label {Rig Control/Hardware PTT} open
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Rig Control/Hardware PTT"));}
       code1 {config_pages.push_back(p);}
@@ -9703,11 +9703,13 @@ progdefaults.changed = true;}
         }
         Fl_Group inpTTYdev {
           label {Device:}
-          callback {btnInitHWPTT->labelcolor(FL_RED);
+          callback {progdefaults.PTTdev = o->value();
+btnInitHWPTT->labelcolor(FL_RED);
 btnInitHWPTT->redraw();
 progdefaults.changed = true;} open
           xywh {217 135 350 22} box DOWN_BOX color 7 align 5
           code0 {o->labelsize(FL_NORMAL_SIZE);}
+          code1 {o->value(progdefaults.PTTdev.c_str());}
           class Fl_ComboBox
         } {}
         Fl_Round_Button btnSCU_17 {

@@ -384,12 +384,14 @@ void PTT::open_tty(void)
 	serPort.DTRptt(progdefaults.DTRptt);
 	if (progdefaults.SCU_17) serPort.Stopbits(0);//1);
 	else serPort.Stopbits(2);
+
 	if (serPort.OpenPort() == false) {
-		LOG_ERROR("Cannot open serial port %s", rigio.Device().c_str());
+		LOG_ERROR("Cannot open PTT port %s", progdefaults.PTTdev.c_str());
 		pttfd = -1;
 		return;
 	}
-	LOG_INFO("Serial port %s open", progdefaults.PTTdev.c_str());
+
+	LOG_INFO("PTT port %s open", progdefaults.PTTdev.c_str());
 }
 
 void PTT::close_tty(void)
