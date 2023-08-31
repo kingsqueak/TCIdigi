@@ -17,7 +17,6 @@
 <li>500Hz bandwidth</li>
 <li>1/2 rate K=15 FEC</li>
 </ul>
-</center>
 </td>
 <td>
 \image html OFDM-750F-waterfall.png "OFDM 750F"
