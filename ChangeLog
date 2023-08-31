@@ -1,6 +1,35 @@
-2023-05-15  dave-w1hkj  <w1hkj@bellsouth.net>
+2023-08-30  dave-w1hkj  <w1hkj@bellsouth.net>
 
-	f12de9caa: Version 4.1.27
+	65599e949: Version 4.2.00
+	d01751cce: TTY ptt dtr/rts
+	885ef1ff8: THOR56
+	12ed9b841: THOR 32/44
+	fd4388110: Waterfall cursor
+	5d4a6fa80: Revert "FSQ s/n"
+	b6d34d0f6: Version 4.1.27
+	24e8c0559: Macro <PAUSE>
+
+2023-06-28  Rik van Riel  <riel@surriel.com>
+
+	4ef76f9f4: navtex
+
+2023-06-15  dave-w1hkj  <w1hkj@bellsouth.net>
+
+	ec94e923a: TEN_TEN contest field
+	c928e86ad: Pause/Break
+	a29d78a42: FSQ s/n
+	e75f7293c: IFKP s/n evaluator
+	68b280058: EQSL submission
+	027a2ce09: wfonly fix
+	b80d3bec1: callook.info
+	89231cbe2: Miscellaneous gcc cleanup
+
+2023-05-17  w1hkj  <w1hkj@bellsouth.net>
+
+	bf68501c7: fltk.4.fix
+
+2023-05-05  dave-w1hkj  <w1hkj@bellsouth.net>
+
 	1787a8a29: named avatar image file
 	c0f7d2ccd: Set contest start nbr XMLRPC
 	fcc16248d: Version 4.1.26
