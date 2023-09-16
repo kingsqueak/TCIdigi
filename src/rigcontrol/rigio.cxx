@@ -65,7 +65,7 @@ static void *rigCAT_loop(void *args);
 
 #define RXBUFFSIZE 2000
 static unsigned char replybuff[RXBUFFSIZE+1];
-static unsigned char retbuf[3];
+//static unsigned char retbuf[3];
 
 struct CMDQUEUE {
 	std::string cmd;
@@ -107,6 +107,9 @@ void cmdque_exec()
 
 bool sendCommand (std::string cmd, std::string s, int retnbr, int waitval)
 {
+static char traceinfo[5000];
+xmlrig.ascii = true;
+
 	int numwrite = (int)s.length();
 	int readafter = 0;
 	int numread = 0;
@@ -121,13 +124,15 @@ bool sendCommand (std::string cmd, std::string s, int retnbr, int waitval)
 		waitval + (int) ceilf (
 			numread * (9 + progdefaults.RigCatStopbits) *
 			1000.0 / rigio.Baud() );
+			snprintf(traceinfo, sizeof(traceinfo),
+				"%s: '%s', Expect: %d after %d msec", 
+				cmd.c_str(),
+				(xmlrig.ascii ? s.c_str() : str2hex(s.data(), s.length())),
+				numread,
+				readafter);
+
 	if (xmlrig.debug)
-		LOG_INFO(
-			"%s: '%s', Expect: %d after %d msec", 
-			cmd.c_str(),
-			(xmlrig.ascii ? s.c_str() : str2hex(s.data(), s.length())),
-			numread,
-			readafter);
+		LOG_INFO("%s", traceinfo);
 
 	if (xmlrig.noserial) {
 		memset(replybuff, 0, RXBUFFSIZE + 1);
@@ -153,23 +158,14 @@ bool sendCommand (std::string cmd, std::string s, int retnbr, int waitval)
 		Fl::awake();
 	}
 
-	while (numread < RXBUFFSIZE) {
-		memset(retbuf, 0, 2);
-		retval = rigio.ReadBuffer(retbuf, 1);
-		if (retval == 0) break;
-		replybuff[numread] = retbuf[0];
-		numread++;
-	}
-	if (xmlrig.debug)
-		LOG_INFO(
-			"Reply (%d): '%s'", 
-			numread, 
-			(xmlrig.ascii ? reinterpret_cast<const char *>(replybuff) : str2hex(reinterpret_cast<const char *>(replybuff), numread)));
+	numread = rigio.ReadBuffer(replybuff, retnbr);
+	snprintf(traceinfo, sizeof(traceinfo), 
+		"Reply (%d): '%s'", 
+		numread, 
+		(xmlrig.ascii ? reinterpret_cast<const char *>(replybuff) : str2hex(reinterpret_cast<const char *>(replybuff), numread)));
 
-	if (numread > retnbr) {
-		memmove(replybuff, replybuff + numread - retnbr, retnbr);
-		numread = retnbr;
-	}
+	if (xmlrig.debug)
+		LOG_INFO( "%s", traceinfo );
 
 	return (numread == retnbr);
 }
@@ -370,6 +366,8 @@ unsigned long long fm_freqdata(DATA d, size_t p)
 unsigned long long rigCAT_getfreq(int retries, bool &failed, int waitval)
 {
 	const char symbol[] = "GETFREQ";
+	LOG_VERBOSE("rigCAT_getfreq()");
+
 	failed = false;
 	if (rigCAT_exit || xmlrig.noserial || !xmlrig.xmlok) {
 		failed = true;
@@ -477,7 +475,7 @@ unsigned long long rigCAT_getfreq(int retries, bool &failed, int waitval)
 			if ( f >= rTemp.data.min && f <= rTemp.data.max) {
 				char dummy[100];
 				snprintf(dummy, sizeof(dummy), "%llu", f);
-				LOG_VERBOSE("%s", dummy);
+				LOG_DEBUG("%s", dummy);
 				return f;
 			} else {
 				char dummy[200];
@@ -571,6 +569,7 @@ void rigCAT_setfreq(unsigned long long f)
 std::string rigCAT_getmode()
 {
 	const char symbol[] = "GETMODE";
+	LOG_VERBOSE("rigCAT_getmode()");
 
 	if (rigCAT_exit || xmlrig.noserial || !xmlrig.xmlok)
 		return progStatus.noCATmode;
@@ -762,6 +761,7 @@ void rigCAT_setmode(const std::string& md)
 std::string rigCAT_getwidth()
 {
 	const char symbol[] = "GETBW";
+	LOG_VERBOSE("rigCAT_getwidth()");
 
 	if (rigCAT_exit || xmlrig.noserial || !xmlrig.xmlok)
 		return progStatus.noCATwidth;
@@ -1405,6 +1405,7 @@ static void rigcat_set_smeter(void *data)
 void rigCAT_get_smeter()
 {
 	const char symbol[] = "GET_SMETER";
+	LOG_VERBOSE("rigCAT_smeter()");
 
 	if (rigCAT_exit || xmlrig.noserial) return;
 
@@ -1804,6 +1805,7 @@ bool rigCAT_notchON()
 void rigCAT_get_notch()
 {
 	const char symbol[] = "GET_NOTCH";
+	LOG_VERBOSE("rigCAT_getnotch()");
 
 	if (rigCAT_exit) return;
 
@@ -2178,6 +2180,7 @@ static void rigCAT_update_pwrlevel(const long v)
 void rigCAT_get_pwrlevel()
 {
 	const char symbol[] = "GET_PWRLEVEL";
+	LOG_VERBOSE("rigCAT_get_pwrlevel()");
 
 	if (rigCAT_exit || xmlrig.noserial || !xmlrig.xmlok) return;
 

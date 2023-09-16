@@ -746,6 +746,7 @@ void configuration::initInterface()
 	ENSURE_THREAD(FLMAIN_TID);
 
 // close down any possible rig interface threads
+LOG_INFO("Closing rig interface threads");
 #if USE_HAMLIB
 	hamlib_close();
 //		MilliSleep(100);

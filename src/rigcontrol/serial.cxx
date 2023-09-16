@@ -25,12 +25,16 @@
 #include <config.h>
 
 #include <string>
+#include <cstring>
 
 #include "serial.h"
 #include "debug.h"
 
 LOG_FILE_SOURCE(debug::LOG_RIGCONTROL);
 
+extern const double zusec(void);
+
+char traceinfo[1000];
 
 #ifndef __MINGW32__
 #include <cstdio>
@@ -233,7 +237,7 @@ void Cserial::SetPTT(bool b)
 		ioctl(fd, TIOCMSET, &status);
 	}
 //	LOG_DEBUG("No PTT specified");
-	LOG_INFO("No PTT specified");
+	LOG_VERBOSE("No PTT specified");
 }
 
 ///////////////////////////////////////////////////////
@@ -260,7 +264,7 @@ void Cserial::ClosePort()
 	}
 	close(fd);
 	fd = -1;
-	LOG_INFO("Serial port closed, fd = %d", fd);
+	LOG_VERBOSE("Serial port closed, fd = %d", fd);
 	return;
 }
 
@@ -309,20 +313,60 @@ bool Cserial::ReadByte(unsigned char &c)
 int  Cserial::ReadBuffer (unsigned char *buf, int nchars)
 {
 	if (fd < 0) return 0;
-	int retnum, nread = 0;
-	while (nchars > 0) {
-		if (!IOselect()) {
-			return nread;
+
+	std::string buff;
+	int      retval = 0;
+	bool     timedout;
+	int      bytes = 0;
+	int      maxchars = nchars + bytes_written;
+	unsigned char uctemp[maxchars + 1];
+	size_t   start, tnow = zusec();
+
+	start = tnow;
+	buff.clear();
+
+	while (1) {
+		ioctl( fd, FIONREAD, &bytes);
+		if (bytes) {
+			retval = read (fd, uctemp, bytes);
+			memset(traceinfo, 0, sizeof(traceinfo));
+			snprintf(traceinfo, sizeof(traceinfo), "read %d bytes", bytes);
+			LOG_DEBUG("%s", traceinfo);
+
+			if (retval > 0) {
+				for (int nc = 0; nc < retval; nc++)
+					buff += uctemp[nc];
+			}
 		}
-		retnum = read (fd, (char *)(buf + nread), nchars);
-		if (retnum < 0)
-			return 0;//nread;
-		if (retnum == 0)
-			return nread;
-		nread += retnum;
-		nchars -= retnum;
+		timedout = ( (zusec() - tnow) > (size_t)(timeout * 1000));
+		if ((buff.length() >= (unsigned int)nchars ) &&  ((buff[3] & 0xFF) != 0xE0)) break;
+		if ((buff.length() >= (unsigned int)maxchars)) break;
+		if (timedout) break;
+		MilliSleep(1);
 	}
-	return nread;
+
+	if ((buff[3] & 0xFF) == 0xE0)
+		buff = buff.substr(bytes_written);
+
+	if (!buff.length()) {
+		LOG_ERROR("READ failed (%0.2f msec)", ((zusec() - start)/1000.0));
+		return 0;
+	}
+
+	memcpy(buf, buff.c_str(), buff.length());
+
+	if ((buff[0] & 0xFF) == 0xFE)
+		LOG_VERBOSE("ReadData (%0.2f msec) [%lu]: %s", 
+			(zusec() - start) / 1000.0,
+			buff.length(),
+			str2hex(buff.c_str(), buff.length()));
+	else
+		LOG_VERBOSE("ReadData (%0.2f msec) [%lu]: %s",
+			(zusec() - start) / 1000.0,
+			buff.length(),
+			buff.c_str());
+
+	return buff.length();
 }
 
 ///////////////////////////////////////////////////////
@@ -333,8 +377,12 @@ int  Cserial::ReadBuffer (unsigned char *buf, int nchars)
 ///////////////////////////////////////////////////////
 int Cserial::WriteBuffer(unsigned char *buff, int n)
 {
-	if (fd < 0) return 0;
+	if (fd < 0) {
+		bytes_written = 0;
+		return 0;
+	}
 	int ret = write (fd, buff, n);
+	bytes_written = n;
 	return ret;
 }
 
@@ -357,8 +405,6 @@ void Cserial::FlushBuffer()
 //======================================================================
 #include <winbase.h>
 #include "estrings.h"
-
-#define HCOMM_DEBUG 1
 
 ///////////////////////////////////////////////////////
 // Function name	: Cserial::OpenPort
@@ -383,8 +429,7 @@ BOOL Cserial::OpenPort()
 				0,								// dwFlagAndAttributes
 				0);								// hTemplateFile
 
-	if (HCOMM_DEBUG)
-		LOG_INFO("Open COM port %s, handle = %p", device.c_str(), hComm);
+	LOG_INFO("Open COM port %s, handle = %p", device.c_str(), hComm);
 
 	if(hComm == INVALID_HANDLE_VALUE) {
 		errno = GetLastError();
@@ -400,7 +445,7 @@ BOOL Cserial::OpenPort()
 		return FALSE;
 	}
 
-	FlushBuffer();
+//	FlushBuffer();
 
 	return TRUE;
 }
@@ -414,56 +459,103 @@ BOOL Cserial::OpenPort()
 
 void Cserial::ClosePort()
 {
-	if (HCOMM_DEBUG)
-		LOG_INFO("Close port, handle = %p", hComm);
+	LOG_INFO("Close port, handle = %p", hComm);
 
 	if (hComm == INVALID_HANDLE_VALUE)
 		return;
 
 	if (restore_tio) {
-		if (HCOMM_DEBUG)
-			LOG_INFO("Closing COM port#1, handle = %p", hComm);
+		LOG_VERBOSE("Closing COM port#1, handle = %p", hComm);
 		bPortReady = SetCommTimeouts (hComm, &CommTimeoutsSaved);
 	}
 	if (CloseHandle(hComm) == 0) {
-		if (HCOMM_DEBUG)
-			LOG_INFO("Closing COM port#2, handle = %p", hComm);
-		errno = GetLastError();
-		if (HCOMM_DEBUG)
-			LOG_INFO("Closing COM port#3, handle = %p", hComm);
-		LOG_PERROR(win_error_string(errno).c_str());
-		if (HCOMM_DEBUG)
-			LOG_INFO("Closing COM port#4, handle = %p", hComm);
+		LOG_VERBOSE("ERROR Closing COM port, handle = %p", hComm);
 	}
-	if (HCOMM_DEBUG)
-		LOG_INFO("COM, handle = %p closed", hComm);
+	LOG_INFO("COM, handle = %p closed", hComm);
 
 	hComm = INVALID_HANDLE_VALUE;
 	return;
 }
+
+/*
+BOOL ReadFile(
+  [in]                HANDLE       hFile,
+  [out]               LPVOID       lpBuffer,
+  [in]                DWORD        nNumberOfBytesToRead,
+  [out, optional]     LPDWORD      lpNumberOfBytesRead,
+  [in, out, optional] LPOVERLAPPED lpOverlapped
+
+[in] hFile
+
+	A handle to the device (for example, a file, file stream, physical disk,
+	volume, console buffer, tape drive, socket, communications resource, mailslot, 
+	or pipe).  The hFile parameter must have been created with read access.
+
+[out] lpBuffer
+
+	A pointer to the buffer that receives the data read from a file or device.
+	This buffer must remain valid for the duration of the read operation. The
+	caller must not use this buffer until the read operation is completed.
+
+[in] nNumberOfBytesToRead);
+
+	The maximum number of bytes to be read.
+
+If the function succeeds, the return value is nonzero (TRUE).
+
+	If the function fails, or is completing asynchronously, the return value is
+	zero (FALSE). To get extended error information, call the GetLastError function.
+	The GetLastError code ERROR_IO_PENDING is not a failure; it designates
+	the read operation is pending completion asynchronously.
+
+*/
 
 int  Cserial::ReadData (unsigned char *buf, int nchars)
 {
 	if (hComm == INVALID_HANDLE_VALUE)
 		return 0;
 
-	DWORD dwRead = 0;
-	int numread = ReadFile(hComm, buf, nchars, &dwRead, NULL);
+	DWORD thisread = 0;
+	unsigned int  maxchars = nchars + nBytesWritten;
+	unsigned char uctemp[maxchars + 1];
 
-	if (HCOMM_DEBUG)
-		LOG_INFO("Read %ld bytes from handle %p", dwRead, hComm);
+	bool echo = false;
+	bool retval = false;
 
-	if (numread)
-		return static_cast<int>(dwRead);
+	double start = zusec();
 
-	if (dwRead == 0) return 0;
+	std::string sbuf;
 
-	if (HCOMM_DEBUG) {
-		errno = GetLastError();
-		LOG_ERROR(win_error_string(errno).c_str());
+	sbuf.clear();
+
+	while ( (zusec() - start) < (timeout * 1000.0) ) {
+		memset(uctemp, 0, sizeof(uctemp));
+		if ( (retval = ReadFile (hComm, uctemp, maxchars, &thisread, NULL)) ) {
+			for (size_t n = 0; n < thisread; n++)
+				sbuf += uctemp[n];
+		}
+		// test for icom echo
+		if ((sbuf.length() >= (size_t)nchars) && ((sbuf[3] & 0xFF) == 0xE0))
+			echo = true;
+		if (sbuf.length() >= (echo ? maxchars : nchars)) break;
+		if (!thisread || !retval) MilliSleep(1);
 	}
 
-	return 0;
+	if (echo)
+		sbuf = sbuf.substr(nBytesWritten);
+	if (sbuf.length() > (size_t)nchars) sbuf.erase(nchars);
+
+	if (!sbuf.empty())
+		memcpy(buf, sbuf.c_str(), sbuf.length());
+	else {
+		LOG_VERBOSE("ReadData FAILED [%0.3f]", (zusec() -start) / 1000.0);
+		return 0;
+	}
+	LOG_VERBOSE("ReadData [%0.3f]: %s",
+		(zusec() - start) / 1000.0,
+		(sbuf[0] & 0xFF) == 0xFE ? str2hex(sbuf.c_str(), sbuf.length()) : sbuf.c_str());
+
+	return sbuf.length();
 }
 
 BOOL Cserial::ReadByte(unsigned char & by)
@@ -471,8 +563,7 @@ BOOL Cserial::ReadByte(unsigned char & by)
 	static	BYTE byResByte[2];
 	int got_one = ReadData(byResByte, 1);
 
-	if (HCOMM_DEBUG)
-		LOG_INFO("Read %d byte on handle %p", got_one, hComm);
+	LOG_INFO("Read %d byte on handle %p", got_one, hComm);
 
 	if (got_one == 1) {
 		by = byResByte[0];
@@ -484,6 +575,7 @@ BOOL Cserial::ReadByte(unsigned char & by)
 void Cserial::FlushBuffer()
 {
 	unsigned char c;
+	nBytesWritten = 0;
 	while (ReadByte(c) == true);
 }
 
@@ -499,6 +591,7 @@ BOOL Cserial::WriteByte(UCHAR by)
 		return FALSE;
 
 	nBytesWritten = 0;
+
 	if (WriteFile(hComm,&by,1,&nBytesWritten,NULL)==0) {
 		errno = GetLastError();
 		LOG_PERROR(win_error_string(errno).c_str());
@@ -517,6 +610,8 @@ int Cserial::WriteBuffer(unsigned char *buff, int n)
 {
 	if (hComm == INVALID_HANDLE_VALUE)
 		return 0;
+
+	LOG_INFO("WRITE: %s", str2hex((char *)buff, n));
 
 	if (WriteFile (hComm, buff, n, &nBytesWritten, NULL) == 0) {
 		errno = GetLastError();
@@ -552,7 +647,6 @@ BOOL Cserial::SetCommunicationTimeouts(
 	CommTimeouts.WriteTotalTimeoutConstant = WriteTotalTimeoutConstant;
 	CommTimeouts.WriteTotalTimeoutMultiplier = WriteTotalTimeoutMultiplier;
 
-//	LOG_DEBUG("\n
 	LOG_INFO("\n\
 Read Interval Timeout............... %8ld %8ld\n\
 Read Total Timeout Multiplier....... %8ld %8ld\n\
