@@ -1919,8 +1919,8 @@ void init_modem(trx_mode mode, int freq)
 		
 	case MODE_OFDM_500F:
 	case MODE_OFDM_750F:
-	case MODE_OFDM_2000F:
-	case MODE_OFDM_2000:
+//	case MODE_OFDM_2000F:
+//	case MODE_OFDM_2000:
 	case MODE_OFDM_3500:
 		startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
 		*mode_info[mode].modem = new psk(mode), freq);

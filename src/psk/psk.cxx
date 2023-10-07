@@ -226,7 +226,7 @@ void psk::tx_init()
 	vphase = 0;
 	maxamp = 0;
 
-	if (mode == MODE_OFDM_500F || mode == MODE_OFDM_750F || mode == MODE_OFDM_2000F) {
+	if (mode == MODE_OFDM_500F || mode == MODE_OFDM_750F) { // || mode == MODE_OFDM_2000F) {
 		enc->init();
 		Txinlv->flush();
 	}
@@ -300,9 +300,10 @@ void psk::init()
 
 	set_freqlock(false); // re-lock modems after setting center-frequency.
 
-	if (mode == MODE_OFDM_2000F || mode == MODE_OFDM_2000)
-		set_freq(1325);
-	else if (mode == MODE_OFDM_3500)
+//	if (mode == MODE_OFDM_2000F || mode == MODE_OFDM_2000)
+//		set_freq(1325);
+//	else 
+	if (mode == MODE_OFDM_3500)
 		set_freq(2250);
 	else if (mode == MODE_OFDM_500F || mode == MODE_OFDM_750F)
 		set_freq(1500);
@@ -316,7 +317,8 @@ void psk::init()
 	} else
 		set_freq(wf->Carrier());
 
-	if (mode == MODE_OFDM_2000 || mode == MODE_OFDM_2000F || mode == MODE_OFDM_3500)
+//	if (mode == MODE_OFDM_2000 || mode == MODE_OFDM_2000F || mode == MODE_OFDM_3500)
+	if (mode == MODE_OFDM_3500)
 		set_freqlock(true);
 
 }
@@ -485,34 +487,34 @@ FIR_TYPE fir_type = PSK_CORE;
 			fir_type = SINC;
 			break;
 
-		case MODE_OFDM_2000F: // 125 baud 8PSK | 8 carriers | 2000 bits/sec @ 2/3 FEC
-			symbollen = 128;
-			samplerate = 16000;
-			_8psk = true;
-			_disablefec = false;
-			_puncturing = true;
-			numcarriers = 8;
-			separation = 2.0f;
-			idepth = 4800; // 1600 milliseconds
-			flushlength = 480;
-			dcdbits = 1536;
-			vestigial = true;
-			cap |= CAP_REV;
-			fir_type = SINC;
-			break;
+//		case MODE_OFDM_2000F: // 125 baud 8PSK | 8 carriers | 2000 bits/sec @ 2/3 FEC
+//			symbollen = 128;
+//			samplerate = 16000;
+//			_8psk = true;
+//			_disablefec = false;
+//			_puncturing = true;
+//			numcarriers = 8;
+//			separation = 2.0f;
+//			idepth = 4800; // 1600 milliseconds
+//			flushlength = 480;
+//			dcdbits = 1536;
+//			vestigial = true;
+//			cap |= CAP_REV;
+//			fir_type = SINC;
+//			break;
 
-		case MODE_OFDM_2000: // 250 baud 8PSK | 4 carriers | 3000 bits/sec NO FEC
-			symbollen = 64;
-			samplerate = 16000;
-			_8psk = true;
-			_disablefec = true;
-			numcarriers = 4;
-			separation = 2.0f;
-			dcdbits = 1536;
-			vestigial = true;
-			cap |= CAP_REV;
-			fir_type = SINC;
-			break;
+//		case MODE_OFDM_2000: // 250 baud 8PSK | 4 carriers | 3000 bits/sec NO FEC
+//			symbollen = 64;
+//			samplerate = 16000;
+//			_8psk = true;
+//			_disablefec = true;
+//			numcarriers = 4;
+//			separation = 2.0f;
+//			dcdbits = 1536;
+//			vestigial = true;
+//			cap |= CAP_REV;
+//			fir_type = SINC;
+//			break;
 
 		case MODE_OFDM_3500: // 250 baud 8PSK | 7 carriers | 5250 bits/sec NO FEC
 			symbollen = 64;
@@ -1004,11 +1006,11 @@ FIR_TYPE fir_type = PSK_CORE;
 		dec->setchunksize(4);
 		dec->settraceback(THOR_K15 * 10);
 		
-	} else if (mode == MODE_OFDM_2000F) {
-		enc = new encoder(K11, K11_POLY1, K11_POLY2);
-		dec = new viterbi(K11, K11_POLY1, K11_POLY2);
-		dec->setchunksize(4);
-		dec->settraceback(K11 * 14); // OFDM-2000F is a punctured code
+//	} else if (mode == MODE_OFDM_2000F) {
+//		enc = new encoder(K11, K11_POLY1, K11_POLY2);
+//		dec = new viterbi(K11, K11_POLY1, K11_POLY2);
+//		dec->setchunksize(4);
+//		dec->settraceback(K11 * 14); // OFDM-2000F is a punctured code
 
 	} else if (_xpsk || _8psk || _16psk) {
 		enc = new encoder(K13, K13_POLY1, K13_POLY2);
@@ -1088,11 +1090,12 @@ FIR_TYPE fir_type = PSK_CORE;
 		for (int i = 0; i < 11; i++) sfft_bins[i] = cmplx(0,0);
 	}
 
-	if (mode == MODE_OFDM_2000 || mode == MODE_OFDM_2000F) {
-		set_freqlock(false);
-		set_freq(1325);
-		set_freqlock(true);
-	} else if (mode == MODE_OFDM_3500) {
+//	if (mode == MODE_OFDM_2000 || mode == MODE_OFDM_2000F) {
+//		set_freqlock(false);
+//		set_freq(1325);
+//		set_freqlock(true);
+//	} else 
+	if (mode == MODE_OFDM_3500) {
 		set_freqlock(false);
 		set_freq(2250);
 		set_freqlock(true);
@@ -1466,7 +1469,7 @@ void psk::phaseafc()
 
 void psk::afc()
 {
-	if (mode >= MODE_OFDM_500F && mode <= MODE_OFDM_2000)
+	if (mode >= MODE_OFDM_500F && mode <= MODE_OFDM_3500) // MODE_OFDM_2000)
 		return vestigial_afc();
 	else if (!progStatus.afconoff)
 		return;
@@ -1667,7 +1670,7 @@ void psk::rx_symbol(cmplx symbol, int car)
 			if (metric > progStatus.sldrSquelchValue || progStatus.sqlonoff == false) {
 				dcd = true;
 			// FIXME BUG OFDM FEC modes have NO DCD OFF yet. TODO KL4YFD MAR2021
-			} else if (mode != MODE_OFDM_500F && mode != MODE_OFDM_750F && mode != MODE_OFDM_2000F) {
+			} else if (mode != MODE_OFDM_500F && mode != MODE_OFDM_750F) { // && mode != MODE_OFDM_2000F) {
 				dcd = false;
 			}
 			dcdOFFcounter -= 1; // If no DCD-off sequence seen in bitshreg, then subtract 1 from counter (to prevent a accumulative-triggering bug)
@@ -2576,7 +2579,7 @@ int psk::tx_process()
 			preamble = 0;
 			return 0;
 
-		} else if (mode == MODE_OFDM_500F || mode == MODE_OFDM_750F || mode == MODE_OFDM_2000F) {
+		} else if (mode == MODE_OFDM_500F || mode == MODE_OFDM_750F ) { //|| mode == MODE_OFDM_2000F) {
 			// RSID is used for frequency-setting and AFC: no preamble needed or used. Just send a header.
 			clearbits();
 			sig_start = true;
