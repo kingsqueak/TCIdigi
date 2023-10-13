@@ -704,6 +704,30 @@ progdefaults.changed = true;
 
 Fl_Box *default_btn_color=(Fl_Box *)0;
 
+Fl_Button *btn_check_btn_color=(Fl_Button *)0;
+
+static void cb_btn_check_btn_color(Fl_Button*, void*) {
+  progdefaults.default_check_btn_color = fl_show_colormap(progdefaults.default_check_btn_color);
+default_check_btn_color->color(progdefaults.default_check_btn_color);
+default_check_btn_color->redraw();
+set_default_btn_color();
+progdefaults.changed = true;
+}
+
+Fl_Box *default_check_btn_color=(Fl_Box *)0;
+
+Fl_Button *btn_default_round_btn_color=(Fl_Button *)0;
+
+static void cb_btn_default_round_btn_color(Fl_Button*, void*) {
+  progdefaults.default_round_btn_color = fl_show_colormap(progdefaults.default_round_btn_color);
+default_round_btn_color->color(progdefaults.default_round_btn_color);
+default_round_btn_color->redraw();
+set_default_btn_color();
+progdefaults.changed = true;
+}
+
+Fl_Box *default_round_btn_color=(Fl_Box *)0;
+
 Fl_Box *FDdisplay=(Fl_Box *)0;
 
 Fl_Button *btn_freq_control_font=(Fl_Button *)0;
@@ -9936,96 +9960,107 @@ Fl_Double_Window* ConfigureDialog() {
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
-      { btnSpotColor = new Fl_Button(334, 75, 85, 21, _("Spot"));
+      { btnSpotColor = new Fl_Button(284, 75, 100, 21, _("Spot"));
         btnSpotColor->callback((Fl_Callback*)cb_btnSpotColor);
       } // Fl_Button* btnSpotColor
-      { btnRevColor = new Fl_Button(334, 111, 85, 21, _("Rev"));
+      { btnRevColor = new Fl_Button(284, 111, 100, 21, _("Rev"));
         btnRevColor->callback((Fl_Callback*)cb_btnRevColor);
       } // Fl_Button* btnRevColor
-      { btnTuneColor = new Fl_Button(334, 148, 85, 21, _("Tune"));
+      { btnTuneColor = new Fl_Button(284, 148, 100, 21, _("Tune"));
         btnTuneColor->callback((Fl_Callback*)cb_btnTuneColor);
       } // Fl_Button* btnTuneColor
-      { btnRxIDColor = new Fl_Button(334, 183, 85, 21, _("RxID nar"));
+      { btnRxIDColor = new Fl_Button(284, 183, 100, 21, _("RxID nar"));
         btnRxIDColor->callback((Fl_Callback*)cb_btnRxIDColor);
       } // Fl_Button* btnRxIDColor
-      { btnLkColor = new Fl_Button(469, 75, 85, 21, _("Lk"));
+      { btnLkColor = new Fl_Button(473, 75, 100, 21, _("Lk"));
         btnLkColor->callback((Fl_Callback*)cb_btnLkColor);
       } // Fl_Button* btnLkColor
-      { btnSql1Color = new Fl_Button(470, 111, 85, 21, _("SQL-1"));
+      { btnSql1Color = new Fl_Button(473, 111, 100, 21, _("SQL-1"));
         btnSql1Color->callback((Fl_Callback*)cb_btnSql1Color);
       } // Fl_Button* btnSql1Color
-      { btnXmtColor = new Fl_Button(469, 148, 85, 20, _("T/R"));
+      { btnXmtColor = new Fl_Button(473, 148, 100, 20, _("T/R"));
         btnXmtColor->callback((Fl_Callback*)cb_btnXmtColor);
       } // Fl_Button* btnXmtColor
-      { btnRxIDwideColor = new Fl_Button(469, 183, 85, 21, _("RxID wide"));
+      { btnRxIDwideColor = new Fl_Button(473, 183, 100, 21, _("RxID wide"));
         btnRxIDwideColor->callback((Fl_Callback*)cb_btnRxIDwideColor);
       } // Fl_Button* btnRxIDwideColor
-      { btnAfcColor = new Fl_Button(605, 75, 85, 21, _("AFC"));
+      { btnAfcColor = new Fl_Button(663, 75, 100, 21, _("AFC"));
         btnAfcColor->callback((Fl_Callback*)cb_btnAfcColor);
       } // Fl_Button* btnAfcColor
-      { btnSql2Color = new Fl_Button(605, 111, 85, 20, _("SQL-2"));
+      { btnSql2Color = new Fl_Button(663, 111, 100, 20, _("SQL-2"));
         btnSql2Color->callback((Fl_Callback*)cb_btnSql2Color);
       } // Fl_Button* btnSql2Color
-      { btnTxIDColor = new Fl_Button(604, 183, 85, 20, _("TxID"));
+      { btnTxIDColor = new Fl_Button(662, 183, 100, 20, _("TxID"));
         btnTxIDColor->callback((Fl_Callback*)cb_btnTxIDColor);
       } // Fl_Button* btnTxIDColor
-      { Fl_Box* o = spotcolor = new Fl_Box(310, 76, 18, 19);
+      { Fl_Box* o = spotcolor = new Fl_Box(254, 76, 18, 19);
         spotcolor->box(FL_THIN_DOWN_BOX);
         spotcolor->color((Fl_Color)3);
         o->color(progdefaults.SpotColor);
       } // Fl_Box* spotcolor
-      { Fl_Box* o = revcolor = new Fl_Box(310, 112, 18, 19);
+      { Fl_Box* o = revcolor = new Fl_Box(254, 112, 18, 19);
         revcolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.RevColor);
       } // Fl_Box* revcolor
-      { Fl_Box* o = tunecolor = new Fl_Box(310, 149, 18, 19);
+      { Fl_Box* o = tunecolor = new Fl_Box(254, 149, 18, 19);
         tunecolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.TuneColor);
       } // Fl_Box* tunecolor
-      { Fl_Box* o = rxidcolor = new Fl_Box(310, 184, 18, 19);
+      { Fl_Box* o = rxidcolor = new Fl_Box(254, 184, 18, 19);
         rxidcolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.RxIDColor);
       } // Fl_Box* rxidcolor
-      { Fl_Box* o = lockcolor = new Fl_Box(445, 76, 18, 19);
+      { Fl_Box* o = lockcolor = new Fl_Box(442, 76, 18, 19);
         lockcolor->box(FL_THIN_DOWN_BOX);
         lockcolor->color((Fl_Color)3);
         o->color(progdefaults.LkColor);
       } // Fl_Box* lockcolor
-      { Fl_Box* o = sql1color = new Fl_Box(445, 112, 18, 19);
+      { Fl_Box* o = sql1color = new Fl_Box(442, 112, 18, 19);
         sql1color->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.Sql1Color);
       } // Fl_Box* sql1color
-      { Fl_Box* o = rxidcolorwide = new Fl_Box(445, 184, 18, 19);
+      { Fl_Box* o = rxidcolorwide = new Fl_Box(442, 184, 18, 19);
         rxidcolorwide->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.RxIDwideColor);
       } // Fl_Box* rxidcolorwide
-      { Fl_Box* o = xmtcolor = new Fl_Box(445, 149, 18, 18);
+      { Fl_Box* o = xmtcolor = new Fl_Box(442, 149, 18, 18);
         xmtcolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.XmtColor);
       } // Fl_Box* xmtcolor
-      { Fl_Box* o = afccolor = new Fl_Box(580, 76, 18, 19);
+      { Fl_Box* o = afccolor = new Fl_Box(630, 76, 18, 19);
         afccolor->box(FL_THIN_DOWN_BOX);
         afccolor->color((Fl_Color)3);
         o->color(progdefaults.AfcColor);
       } // Fl_Box* afccolor
-      { Fl_Box* o = sql2color = new Fl_Box(580, 112, 18, 18);
+      { Fl_Box* o = sql2color = new Fl_Box(630, 112, 18, 18);
         sql2color->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.Sql2Color);
       } // Fl_Box* sql2color
-      { Fl_Box* o = txidcolor = new Fl_Box(580, 184, 18, 18);
+      { Fl_Box* o = txidcolor = new Fl_Box(630, 184, 18, 18);
         txidcolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.TxIDColor);
       } // Fl_Box* txidcolor
-      { Fl_Box* o = new Fl_Box(390, 264, 220, 20, _("Lighted button enabled colors"));
-        o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-      } // Fl_Box* o
-      { btn_default_btn_color = new Fl_Button(469, 218, 85, 21, _("All Others"));
+      { btn_default_btn_color = new Fl_Button(284, 218, 100, 21, _("Lighted Btns"));
         btn_default_btn_color->callback((Fl_Callback*)cb_btn_default_btn_color);
       } // Fl_Button* btn_default_btn_color
-      { Fl_Box* o = default_btn_color = new Fl_Box(445, 218, 18, 19);
+      { Fl_Box* o = default_btn_color = new Fl_Box(254, 220, 18, 19);
         default_btn_color->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.default_btn_color);
       } // Fl_Box* default_btn_color
+      { btn_check_btn_color = new Fl_Button(473, 218, 100, 21, _("Check Btns"));
+        btn_check_btn_color->callback((Fl_Callback*)cb_btn_check_btn_color);
+      } // Fl_Button* btn_check_btn_color
+      { Fl_Box* o = default_check_btn_color = new Fl_Box(442, 220, 18, 19);
+        default_check_btn_color->box(FL_THIN_DOWN_BOX);
+        o->color(progdefaults.default_check_btn_color);
+      } // Fl_Box* default_check_btn_color
+      { btn_default_round_btn_color = new Fl_Button(662, 218, 100, 21, _("Round Btns"));
+        btn_default_round_btn_color->callback((Fl_Callback*)cb_btn_default_round_btn_color);
+      } // Fl_Button* btn_default_round_btn_color
+      { Fl_Box* o = default_round_btn_color = new Fl_Box(630, 220, 18, 19);
+        default_round_btn_color->box(FL_ROUND_DOWN_BOX);
+        o->color(progdefaults.default_round_btn_color);
+      } // Fl_Box* default_round_btn_color
       CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons"));
       config_pages.push_back(p);
       tab_tree->add(_("Colors-Fonts/Buttons"));

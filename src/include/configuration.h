@@ -2390,7 +2390,13 @@
               FL_RED)                                                                   \
         ELEM_(Fl_Color, default_btn_color, "DEFAULTBTNCOLOR",                           \
               "Default color of lighted buttons",                                       \
+              FL_GREEN)                                                                 \
+        ELEM_(Fl_Color, default_check_btn_color, "DEFAULTCHECKBTNCOLOR",                \
+              "Default color of check buttons",                                         \
               FL_YELLOW)                                                                \
+        ELEM_(Fl_Color, default_round_btn_color, "DEFAULTROUNDBTNCOLOR",                \
+              "Default color of round buttons",                                         \
+              FL_GREEN)                                                                 \
         /* XMLRPC LOGBOOK server */                                                     \
         ELEM_(bool, xml_logbook, "XML_LOGBOOK",                                         \
               "Try to open remote xml logbook",                                         \
