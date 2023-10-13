@@ -9631,14 +9631,21 @@ void spot_selection_color()
 void set_default_btn_color()
 {
 	Fl_Light_Button *buttons[] = {
-		btn_FSQCALL, btn_SELCAL, btn_MONITOR, btnPSQL,
-		btnDupCheckOn, btn_WKCW_connect, btn_WKFSK_connect,
-		btn_nanoCW_connect, btn_nanoIO_connect,
-		btn_enable_auditlog, btn_enable_fsq_heard_log,
-		btn_enable_ifkp_audit_log, btn_enable_ifkp_audit_log,
-		btn_Nav_connect, btn_Nav_config, btn_fmt_record,
+		btn_ref_enable, btn_unk_enable, btn_fmt_record ,
+		btnNotifyEnabled,
+		btnDataSourceUpdate,
+		btnDupCheckOn,
+		btn_WKCW_connect, btn_nanoCW_connect, btn_CW_KEYLINE_connect,
+		btn_cw_dtr_calibrate, btn_enable_auditlog,
+		btn_enable_fsq_heard_log, btn_enable_ifkp_audit_log, btn_enable_ifkp_heard_log,
+		btn_nanoIO_connect, btn_nanoio_debug,
+		btn_Nav_connect, btn_Nav_config,
+		btn_WKFSK_connect,
 		btnConnectTalker,
-		btn_unk_enable, btn_ref_enable };
+		btn_FSQCALL, btn_SELCAL, btn_MONITOR,
+		btnAFC, btnSQL, btnPSQL, btnRSID, btnTxRSID,
+		btnTune, btnAutoSpot
+	};
 
 	size_t nbtns = sizeof(buttons)/sizeof(*buttons);
 
@@ -9659,6 +9666,8 @@ void set_default_btn_color()
 
 void set_colors()
 {
+	set_default_btn_color();
+
 	spot_selection_color();
 	tune_selection_color();
 	txid_selection_color();
@@ -9667,7 +9676,6 @@ void set_colors()
 	afc_selection_color();
 	xmtlock_selection_color();
 	tune_selection_color();
-	set_default_btn_color();
 	set_log_colors();
 }
 
