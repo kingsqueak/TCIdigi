@@ -4650,6 +4650,10 @@ LOG_INFO("Close logbook");
 	close_logbook();
 	MilliSleep(50);
 
+LOG_INFO("Send shutdown signal to flrig");
+	if (progdefaults.flrig_auto_shutdown)
+		xmlrpc_shutdown_flrig();
+
 LOG_INFO("Stop flrig i/o");
 	stop_flrig_thread();
 

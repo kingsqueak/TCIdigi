@@ -1307,9 +1307,7 @@ LOG_INFO("Stop KISS processing");
 	kiss_close(false);
 LOG_INFO("Stop MacLogger i/o");
 	maclogger_close();
-LOG_INFO("Send shutdown signal to flrig");
-	if (progdefaults.flrig_auto_shutdown)
-		xmlrpc_shutdown_flrig();
+
 LOG_INFO("Stop xmlrpc processing");
 	XML_RPC_Server::stop();
 LOG_INFO("Stop PSK reporter processing");
