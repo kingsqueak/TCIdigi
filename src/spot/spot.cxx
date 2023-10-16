@@ -54,7 +54,16 @@ struct callback_t
 };
 typedef std::list<callback_t> cblist_t;
 
-
+#if ( (__GNUC__ > 11) || ((__GNUC__ == 11) && (__GNUC_MINOR >= 4) ) )
+struct fre_hash
+{
+	size_t operator()(const fre_t* r) const { return r->hash(); }
+};
+struct fre_comp
+{
+	size_t operator()(const fre_t* l, const fre_t* r) const { return *l == *r; }
+};
+#else
 struct fre_hash : std::unary_function<const fre_t*, size_t>
 {
 	size_t operator()(const fre_t* r) const { return r->hash(); }
@@ -63,6 +72,7 @@ struct fre_comp : std::unary_function<const fre_t*, bool>
 {
 	size_t operator()(const fre_t* l, const fre_t* r) const { return *l == *r; }
 };
+#endif
 
 typedef std::list<callback_t*> callback_p_list_t;
 

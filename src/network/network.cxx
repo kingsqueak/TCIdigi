@@ -110,7 +110,7 @@ void Url::parse(std::string url)
 int Url::http_get(std::string &response)
 {
 	std::ostringstream REQUEST;
-	size_t len, rcvd;
+	size_t len = 0, rcvd = 0;
 	bool ret = true;
 
 	const char service[] = "http";

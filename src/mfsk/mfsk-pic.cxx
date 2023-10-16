@@ -367,10 +367,7 @@ void TxViewerResize(int W, int H)
 
 void showTxViewer(int W, int H)
 {
-	if (picTxWin) {
-		picTxWin->show();
-		return;
-	}
+	if (!picTxWin) createTxViewer();
 
 	int winW, winH;
 	int picX, picY;

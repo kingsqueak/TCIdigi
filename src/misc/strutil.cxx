@@ -93,14 +93,14 @@ std::string strformat( const char * fmt, ... )
 
 /// Removes leading spaces and tabs.
 static std::string & strtriml(std::string &str) {
-        str.erase(str.begin(), std::find_if(str.begin(), str.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-        return str;
+	while (str[0] && std::isspace(str[0])) str.erase(0,1);
+	return str;
 }
 
 /// Removes trailing spaces and tabs.
 static std::string & strtrimr(std::string &str) {
-        str.erase(std::find_if(str.rbegin(), str.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), str.end());
-        return str;
+	while (str.length() && std::isspace(str[str.length() -1])) str.erase(str.length() - 1);
+	return str;
 }
 
 /// Removes leading trailing spaces and tabs.
