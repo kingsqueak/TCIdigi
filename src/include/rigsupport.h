@@ -63,7 +63,6 @@ extern void qso_selectFreq(unsigned long long rfcarrier, int carrier);
 extern void qso_setFreq();
 extern void qso_setFreq(unsigned long long f);
 extern void qso_clearList();
-extern void saveFreqList();
 extern void qso_updateEntry(int i, std::string usage);
 
 extern bool readRigXML();
@@ -110,6 +109,9 @@ extern void flrig_fskio_send_text(std::string s);
 // GPIO export/unexport pin #
 extern void export_gpio(int);
 extern void unexport_gpio(int);
+
+extern bool readFreqList(bool bdef = false);
+extern void saveFreqList(bool bdef = false);
 
 //------------------------------------------------------------------------------
 

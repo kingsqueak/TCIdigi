@@ -4611,7 +4611,7 @@ bool clean_exit(bool ask) {
 
 	saveFreqList();
 
-	progStatus.saveLastState();
+	progStatus.saveLastState();//(true);
 
 	if (scopeview) scopeview->hide();
 	if (dlgViewer) dlgViewer->hide();
@@ -6603,6 +6603,14 @@ void cb_qso_btnAddFreq(Fl_Widget *, void *)
 
 void cb_qso_btnClearList(Fl_Widget *, void *)
 {
+	if ((Fl::event_state() & (FL_SHIFT)) == FL_SHIFT) {
+		readFreqList(true);
+		return;
+	}
+	if ((Fl::event_state() & FL_CTRL) == FL_CTRL) {
+		saveFreqList(true);
+		return;
+	}
 	if (quick_choice(_("Clear list?"), 2, _("Confirm"), _("Cancel"), NULL) == 1)
 		clearList();
 }

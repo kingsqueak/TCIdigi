@@ -191,19 +191,24 @@ the frequency/mode list.  From left to right, top to bottom:
 <br>
 
 <ul>
-	<li>load the parameters highlighted in the current list entry</li>
-	<li>add an entry containing the current rig frequency / rig mode / modem type /
+	<li>[1][ ] load the parameters highlighted in the current list entry</li>
+	<li>[ ][2] add an entry containing the current rig frequency / rig mode / modem type /
 	modem audio center frequency to the list</li>
-	<li>delete all entries from the list (a warning prompt will appear)</li>
-	<li>delete the highlighted entry from the list</li>
-	<li>pop up menu with active frequencies based on spots reported from spotters
+	<li><ul>
+	<li>[3][ ] left click - DELETE all entries from the list (a warning prompt will appear)</li>
+	<li>[3][ ] SHIFT left click - LOAD entries from a specified file, clearing old entries</li>
+	<li>[3][ ] CONTROL left click - SAVE entries to a specified file.  
+	<br>The most recently saved or loaded file name will be the new default frequencies reference file</li>
+	</ul>
+	</li>
+	<li>[ ][4] delete the highlighted entry from the list</li>
+	<li>[5][ ] pop up menu with active frequencies based on spots reported from spotters
 	in the Maidenhead grid locator entered for the station during fldigi configuration
 	or a locator specified in the entry field to the right
 	(see \ref psk_reporter_page "pskreporter/spotter")</li>
-	<li>entry field for Maidenhead grid locator spotter filter for active
+	<li>[ ][6] entry field for Maidenhead grid locator spotter filter for active
 	frequencies search; for example "EM"</li>
 </ul>
-
 
 The browser list contains rig frequency, rig mode, modem type, modem audio
 center frequency, and text describing usage.  To edit the usage string:

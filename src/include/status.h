@@ -115,6 +115,9 @@ struct status {
 	int		timerMacro;
 	bool	skip_sked_macro;
 	std::string	LastMacroFile;
+
+	std::string default_frequencies_filename;
+
 	int		n_rsids;
 
 	bool	spot_recv;

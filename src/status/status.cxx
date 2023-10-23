@@ -167,7 +167,11 @@ status progStatus = {
 	0,					// int timerMacro
 	false,				// bool skip_sked_macro
 	"macros.mdf",		// string LastMacroFile;
+
+	"frequencies2.txt",	// string default_frequencies_filename
+
 	0,					// int n_rsids
+
 	false,				// bool spot_recv
 	false,				// bool spot_log
 	false,				// bool contest
@@ -594,6 +598,8 @@ if (!bWF_only) {
 
 	spref.set("last_macro_file", LastMacroFile.c_str());
 
+	spref.set("default_frequencies_filename", default_frequencies_filename.c_str());
+
 	spref.set("spot_recv", spot_recv);
 	spref.set("spot_log", spot_log);
 
@@ -913,6 +919,10 @@ void status::loadLastState()
 	memset(strbuff, 0, sizeof(strbuff));
 	spref.get("last_macro_file", strbuff, "macros.mdf", sizeof(strbuff) - 1);
 	LastMacroFile = strbuff;
+
+	memset(strbuff, 0, sizeof(strbuff));
+	spref.get("default_frequencies_filename", strbuff, "frequencies2.txt", sizeof(strbuff) - 1);
+	default_frequencies_filename = strbuff;
 
 	spref.get("spot_recv", i, spot_recv); spot_recv = i;
 	spref.get("spot_log", i, spot_log); spot_log = i;

@@ -382,7 +382,7 @@ void create_fl_digi_main_primary() {
 					RigViewerFrame->x(), RigViewerFrame->y() + Hentry + 2 * pad,
 					Wbtn, Hentry);
 				qso_btnClearList->image(new Fl_Pixmap(trash_icon));
-				qso_btnClearList->tooltip(_("Clear list"));
+				qso_btnClearList->tooltip(_("Load/Save/Clear list\nLoad - SHIFT\nSave - CNTRL"));
 				qso_btnClearList->callback((Fl_Callback*)cb_qso_btnClearList);
 
 				qso_btnDelFreq = new Fl_Button(

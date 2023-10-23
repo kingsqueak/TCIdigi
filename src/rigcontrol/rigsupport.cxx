@@ -33,6 +33,8 @@
 #include <iterator>
 #include <cstring>
 
+#include <FL/filename.H>
+
 #include "rigsupport.h"
 #include "rigxml.h"
 #include "rigio.h"
@@ -46,6 +48,7 @@
 #include "debug.h"
 #include "gettext.h"
 #include "status.h"
+#include "fileselect.h"
 
 extern void n3fjp_set_freq(unsigned long long);
 extern bool n3fjp_connected;
@@ -232,11 +235,21 @@ size_t addtoList(unsigned long long val)
 	return updateList(val, m.carrier, m.rmode, m.mode);
 }
 
-bool readFreqList()
+bool readFreqList(bool bdef)
 {
-	std::ifstream freqfile((HomeDir + "frequencies2.txt").c_str());
+	std::string fname = HomeDir + progStatus.default_frequencies_filename;
+	if (bdef) {
+		std::string defname = FSEL::select(
+			"Load from frequency list file",
+			"*.txt",
+			fname.c_str());
+		if (defname.empty()) return false;
+		fname = defname;
+	}
+
+	std::ifstream freqfile((fname).c_str());
 	if (!freqfile) {
-		LOG_ERROR("Could not open %s", (HomeDir + "frequencies2.txt").c_str());
+		LOG_ERROR("Could not open %s", (fname).c_str());
 		return false;
 	}
 
@@ -255,16 +268,28 @@ bool readFreqList()
 
 	freqfile.close();
 
+	progStatus.default_frequencies_filename = fl_filename_name(fname.c_str());
+
 	return freqlist.size();
 }
 
-void saveFreqList()
+void saveFreqList(bool bdef)
 {
 	if (freqlist.empty()) return;
 
-	std::ofstream freqfile((HomeDir + "frequencies2.txt").c_str());
+	std::string fname = HomeDir + progStatus.default_frequencies_filename;
+	if (bdef) {
+		std::string defname = FSEL::saveas(
+			"Save to frequency list file",
+			"*.txt",
+			fname.c_str());
+		if (defname.empty()) return;
+		fname = defname;
+	}
+
+	std::ofstream freqfile((fname).c_str());
 	if (!freqfile) {
-		LOG_ERROR("Could not open %s", (HomeDir + "frequencies2.txt").c_str());
+		LOG_ERROR("Could not open %s", (fname).c_str());
 		return;
 	}
 	freqfile << "# rfcarrier rig_mode carrier mode usage\n";
@@ -274,6 +299,9 @@ void saveFreqList()
 			std::ostream_iterator<qrg_mode_t>(freqfile, "\n") );
 
 	freqfile.close();
+
+	progStatus.default_frequencies_filename = fl_filename_name(fname.c_str());
+
 }
 
 void build_frequencies2_list()
@@ -304,7 +332,7 @@ void build_frequencies2_list()
 	}
 	fwidths[max_mode] += (int)ceil(fl_width(mode_info[mmax].sname));
 
-	if (readFreqList() == true)
+	if (readFreqList())
 		return;
 
 	updateList (1807000ULL, 1000, "USB", MODE_PSK31 );
