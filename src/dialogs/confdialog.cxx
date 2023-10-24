@@ -31,15 +31,16 @@
 #include "thor.h"
 #include "ifkp.h"
 #include "dx_cluster.h"
-extern void WefaxDestDirSet(Fl_File_Chooser *w, void *userdata);
 #include "dx_dialog.h"
+#include "fsq.h"
+#include "network.h"
+#include <vector>
 #if USE_HAMLIB
   #include "hamlib.h"
 #endif
-#include "fsq.h"
+extern void WefaxDestDirSet(Fl_File_Chooser *w, void *userdata);
 Fl_Double_Window *dlgConfig; 
 Mode_Browser* mode_browser; 
-#include <vector>
 std::vector<CONFIG_PAGE *> config_pages; 
 static Fl_Group *current = 0; 
 
@@ -2554,9 +2555,20 @@ progdefaults.changed = true;
 
 Fl_Button *btnTestApiKey=(Fl_Button *)0;
 
-static void cb_btnTestApiKey(Fl_Button* o, void*) {
-  progdefaults.initInterface();
-        o->labelcolor(FL_FOREGROUND_COLOR);
+static void cb_btnTestApiKey(Fl_Button*, void*) {
+  std::string url;
+std::string apiKey;
+url = txt_cloudlog_api_url->value();
+apiKey = txt_cloudlog_api_key->value();
+if (url.empty() || apiKey.empty()) {
+  btnTestApiKey->labelcolor(FL_RED);
+} else if (test_api_key(url.c_str(), apiKey.c_str(), 5.0) == 0) {
+  btnTestApiKey->color(FL_GREEN);
+} else if (test_api_key(url.c_str(), apiKey.c_str(), 5.0) == 1) {
+  btnTestApiKey->color(FL_YELLOW);
+} else {
+  btnTestApiKey->color(FL_RED);
+}
 progdefaults.changed = true;
 }
 

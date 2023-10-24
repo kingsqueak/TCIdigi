@@ -116,27 +116,30 @@ decl {\#include "ifkp.h"} {private local
 decl {\#include "dx_cluster.h"} {private local
 }
 
-decl {extern void WefaxDestDirSet(Fl_File_Chooser *w, void *userdata);} {private local
+decl {\#include "dx_dialog.h"} {private local
 }
 
-decl {\#include "dx_dialog.h"} {private local
+decl {\#include "fsq.h"} {private local
+}
+
+decl {\#include "network.h"} {private local
+}
+
+decl {\#include <vector>} {private local
 }
 
 decl {\#if USE_HAMLIB
   \#include "hamlib.h"
-\#endif} {private local
+\#endif} {selected private local
 }
 
-decl {\#include "fsq.h"} {private local
+decl {extern void WefaxDestDirSet(Fl_File_Chooser *w, void *userdata);} {private local
 }
 
 decl {Fl_Double_Window *dlgConfig;} {public local
 }
 
 decl {Mode_Browser* mode_browser;} {public local
-}
-
-decl {\#include <vector>} {private local
 }
 
 decl {struct CONFIG_PAGE {Fl_Group *grp; std::string label; CONFIG_PAGE(Fl_Group *_grp = 0, std::string _lbl = "") { grp = _grp; label = _lbl; } ~CONFIG_PAGE() { if (grp) delete grp; } };} {public global
@@ -485,7 +488,7 @@ static const char szBaudRates[] = "300|600|1200|2400|4800|9600|19200|38400|57600
 static const char szProsigns[] = "~|%|&|+|=|{|}|<|>|[|]| ";} {}
   Fl_Window {} {
     label {Fldigi configuration} open
-    xywh {1081 44 800 380} type Double color 45 selection_color 51 labelsize 18 align 80 resizable size_range {750 380 0 380} visible
+    xywh {329 25 800 380} type Double color 45 selection_color 51 labelsize 18 align 80 resizable size_range {750 380 0 380} visible
   } {
     Fl_Group {} {
       xywh {0 0 201 380} resizable
@@ -749,7 +752,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Colors-Fonts/Buttons} open selected
+      label {Colors-Fonts/Buttons}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons"));}
       code1 {config_pages.push_back(p);}
@@ -3174,8 +3177,19 @@ progdefaults.changed = true;}
       }
       Fl_Button btnTestApiKey {
         label Initialize
-        callback {progdefaults.initInterface();
-        o->labelcolor(FL_FOREGROUND_COLOR);
+        callback {std::string url;
+std::string apiKey;
+url = txt_cloudlog_api_url->value();
+apiKey = txt_cloudlog_api_key->value();
+if (url.empty() || apiKey.empty()) {
+  btnTestApiKey->labelcolor(FL_RED);
+} else if (test_api_key(url.c_str(), apiKey.c_str(), 5.0) == 0) {
+  btnTestApiKey->color(FL_GREEN);
+} else if (test_api_key(url.c_str(), apiKey.c_str(), 5.0) == 1) {
+  btnTestApiKey->color(FL_YELLOW);
+} else {
+  btnTestApiKey->color(FL_RED);
+}
 progdefaults.changed = true;}
         tooltip {Test API Key} xywh {696 313 80 24}
       }
@@ -5662,7 +5676,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/IFKP} open
+      label {Modem/IFKP}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/IFKP"));}
       code1 {config_pages.push_back(p);}

@@ -181,7 +181,7 @@ int Url::http_test(std::string apiKey)
 	std::ostringstream REQUEST;
 	std::string response = "";
 	size_t len, rcvd;
-	bool ret = false;
+	int ret = 2;
 
 	const char service[] = "http";
 
@@ -202,7 +202,7 @@ Connection: close\r\n\r\n";
 		if (s.send(REQUEST.str()) != len) {
 			if (debug_file)
 				debug_file << "send timed out: " << REQUEST.str() << std::endl;
-			ret = false;
+			ret = 3;
 			goto recv_exit;
 		}
 		if (debug_file)
@@ -214,7 +214,7 @@ Connection: close\r\n\r\n";
 			if (wait > 5) {
 				if (debug_file)
 					debug_file << "s.recv(...) failed after " << wait << " attempts" << std::endl;
-				return false;
+				return 4;
 			}
 			MilliSleep(100);
 		}
@@ -227,19 +227,22 @@ Connection: close\r\n\r\n";
 		if (debug_file) {
 			debug_file << "Caught socket exception: " << errno << ": " << response << std::endl;
 		}
-		ret = false;
+		ret = 5;
 	}
 
 	// Response for an API key test request
 	// <auth><status>Valid</status><rights>rw</rights></auth>
 	if (response.find("<auth>") == std::string::npos) {
-		ret = false;
+		ret = 2;
 	} else {
 		if (response.find("<status>Valid</status>") == std::string::npos) {
-			ret = false;
+			ret = 2;
+		}
+		if (response.find("<rights>r</rights>") != std::string::npos) {
+			ret = 1;
 		}
 		if (response.find("<rights>rw</rights>") != std::string::npos) {
-			ret = true;
+			ret = 0;
 		}
 	}
 recv_exit:
@@ -248,7 +251,7 @@ recv_exit:
 
 int Url::https_test(std::string apiKey)
 {
-	int ret = 1, len;
+	int ret = 2, len;
 	_err = MBEDTLS_EXIT_SUCCESS;
 	std::ostringstream REQUEST;
 	std::string response = "";
@@ -507,13 +510,16 @@ int Url::https_test(std::string apiKey)
 	// Response for an API key test request
 	// <auth><status>Valid</status><rights>rw</rights></auth>
 	if (response.find("<auth>") == std::string::npos) {
-		ret = false;
+		ret = 2;
 	} else {
 		if (response.find("<status>Valid</status>") == std::string::npos) {
-			ret = false;
+			ret = 2;
+		}
+		if (response.find("<rights>r</rights>") != std::string::npos) {
+			ret = 1;
 		}
 		if (response.find("<rights>rw</rights>") != std::string::npos) {
-			ret = true;
+			ret = 0;
 		}
 	}
 	_err = MBEDTLS_EXIT_SUCCESS;
@@ -1196,7 +1202,7 @@ int Url::post(std::string url, std::string apikey, int profile_id, std::string a
 int Url::test(std::string url, std::string apiKey)
 {
 	parse(url);
-	int ret = false;
+	int ret = 2;
 
 	if (_https == true) {
 		ret = https_test(apiKey);
@@ -1236,7 +1242,7 @@ bool post_http(const std::string& url, const std::string& apikey, int profile_id
 	return target_url.post(url, apikey, profile_id, adifdata, reply);
 }
 
-bool test_api_key(std::string url, const std::string& apiKey, double timeout)
+int test_api_key(std::string url, const std::string& apiKey, double timeout)
 {
 	if (url[url.length()-1] == '/') {
 		url = url.substr(0, url.length()-1);

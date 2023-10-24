@@ -43,7 +43,7 @@
 
 extern bool get_http(const std::string& url, std::string& reply, double timeout = 0.0);
 extern bool post_http(const std::string& url, const std::string& apikey, int profile_id, std::string adifdata, std::string& reply, double timeout = 0.0);
-extern bool test_api_key(std::string url, const std::string& apiKey, double timeout = 0.0);
+extern int test_api_key(std::string url, const std::string& apiKey, double timeout = 0.0);
 
 extern char ca_crt_rsa[];
 extern size_t ca_crt_rsa_size;

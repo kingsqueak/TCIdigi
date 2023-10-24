@@ -29,9 +29,10 @@ fldigi configuration under Logging - Cloudlog.
 
 There is a test button that allows for testing the functionality of the
 configured Cloudlog instance and its API key. If the key is valid and
-allows write access the button will turn green after pressing it. If it
-turns red either the API key or the URL is wrong. For a basic test there
-also is a test function within Cloudlog to test API keys.
+allows write access the button will turn green after pressing it. The
+button will turn yellow in case the API key is read-only. If it turns
+red either the API key or the URL is wrong. For a basic test there also
+is a test function within Cloudlog to test API keys.
 <br>
 
 \section Cloudlog_usage Cloudlog Usage
