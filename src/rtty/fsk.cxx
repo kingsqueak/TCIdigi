@@ -151,6 +151,7 @@ FSK::FSK()
 
 	shared_port = false;
 	_sending = false;
+	fsk_port = new Cserial();
 }
 
 FSK::~FSK()
@@ -159,7 +160,8 @@ FSK::~FSK()
 	if (shared_port)
 		return;
 	fsk_port->ClosePort();
-}
+	delete fsk_port;
+ }
 
 void FSK::open_port(std::string device_name)
 {
@@ -175,7 +177,8 @@ void FSK::fsk_shares_port(Cserial *shared_device)
 {
 //std::cout << "fsk shares port : " << shared_device << std::endl;
 	shared_port = true;
-	fsk_port = shared_device;
+	delete fsk_port;
+ 	fsk_port = shared_device;
 }
 
 bool FSK::sending() {
