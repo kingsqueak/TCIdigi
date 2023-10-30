@@ -35,6 +35,7 @@
 #include "picture.h"
 #include <FL/Fl_Shared_Image.H>
 
+
 class fsq : public modem {
 
 #define	SR			12000
@@ -51,7 +52,6 @@ class fsq : public modem {
 enum STATE {TEXT, IMAGE};
 
 friend void timed_xmt(void *);
-friend void sounder(void *);
 friend void aging(void *);
 friend void fsq_add_tx_timeout(void *);
 friend void fsq_stop_aging();
@@ -185,6 +185,7 @@ public:
 	std::string fsq_mycall() { return mycall; }
 
 	bool	fsq_squelch_open();
+	bool	fsq_is_rx() { return ch_sqlch_open; }
 
 	static int		symlen;
 

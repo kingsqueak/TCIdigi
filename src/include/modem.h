@@ -298,6 +298,7 @@ public:
 	virtual std::string fsq_mycall() {return "";}
 	virtual bool		fsq_squelch_open() {return false;}
 	virtual void		fsq_transmit(void *) {}
+	virtual bool		fsq_is_rx() { return false; }
 	
 // modem decode-quality data and statistics
 public:
