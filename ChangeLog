@@ -1,10 +1,39 @@
-2023-08-30  dave-w1hkj  <w1hkj@bellsouth.net>
+2023-10-30  dave-w1hkj  <w1hkj@bellsouth.net>
 
-	65599e949: Version 4.2.00
-	d01751cce: TTY ptt dtr/rts
-	885ef1ff8: THOR56
-	12ed9b841: THOR 32/44
-	fd4388110: Waterfall cursor
+	fe5298652: Version 4.2.01
+	2169468ab: fsq sounder
+
+2023-10-27  Sven Schnelle  <svens@stackframe.org>
+
+	f1b3fe273: FSK port
+
+2023-10-24  Florian Wolters (DF2ET)  <df2et@df2et.de>
+
+	7a75d2c7b: Cloud log update
+
+2023-10-23  dave-w1hkj  <w1hkj@bellsouth.net>
+
+	c52ef6d0e: frequencies2 list
+	a3eb92f8f: gnuc warnings
+	4a430a4f3: flrig auto shutdown
+	8ee7b6ae5: button_colors
+	922d524f8: Light Buttons
+	34d6315a2: OFDM_2000 OFDM_2000F
+
+2023-09-17  kk5vd  <kk5vd@yahoo.com>
+
+	7739534f9: New XMLRPC Command
+
+2023-09-16  dave-w1hkj  <w1hkj@bellsouth.net>
+
+	0166737b0: Serial i/o
+	38e690ffa: Icons
+	b1d9024bb: Version 4.2.00
+	19da01e37: THOR docs
+	b99950428: TTY ptt dtr/rts
+	7ff2dc5f0: THOR56
+	e29144a35: THOR 32/44
+	e4a4df0ba: Waterfall cursor
 	5d4a6fa80: Revert "FSQ s/n"
 	b6d34d0f6: Version 4.1.27
 	24e8c0559: Macro <PAUSE>
