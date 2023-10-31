@@ -1807,7 +1807,7 @@ void disp_sounder(void *)
 void disp_busy(void *)
 {
 	char report[50];
-	snprintf(report, sizeof(report), "Squelch open, try sounding in %s secs",
+	snprintf(report, sizeof(report), "Squelch open, try sounding in %d secs",
 		sounder_count / 100);
 	display_fsq_rx_text(report, FTextBase::ALTR);
 }
