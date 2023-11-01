@@ -199,6 +199,7 @@ fsq::fsq(trx_mode md) : modem()
 	curr_nibble = prev_nibble = 0;
 	s2n = 0;
 	ch_sqlch_open = false;
+	metric = 0;
 	memset(rx_stream, 0, sizeof(rx_stream));
 	rx_text.clear();
 
@@ -264,6 +265,7 @@ void  fsq::rx_init()
 	curr_nibble = prev_nibble = 0;
 	s2n = 0;
 	ch_sqlch_open = false;
+	metric = 0;
 	memset(rx_stream, 0, sizeof(rx_stream));
 
 	rx_text.clear();
@@ -407,7 +409,9 @@ bool fsq::valid_char(int ch)
 
 bool fsq::fsq_squelch_open()
 {
-	return ch_sqlch_open || metric >= progStatus.sldrSquelchValue;
+	return (ch_sqlch_open || 
+			metric >= progStatus.sldrSquelchValue  ||
+			state == IMAGE);
 }
 
 static std::string triggers = " !#$%&'()*+,-.;<=>?@[\\]^_{|}~";
@@ -1102,13 +1106,16 @@ void fsq::process_symbol(int sym)
 					rx_text += curr_ch;
 					if (b_eot) {
 						parse_rx_text();
-						if (state == TEXT)
+						if (state == TEXT) {
 							ch_sqlch_open = false;
+							metric = 0;
+						}
 					}
 				}
 			}
 			if (fsq_squelch_open() && (b_eot || b_eol)) {
 				ch_sqlch_open = false;
+				metric = 0;
 			}
 		}
 		prev_nibble = curr_nibble;
@@ -1547,16 +1554,16 @@ void  clear_xmt_arrays()
 	fsq_tx_text->clear();
 }
 
-double fsq_xmtdelay() // in seconds
+int fsq_xmtdelay() // 500 >= val <= 1000 in milliseconds
 {
 #define MIN_DELAY  50
 #define MAX_DELAY  500
 	srand((int)clock());
 	double scaled = (double)rand()/RAND_MAX;
-	double delay = ((MAX_DELAY - MIN_DELAY + 1 ) * scaled + MIN_DELAY) / 1000.0;
-	if (delay < 0.05) delay = 0.05;
-	if (delay > 0.5) delay = 0.5;
-	return delay;
+	int delay = round(((MAX_DELAY - MIN_DELAY + 1 ) * scaled + MIN_DELAY));
+	if (delay < MIN_DELAY) delay = MIN_DELAY;
+	if (delay > MAX_DELAY) delay = MAX_DELAY;
+	return delay + 500;
 }
 
 void fsq_repeat_last_command()
@@ -1613,7 +1620,7 @@ void try_transmit(void *)
 	if (!active_modem->fsq_squelch_open() && trx_state == STATE_RX) {
 		::next = 0;
 		fsq_que_clear();
-//LOG_WARN("%s", "start_tx()");
+		MilliSleep(fsq_xmtdelay());
 		start_tx();
 		return;
 	}
@@ -1623,17 +1630,15 @@ void try_transmit(void *)
 		static char szwaiting[50];
 		snprintf(szwaiting, sizeof(szwaiting), "Waiting %4.2f", xmt_repeat_try);
 		fsq_que_clear();
-		write_fsq_que(std::string(szwaiting).append("\n").append(fsq_string));
-//LOG_WARN("%s", szwaiting);
-		Fl::repeat_timeout(0.5, try_transmit);
+		LOG_INFO("%s", szwaiting);
+		Fl::add_timeout(0.5, try_transmit);
 		return;
 	} else {
 		static const char szsquelch[50] = "Squelch open.  Transmit timed out!";
-		display_fsq_rx_text(std::string("\n").append(szsquelch).append("\n").c_str(), FTextBase::ALTR);
+		LOG_WARN("%s", szsquelch);
 		tx_text_queue.clear();
 		fsq_que_clear();
 		if (active_modem->fsq_tx_image) active_modem->fsq_tx_image = false;
-//LOG_WARN("%s", szsquelch);
 		return;
 	}
 	return;
@@ -1650,7 +1655,8 @@ inline void _fsq_xmt(std::string s)
 	tx_text_queue = s;
 
 	xmt_repeat_try = progdefaults.fsq_time_out;
-	Fl::add_timeout(0.5 + fsq_xmtdelay(), try_transmit);
+	
+	Fl::awake(try_transmit);
 }
 
 void fsq_xmt_mt(void *cs = (void *)0)
@@ -1699,8 +1705,8 @@ void fsq_transmit(void *a = (void *)0)
 		commands.insert(commands.begin(), 1, tx_text_queue);
 		tx_text_queue.append("^r");
 		fsq_tx_text->clear();
+//printf("A: '%s'\n", tx_text_queue.c_str());
 		return;
-//LOG_WARN("A: %s", tx_text_queue.c_str());
 	}
 
 	int nxt = fsq_tx_text->nextChar();
@@ -1713,15 +1719,14 @@ void fsq_transmit(void *a = (void *)0)
 	commands.insert(commands.begin(), 1, tx_text_queue);
 	tx_text_queue.append("^r");
 	fsq_tx_text->clear();
-//LOG_WARN("B: %s", tx_text_queue.c_str());
+//printf("B: '%s'\n", tx_text_queue.c_str());
 
 	xmt_repeat_try = progdefaults.fsq_time_out;
-	Fl::add_timeout(0.5 + fsq_xmtdelay(), try_transmit);
+	Fl::awake(try_transmit);
 }
 
 void timed_xmt(void *)
 {
-//LOG_WARN("%s", fsq_delayed_string.c_str());
 	fsq_xmt(fsq_delayed_string);
 }
 
@@ -1751,7 +1756,6 @@ void fsq::delayed_reply(std::string s, int delay)
 	fsq_delayed_string = s;
 	secs = delay;
 	Fl::awake(fsq_add_tx_timeout, 0);
-//LOG_WARN("%s : %d", s.c_str(), delay);
 }
 
 //==============================================================================
@@ -1791,25 +1795,36 @@ void fsq::stop_aging()
 // Sounder support
 //==============================================================================
 
-static int sounder_secs = 0;
-static int sounder_count = 0;
+static int sounder_msecs = 0;
+static int sounder_ticks = 0;
 
 void disp_sounder(void *)
 {
+//012345
+//01:23:45
 	std::string stime = ztime();
 	stime.insert(2,":");
+//	stime.insert(5,":");
 	stime.erase(5);
 	std::string sndx = "Sounded @ ";
-	sndx.append(stime);
+	sndx.append(stime);//.append("\n");
 	display_fsq_rx_text(sndx, FTextBase::ALTR);
 }
 
 void disp_busy(void *)
 {
-	char report[50];
-	snprintf(report, sizeof(report), "Squelch open, try sounding in %d secs",
-		sounder_count / 100);
-	display_fsq_rx_text(report, FTextBase::ALTR);
+	char report[80];
+	snprintf(report, sizeof(report), "Squelch open, retry sounding in %d secs",
+		sounder_ticks / 100);
+	LOG_INFO("%s", report);
+}
+
+void disp_tx_active(void *)
+{
+	char report[80];
+	snprintf(report, sizeof(report), "TX active, retry sounding in %d secs",
+		sounder_ticks / 100);
+	LOG_INFO("%s", report);
 }
 
 std::string xmtstr;
@@ -1819,22 +1834,23 @@ void sounder()
 {
 	if (active_modem != fsq_modem) return;
 
-	if (trx_state == STATE_TX) {
-		sounder_count = 500; // wait five seconds
+	if (trx_state == STATE_TX || trx_state == STATE_TUNE) {
+		sounder_ticks = sounder_msecs; // wait until next interval
+		Fl::awake(disp_tx_active);
 		return;
 	}
 	if (active_modem->fsq_squelch_open()) {
+		sounder_ticks = 2000; // wait 20 seconds
 		Fl::awake(disp_busy);
-		sounder_count = 2000; // wait 20 seconds
 		return;
 	}
 	if (xmtstr.empty()) {
-		xmtstr.assign(FSQBOL).append(active_modem->fsq_mycall()).append(":").append(FSQEOT);
+		xmtstr.assign(FSQBOL).append(active_modem->fsq_mycall()).append(":").append(" ").append(FSQEOT);
 	}
 	xmtmsecs = round(((100000.0 * xmtstr.length() * fsq::symlen) / 4096.0) / SR);
-	fsq_xmt(" ");
 	Fl::awake(disp_sounder);
-	sounder_count = sounder_secs - xmtmsecs;
+	fsq_xmt(" ");
+	sounder_ticks = sounder_msecs - xmtmsecs;
 }
 
 //======================================================================
@@ -1851,20 +1867,15 @@ void *SOUNDER_loop(void *args)
 {
 	SET_THREAD_ID(FSQ_SOUNDER_TID);
 #define LOOP  10
-//	int cnt = 10;
-	sounder_count = sounder_secs;
+	sounder_ticks = sounder_msecs;
 	while(1) {
-
 		if (SOUNDER_exit) break;
-
-//		if (--cnt == 0) {
-			{
+		{
 			guard_lock lock(&SOUNDER_mutex);
-			if (sounder_secs > 0) {
-				if (sounder_count > 0) --sounder_count;
-				if (sounder_count == 0) sounder();
+			if (sounder_ticks > 0) {
+				--sounder_ticks;
+				if (sounder_ticks == 0) sounder();
 			}
-//			cnt = 10;
 		}
 		MilliSleep(LOOP);
 	}
@@ -1905,14 +1916,14 @@ void fsq::start_sounder(int interval)
 	guard_lock txlock(&SOUNDER_mutex);
 
 	switch (interval) {
-		case 0: sounder_secs = 0; break;    // sounder disabled
-		case 1: sounder_secs = 6000; break;   // 1 minute
-		case 2: sounder_secs = 60000; break;  // 10 minutes
-		case 3: sounder_secs = 180000; break; // 30 minutes
-		case 4: sounder_secs = 360000; break; // 60 minutes
-		default: sounder_secs = 60000;
+		case 0: sounder_msecs = 0; break;    // sounder disabled
+		case 1: sounder_msecs = 6000; break;   // 1 minute
+		case 2: sounder_msecs = 60000; break;  // 10 minutes
+		case 3: sounder_msecs = 180000; break; // 30 minutes
+		case 4: sounder_msecs = 360000; break; // 60 minutes
+		default: sounder_msecs = 60000;
 	}
-std::cout << "sounder interval: " << sounder_secs << std::endl;
+	sounder_ticks = sounder_msecs;
 }
 
 #include "bitmaps.cxx"
