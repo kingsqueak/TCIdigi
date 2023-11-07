@@ -1077,6 +1077,7 @@ extern Fl_Check_Button *btn_wx_mph;
 extern Fl_Check_Button *btn_wx_kph;
 extern Fl_Check_Button *btn_wx_inches;
 extern Fl_Check_Button *btn_wx_mbars;
+extern Fl_Check_Button *btn_wx_raw;
 extern Fl_Button *btnSaveConfig;
 #include <FL/Fl_Return_Button.H>
 extern Fl_Return_Button *btnCloseConfig;

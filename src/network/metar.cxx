@@ -21,6 +21,7 @@
 // ----------------------------------------------------------------------------
 
 #include "metar.h"
+#include "debug.h"
 
 /*======================================================================
  * 
@@ -157,9 +158,13 @@ static wxpairs cloud_type[] = {
 {"CI", "cirrus"},
 {NULL, NULL} };
 
+#define METAR_DEBUG 1
+
 void Metar::parse()
 {
 	size_t p, p1, p2, p3;
+
+if (METAR_DEBUG) LOG_DEBUG("%s", _metar_text.c_str());
 
 	p = _metar_text.find(_metar_station);
 	if (p == std::string::npos) {
@@ -197,7 +202,16 @@ void Metar::parse()
 		return;
 	}
 
-	_wx_text_full.assign(_metar_text.substr(0, p3));
+	_wx_text_full.assign(_metar_text);//.substr(0, p3));
+
+// METAR report is now _metar_text
+	std::string metar_report = _metar_text.substr(p3);
+	p = metar_report.find(_metar_station);
+	if (p != std::string::npos) metar_report.erase(0, p);
+	p = metar_report.find("\n");
+	if (p != std::string::npos) metar_report.erase(p);
+
+if (METAR_DEBUG) LOG_INFO("%s", metar_report.c_str());
 
 	p = _metar_text.find(_metar_station, p3 + 1);
 	_metar_text.erase(0, p + 1 + _metar_station.length());
@@ -362,6 +376,10 @@ void Metar::parse()
 	}
 	if ((_inches || _mbars) && !_baro.empty()) {
 		_wx_text_parsed.append("Baro: ").append(_baro).append("\n");
+	}
+	if ((_wx_raw) && !metar_report.empty()) {
+		_wx_text_parsed.append(metar_report);
+		if (METAR_DEBUG) LOG_INFO("%s", _wx_text_parsed.c_str());
 	}
 
 	return;

@@ -66,10 +66,12 @@ void getwx(std::string& wx, std::string wxsta)
 
 	Metar local_wx;
 
-	local_wx.params(	progdefaults.wx_inches, progdefaults.wx_mbars, 
-				progdefaults.wx_fahrenheit, progdefaults.wx_celsius,
-				progdefaults.wx_mph, progdefaults.wx_kph,
-				progdefaults.wx_condx, progdefaults.wx_station_name);
+	local_wx.params(
+		progdefaults.wx_inches, progdefaults.wx_mbars, 
+		progdefaults.wx_fahrenheit, progdefaults.wx_celsius,
+		progdefaults.wx_mph, progdefaults.wx_kph,
+		progdefaults.wx_condx, progdefaults.wx_station_name,
+		progdefaults.wx_raw);
 
 	local_wx.debug(true);
 

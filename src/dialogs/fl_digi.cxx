@@ -10102,6 +10102,7 @@ void set_default_btn_color()
 		btn_wx_kph,
 		btn_wx_inches,
 		btn_wx_mbars,
+		btn_wx_raw,
 
 		btnNoiseOn,
 		btnOffsetOn,

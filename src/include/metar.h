@@ -45,6 +45,7 @@ class Metar {
 	bool _kph;
 	bool _condx;
 	bool _name;
+	bool _wx_raw;
 
 	bool _debug;
 public:
@@ -71,7 +72,8 @@ public:
 		_inches = _mbars =
 		_fahrenheit = _celsius =
 		_mph = _kph =
-		_condx = _name = true;
+		_condx = _name = 
+		_wx_raw = true;
 
 		_debug = false;
 	}
@@ -94,7 +96,7 @@ public:
 	void params( bool inches, bool mbars, 
 				 bool fahrenheit, bool celsius,
 				 bool mph, bool kph,
-				 bool condx, bool name)
+				 bool condx, bool name, bool wx_raw)
 	{
 		_inches = inches;
 		_mbars = mbars;
@@ -104,6 +106,7 @@ public:
 		_kph = kph;
 		_condx = condx;
 		_name = name;
+		_wx_raw = wx_raw;
 	}
 	void inches(bool b) { _inches = b; }
 	bool inches() { return _inches; }

@@ -8528,7 +8528,7 @@ number to the default value.} xywh {624 313 73 22}
       }
     }
     Fl_Group grpOperator {
-      label {Operator-Station} open selected
+      label {Operator-Station} open
       xywh {200 0 600 350} box ENGRAVED_BOX color 50 align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Operator-Station"));}
       code1 {config_pages.push_back(p);}
@@ -12141,7 +12141,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Web/WX}
+      label {Web/WX} selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Web/WX"));}
       code1 {config_pages.push_back(p);}
@@ -12239,6 +12239,13 @@ progdefaults.changed = true;}
 progdefaults.changed = true;}
         tooltip {report millibars} xywh {522 280 70 15} down_box DOWN_BOX
         code0 {o->value(progdefaults.wx_mbars);}
+      }
+      Fl_Check_Button btn_wx_raw {
+        label {Unprocessed METAR data}
+        callback {progdefaults.wx_raw=o->value();
+progdefaults.changed = true;}
+        tooltip {Insert full METAR report} xywh {522 138 70 15} down_box DOWN_BOX
+        code0 {o->value(progdefaults.wx_raw);}
       }
     }
     Fl_Button btnSaveConfig {

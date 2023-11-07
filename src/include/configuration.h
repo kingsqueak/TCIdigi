@@ -2641,6 +2641,9 @@
         ELEM_(bool, wx_station_name, "WX_STATION_NAME",                                 \
               "Report station noun name",                                               \
               true)                                                                     \
+        ELEM_(bool, wx_raw, "WX_RAW",                                                   \
+              "Unparsed METAR report",                                                  \
+              true)                                                                     \
     /* KML Keyhole Markup Language */                                                   \
         ELEM_(bool, kml_purge_on_startup, "KML_PURGE_ON_STARTUP",                       \
               "Purge KML data at startup",                                              \

@@ -9666,6 +9666,13 @@ static void cb_btn_wx_mbars(Fl_Check_Button* o, void*) {
 progdefaults.changed = true;
 }
 
+Fl_Check_Button *btn_wx_raw=(Fl_Check_Button *)0;
+
+static void cb_btn_wx_raw(Fl_Check_Button* o, void*) {
+  progdefaults.wx_raw=o->value();
+progdefaults.changed = true;
+}
+
 Fl_Button *btnSaveConfig=(Fl_Button *)0;
 
 static void cb_btnSaveConfig(Fl_Button*, void*) {
@@ -19941,6 +19948,12 @@ i on a\ntouch screen device such as a tablet."));
         btn_wx_mbars->callback((Fl_Callback*)cb_btn_wx_mbars);
         o->value(progdefaults.wx_mbars);
       } // Fl_Check_Button* btn_wx_mbars
+      { Fl_Check_Button* o = btn_wx_raw = new Fl_Check_Button(522, 138, 70, 15, _("Unprocessed METAR data"));
+        btn_wx_raw->tooltip(_("Insert full METAR report"));
+        btn_wx_raw->down_box(FL_DOWN_BOX);
+        btn_wx_raw->callback((Fl_Callback*)cb_btn_wx_raw);
+        o->value(progdefaults.wx_raw);
+      } // Fl_Check_Button* btn_wx_raw
       CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Web/WX"));
       config_pages.push_back(p);
       tab_tree->add(_("Web/WX"));
