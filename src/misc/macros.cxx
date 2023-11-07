@@ -4306,6 +4306,64 @@ static void pEXEC(std::string &s, size_t &i, size_t endbracket)
 }
 #else // !__MINGW32__
 
+HANDLE g_hChildStd_IN_Rd = NULL;
+HANDLE g_hChildStd_IN_Wr = NULL;
+HANDLE g_hChildStd_OUT_Rd = NULL;
+HANDLE g_hChildStd_OUT_Wr = NULL;
+HANDLE g_hInputFile = NULL;
+
+#define PIPESIZE 4096
+void WriteToPipe(void) 
+
+
+// Read from a file and write its contents to the pipe for the child's STDIN.
+// Stop when there is no more data. 
+{ 
+	DWORD dwRead, dwWritten; 
+	CHAR chBuf[PIPESIZE];
+	BOOL bSuccess = FALSE;
+ 
+	for (;;) { 
+		bSuccess = ReadFile(g_hInputFile, chBuf, PIPESIZE, &dwRead, NULL);
+		if ( ! bSuccess || dwRead == 0 ) break; 
+      
+		bSuccess = WriteFile(g_hChildStd_IN_Wr, chBuf, dwRead, &dwWritten, NULL);
+		if ( ! bSuccess ) break; 
+	} 
+ 
+// Close the pipe handle so the child process stops reading. 
+ 
+	if ( ! CloseHandle(g_hChildStd_IN_Wr) ) 
+		LOG_ERROR("StdInWr CloseHandle"); 
+} 
+ 
+std::string ReadFromPipe(void) 
+// Read output from the child process's pipe for STDOUT
+// and write to the parent process's pipe for STDOUT. 
+// Stop when there is no more data. 
+{
+	DWORD dwRead;
+//	DWORD dwWritten; 
+	CHAR chBuf[PIPESIZE]; 
+	BOOL bSuccess = FALSE;
+//	HANDLE hParentStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	std::string sbuffer;
+LOG_INFO("Child std::cout handle: %s", g_hChildStd_OUT_Rd);
+
+	for (;;) {
+		memset(chBuf, 0, PIPESIZE);
+LOG_INFO("Read pipe");
+		bSuccess = ReadFile( g_hChildStd_OUT_Rd, chBuf, PIPESIZE, &dwRead, NULL);
+LOG_INFO("bSuccess: %d, dwRead %ld", bSuccess, dwRead);
+		if( ! bSuccess || dwRead == 0 ) break; 
+		sbuffer.append(chBuf);
+//		bSuccess = WriteFile(hParentStdOut, chBuf, 
+//							dwRead, &dwWritten, NULL);
+//		if (! bSuccess ) break; 
+	}
+	return sbuffer; 
+}
+
 static void pEXEC(std::string& s, size_t& i, size_t endbracket)
 {
 	if (within_exec) {
@@ -4326,22 +4384,84 @@ static void pEXEC(std::string& s, size_t& i, size_t endbracket)
 	execstr = m.expandMacro(execstr, true);
 	within_exec = false;
 
-	char* cmd = strdup(execstr.c_str());
+	SECURITY_ATTRIBUTES saAttr; 
+ 
+	LOG_INFO("Start of macro <EXEC> execution.");
+
+// Set the bInheritHandle flag so pipe handles are inherited. 
+ 
+	saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
+	saAttr.bInheritHandle = TRUE; 
+	saAttr.lpSecurityDescriptor = NULL; 
+
+// Create a pipe for the child process's STDOUT. 
+ 
+	if ( ! CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0) )  {
+		LOG_ERROR("StdoutRd CreatePipe failes"); 
+		return;
+	}
+
+// Ensure the read handle to the pipe for STDOUT is not inherited.
+
+	if ( ! SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0) ) {
+		LOG_ERROR("Stdout SetHandleInformation failed");
+		return;
+	}
+
+// Create a pipe for the child process's STDIN. 
+ 
+	if (! CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0)) {
+		LOG_ERROR("Stdin CreatePipe failed");
+		return;
+	}
+
+// Ensure the write handle to the pipe for STDIN is not inherited. 
+ 
+	if ( ! SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0) ) {
+		LOG_ERROR("Stdin SetHandleInformation failed");
+		return;
+	}
 
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	memset(&si, 0, sizeof(si));
 	si.cb = sizeof(si);
 	memset(&pi, 0, sizeof(pi));
-	if (!CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+
+	char* cmd = strdup(execstr.c_str());
+
+LOG_INFO("CMD %s", cmd);
+
+	if (!CreateProcess(
+			NULL, 
+			cmd, 
+			NULL, 
+			NULL, 
+			TRUE, //FALSE, 
+			CREATE_NO_WINDOW, 
+			NULL, 
+			NULL, 
+			&si, &pi)) {
 		LOG_ERROR("CreateProcess failed with error code %ld", GetLastError());
+		free(cmd);
+		return;
+	}
 
 	WaitForSingleObject( pi.hProcess, INFINITE );
  	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
+
 	free(cmd);
 
-	s.erase(i, end + strlen("</EXEC>") - i);
+// Read from pipe that is the standard output for child process. 
+ 
+	LOG_INFO( "Contents of child process STDOUT:");
+	std::string read_from_pipe = ReadFromPipe(); 
+
+	LOG_INFO("End of MACRO <EXEC> execution.");
+
+	substitute(s, i, endbracket, read_from_pipe);
+//	s.erase(i, end + strlen("</EXEC>") - i);
 }
 #endif // !__MINGW32__
 
