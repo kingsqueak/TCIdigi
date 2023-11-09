@@ -47,6 +47,7 @@
 #include "modem.h"
 #include "trx.h"
 #include "status.h"
+#include "strutil.h"
 
 #include "configuration.h"
 
@@ -244,12 +245,7 @@ void xml_add_record()
 	adif_str(ADIF_MODE, mode_info[active_modem->get_mode()].adif_name);
 	adif_str(RST_SENT, inpRstOut->value());
 	adif_str(RST_RCVD, inpRstIn->value());
-	if (progdefaults.log_power_meter) {
-		static char sval[20];
-		snprintf(sval, sizeof(sval), "%3.0f", pwrmeter->peak());
-		adif_str(TX_PWR, sval);
-	} else
-		adif_str(TX_PWR, progdefaults.mytxpower.c_str());
+	adif_str(TX_PWR, log_power());
 	adif_str(NAME, inpName->value());
 	
 	adif_str(QTH, inpQth->value());
@@ -294,10 +290,8 @@ void xml_add_record()
 
 	adif_str(OP_CALL, progdefaults.operCall.c_str());
 	adif_str(STA_CALL, progdefaults.myCall.c_str());
-	adif_str(MY_CITY,
-		std::string(progdefaults.myQth).
-		append(", ").
-		append(inp_QP_state_short->value()).c_str());
+	adif_str(MY_CITY, std::string(progdefaults.myQth).c_str());
+	adif_str(MY_STATE, inp_QP_state_short->value());
 	adif_str(MY_GRID, progdefaults.myLocator.c_str());
 
 	adif.append("<eor>");

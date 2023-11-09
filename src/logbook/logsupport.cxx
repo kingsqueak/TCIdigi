@@ -51,6 +51,7 @@
 #include "fd_logger.h"
 
 #include "fl_digi.h"
+#include "confdialog.h"
 #include "fileselect.h"
 #include "configuration.h"
 #include "main.h"
@@ -1684,11 +1685,12 @@ void saveRecord() {
 	rec.putField(CONT, inpCONT_log->value());
 	rec.putField(CQZ, inpCQZ_log->value());
 	rec.putField(ITUZ, inpITUZ_log->value());
-	rec.putField(TX_PWR, inpTX_pwr_log->value());
+	rec.putField(TX_PWR, log_power());
 
 	rec.putField(STA_CALL, inp_log_sta_call->value());
 	rec.putField(OP_CALL, inp_log_op_call->value());
 	rec.putField(MY_CITY, inp_log_sta_qth->value());
+	rec.putField(MY_STATE, inp_QP_state_short->value());
 	rec.putField(MY_GRID, inp_log_sta_loc->value());
 
 	rec.putField(SS_SERNO, inp_log_cwss_serno->value());
@@ -1776,7 +1778,7 @@ void updateRecord() {
 	rec.putField(CONT, inpCONT_log->value());
 	rec.putField(CQZ, inpCQZ_log->value());
 	rec.putField(ITUZ, inpITUZ_log->value());
-	rec.putField(TX_PWR, inpTX_pwr_log->value());
+	rec.putField(TX_PWR, log_power());
 
 	rec.putField(STA_CALL, inp_log_sta_call->value());
 	rec.putField(OP_CALL, inp_log_op_call->value());
@@ -1903,6 +1905,19 @@ std::string sTime_on = "";
 std::string sDate_off = "";
 std::string sTime_off = "";
 
+const char *log_power()
+{
+	static std::string stemp;
+	if (progdefaults.log_power_meter) 	{
+		static char sval[20];
+		snprintf(sval, sizeof(sval), "%3.0f", pwrmeter->peak());
+		stemp = sval;
+		strtrim(stemp);
+	} else
+		stemp = progdefaults.mytxpower;
+	return stemp.c_str();
+}
+
 void AddRecord ()
 {
 	inpCall_log->value(inpCall->value());
@@ -1951,12 +1966,7 @@ void AddRecord ()
 
 	inpNotes_log->value (inpNotes->value());
 
-	if (progdefaults.log_power_meter) {
-		static char sval[20];
-		snprintf(sval, sizeof(sval), "%3.0f", pwrmeter->peak());
-		inpTX_pwr_log->value(sval);
-	} else
-		inpTX_pwr_log->value (progdefaults.mytxpower.c_str());
+	if (progdefaults.log_power_meter) inpTX_pwr_log->value(log_power());
 
 	inpIOTA_log->value("");
 	inpDXCC_log->value("");

@@ -27,76 +27,23 @@
 #include "counties.h"
 
 //std::string strSQSO 
+// US entries:
+// State, <short state>, <county name>, <abbreviated county name>
+// <short state>, <county name>, <abbreviated county name>
+// Canadian entries:
+// Province, <short province>, <county name>, <abbreviated county name>
+// , <short province>, <county name>, <abbreviated county name>
+// United Kingdom entries:
+// United Kingom, UK, <county name>, <abbreviated county name>
+// , UK, <county name>, <abbreviated county name>
+
 const char *szSQSO = "\
 State/Province, ST/PR, County/City/District, CCD\n\
-NIL,--,none,none\n\
+NIL, ,none,none\n\
 Alaska,AK,AK1st (SE),SE\n\
 ,AK,AK2nd (NW),NW\n\
 ,AK,AK3rd (SC),SC\n\
 ,AK,AK4th (C),C\n\
-Alberta,AB,MD of Acadia No. 34,ACAD\n\
-,AB,Athabasca County,ATHA\n\
-,AB,County of Barrhead No. 11,BARR\n\
-,AB,Beaver County,BEAV\n\
-,AB,Big Lakes County,BIGL\n\
-,AB,MD of Bighorn No. 8,BIGH\n\
-,AB,Birch Hills County,BIRC\n\
-,AB,MD of Bonnyville No. 87,BONN\n\
-,AB,Brazeau County,BRAZ\n\
-,AB,Camrose County,CAMR\n\
-,AB,Cardston County,CARD\n\
-,AB,Clear Hills County,CLHI\n\
-,AB,Clearwater County,CLWA\n\
-,AB,Cypress County,CYPR\n\
-,AB,MD of Fairview No. 136,FAIR\n\
-,AB,Flagstaff County,FLAG\n\
-,AB,Foothills County,FOOT\n\
-,AB,County of Forty Mile No. 8,FORT\n\
-,AB,County of Grande Prairie No. 1,GRAN\n\
-,AB,MD of Greenview No. 16,GREE\n\
-,AB,Kneehill County,KNEE\n\
-,AB,Lac Ste. Anne County,LACS\n\
-,AB,Lacombe County,LACO\n\
-,AB,Lamont County,LAMO\n\
-,AB,Leduc County,LEDU\n\
-,AB,MD of Lesser Slave River No. 124,LESS\n\
-,AB,Lethbridge County,LETH\n\
-,AB,County of Minburn No. 27,MINB\n\
-,AB,Mountain View County,MOUN\n\
-,AB,County of Newell,NEWE\n\
-,AB,County of Northern Lights,NOLI\n\
-,AB,Northern Sunrise County,NOSU\n\
-,AB,MD of Opportunity No. 17,OPPO\n\
-,AB,County of Paintearth No. 18,PAIN\n\
-,AB,Parkland County,PARK\n\
-,AB,MD of Peace No. 135,PEAC\n\
-,AB,MD of Pincher Creek No. 9,PINC\n\
-,AB,Ponoka County,PONO\n\
-,AB,MD of Provost No. 52,PROV\n\
-,AB,MD of Ranchland No. 66,RANC\n\
-,AB,Red Deer County,RDDR\n\
-,AB,Rocky View County,ROCK\n\
-,AB,Saddle Hills County,SADD\n\
-,AB,Smoky Lake County,SMLA\n\
-,AB,MD of Smoky River No. 130,SMRI\n\
-,AB,MD of Spirit River No. 133,SPRI\n\
-,AB,County of St. Paul No. 19,STPA\n\
-,AB,Starland County,STAR\n\
-,AB,County of Stettler No. 6,STET\n\
-,AB,Sturgeon County,STUR\n\
-,AB,MD of Taber,TABR\n\
-,AB,Thorhild County,THOR\n\
-,AB,County of Two Hills No. 21,TWHI\n\
-,AB,County of Vermilion River,VERM\n\
-,AB,Vulcan County,VULC\n\
-,AB,MD of Wainwright No. 61,WAIN\n\
-,AB,County of Warner No. 5,WARN\n\
-,AB,Westlock County,WEST\n\
-,AB,County of Wetaskiwin No. 10,WETA\n\
-,AB,Wheatland County,WHEA\n\
-,AB,MD of Willow Creek No. 26,WILL\n\
-,AB,Woodlands County,WOOD\n\
-,AB,Yellowhead County,YELL\n\
 Alabama,AL,Autauga,AUTA\n\
 ,AL,Baldwin,BALD\n\
 ,AL,Barbour,BARB\n\
@@ -164,6 +111,69 @@ Alabama,AL,Autauga,AUTA\n\
 ,AL,Washington,WASH\n\
 ,AL,Wilcox,WLCX\n\
 ,AL,Winston,WINS\n\
+Alberta,AB,MD of Acadia No. 34,ACAD\n\
+,AB,Athabasca County,ATHA\n\
+,AB,County of Barrhead No. 11,BARR\n\
+,AB,Beaver County,BEAV\n\
+,AB,Big Lakes County,BIGL\n\
+,AB,MD of Bighorn No. 8,BIGH\n\
+,AB,Birch Hills County,BIRC\n\
+,AB,MD of Bonnyville No. 87,BONN\n\
+,AB,Brazeau County,BRAZ\n\
+,AB,Camrose County,CAMR\n\
+,AB,Cardston County,CARD\n\
+,AB,Clear Hills County,CLHI\n\
+,AB,Clearwater County,CLWA\n\
+,AB,Cypress County,CYPR\n\
+,AB,MD of Fairview No. 136,FAIR\n\
+,AB,Flagstaff County,FLAG\n\
+,AB,Foothills County,FOOT\n\
+,AB,County of Forty Mile No. 8,FORT\n\
+,AB,County of Grande Prairie No. 1,GRAN\n\
+,AB,MD of Greenview No. 16,GREE\n\
+,AB,Kneehill County,KNEE\n\
+,AB,Lac Ste. Anne County,LACS\n\
+,AB,Lacombe County,LACO\n\
+,AB,Lamont County,LAMO\n\
+,AB,Leduc County,LEDU\n\
+,AB,MD of Lesser Slave River No. 124,LESS\n\
+,AB,Lethbridge County,LETH\n\
+,AB,County of Minburn No. 27,MINB\n\
+,AB,Mountain View County,MOUN\n\
+,AB,County of Newell,NEWE\n\
+,AB,County of Northern Lights,NOLI\n\
+,AB,Northern Sunrise County,NOSU\n\
+,AB,MD of Opportunity No. 17,OPPO\n\
+,AB,County of Paintearth No. 18,PAIN\n\
+,AB,Parkland County,PARK\n\
+,AB,MD of Peace No. 135,PEAC\n\
+,AB,MD of Pincher Creek No. 9,PINC\n\
+,AB,Ponoka County,PONO\n\
+,AB,MD of Provost No. 52,PROV\n\
+,AB,MD of Ranchland No. 66,RANC\n\
+,AB,Red Deer County,RDDR\n\
+,AB,Rocky View County,ROCK\n\
+,AB,Saddle Hills County,SADD\n\
+,AB,Smoky Lake County,SMLA\n\
+,AB,MD of Smoky River No. 130,SMRI\n\
+,AB,MD of Spirit River No. 133,SPRI\n\
+,AB,County of St. Paul No. 19,STPA\n\
+,AB,Starland County,STAR\n\
+,AB,County of Stettler No. 6,STET\n\
+,AB,Sturgeon County,STUR\n\
+,AB,MD of Taber,TABR\n\
+,AB,Thorhild County,THOR\n\
+,AB,County of Two Hills No. 21,TWHI\n\
+,AB,County of Vermilion River,VERM\n\
+,AB,Vulcan County,VULC\n\
+,AB,MD of Wainwright No. 61,WAIN\n\
+,AB,County of Warner No. 5,WARN\n\
+,AB,Westlock County,WEST\n\
+,AB,County of Wetaskiwin No. 10,WETA\n\
+,AB,Wheatland County,WHEA\n\
+,AB,MD of Willow Creek No. 26,WILL\n\
+,AB,Woodlands County,WOOD\n\
+,AB,Yellowhead County,YELL\n\
 Arizona,AZ,Apache,APH\n\
 ,AZ,Cochise,CHS\n\
 ,AZ,Coconino,CNO\n\
@@ -2024,21 +2034,21 @@ Nebraska,NE,Adams,ADMS\n\
 ,NE,Webster,WEBS\n\
 ,NE,Wheeler,WHEE\n\
 ,NE,York,YORK\n\
-New Brunswick,NB,Albert,\
-,NB,Carleton,\
-,NB,Charlotte,\
-,NB,Gloucester,\
-,NB,Kent,\
-,NB,Kings,\
-,NB,Madawaska,\
-,NB,Northumberland,\
-,NB,Queens,\
-,NB,Restigouche,\
-,NB,Saint John,\
-,NB,Sunbury,\
-,NB,Victoria,\
-,NB,Westmorland,\
-,NB,York,\
+New Brunswick,NB,Albert,\n\
+,NB,Carleton,\n\
+,NB,Charlotte,\n\
+,NB,Gloucester,\n\
+,NB,Kent,\n\
+,NB,Kings,\n\
+,NB,Madawaska,\n\
+,NB,Northumberland,\n\
+,NB,Queens,\n\
+,NB,Restigouche,\n\
+,NB,Saint John,\n\
+,NB,Sunbury,\n\
+,NB,Victoria,\n\
+,NB,Westmorland,\n\
+,NB,York,\n\
 Newfoundland and Labrador,NL,Avalon Peninsula-St. John's,\n\
 ,NL,Burin Peninsula-Marystown,\n\
 ,NL,South Coast-Channel-Port aux Basques,\n\
@@ -2207,8 +2217,8 @@ Nova Scotia,NS,Halifax,\n\
 ,NS,Shelburne,\n\
 ,NS,Yarmouth,\n\
 Nunavut,NU,Kitikmeot,\n\
-NU,Qikiqtaaluk,\n\
-NU,Kivalliq,\n\
+,NU,Qikiqtaaluk,\n\
+,NU,Kivalliq,\n\
 Ohio,OH,Adams,ADAM\n\
 ,OH,Allen,ALLE\n\
 ,OH,Ashland,ASHL\n\
@@ -2644,24 +2654,24 @@ Rhode Island,RI,Bristol,BRI\n\
 ,RI,Providence,PRO\n\
 ,RI,Washington,WAR\n\
 Saskatchewan,SA,,\n\
-,SA,Assiniboia,,\n\
-,SA,Battleford,,\n\
-,SA,Estevan,,\n\
-,SA,Kindersley,,\n\
-,SA,La Ronge,,\n\
-,SA,Lloydminster,,\n\
-,SA,Maple Creek,,\n\
-,SA,Melfort,,\n\
-,SA,Melville,,\n\
-,SA,Moose Jaw,,\n\
-,SA,North Battleford,,\n\
-,SA,Prince Albert,,\n\
-,SA,Regina,,\n\
-,SA,Saskatoon,,\n\
-,SA,Swift Current,,\n\
-,SA,Weyburn,,\n\
-,SA,Wynyard,,\n\
-,SA,Yorkton,,\n\
+,SA,Assiniboia,\n\
+,SA,Battleford,\n\
+,SA,Estevan,\n\
+,SA,Kindersley,\n\
+,SA,La Ronge,\n\
+,SA,Lloydminster,\n\
+,SA,Maple Creek,\n\
+,SA,Melfort,\n\
+,SA,Melville,\n\
+,SA,Moose Jaw,\n\
+,SA,North Battleford,\n\
+,SA,Prince Albert,\n\
+,SA,Regina,\n\
+,SA,Saskatoon,\n\
+,SA,Swift Current,\n\
+,SA,Weyburn,\n\
+,SA,Wynyard,\n\
+,SA,Yorkton,\n\
 South Carolina,SC,Abbeville,ABBE\n\
 ,SC,Aiken,AIKE\n\
 ,SC,Allendale,ALLE\n\
@@ -3499,7 +3509,84 @@ Yukon,YT,Carmacks,\n\
 ,YT,Mayo,\n\
 ,YT,Teslin,\n\
 ,YT,Watson Lake,\n\
-,YT,Whitehorse,\n";
+,YT,Whitehorse,\n\
+United Kingdom,UK,Alderney,ALD\n\
+,UK,County Antrim,ATM\n\
+,UK,County Armagh,ARM\n\
+,UK,Avon,AVN\n\
+,UK,Bedfordshire,BFD\n\
+,UK,Berkshire,BRK,\n\
+,UK,Borders,BDS\n\
+,UK,Buckinghamshire,BUX\n\
+,UK,Cambridgeshire,CBE\n\
+,UK,Central,CTR\n\
+,UK,Cheshire,CHS\n\
+,UK,Cleveland,CVE\n\
+,UK,Clwyd,CLD\n\
+,UK,Cornwall,CNL\n\
+,UK,Cumbria,CBA\n\
+,UK,Derbyshire,DYS\n\
+,UK,Devon,DVN\n\
+,UK,Dorse,DOR\n\
+,UK,County Down,DWN\n\
+,UK,Dumfries and Galloway,DGL\n\
+,UK,County Durham,DHM\n\
+,UK,Dyfed,DFD\n\
+,UK,Essex,ESX\n\
+,UK,County Fermanagh,FMH\n\
+,UK,Fife,FFE\n\
+,UK,Mid Glamorgan,GNM\n\
+,UK,South Glamorgan,GNS\n\
+,UK,West Glamorgan,GNW\n\
+,UK,Gloucester,GLR\n\
+,UK,Grampian,GRN\n\
+,UK,Guernsey,GUR\n\
+,UK,Gwent,GWT\n\
+,UK,Gwynedd,GDD\n\
+,UK,Hampshire,HPH\n\
+,UK,Hereford and Worcester,HWR\n\
+,UK,Hertfordshire,HFD\n\
+,UK,Highlands,HLD\n\
+,UK,Humberside,HBS\n\
+,UK,Isle of Man,IOM\n\
+,UK,Isle of Wight,IOW\n\
+,UK,Jersey,JER\n\
+,UK,Kent,KNT\n\
+,UK,Lancashire,LNH\n\
+,UK,Leicestershire,LEC\n\
+,UK,Lincolnshire,LCN\n\
+,UK,Greater London,LDN\n\
+,UK,County Londonderry,LDR\n\
+,UK,Lothian,LTH\n\
+,UK,Greater Manchester,MCH\n\
+,UK,Merseyside,MSY\n\
+,UK,Norfolk,NOR\n\
+,UK,Northamptonshire,NHM\n\
+,UK,Northumberland,NLD\n\
+,UK,Nottinghamshire,NOT\n\
+,UK,Orkney,ORK\n\
+,UK,Oxfordshire,OFE\n\
+,UK,Powys,PWS\n\
+,UK,Shropshire,SPE\n\
+,UK,Sark,SRK\n\
+,UK,Shetland,SLD\n\
+,UK,Somerset,SOM\n\
+,UK,Staffordshire,SFD\n\
+,UK,Strathclyde,SCD\n\
+,UK,Suffolk,SFK\n\
+,UK,Surrey,SRY\n\
+,UK,East Sussex,SXE\n\
+,UK,West Sussex,SXW\n\
+,UK,Tayside,TYS\n\
+,UK,Tyne and Wear,TWR\n\
+,UK,County Tyrone,TYR\n\
+,UK,Warwickshire,WKS\n\
+,UK,Western Isles,WIL\n\
+,UK,West Midlands,WMD\n\
+,UK,Wiltshire,WLT\n\
+,UK,North Yorkshire,YSN\n\
+,UK,South Yorkshire,YSS\n\
+,UK,West Yorkshire,YSW";
 
 //std::string strNEQP
 const char *szNEQP = "\
@@ -3833,5 +3920,5 @@ Wyoming,WY,Albany,WYALB\n\
 ,WY,Teton,WYTET\n\
 ,WY,Uinta,WYUIN\n\
 ,WY,Washakie,WYWAS\n\
-,WY,Weston,WYWES\n";
+,WY,Weston,WYWES";
 

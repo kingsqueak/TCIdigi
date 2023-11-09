@@ -130,7 +130,7 @@ decl {\#include <vector>} {private local
 
 decl {\#if USE_HAMLIB
   \#include "hamlib.h"
-\#endif} {selected private local
+\#endif} {private local
 }
 
 decl {extern void WefaxDestDirSet(Fl_File_Chooser *w, void *userdata);} {private local
@@ -7084,7 +7084,7 @@ WKFSK_init();} open
       }
     }
     Fl_Group {} {
-      label {Modem/Thor} open
+      label {Modem/Thor}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/Thor"));}
       code1 {config_pages.push_back(p);}
@@ -8528,7 +8528,7 @@ number to the default value.} xywh {624 313 73 22}
       }
     }
     Fl_Group grpOperator {
-      label {Operator-Station}
+      label {Operator-Station} open selected
       xywh {200 0 600 350} box ENGRAVED_BOX color 50 align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Operator-Station"));}
       code1 {config_pages.push_back(p);}
@@ -8603,7 +8603,7 @@ progdefaults.changed = true;}
         class Fl_Input2
       }
       Fl_Input inpMyQth {
-        label {Station QTH:}
+        label {Station City:}
         callback {progdefaults.myQth = o->value();
 inpMyFSQQth->value(o->value());
 progdefaults.changed = true;}
@@ -8621,7 +8621,7 @@ progdefaults.changed = true;}
         class Fl_Input2
       }
       Fl_Group listbox_states {
-        label {State / Provinces}
+        label {State/Prov./Country}
         callback {listbox_counties->clear();
 listbox_counties->add(states.counties(o->value()).c_str());
 listbox_counties->index(0);
@@ -9680,7 +9680,7 @@ hamlib_get_defaults();
       }
     }
     Fl_Group grpRigHardware {
-      label {Rig Control/Hardware PTT} open
+      label {Rig Control/Hardware PTT}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Rig Control/Hardware PTT"));}
       code1 {config_pages.push_back(p);}

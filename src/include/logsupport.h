@@ -138,4 +138,6 @@ extern std::string last_adif_record();
 extern std::string all_adif_records();
 extern void writeLog(std::string fname, cQsoDb *db);
 
+extern const char* log_power();
+
 #endif

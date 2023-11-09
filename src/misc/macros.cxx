@@ -1768,6 +1768,11 @@ static void pBAND(std::string &s, size_t &i, size_t endbracket)
         s.replace( i, 6, band_name( band( wf->rfcarrier() ) ) );
 }
 
+static void pTX_PWR(std::string &s, size_t &i, size_t endbracket)
+{
+        s.replace( i, 8, log_power() );
+}
+
 static void pLOC(std::string &s, size_t &i, size_t endbracket)
 {
 	s.replace( i, 5, inpLoc->value() );
@@ -3944,6 +3949,7 @@ void set_macro_env(void)
 		FLDIGI_DIAL_FREQUENCY,
 		FLDIGI_AUDIO_FREQUENCY,
 		FLDIGI_FREQUENCY,
+		FLDIGI_TX_PWR,
 
 		FLDIGI_MACRO_FILE,
 
@@ -4041,6 +4047,7 @@ void set_macro_env(void)
 		{ "FLDIGI_DIAL_FREQUENCY", "" },
 		{ "FLDIGI_AUDIO_FREQUENCY", "" },
 		{ "FLDIGI_FREQUENCY", "" },
+		{ "FLDIGI_TX_PWR", log_power() },
 
 		// logging frame
 		{ "FLDIGI_MACRO_FILE", progStatus.LastMacroFile.c_str() },
@@ -4095,7 +4102,7 @@ void set_macro_env(void)
 		{ "FLDIGI_LOGBOOK_LOCATOR", inpLoc_log->value() },
 		{ "FLDIGI_LOGBOOK_QSL_R", inpQSLrcvddate_log->value() },
 		{ "FLDIGI_LOGBOOK_QSL_S", inpQSLsentdate_log->value() },
-		{ "FLDIGI_LOGBOOK_TX_PWR", inpTX_pwr_log->value() },
+		{ "FLDIGI_LOGBOOK_TX_PWR", log_power() },
 		{ "FLDIGI_LOGBOOK_COUNTY", inpCNTY_log->value() },
 		{ "FLDIGI_LOGBOOK_IOTA", inpIOTA_log->value() },
 		{ "FLDIGI_LOGBOOK_DXCC", inpDXCC_log->value() },
@@ -4293,7 +4300,9 @@ static void pEXEC(std::string& s, size_t& i, size_t endbracket)
 	memset(&pi, 0, sizeof(pi));
 	if (!CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
 		LOG_ERROR("CreateProcess failed with error code %ld", GetLastError());
-	CloseHandle(pi.hProcess);
+
+	WaitForSingleObject( pi.hProcess, INFINITE );
+ 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 	free(cmd);
 
@@ -4697,6 +4706,7 @@ static const MTAGS mtags[] = {
 	{"<CALL>",		pCALL},
 	{"<FREQ>",		pFREQ},
 	{"<BAND>",		pBAND},
+	{"<TX_PWR>",	pTX_PWR},
 	{"<LOC>",		pLOC},
 	{"<MODE>",		pMODE},
 	{"<NAME>",		pNAME},

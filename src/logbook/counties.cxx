@@ -148,9 +148,19 @@ void load_SQSO()
 	std::string cnty_file = DATA_dir;
 	cnty_file.append("SQSO.txt");
 	std::ifstream csvfile(cnty_file.c_str());
+	std::string str = szSQSO;
 
 	if (!csvfile) {
-		std::string str = szSQSO;
+		load_from_string( str, vec_SQSO );
+		return;
+	}
+	char line[1024];
+	csvfile.getline(line, 1024);
+	std::string sline = line;
+	std::string vertest = "Version ";
+	vertest.append(FLDIGI_VERSION);
+	if (sline.find(vertest) == std::string::npos) {
+		csvfile.close();
 		load_from_string( str, vec_SQSO );
 		return;
 	}
@@ -195,10 +205,10 @@ void save_SQSO()
 	std::ofstream csvfile(cnty_file.c_str());
 
 	if (!csvfile) {
-//		std::cout << "cannot create " << cnty_file << std::endl;
 		return;
 	}
-	csvfile << "State/Province, ST/PR, County/City/Disrict, CCD" << std::endl;
+	csvfile << "State/Province, ST/PR, County/City/District, CCD -- Version ";
+	csvfile << FLDIGI_VERSION << std::endl;
 
 	for (size_t n = 0; n < vec_SQSO.size(); n++ )
 		csvfile << vec_SQSO[n].state << ","
@@ -208,8 +218,6 @@ void save_SQSO()
 				<< std::endl;
 
 	csvfile.close();
-
-//std::cout << vec_SQSO.size() << " records written to " << cnty_file << std::endl;
 }
 
 void save_7qp()
@@ -331,6 +339,7 @@ const std::string Cstates::names()
 
 const std::string Cstates::state_short(std::string ST)  // ST can be either short or long form
 {
+	if (ST == "NIL") return "";
 	for (size_t n = 0; n < vec_SQSO.size(); n++)
 		if (ST == vec_SQSO[n].ST || ST == vec_SQSO[n].state)
 			return vec_SQSO[n].ST;
@@ -339,6 +348,7 @@ const std::string Cstates::state_short(std::string ST)  // ST can be either shor
 
 const std::string Cstates::state(std::string ST) // ST can be either short or long form
 {
+	if (ST == "NIL") return "";
 	for (size_t n = 0; n < vec_SQSO.size(); n++)
 		if (ST == vec_SQSO[n].ST || ST == vec_SQSO[n].state)
 			return vec_SQSO[n].state;

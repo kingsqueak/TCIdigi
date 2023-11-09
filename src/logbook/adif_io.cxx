@@ -109,6 +109,7 @@ FIELD fields[] = {
 	{STA_CALL,    30,     "STATION_CALLSIGN", &btnSelectStaCall},   // Callsign of transmitting station
 	{MY_GRID,      8,     "MY_GRIDSQUARE",    &btnSelectStaGrid},   // Xmt station locator
 	{MY_CITY,     60,     "MY_CITY",          &btnSelectStaCity},   // Xmt station location
+	{MY_STATE,     8,     "MY_STATE",         NULL},                // Xmt station location
 
 	{SS_SEC,       20,    "CWSS_SECTION",     &btnSelect_cwss_section},   // CW sweepstakes
 	{SS_SERNO,     20,    "CWSS_SERNO",       &btnSelect_cwss_serno},

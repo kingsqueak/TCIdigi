@@ -16947,7 +16947,7 @@ i.e. localhost"));
         inpMyAntenna->when(FL_WHEN_RELEASE);
         inpMyAntenna->labelsize(FL_NORMAL_SIZE);
       } // Fl_Input2* inpMyAntenna
-      { Fl_Input2* o = inpMyQth = new Fl_Input2(386, 176, 320, 24, _("Station QTH:"));
+      { Fl_Input2* o = inpMyQth = new Fl_Input2(386, 176, 320, 24, _("Station City:"));
         inpMyQth->tooltip(_("Operators QTH"));
         inpMyQth->box(FL_DOWN_BOX);
         inpMyQth->color(FL_BACKGROUND2_COLOR);
@@ -16976,7 +16976,7 @@ i.e. localhost"));
         inpMyLocator->when(FL_WHEN_RELEASE);
         inpMyLocator->labelsize(FL_NORMAL_SIZE);
       } // Fl_Input2* inpMyLocator
-      { Fl_ListBox* o = listbox_states = new Fl_ListBox(386, 237, 319, 24, _("State / Provinces"));
+      { Fl_ListBox* o = listbox_states = new Fl_ListBox(386, 237, 319, 24, _("State/Prov./Country"));
         listbox_states->tooltip(_("US States / Canadian Provinces"));
         listbox_states->box(FL_DOWN_BOX);
         listbox_states->color(FL_BACKGROUND2_COLOR);

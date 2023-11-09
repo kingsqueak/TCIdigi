@@ -70,7 +70,7 @@ void loadBrowser(Fl_Widget *widget) {
 	w->add(_("<MYCALL>\tmy call"));
 	w->add(_("<MYLOC>\tmy locator"));
 	w->add(_("<MYNAME>\tmy name"));
-	w->add(_("<MYQTH>\tmy QTH"));
+	w->add(_("<MYQTH>\tmy QTH (city)"));
 	w->add(_("<MYRST>\tmy RST"));
 	w->add(_("<MYCLASS>\tmy FD class"));
 	w->add(_("<MYSECTION>\tmy FD section"));
@@ -80,6 +80,7 @@ void loadBrowser(Fl_Widget *widget) {
 	w->add(_("<MYCNTY>\tmy CNTY"));
 	w->add(_("<ANTENNA>\tmy antenna"));
 	w->add(_("<BAND>\toperating band"));
+	w->add(_("<TX_PWR>\ttransmit power"));
 	w->add(_("<VER>\tFldigi version"));
 	w->add(_("<DIGI>\tdigital mode (adif)"));
 
@@ -316,7 +317,7 @@ void loadBrowser(Fl_Widget *widget) {
 
 		const char* p;
 		if ((p = strrchr(gbuf.gl_pathv[i], '/'))) {
-			snprintf(s, sizeof(s), "<EXEC>%s</EXEC>", p+1);
+			snprintf(s, sizeof(s), "<EXEC>%s</EXEC>", p+1); 
 			w->add(s);
 		}
 	}
