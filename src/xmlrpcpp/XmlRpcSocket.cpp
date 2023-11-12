@@ -25,8 +25,10 @@
 #undef _WINSOCKAPI_
 # include <stdio.h>
 # include <winsock2.h>
-//# pragma lib(WS2_32.lib)
+#  include <ws2tcpip.h>
 
+//typedef int socklen_t;
+//# pragma lib(WS2_32.lib)
 // Updates to MXE require conditional test before assignment to
 // prevent duplicate defines.
 
@@ -38,8 +40,6 @@
 
 #undef ETIMEDOUT
 #define ETIMEDOUT    WSAETIMEDOUT
-
-typedef int socklen_t;
 
 #include "compat.h"
 
