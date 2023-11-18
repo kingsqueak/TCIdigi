@@ -2582,8 +2582,7 @@ static void pLNW(std::string &s, size_t &i, size_t endbracket)
 		msg.append(s.substr(start + 1, endbracket-start-1));
 		inpNotes->value(msg.c_str());
 	}
-	substitute(s, i, endbracket, "");
-	qsoSave_cb(0, 0);
+	substitute(s, i, endbracket, "^L");
 }
 
 static void pCLRLOG(std::string &s, size_t &i, size_t endbracket)
@@ -2592,7 +2591,7 @@ static void pCLRLOG(std::string &s, size_t &i, size_t endbracket)
 		substitute(s, i, endbracket, "");
 		return;
 	}
-	substitute(s, i, endbracket, "");
+	substitute(s, i, endbracket, "^C");
 }
 
 static void pMODEM_COMPSKED(std::string &s, size_t &i, size_t endbracket)
