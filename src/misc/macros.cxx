@@ -3214,6 +3214,42 @@ static void pAFC(std::string &s, size_t &i, size_t endbracket)
 	substitute(s, i, endbracket, "");
 }
 
+static void pSQL(std::string &s, size_t &i, size_t endbracket)
+{
+	if (within_exec) {
+		substitute(s, i, endbracket, "");
+		return;
+	}
+	std::string sVal = s.substr(i+5, endbracket - i - 5);
+	if (sVal.length() > 0) {
+		// sVal = on|off|t   [ON, OFF or Toggle]
+		if (sVal.compare(0,2,"on") == 0)
+			btnSQL->value(1);
+		else if (sVal.compare(0,3,"off") == 0)
+			btnSQL->value(0);
+		else if (sVal.compare(0,1,"t") == 0)
+			btnSQL->value(!btnSQL->value());
+		btnSQL->do_callback();
+	}
+	substitute(s, i, endbracket, "");
+}
+
+static void pSQLCH(std::string &s, size_t &i, size_t endbracket)
+{
+	if (within_exec) {
+		substitute(s, i, endbracket, "");
+		return;
+	}
+	std::string sVal = s.substr(i+7, endbracket - i - 7);
+	if (sVal.length() > 0) {
+		int val;
+		sscanf(sVal.c_str(), "%d", &val);
+		sldrSquelch->value(val);
+		sldrSquelch->do_callback();
+	}
+	substitute(s, i, endbracket, "");
+}
+
 static void pREV(std::string &s, size_t &i, size_t endbracket)
 {
 	if (within_exec) {
@@ -4794,6 +4830,8 @@ static const MTAGS mtags[] = {
 	{"<POST:",		pPOST},
 	{"<AFC:",		pAFC},
 	{"<LOCK:",		pLOCK},
+	{"<SQL:",		pSQL},
+	{"<SQLCH:",		pSQLCH},
 	{"<REV:",		pREV},
 	{"<HS:",		pHS},
 	{"<RXRSID:",	pRX_RSID},

@@ -228,6 +228,8 @@ void loadBrowser(Fl_Widget *widget) {
 	w->add(_("<AFC:on|off|t>\tAFC  on,off,toggle"));
 	w->add(_("<LOCK:on|off|t>\tLOCK on,off,toggle"));
 	w->add(_("<REV:on|off|t>\tRev on,off,toggle"));
+	w->add(_("<SQL:on|off|t>\tDigital Squelch on, off,toggle"));
+	w->add(_("<SQLCH:nnn>\tDigital Squelch level, 0..100"));
 
 	w->add(LINE_SEP);
 	w->add(_("<MACROS:>\tchange macro defs file"));
