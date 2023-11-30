@@ -130,12 +130,12 @@ bool thread_in_list(int id, const int* list);
 		pthread_sigmask(SIG_UNBLOCK, &usr2, NULL);	\
 	} while (0)
 #  define TEST_THREAD_CANCEL() /* nothing */
-#  define CANCEL_THREAD(t__) pthread_kill(t__, SIGUSR2)
+#  define CANCEL_THREAD(t__) pthread_kill(t__, SIGUSR2);pthread_join(t__, NULL);
 #else
 // threads have PTHREAD_CANCEL_ENABLE, PTHREAD_CANCEL_DEFERRED when created
 #  define SET_THREAD_CANCEL() /* nothing */
 #  define TEST_THREAD_CANCEL() pthread_testcancel()
-#  define CANCEL_THREAD(t__) pthread_cancel(t__);
+#  define CANCEL_THREAD(t__) pthread_cancel(t__);pthread_join(t__, NULL)
 #endif
 
 /// This ensures that a mutex is always unlocked when leaving a function or block.

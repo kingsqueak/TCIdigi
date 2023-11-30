@@ -552,6 +552,7 @@ void fmt_write_file()
 void *FMT_loop(void *args)
 {
 	SET_THREAD_ID(FMT_TID);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	while(1) {
 		MilliSleep(50);
 		if (FMT_exit) break;

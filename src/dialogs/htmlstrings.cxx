@@ -47,6 +47,7 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 <H4>Programmers:</H4>\n\
 <pre>\
 Dave Freese        W1HKJ\n\
+Mike Black         W9MDB\n\
 Stelios Bounanos   M0GLD\n\
 Rem\355 Chateauneu    F4ECW\n\
 John Douyere       VK2ETA\n\
