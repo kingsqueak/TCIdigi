@@ -9661,7 +9661,7 @@ void set_default_btn_color()
 		btn_WKFSK_connect,
 		btnConnectTalker,
 		btn_FSQCALL, btn_SELCAL, btn_MONITOR,
-		btnAFC, btnSQL, btnPSQL, btnRSID, btnTxRSID,
+		btnAFC, btnSQL, btnPSQL, btnTxRSID,
 		btnTune, btnAutoSpot
 	};
 
