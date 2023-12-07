@@ -201,7 +201,7 @@ void loadBrowser(Fl_Widget *widget) {
 	w->add(_("<CWID>\tCW identifier"));
 	w->add(_("<ID>\tsend mode ID; TX start only"));
 	w->add(_("<TEXT>\ttext at start of TX"));
-	w->add(_("<VIDEO:\tvideo text in TX stream"));
+	w->add(_("<VIDEO:>\tvideo text in TX stream"));
 	w->add(_("<TXRSID:on|off|t>\tTx RSID on,off,toggle"));
 	w->add(_("<RXRSID:on|off|t>\tRx RSID on,off,toggle"));
 	w->add(_("<NRSID:NN>\tTransmit |NN| successive RsID bursts"));
@@ -257,7 +257,7 @@ void loadBrowser(Fl_Widget *widget) {
 
 	w->add(LINE_SEP);
 	w->add(_("<PUSH>\tpush current mode to stack"));
-	w->add(_("<PUSH:m|f\tpush current mode / audio freq to stack"));
+	w->add(_("<PUSH:m|f>\tpush current mode / audio freq to stack"));
 	w->add(_("<POP>\tpop current mode/freq from stack"));
 	w->add(LINE_SEP);
 	assert(MODE_CONTESTIA < MODE_OLIVIA);
