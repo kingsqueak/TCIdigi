@@ -286,8 +286,14 @@ static const char *gpio_name[] = {
 void export_gpio(int bcm)
 {
 	if (bcm < 0 || bcm > 16) return;
-	std::string exec_str = "gpio export ";
-	exec_str.append(gpio_name[bcm]).append(" out");
+	std::string exec_str = "echo ";
+	exec_str.append(gpio_name[bcm]).append(" >/sys/class/gpio/export");
+	gpioEXEC(exec_str);
+	LOG_INFO("%s", exec_str.c_str());
+	// Wait a bit for OS to set file permissions 
+	MilliSleep(1);
+	exec_str = "echo 'out' >/sys/class/gpio/gpio";
+	exec_str.append(gpio_name[bcm]).append("/direction");
 	gpioEXEC(exec_str);
 	LOG_INFO("%s", exec_str.c_str());
 }
@@ -295,8 +301,8 @@ void export_gpio(int bcm)
 void unexport_gpio(int bcm)
 {
 	if (bcm < 0 || bcm > 16) return;
-	std::string exec_str = "gpio unexport ";
-	exec_str.append(gpio_name[bcm]);
+	std::string exec_str = "echo ";
+	exec_str.append(gpio_name[bcm]).append(" >/sys/class/gpio/unexport");
 	gpioEXEC(exec_str);
 	LOG_INFO("%s", exec_str.c_str());
 }
