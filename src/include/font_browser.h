@@ -30,6 +30,7 @@
 #define FONTBROWSER_H
 
 #include <string>
+#include <list>
 
 #include <FL/Enumerations.H>
 #include <FL/Fl_Window.H>
@@ -49,38 +50,36 @@ private:
 	Fl_Color	fontColor;
 
 	void	draw();
-
 public:
 	Preview_Box(int x, int y, int w, int h, const char* l);
 	void SetFont( int fontname, int fontsize, Fl_Color c);
 };
 
 // Font browser widget
+struct font_pair {
+	int  nbr;
+	std::string name;
+	font_pair() {
+		nbr = 0;
+		name.clear();
+	}
+	~font_pair() {
+	}
+};
+
 class Font_Browser : public Fl_Window
 {
-friend void *find_fixed_fonts(void *);
-
 public:
-	struct font_pair {
-		int  nbr;
-		std::string *name;
-		bool fixed;
-		font_pair() {
-			nbr = 0;
-			name = 0;
-			fixed = false;
-		}
-		~font_pair() {
-			if (name) delete name;
-		}
-	};
+friend void *find_fixed_fonts(void *);
 
 	enum filter_t { FIXED_WIDTH, VARIABLE_WIDTH, ALL_TYPES };
 
 // these are shared by all instances of Font_Browser
 // created for instance 1 and deleted for instance 0
 
-	static font_pair	*font_pairs;
+	static int			*fixed;
+	static std::list<font_pair>		font_list;
+	font_pair			nufont;
 	static int			instance;
 	static int			numfonts;
 
