@@ -62,7 +62,7 @@ bool test_connection(bool info = false)
 		return false;
 	}
 	XmlRpcValue query, result;
-	if (log_client->execute("system.listMethods", query, result)) {
+	if (log_client->execute("system.listMethods", query, result, 10.0)) {
 		if (info) {
 			std::string res;
 			int asize = result.size();
@@ -72,7 +72,7 @@ bool test_connection(bool info = false)
 				oneArg[0] = result[i];
 				try {
 					if (std::string(result[i]).find("system") == std::string::npos) {
-						log_client->execute("system.methodHelp", oneArg, help);
+						log_client->execute("system.methodHelp", oneArg, help, 10.0);
 						res.append("\n\t").append(help);
 					}
 				} catch ( XmlRpcException err) {
@@ -124,7 +124,7 @@ cQsoRec* search_fllog(const char *callsign)
 		return (cQsoRec *)0;
 	}
 	oneArg[0] = callsign;
-	if (log_client->execute("log.get_record", oneArg, result)) {
+	if (log_client->execute("log.get_record", oneArg, result, 10.0)) {
 		std::string adifline = std::string(result);
 
 		rec->putField(NAME, get_field(adifline, NAME).c_str());
@@ -149,7 +149,7 @@ bool xml_get_record(const char *callsign)
 		return false;
 	}
 	oneArg[0] = callsign;
-	if (log_client->execute("log.get_record", oneArg, result)) {
+	if (log_client->execute("log.get_record", oneArg, result, 10.0)) {
 		std::string adifline = std::string(result);
 //std::cout << adifline << std::endl;
 
@@ -299,7 +299,7 @@ void xml_add_record()
 // send it to the server
 	XmlRpcValue oneArg, result;
 	oneArg[0] = adif.c_str();
-	log_client->execute("log.add_record", oneArg, result);
+	log_client->execute("log.add_record", oneArg, result, 10.0);
 
 // submit it foreign log programs
 	cQsoRec rec;
@@ -381,7 +381,7 @@ int xml_check_dup()
 	six_args[3] = progdefaults.dupband ? inpFreq->value() : "0";
 	six_args[4] = (progdefaults.dupstate && inpState->value()[0]) ? inpState->value() : "0";
 	six_args[5] = (progdefaults.dupxchg1 && inpXchgIn->value()[0]) ? inpXchgIn->value() : "0";
-	if (log_client->execute("log.check_dup", six_args, result)) {
+	if (log_client->execute("log.check_dup", six_args, result, 10.0)) {
 		std::string res = std::string(result);
 		if (res == "true")
 			dup_test = 1;
@@ -400,7 +400,7 @@ void xml_update_eqsl()
 	XmlRpcValue oneArg, result;
 	oneArg[0] = adif.c_str();
 	LOG_INFO("%s", "xmlrpc log: update eqsl date");
-	log_client->execute("log.update_record", oneArg, result);
+	log_client->execute("log.update_record", oneArg, result, 10.0);
 }
 
 void xml_update_lotw()
@@ -412,7 +412,7 @@ void xml_update_lotw()
 	XmlRpcValue oneArg, result;
 	oneArg[0] = adif.c_str();
 	LOG_INFO("%s", "xmlrpc log: update LoTW date");
-	log_client->execute("log.update_record", oneArg, result);
+	log_client->execute("log.update_record", oneArg, result, 10.0);
 }
 
 void connect_to_log_server(void *)
