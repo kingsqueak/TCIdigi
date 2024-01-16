@@ -1,7 +1,34 @@
-2023-10-31  dave-w1hkj  <w1hkj@bellsouth.net>
+2024-01-16  dave-w1hkj  <w1hkj@bellsouth.net>
 
-	2ba9f43d0: Version 4.2.03
-	923ff32f6: FSQ sounding CR/LF
+	ed10b8e74: Version 4.2.04
+	17f9744fa: PO files
+	07c178911: xmlrpc remote log
+	19e981128: font browser
+
+2024-01-02  Steve Magnuson  <steve.magnuson@gmail.com>
+
+	e0f72304d: gpio ptt
+
+2023-12-07  dave-w1hkj  <w1hkj@bellsouth.net>
+
+	c6e45f66c: MACRO tags
+	2d3c70fcb: RsID Rx button color
+
+2023-11-30  Michael Black  <mdblack98@yahoo.com>
+
+	f12f79775: hamlib 4.6 bug fix
+	4a97c1016: FMT zombie
+
+2023-11-25  dave-w1hkj  <w1hkj@bellsouth.net>
+
+	36cb5d050: Squelch Macro tags
+	90b760997: CLRLOG LOG LNW
+	fdb9fc882: JTSDK build
+	80882af13: Log fields
+	cb8df6e04: MS <EXEC>
+	2e5db4f16: metar report
+	562b17144: FSQ sounding CR/LF
+	49b38e31d: Version 4.2.03
 	9d84eb51c: Version 4.2.02
 	a724d290c: fsq coding error
 	4bc7b368e: Version 4.2.01
