@@ -60,6 +60,13 @@ Digiscope::Digiscope (int X, int Y, int W, int H, const char *label) :
 	_x_user1 = _x_user2 = -1;
 	_x_graticule = _y_graticule = false;
 
+	_bk_color = FL_BLACK;
+	_axis_color = FL_WHITE;
+	_color_1 = FL_GREEN;
+	_color_2 = FL_YELLOW;
+	_color_3 = FL_CYAN;
+	_color_4 = FL_MAGENTA;
+
 	phase_mode = PHASE1;
 }
 
@@ -198,12 +205,12 @@ void Digiscope::draw_phase()
 	static unsigned pszn = 0;
 
 	fl_clip(x()+2,y()+2,w()-4,h()-4);
-	fl_color(FL_BLACK);
+	fl_color(_bk_color);
 	fl_rectf(x()+2,y()+2,w()-4,h()-4);
 	fl_push_matrix();
 	fl_translate(x() + w() / 2.0, y() + w() / 2.0);
 	fl_scale( 0.9*w()/2, -0.9*w()/2);
-	fl_color(FL_WHITE);
+	fl_color(_axis_color);
 	fl_circle( 0.0, 0.0, 1.0);
 	fl_begin_line();
 		fl_vertex(-1.0, 0.0);
@@ -233,8 +240,8 @@ void Digiscope::draw_phase()
 
 			// draw the stack in progressively brighter green
 			for (unsigned i = 0; i <= pszn; i++) {
-//				fl_color(fl_color_average(FL_GREEN, FL_BLACK, 1.0 - 0.8 * (n-i)/ pszn));
-				fl_color(fl_color_average(FL_GREEN, FL_BLACK, 0.2 + 0.8 * i / pszn));
+//				fl_color(fl_color_average(FL_GREEN, _bk_color, 1.0 - 0.8 * (n-i)/ pszn));
+				fl_color(fl_color_average(_color_1, _bk_color, 0.2 + 0.8 * i / pszn));
 				fl_begin_line();
 				fl_vertex(0.0, 0.0);
 				if (_mode == PHASE3) // scale length by quality
@@ -247,14 +254,14 @@ void Digiscope::draw_phase()
 			}
 		}
 		else { // original style
-			fl_color(FL_GREEN);
+			fl_color(_color_1);
 			fl_begin_line();
                         fl_vertex(0.0, 0.0);
                         fl_vertex(0.9 * cos(_phase - M_PI / 2), 0.9 * sin( _phase - M_PI / 2));
 			fl_end_line();
 		}
 	} else {
-		fl_color(FL_GREEN);
+		fl_color(_color_1);
 		fl_circle( 0.0, 0.0, 0.1);
 	}
 	fl_pop_matrix();
@@ -265,14 +272,14 @@ void Digiscope::draw_scope()
 {
 	int npts, np;
 	fl_clip(x()+2,y()+2,w()-4,h()-4);
-	fl_color(FL_BLACK);
+	fl_color(_bk_color);
 	fl_rectf(x()+2,y()+2,w()-4,h()-4);
 	fl_push_matrix();
 	npts = MIN(w(), _len);
 	npts = MAX(1, npts);
 	fl_translate(x()+2, y() + h() - 2);
 	fl_scale ((w()-4), - (h() - 4));
-	fl_color(FL_GREEN);
+	fl_color(_color_1);
 	fl_begin_line();
 	for (int i = 0; i < npts; i++) {
 		np = i * _len / npts;
@@ -284,14 +291,14 @@ void Digiscope::draw_scope()
 // x & y axis'
 	for (int i = 0; i < NUM_GRIDS; i++) {
 		if (_x[i]) {
-			fl_color(FL_WHITE);
+			fl_color(_axis_color);
 			fl_begin_line();
 			fl_vertex(_x[i], 0.0);
 			fl_vertex(_x[i], 1.0);
 			fl_end_line();
 		}
 		if (_y[i]) {
-			fl_color(FL_WHITE);
+			fl_color(_axis_color);
 			fl_begin_line();
 			fl_vertex(0.0, _y[i]);
 			fl_vertex(1.0, _y[i]);
@@ -301,14 +308,14 @@ void Digiscope::draw_scope()
 
 	if (_x_graticule) {
 		if (_y_user1 > 0 && _y_user1 < 1.0) {
-			fl_color(FL_CYAN);
+			fl_color(_color_3);
 			fl_begin_line();
 			fl_vertex(0.0, 1.0 - _y_user1);
 			fl_vertex(1.0, 1.0 - _y_user1);
 			fl_end_line();
 		}
 		if (_y_user2 > 0 && _y_user2 < 1.0) {
-			fl_color(FL_MAGENTA);
+			fl_color(_color_4);
 			fl_begin_line();
 			fl_vertex(0.0, 1.0 - _y_user2);
 			fl_vertex(1.0, 1.0 - _y_user2);
@@ -318,14 +325,14 @@ void Digiscope::draw_scope()
 
 	if (_y_graticule) {
 		if (_x_user1 > 0 && _x_user1 < 1.0) {
-			fl_color(FL_CYAN);
+			fl_color(_color_3);
 			fl_begin_line();
 			fl_vertex(_x_user1, 0.0);
 			fl_vertex(_x_user1, 1.0);
 			fl_end_line();
 		}
 		if (_x_user2 > 0 && _x_user2 < 1.0) {
-			fl_color(FL_MAGENTA);
+			fl_color(_color_4);
 			fl_begin_line();
 			fl_vertex(_x_user2, 0.0);
 			fl_vertex(_x_user2, 1.0);
@@ -341,13 +348,13 @@ void Digiscope::draw_scope()
 void Digiscope::draw_xy()
 {
 	fl_clip(x()+2,y()+2,w()-4,h()-4);
-	fl_color(FL_BLACK);
+	fl_color(_bk_color);
 	fl_rectf(x()+2,y()+2,w()-4,h()-4);
 	fl_push_matrix();
 	fl_translate(x() + w() / 2.0, y() + w() / 2.0);
 	fl_scale( w()/2.0, -w()/2.0);
 // x & y axis	
-	fl_color(FL_LIGHT1);
+	fl_color(_axis_color);
 	fl_begin_line();
 		fl_vertex(-0.6, 0.0);
 		fl_vertex(-1.0, 0.0);
@@ -375,7 +382,7 @@ void Digiscope::draw_xy()
 	xp = X + (int)((_zdata[j].real() + 1.0) * W);
 	yp = Y + (int)((_zdata[j].imag() + 1.0) * H);
 
-	fl_color(fl_rgb_color(0, 230,0));
+	fl_color(_color_1);
 	for (int i = 0; i <  MAX_ZLEN; i++ ) {
 		if (++j == MAX_ZLEN) j = 0;
 		xp1 = X + (int)((_zdata[j].real() + 1.0) * W);
@@ -392,14 +399,14 @@ void Digiscope::draw_rtty()
 {
 	int npts, np;
 	fl_clip(x()+2,y()+2,w()-4,h()-4);
-	fl_color(FL_BLACK);
+	fl_color(_bk_color);
 	fl_rectf(x()+2,y()+2,w()-4,h()-4);
 	fl_push_matrix();
 	npts = MIN(w(), _len);
 	npts = MAX(1, npts);
 	fl_translate(x()+2, y() + h() - 2);
 	fl_scale ((w()-4), - (h() - 4));
-	fl_color(FL_YELLOW);
+	fl_color(_color_2);
 	fl_begin_line();
 		fl_vertex( 0.0, 0.9);
 		fl_vertex( 1.0, 0.9);
@@ -408,12 +415,12 @@ void Digiscope::draw_rtty()
 		fl_vertex( 0.0, 0.1);
 		fl_vertex( 1.0, 0.1);
 	fl_end_line();
-	fl_color(FL_WHITE);
+	fl_color(_axis_color);
 	fl_begin_line();
 		fl_vertex( 0.0, 0.5);
 		fl_vertex( 1.0, 0.5);
 	fl_end_line();
-	fl_color(FL_GREEN);
+	fl_color(_color_1);
 	fl_begin_line();
 	double value = 0.0;
 	for (int i = 0; i < npts; i++) {
@@ -452,7 +459,7 @@ void Digiscope::draw()
 			case BLANK : 
 			default: 
 				fl_clip(x()+2,y()+2,w()-4,h()-4);
-				fl_color(FL_BLACK);
+				fl_color(_bk_color);
 				fl_rectf(x()+2,y()+2,w()-4,h()-4);
 				fl_push_matrix();
 				fl_pop_matrix();

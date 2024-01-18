@@ -386,6 +386,7 @@ extern void set_scope_xaxis_2(double y2);
 extern void set_scope_yaxis_1(double x1);
 extern void set_scope_yaxis_2(double x2);
 extern void set_scope_clear_axis();
+extern void set_scope_colors();
 
 extern void set_CWwpm();
 extern void put_rx_char(unsigned int data, int style = FTextBase::RECV);

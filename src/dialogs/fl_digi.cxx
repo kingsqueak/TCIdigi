@@ -8142,6 +8142,12 @@ void make_scopeviewer()
 	scopeview = new Fl_Double_Window(0,0,140,140, _("Scope"));
 	scopeview->xclass(PACKAGE_NAME);
 	digiscope = new Digiscope (0, 0, 140, 140);
+	digiscope->bk_color(progdefaults.digi_background);
+	digiscope->axis_color(progdefaults.digi_axis_color);
+	digiscope->user_color_1(progdefaults.digi_color_1);
+	digiscope->user_color_2(progdefaults.digi_color_2);
+	digiscope->user_color_3(progdefaults.digi_color_3);
+	digiscope->user_color_4(progdefaults.digi_color_4);
 	scopeview->resizable(digiscope);
 	scopeview->size_range(SCOPEWIN_MIN_WIDTH, SCOPEWIN_MIN_HEIGHT);
 	scopeview->end();
@@ -8565,6 +8571,28 @@ void set_scope_yaxis_2(double x2)
 	wf->wfscope->yaxis_2(x2);
 }
 
+void set_scope_colors()
+{
+	if (digiscope) {
+		digiscope->bk_color(progdefaults.digi_background);
+		digiscope->axis_color(progdefaults.digi_axis_color);
+		digiscope->user_color_1(progdefaults.digi_color_1);
+		digiscope->user_color_2(progdefaults.digi_color_2);
+		digiscope->user_color_3(progdefaults.digi_color_3);
+		digiscope->user_color_4(progdefaults.digi_color_4);
+		digiscope->redraw();
+	}
+
+	wf->wfscope->bk_color(progdefaults.digi_background);
+	wf->wfscope->axis_color(progdefaults.digi_axis_color);
+	wf->wfscope->user_color_1(progdefaults.digi_color_1);
+	wf->wfscope->user_color_2(progdefaults.digi_color_2);
+	wf->wfscope->user_color_3(progdefaults.digi_color_3);
+	wf->wfscope->user_color_4(progdefaults.digi_color_4);
+	wf->wfscope->redraw();
+
+}
+
 void set_scope_clear_axis()
 {
 	if (digiscope) {
@@ -8573,10 +8601,13 @@ void set_scope_clear_axis()
 		digiscope->yaxis_1(0);
 		digiscope->yaxis_2(0);
 	}
+
 	wf->wfscope->xaxis_1(0);
 	wf->wfscope->xaxis_2(0);
 	wf->wfscope->yaxis_1(0);
 	wf->wfscope->yaxis_2(0);
+
+	set_scope_colors();
 }
 
 // raw buffer functions can ONLY be called by FLMAIN_TID

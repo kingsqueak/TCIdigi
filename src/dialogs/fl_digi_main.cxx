@@ -2899,6 +2899,13 @@ Logging_frame->resizable(NFtabs);
 		wf_group = new Fl_Group(0, Y, W, Hwfall);
 
 			wf = new waterfall(0, Y, Wwfall, Hwfall);
+			wf->wfscope->bk_color(progdefaults.digi_background);
+			wf->wfscope->axis_color(progdefaults.digi_axis_color);
+			wf->wfscope->user_color_1(progdefaults.digi_color_1);
+			wf->wfscope->user_color_2(progdefaults.digi_color_2);
+			wf->wfscope->user_color_3(progdefaults.digi_color_3);
+			wf->wfscope->user_color_4(progdefaults.digi_color_4);
+
 			wf->end();
 
 			pgrsSquelch = new Progress(
@@ -3168,6 +3175,12 @@ Logging_frame->resizable(NFtabs);
 	scopeview = new Fl_Double_Window(0,0,140,140, _("Scope"));
 	scopeview->xclass(PACKAGE_NAME);
 	digiscope = new Digiscope (0, 0, 140, 140);
+	digiscope->bk_color(progdefaults.digi_background);
+	digiscope->axis_color(progdefaults.digi_axis_color);
+	digiscope->user_color_1(progdefaults.digi_color_1);
+	digiscope->user_color_2(progdefaults.digi_color_2);
+	digiscope->user_color_3(progdefaults.digi_color_3);
+	digiscope->user_color_4(progdefaults.digi_color_4);
 	scopeview->resizable(digiscope);
 	scopeview->size_range(SCOPEWIN_MIN_WIDTH, SCOPEWIN_MIN_HEIGHT);
 	scopeview->end();

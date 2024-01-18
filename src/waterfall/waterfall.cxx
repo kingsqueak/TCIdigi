@@ -1990,6 +1990,12 @@ waterfall::waterfall(int x0, int y0, int w0, int h0, char *lbl) :
 			w() - 2 * BEZEL,
 			wf_dim - 2 * BEZEL);
 		wfscope = new Digiscope (x() + w(), y(), wf_dim, wf_dim);
+		wfscope->bk_color(progdefaults.digi_background);
+		wfscope->axis_color(progdefaults.digi_axis_color);
+		wfscope->user_color_1(progdefaults.digi_color_1);
+		wfscope->user_color_2(progdefaults.digi_color_2);
+		wfscope->user_color_3(progdefaults.digi_color_3);
+		wfscope->user_color_4(progdefaults.digi_color_4);
 		rs1->resizable(wfdisp);
 	rs1->end();
 	wfscope->hide();

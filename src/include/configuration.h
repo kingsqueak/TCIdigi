@@ -384,6 +384,25 @@
         ELEM_(double, ServerACQsn, "PSKSERVERACGSN",                                    \
               "Acquisition S/N (dB)",                                                   \
               9.0)                                                                      \
+        /* DIGI SCOPE */                                                                \
+        ELEM_(Fl_Color, digi_background, "digi_background",                             \
+              "Color for digi_scope background",                                        \
+              FL_BLACK)                                                                 \
+        ELEM_(Fl_Color, digi_axis_color, "digi_axis_color",                             \
+              "Color for digi_scope axis",                                              \
+              FL_WHITE)                                                                 \
+        ELEM_(Fl_Color, digi_color_1, "digi_color_1",                                   \
+              "Color for digi_scope color 1",                                           \
+              FL_GREEN)                                                                 \
+        ELEM_(Fl_Color, digi_color_2, "digi_color_2",                                   \
+              "Color for digi_scope color 2",                                           \
+              FL_YELLOW)                                                                \
+        ELEM_(Fl_Color, digi_color_3, "digi_color_3",                                   \
+              "Color for digi_scope color 3",                                           \
+              FL_CYAN)                                                                  \
+        ELEM_(Fl_Color, digi_color_4, "digi_color_4",                                   \
+              "Color for digi_scope color 4",                                           \
+              FL_MAGENTA)                                                               \
         /* RTTY */                                                                      \
         ELEM_(int, kahn_demod, "KAHNDEMOD",                                             \
               "1 - use Kahn power demodulator\n"                                        \

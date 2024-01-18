@@ -76,6 +76,13 @@ protected:
 	bool	_x_graticule;
 	bool	_y_graticule;
 
+	Fl_Color _bk_color;
+	Fl_Color _axis_color;
+	Fl_Color _color_1;
+	Fl_Color _color_2;
+	Fl_Color _color_3;
+	Fl_Color _color_4;
+
 public:
 	Digiscope(int, int, int, int, const char *label = "");
 	~Digiscope();
@@ -124,6 +131,24 @@ public:
 
 	bool y_graticule() { return _y_graticule; }
 	void y_graticule(bool b) { _y_graticule = b; }
+
+	void bk_color(Fl_Color c) { _bk_color = c; }
+	Fl_Color bk_color() { return _bk_color; }
+
+	void axis_color(Fl_Color c) { _axis_color = c; }
+	Fl_Color axis_color() { return _axis_color; }
+
+	void user_color_1(Fl_Color c) { _color_1 = c; }
+	Fl_Color user_color_1() { return _color_1; }
+
+	void user_color_2(Fl_Color c) { _color_2 = c; }
+	Fl_Color user_color_2() { return _color_2; }
+
+	void user_color_3(Fl_Color c) { _color_3 = c; }
+	Fl_Color user_color_3() { return _color_3; }
+
+	void user_color_4(Fl_Color c) { _color_4 = c; }
+	Fl_Color user_color_4() { return _color_4; }
 };
 
 #endif

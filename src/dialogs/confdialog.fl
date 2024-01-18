@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0308
+version 1.0309
 i18n_type 1
 i18n_include "gettext.h"
 i18n_function _
@@ -488,9 +488,9 @@ static const char szBaudRates[] = "300|600|1200|2400|4800|9600|19200|38400|57600
 static const char szProsigns[] = "~|%|&|+|=|{|}|<|>|[|]| ";} {}
   Fl_Window {} {
     label {Fldigi configuration} open
-    xywh {329 25 800 380} type Double color 45 selection_color 51 labelsize 18 align 80 resizable size_range {750 380 0 380} visible
+    xywh {544 31 800 380} type Double color 45 selection_color 51 labelsize 18 align 80 resizable size_range {750 380 0 380} visible
   } {
-    Fl_Group {} {
+    Fl_Group {} {open
       xywh {0 0 201 380} resizable
     } {
       Fl_Tree tab_tree {
@@ -2166,6 +2166,125 @@ btn_use_wsjtx_vumeter_scale2->value(o->value());}
         tooltip {default scale is audo "Vu Meter"
 enable to emulate wsjtx scale} xywh {332 315 70 18} down_box DOWN_BOX
         code0 {o->value(progdefaults.use_wsjtx_vumeter_scale);}
+      }
+    }
+    Fl_Group {} {
+      label {Colors-Fonts/Digiscope} open selected
+      xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
+      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Digiscope"));}
+      code1 {config_pages.push_back(p);}
+      code2 {tab_tree->add(_("Colors-Fonts/Digiscope"));}
+      code3 {tab_tree->close(_("Colors-Fonts"));}
+    } {
+      Fl_Box {} {
+        label {Digital Scope Colors}
+        xywh {340 39 316 21}
+      }
+      Fl_Box scope_background {
+        xywh {365 80 21 21} box DOWN_BOX color 0
+        code0 {o->color(progdefaults.digi_background);}
+      }
+      Fl_Button btnScopeBackground {
+        label Background
+        callback {progdefaults.digi_background = fl_show_colormap(progdefaults.digi_background);
+scope_background->color(progdefaults.digi_background);
+scope_background->redraw();
+set_scope_colors();
+progdefaults.changed = true;}
+        xywh {402 79 104 22}
+      }
+      Fl_Box scope_axis {
+        xywh {365 121 21 21} box DOWN_BOX color 2
+        code0 {o->color(progdefaults.digi_axis_color);}
+      }
+      Fl_Button btnScopeAxis {
+        label Axis
+        callback {progdefaults.digi_axis_color = fl_show_colormap(progdefaults.digi_axis_color);
+scope_axis->color(progdefaults.digi_axis_color);
+scope_axis->redraw();
+set_scope_colors();
+progdefaults.changed = true;}
+        xywh {402 120 104 22}
+      }
+      Fl_Box scope_color_1 {
+        xywh {365 163 21 21} box DOWN_BOX color 3
+        code0 {o->color(progdefaults.digi_color_1);}
+      }
+      Fl_Button btnScopeColor_1 {
+        label {Color 1}
+        callback {progdefaults.digi_color_1 = fl_show_colormap(progdefaults.digi_color_1);
+scope_color_1->color(progdefaults.digi_color_1);
+scope_color_1->redraw();
+set_scope_colors();
+progdefaults.changed = true;}
+        xywh {402 162 104 22}
+      }
+      Fl_Box scope_color_2 {
+        xywh {365 205 21 21} box DOWN_BOX color 1
+        code0 {o->color(progdefaults.digi_color_2);}
+      }
+      Fl_Button btnScopeColor_2 {
+        label {Color 2}
+        callback {progdefaults.digi_color_2 = fl_show_colormap(progdefaults.digi_color_2);
+scope_color_2->color(progdefaults.digi_color_2);
+scope_color_2->redraw();
+set_scope_colors();
+progdefaults.changed = true;}
+        xywh {402 204 104 22}
+      }
+      Fl_Progress {} {
+        label label
+        xywh {295 289 416 25} hide
+      }
+      Fl_Button btn_default_scope_colors {
+        label Default
+        callback {progdefaults.digi_background = FL_BLACK;
+progdefaults.digi_axis_color = FL_WHITE;
+progdefaults.digi_color_1 = FL_GREEN;
+progdefaults.digi_color_2 = FL_YELLOW;
+progdefaults.digi_color_3 = FL_CYAN;
+progdefaults.digi_color_4 = FL_MAGENTA;
+scope_background->color(progdefaults.digi_background);
+scope_background->redraw();
+scope_axis->color(progdefaults.digi_axis_color);
+scope_axis->redraw();
+scope_color_1->color(progdefaults.digi_color_1);
+scope_color_1->redraw();
+scope_color_2->color(progdefaults.digi_color_2);
+scope_color_2->redraw();
+scope_color_3->color(progdefaults.digi_color_3);
+scope_color_3->redraw();
+scope_color_4->color(progdefaults.digi_color_4);
+scope_color_4->redraw();
+set_scope_colors();
+progdefaults.changed = true;}
+        xywh {618 146 70 20}
+      }
+      Fl_Box scope_color_3 {
+        xywh {365 247 21 21} box DOWN_BOX color 1
+        code0 {o->color(progdefaults.digi_color_3);}
+      }
+      Fl_Button btnScopeColor_3 {
+        label {Color 3}
+        callback {progdefaults.digi_color_3 = fl_show_colormap(progdefaults.digi_color_3);
+scope_color_3->color(progdefaults.digi_color_3);
+scope_color_3->redraw();
+set_scope_colors();
+progdefaults.changed = true;}
+        xywh {402 246 104 22}
+      }
+      Fl_Box scope_color_4 {
+        xywh {365 289 21 21} box DOWN_BOX color 1
+        code0 {o->color(progdefaults.digi_color_4);}
+      }
+      Fl_Button btnScopeColor_4 {
+        label {Color 4}
+        callback {progdefaults.digi_color_4 = fl_show_colormap(progdefaults.digi_color_4);
+scope_color_4->color(progdefaults.digi_color_4);
+scope_color_4->redraw();
+set_scope_colors();
+progdefaults.changed = true;}
+        xywh {402 288 104 22}
       }
     }
     Fl_Group {} {
@@ -12141,7 +12260,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Web/WX} selected
+      label {Web/WX}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Web/WX"));}
       code1 {config_pages.push_back(p);}
