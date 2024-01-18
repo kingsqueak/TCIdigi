@@ -44,6 +44,7 @@
 
 // TODO: figure out the percentage automatically; hopefully not in a horribly kludgy way
 struct lang_def_t ui_langs[] = {
+	{ "ca", "ca_CA", "Catalan"},
 	{ "en", "en_US", "English"},
 	{ "de", "de_DE", "Deutsch (German)"},
 	{ "nl", "nl_NL", "Nederlands (Dutch)"},
