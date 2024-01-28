@@ -73,19 +73,15 @@ void create_fl_digi_main_primary() {
 	fl_digi_main = new Fl_Double_Window(
 			progStatus.mainX, progStatus.mainY, W, H);
 
-		int lfont = fl_digi_main->labelfont();
-		int lsize = FL_NORMAL_SIZE;
+		int lfont = progdefaults.MenuFontnbr;
+		int lsize = progdefaults.MenuFontsize;
 		fl_font(lfont, lsize);
 
 { // mnuFrame
 		mnuFrame = new Fl_Group(0,0, W, Hmenu);
 			mnu = new Fl_Menu_Bar(0, 0, W - 325, Hmenu);
 			// do some more work on the menu
-			for (size_t i = 0; i < sizeof(menu_)/sizeof(menu_[0]); i++) {
-				// FL_NORMAL_SIZE may have changed; update the menu items
-				if (menu_[i].text) {
-					menu_[i].labelsize_ = lsize;
-				}
+			for (int i = 0; i < main_menu_size; i++) {
 				// set the icon label for items with the multi label type
 				if (menu_[i].labeltype() == _FL_MULTI_LABEL)
 					icons::set_icon_label(&menu_[i]);
@@ -3268,5 +3264,7 @@ Logging_frame->resizable(NFtabs);
 	set_mode_controls(active_modem->get_mode());
 
 	create_wefax_tx_viewer(0, 0, 800, 400 );
+
+	change_menu_fonts(progdefaults.MenuFontnbr, progdefaults.MenuFontsize);
 
 }

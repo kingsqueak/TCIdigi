@@ -184,6 +184,21 @@ if (fl_color_chooser("Font color", r, g, b))
     c = fl_rgb_color(r, g, b);} {}
 }
 
+Function {cbMenuFontBrowser(Fl_Widget*, void*)} {open private return_type void
+} {
+  code {Fl_Font font = font_browser->fontNumber();
+int size = font_browser->fontSize();
+
+progdefaults.MenuFontnbr = font;
+progdefaults.MenuFontsize = size;
+//progdefaults.MenuFontcolor = color;
+
+font_browser->hide();
+change_menu_fonts(font, size);
+
+progdefaults.changed = true;} {}
+}
+
 Function {cbRxFontBrowser(Fl_Widget*, void*)} {open private return_type void
 } {
   code {Fl_Font font = font_browser->fontNumber();
@@ -752,11 +767,11 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Colors-Fonts/Buttons}
+      label {Colors-Fonts/Buttons-Menus} selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
-      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons"));}
+      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons-Menus"));}
       code1 {config_pages.push_back(p);}
-      code2 {tab_tree->add(_("Colors-Fonts/Buttons"));}
+      code2 {tab_tree->add(_("Colors-Fonts/Buttons-Menus"));}
     } {
       Fl_Button btnSpotColor {
         label Spot
@@ -950,6 +965,14 @@ progdefaults.changed = true;}
       Fl_Box default_round_btn_color {
         xywh {630 220 18 19} box ROUND_DOWN_BOX
         code0 {o->color(progdefaults.default_round_btn_color);}
+      }
+      Fl_Button btnMenuFont {
+        label {Menu font}
+        callback {font_browser->fontNumber(progdefaults.MenuFontnbr);
+font_browser->fontSize(progdefaults.MenuFontsize);
+font_browser->callback(cbMenuFontBrowser);
+font_browser->show();}
+        xywh {284 278 100 21}
       }
     }
     Fl_Group {} {
@@ -2169,7 +2192,7 @@ enable to emulate wsjtx scale} xywh {332 315 70 18} down_box DOWN_BOX
       }
     }
     Fl_Group {} {
-      label {Colors-Fonts/Digiscope} open selected
+      label {Colors-Fonts/Digiscope}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Digiscope"));}
       code1 {config_pages.push_back(p);}

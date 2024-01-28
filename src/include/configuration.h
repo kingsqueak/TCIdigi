@@ -2172,6 +2172,12 @@
         ELEM_(std::string, charset_name, "CHARSET_NAME",                                \
               "Default character set",                                                  \
               "UTF-8")                                                                  \
+        ELEM_(Fl_Font, MenuFontnbr, "MENUFONTNBR",                                      \
+              "Menu text font index",                                                   \
+              FL_HELVETICA)                                                             \
+        ELEM_(int, MenuFontsize, "MENUFONTSIZE",                                        \
+              "Menu text font size",                                                    \
+              16)                                                                       \
         ELEM_(bool, RxFontWarn, "RXFONTWARN",                                           \
               "Enable RX font warnings",                                                \
               true)                                                                     \

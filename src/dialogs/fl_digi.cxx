@@ -67,7 +67,6 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include <FL/Fl_Tooltip.H>
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Multiline_Input.H>
-#include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_Pack.H>
 
 #include "waterfall.h"
@@ -260,7 +259,7 @@ Fl_Help_Dialog 		*help_dialog       = (Fl_Help_Dialog *)0;
 
 Fl_Button			*btnDockMacro[48];
 
-static Fl_Group		*mnuFrame;
+ Fl_Group		*mnuFrame;
 Fl_Menu_Bar 		*mnu;
 
 Fl_Box				*tx_timer = (Fl_Box *)0;
@@ -730,7 +729,7 @@ static const int pad = 1;
 static const int Hentry		= 24;
 static const int Wbtn		= Hentry;
 static int x_qsoframe	= Wbtn;
-int Hmenu		= 22;
+int Hmenu		= 24;
 static const int Hqsoframe	= 2*pad + 3 * (Hentry + pad);
 
 int Hstatus = 20;
@@ -840,9 +839,9 @@ void set_colors();
 //void cb_pkt2400(Fl_Widget *w, void *arg);
 
 Fl_Widget *modem_config_tab;
-static const Fl_Menu_Item *quick_change;
+static Fl_Menu_Item *quick_change;
 
-static const Fl_Menu_Item quick_change_psk[] = {
+static Fl_Menu_Item quick_change_psk[] = {
 	{ mode_info[MODE_PSK31].name, 0, cb_init_mode, (void *)MODE_PSK31 },
 	{ mode_info[MODE_PSK63].name, 0, cb_init_mode, (void *)MODE_PSK63 },
 	{ mode_info[MODE_PSK63F].name, 0, cb_init_mode, (void *)MODE_PSK63F },
@@ -853,7 +852,7 @@ static const Fl_Menu_Item quick_change_psk[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_qpsk[] = {
+static Fl_Menu_Item quick_change_qpsk[] = {
 	{ mode_info[MODE_QPSK31].name, 0, cb_init_mode, (void *)MODE_QPSK31 },
 	{ mode_info[MODE_QPSK63].name, 0, cb_init_mode, (void *)MODE_QPSK63 },
 	{ mode_info[MODE_QPSK125].name, 0, cb_init_mode, (void *)MODE_QPSK125 },
@@ -862,7 +861,7 @@ static const Fl_Menu_Item quick_change_qpsk[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_8psk[] = {
+static Fl_Menu_Item quick_change_8psk[] = {
 	{ mode_info[MODE_8PSK125].name, 0, cb_init_mode, (void *)MODE_8PSK125 },
 	{ mode_info[MODE_8PSK250].name, 0, cb_init_mode, (void *)MODE_8PSK250 },
 	{ mode_info[MODE_8PSK500].name, 0, cb_init_mode, (void *)MODE_8PSK500 },
@@ -877,7 +876,7 @@ static const Fl_Menu_Item quick_change_8psk[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_ofdm[] = {
+static Fl_Menu_Item quick_change_ofdm[] = {
 	{ mode_info[MODE_OFDM_500F].name, 0, cb_init_mode, (void *)MODE_OFDM_500F },
 	{ mode_info[MODE_OFDM_750F].name, 0, cb_init_mode, (void *)MODE_OFDM_750F },
 //	{ mode_info[MODE_OFDM_2000F].name, 0, cb_init_mode, (void *)MODE_OFDM_2000F },
@@ -886,7 +885,7 @@ static const Fl_Menu_Item quick_change_ofdm[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_pskr[] = {
+static Fl_Menu_Item quick_change_pskr[] = {
 	{ mode_info[MODE_PSK125R].name, 0, cb_init_mode, (void *)MODE_PSK125R },
 	{ mode_info[MODE_PSK250R].name, 0, cb_init_mode, (void *)MODE_PSK250R },
 	{ mode_info[MODE_PSK500R].name, 0, cb_init_mode, (void *)MODE_PSK500R },
@@ -894,7 +893,7 @@ static const Fl_Menu_Item quick_change_pskr[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_psk_multiR[] = {
+static Fl_Menu_Item quick_change_psk_multiR[] = {
 	{ mode_info[MODE_4X_PSK63R].name, 0, cb_init_mode, (void *)MODE_4X_PSK63R },
 	{ mode_info[MODE_5X_PSK63R].name, 0, cb_init_mode, (void *)MODE_5X_PSK63R },
 	{ mode_info[MODE_10X_PSK63R].name, 0, cb_init_mode, (void *)MODE_10X_PSK63R },
@@ -923,7 +922,7 @@ static const Fl_Menu_Item quick_change_psk_multiR[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_psk_multi[] = {
+static Fl_Menu_Item quick_change_psk_multi[] = {
 	{ mode_info[MODE_12X_PSK125].name, 0, cb_init_mode, (void *)MODE_12X_PSK125 },
 	{ mode_info[MODE_6X_PSK250].name, 0, cb_init_mode, (void *)MODE_6X_PSK250 },
 	{ mode_info[MODE_2X_PSK500].name, 0, cb_init_mode, (void *)MODE_2X_PSK500 },
@@ -933,7 +932,7 @@ static const Fl_Menu_Item quick_change_psk_multi[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_mfsk[] = {
+static Fl_Menu_Item quick_change_mfsk[] = {
 	{ mode_info[MODE_MFSK4].name, 0, cb_init_mode, (void *)MODE_MFSK4 },
 	{ mode_info[MODE_MFSK8].name, 0, cb_init_mode, (void *)MODE_MFSK8 },
 	{ mode_info[MODE_MFSK16].name, 0, cb_init_mode, (void *)MODE_MFSK16 },
@@ -948,19 +947,19 @@ static const Fl_Menu_Item quick_change_mfsk[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_wefax[] = {
+static Fl_Menu_Item quick_change_wefax[] = {
 	{ mode_info[MODE_WEFAX_576].name, 0, cb_init_mode, (void *)MODE_WEFAX_576 },
 	{ mode_info[MODE_WEFAX_288].name, 0, cb_init_mode, (void *)MODE_WEFAX_288 },
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_navtex[] = {
+static Fl_Menu_Item quick_change_navtex[] = {
 	{ mode_info[MODE_NAVTEX].name, 0, cb_init_mode, (void *)MODE_NAVTEX },
 	{ mode_info[MODE_SITORB].name, 0, cb_init_mode, (void *)MODE_SITORB },
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_mt63[] = {
+static Fl_Menu_Item quick_change_mt63[] = {
 	{ mode_info[MODE_MT63_500S].name, 0, cb_init_mode, (void *)MODE_MT63_500S },
 	{ mode_info[MODE_MT63_500L].name, 0, cb_init_mode, (void *)MODE_MT63_500L },
 	{ mode_info[MODE_MT63_1000S].name, 0, cb_init_mode, (void *)MODE_MT63_1000S },
@@ -970,7 +969,7 @@ static const Fl_Menu_Item quick_change_mt63[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_thor[] = {
+static Fl_Menu_Item quick_change_thor[] = {
 	{ mode_info[MODE_THORMICRO].name, 0, cb_init_mode, (void *)MODE_THORMICRO },
 	{ mode_info[MODE_THOR4].name, 0, cb_init_mode, (void *)MODE_THOR4 },
 	{ mode_info[MODE_THOR5].name, 0, cb_init_mode, (void *)MODE_THOR5 },
@@ -990,7 +989,7 @@ static const Fl_Menu_Item quick_change_thor[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_domino[] = {
+static Fl_Menu_Item quick_change_domino[] = {
 	{ mode_info[MODE_DOMINOEXMICRO].name, 0, cb_init_mode, (void *)MODE_DOMINOEXMICRO },
 	{ mode_info[MODE_DOMINOEX4].name, 0, cb_init_mode, (void *)MODE_DOMINOEX4 },
 	{ mode_info[MODE_DOMINOEX5].name, 0, cb_init_mode, (void *)MODE_DOMINOEX5 },
@@ -1003,7 +1002,7 @@ static const Fl_Menu_Item quick_change_domino[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_feld[] = {
+static Fl_Menu_Item quick_change_feld[] = {
 	{ mode_info[MODE_FELDHELL].name, 0, cb_init_mode, (void *)MODE_FELDHELL },
 	{ mode_info[MODE_SLOWHELL].name, 0, cb_init_mode, (void *)MODE_SLOWHELL },
 	{ mode_info[MODE_HELLX5].name,   0, cb_init_mode, (void *)MODE_HELLX5 },
@@ -1014,7 +1013,7 @@ static const Fl_Menu_Item quick_change_feld[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_throb[] = {
+static Fl_Menu_Item quick_change_throb[] = {
 	{ mode_info[MODE_THROB1].name, 0, cb_init_mode, (void *)MODE_THROB1 },
 	{ mode_info[MODE_THROB2].name, 0, cb_init_mode, (void *)MODE_THROB2 },
 	{ mode_info[MODE_THROB4].name, 0, cb_init_mode, (void *)MODE_THROB4 },
@@ -1024,7 +1023,7 @@ static const Fl_Menu_Item quick_change_throb[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_olivia[] = {
+static Fl_Menu_Item quick_change_olivia[] = {
 	{ mode_info[MODE_OLIVIA_4_125].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_125 },
 	{ mode_info[MODE_OLIVIA_4_250].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_250 },
 	{ mode_info[MODE_OLIVIA_4_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_500 },
@@ -1052,7 +1051,7 @@ static const Fl_Menu_Item quick_change_olivia[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_contestia[] = {
+static Fl_Menu_Item quick_change_contestia[] = {
 	{ mode_info[MODE_CONTESTIA_4_125].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_125 },
 	{ mode_info[MODE_CONTESTIA_4_250].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_250 },
 	{ mode_info[MODE_CONTESTIA_4_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_500 },
@@ -1081,7 +1080,7 @@ static const Fl_Menu_Item quick_change_contestia[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_rtty[] = {
+static Fl_Menu_Item quick_change_rtty[] = {
 	{ "RTTY-45", 0, cb_rtty45, (void *)MODE_RTTY },
 	{ "RTTY-50", 0, cb_rtty50, (void *)MODE_RTTY },
 	{ "RTTY-75N", 0, cb_rtty75N, (void *)MODE_RTTY },
@@ -1091,7 +1090,7 @@ static const Fl_Menu_Item quick_change_rtty[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_fsq[] = {
+static Fl_Menu_Item quick_change_fsq[] = {
 	{ "FSQ1.5", 0, cb_fsq1p5, (void *)MODE_FSQ },
         { "FSQ2", 0, cb_fsq2, (void *)MODE_FSQ },
 	{ "FSQ3", 0, cb_fsq3, (void *)MODE_FSQ },
@@ -1100,7 +1099,7 @@ static const Fl_Menu_Item quick_change_fsq[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_ifkp[] = {
+static Fl_Menu_Item quick_change_ifkp[] = {
 	{ "IFKP 0.5", 0, cb_ifkp0p5a, (void *)MODE_IFKP },
 	{ "IFKP 1.0", 0, cb_ifkp1p0a, (void *)MODE_IFKP },
 	{ "IFKP 2.0", 0, cb_ifkp2p0a, (void *)MODE_IFKP },
@@ -5912,7 +5911,7 @@ void cb_48macros(Fl_Widget*, void*)
 
 static void cb_opmode_show(Fl_Widget* w, void*);
 
-static Fl_Menu_Item menu_[] = {
+Fl_Menu_Item menu_[] = {
 {_("&File"), 0,  0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 
 { icons::make_icon_label(_("Folders")), 0, 0, 0, FL_SUBMENU, _FL_MULTI_LABEL, 0, 14, 0},
@@ -6292,6 +6291,8 @@ static Fl_Menu_Item menu_[] = {
 {"  ", 0, 0, 0, FL_MENU_INACTIVE, FL_NORMAL_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
 };
+
+int main_menu_size = sizeof(menu_)/sizeof(menu_[0]);
 
 static int count_visible_items(Fl_Menu_Item* menu)
 {
@@ -10815,9 +10816,9 @@ void cb_heard_send_image(Fl_Widget *w, void *)
 	fsq_showTxViewer('L');
 }
 
-static const Fl_Menu_Item *heard_popup;
+static Fl_Menu_Item *heard_popup;
 
-static const Fl_Menu_Item all_popup[] = {
+static Fl_Menu_Item all_popup[] = {
 	{ "Copy", 0, cb_heard_copy, 0 },
 	{ "Copy All", 0, cb_heard_copy_all, 0 , FL_MENU_DIVIDER },
 	{ "Send File To... (#)", 0, cb_heard_send_file, 0, FL_MENU_DIVIDER },
@@ -10825,7 +10826,7 @@ static const Fl_Menu_Item all_popup[] = {
 	{ 0, 0, 0, 0 }
 };
 
-static const Fl_Menu_Item directed_popup[] = {
+static Fl_Menu_Item directed_popup[] = {
 	{ "Copy", 0, cb_heard_copy, 0 },
 	{ "Log call", 0, cb_heard_copy_to_log, 0 },
 	{ "Copy All", 0, cb_heard_copy_all, 0 },
@@ -11220,4 +11221,144 @@ void StatusBar_cb(Fl_Box *bx, void *d)
 	progStatus.vumeter_shown = 1;
 }
 
+void change_menu_fonts( Fl_Font font, int size)
+{
+	for (int i = 0; i < main_menu_size; i++) {
+		if (menu_[i].text) {
+			menu_[i].labelfont_ = font;
+			menu_[i].labelsize_ = size;
+		}
+	}
+	mnuFrame->redraw();
+
+	for (size_t n = 0; n < sizeof(quick_change_ifkp) / sizeof(*quick_change_ifkp); n++) {
+		quick_change_ifkp[n].labelfont_ = font;
+		quick_change_ifkp[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_fsq) / sizeof(*quick_change_fsq); n++) {
+		quick_change_fsq[n].labelfont_ = font;
+		quick_change_fsq[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_rtty) / sizeof(*quick_change_rtty); n++) {
+		quick_change_rtty[n].labelfont_ = font;
+		quick_change_rtty[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_contestia) / sizeof(*quick_change_contestia); n++) {
+		quick_change_contestia[n].labelfont_ = font;
+		quick_change_contestia[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_olivia) / sizeof(*quick_change_olivia); n++) {
+		quick_change_olivia[n].labelfont_ = font;
+		quick_change_olivia[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_throb) / sizeof(*quick_change_throb); n++) {
+		quick_change_throb[n].labelfont_ = font;
+		quick_change_throb[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_feld) / sizeof(*quick_change_feld); n++) {
+		quick_change_feld[n].labelfont_ = font;
+		quick_change_feld[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_domino) / sizeof(*quick_change_domino); n++) {
+		quick_change_domino[n].labelfont_ = font;
+		quick_change_domino[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_thor) / sizeof(*quick_change_thor); n++) {
+		quick_change_thor[n].labelfont_ = font;
+		quick_change_thor[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_mt63) / sizeof(*quick_change_mt63); n++) {
+		quick_change_mt63[n].labelfont_ = font;
+		quick_change_mt63[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_navtex) / sizeof(*quick_change_navtex); n++) {
+		quick_change_navtex[n].labelfont_ = font;
+		quick_change_navtex[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_wefax) / sizeof(*quick_change_wefax); n++) {
+		quick_change_wefax[n].labelfont_ = font;
+		quick_change_wefax[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_mfsk) / sizeof(*quick_change_mfsk); n++) {
+		quick_change_mfsk[n].labelfont_ = font;
+		quick_change_mfsk[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_psk_multi) / sizeof(*quick_change_psk_multi); n++) {
+		quick_change_psk_multi[n].labelfont_ = font;
+		quick_change_psk_multi[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_psk) / sizeof(*quick_change_psk); n++) {
+		quick_change_psk[n].labelfont_ = font;
+		quick_change_psk[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_psk_multiR) / sizeof(*quick_change_psk_multiR); n++) {
+		quick_change_psk_multiR[n].labelfont_ = font;
+		quick_change_psk_multiR[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_pskr) / sizeof(*quick_change_pskr); n++) {
+		quick_change_pskr[n].labelfont_ = font;
+		quick_change_pskr[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_ofdm) / sizeof(*quick_change_ofdm); n++) {
+		quick_change_ofdm[n].labelfont_ = font;
+		quick_change_ofdm[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_8psk) / sizeof(*quick_change_8psk); n++) {
+		quick_change_8psk[n].labelfont_ = font;
+		quick_change_8psk[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_qpsk) / sizeof(*quick_change_qpsk); n++) {
+		quick_change_qpsk[n].labelfont_ = font;
+		quick_change_qpsk[n].labelsize_ = size;
+	}
+
+	for (size_t n = 0; n < sizeof(all_popup) / sizeof(*all_popup); n++) {
+		all_popup[n].labelfont_ = font;
+		all_popup[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(directed_popup) / sizeof(*directed_popup); n++) {
+		directed_popup[n].labelfont_ = font;
+		directed_popup[n].labelsize_ = size;
+	}
+
+	int timer_width = 75 * size / 12;
+	int btn_width = 50 * size / 12;
+
+	btnMacroTimer->labelsize(size);
+	btnMacroTimer->labelfont(font);
+	btnMacroTimer->redraw_label();
+	btnMacroTimer->resize(fl_digi_main->w() - btn_width, 0, btn_width, Hmenu);
+	btnMacroTimer->redraw();
+
+	btnTune->labelsize(size);
+	btnTune->labelfont(font);
+	btnTune->redraw_label();
+	btnTune->resize(btnMacroTimer->x() - btn_width, 0, btn_width, Hmenu);
+	btnTune->redraw();
+
+	btnTxRSID->labelsize(size);
+	btnTxRSID->labelfont(font);
+	btnTxRSID->redraw_label();
+	btnTxRSID->resize(btnTune->x() - btn_width, 0, btn_width, Hmenu);
+	btnTxRSID->redraw();
+
+	btnRSID->labelsize(size);
+	btnRSID->labelfont(font);
+	btnRSID->redraw_label();
+	btnRSID->resize(btnTxRSID->x() - btn_width, 0, btn_width, Hmenu);
+	btnRSID->redraw();
+
+	btnAutoSpot->labelsize(size);
+	btnAutoSpot->labelfont(font);
+	btnAutoSpot->redraw_label();
+	btnAutoSpot->resize(btnRSID->x() - btn_width, 0, btn_width, Hmenu);
+	btnAutoSpot->redraw();
+
+	tx_timer->labelsize(size);
+	tx_timer->labelfont(font);
+	tx_timer->redraw_label();
+	tx_timer->resize(btnAutoSpot->x() - timer_width, 0, timer_width, Hmenu);
+	tx_timer->redraw();
+
+}
 

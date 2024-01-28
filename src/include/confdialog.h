@@ -86,6 +86,7 @@ extern Fl_Button *btn_check_btn_color;
 extern Fl_Box *default_check_btn_color;
 extern Fl_Button *btn_default_round_btn_color;
 extern Fl_Box *default_round_btn_color;
+extern Fl_Button *btnMenuFont;
 extern Fl_Box *FDdisplay;
 extern Fl_Button *btn_freq_control_font;
 extern Fl_Button *btnBackgroundColor;

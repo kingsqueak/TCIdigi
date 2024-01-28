@@ -75,6 +75,20 @@ static void choose_color(Fl_Color & c) {
       c = fl_rgb_color(r, g, b);
 }
 
+static void cbMenuFontBrowser(Fl_Widget*, void*) {
+  Fl_Font font = font_browser->fontNumber();
+  int size = font_browser->fontSize();
+  
+  progdefaults.MenuFontnbr = font;
+  progdefaults.MenuFontsize = size;
+  //progdefaults.MenuFontcolor = color;
+  
+  font_browser->hide();
+  change_menu_fonts(font, size);
+  
+  progdefaults.changed = true;
+}
+
 static void cbRxFontBrowser(Fl_Widget*, void*) {
   Fl_Font font = font_browser->fontNumber();
       int size = font_browser->fontSize();
@@ -728,6 +742,15 @@ progdefaults.changed = true;
 }
 
 Fl_Box *default_round_btn_color=(Fl_Box *)0;
+
+Fl_Button *btnMenuFont=(Fl_Button *)0;
+
+static void cb_btnMenuFont(Fl_Button*, void*) {
+  font_browser->fontNumber(progdefaults.MenuFontnbr);
+font_browser->fontSize(progdefaults.MenuFontsize);
+font_browser->callback(cbMenuFontBrowser);
+font_browser->show();
+}
 
 Fl_Box *FDdisplay=(Fl_Box *)0;
 
@@ -10072,7 +10095,7 @@ Fl_Double_Window* ConfigureDialog() {
       tab_tree->close(_("Call"));
       o->end();
     } // Fl_Group* o
-    { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Colors-Fonts/Buttons"));
+    { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Colors-Fonts/Buttons-Menus"));
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
@@ -10177,9 +10200,12 @@ Fl_Double_Window* ConfigureDialog() {
         default_round_btn_color->box(FL_ROUND_DOWN_BOX);
         o->color(progdefaults.default_round_btn_color);
       } // Fl_Box* default_round_btn_color
-      CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons"));
+      { btnMenuFont = new Fl_Button(284, 278, 100, 21, _("Menu font"));
+        btnMenuFont->callback((Fl_Callback*)cb_btnMenuFont);
+      } // Fl_Button* btnMenuFont
+      CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons-Menus"));
       config_pages.push_back(p);
-      tab_tree->add(_("Colors-Fonts/Buttons"));
+      tab_tree->add(_("Colors-Fonts/Buttons-Menus"));
       o->end();
     } // Fl_Group* o
     { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Colors-Fonts/FreqDisp - Meters"));

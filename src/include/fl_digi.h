@@ -27,6 +27,7 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Browser.H>
 #include <FL/Fl_Pack.H>
+#include <FL/Fl_Menu_Bar.H>
 #include <string>
 
 #include "combo.h"
@@ -69,6 +70,11 @@ extern Fl_Double_Window *notify_window;
 extern Fl_Double_Window *dxcc_window;
 extern Fl_Double_Window	*dxcluster_viewer;
 extern Fl_Double_Window *rxaudio_dialog;
+
+extern Fl_Menu_Item 	menu_[];
+extern int 				main_menu_size;
+extern Fl_Group			*mnuFrame;;
+extern void change_menu_fonts( Fl_Font font, int size);
 
 extern bool first_use;
 extern bool bEXITING;
