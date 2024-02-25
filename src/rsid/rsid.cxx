@@ -657,8 +657,10 @@ void cRsId::apply(int iBin, int iSymbol, int extended)
 		return;
 	}
 
-	if (!progdefaults.disable_rsid_warning_dialog_box)
+	if (!progdefaults.disable_rsid_warning_dialog_box) {
+		LOG_INFO("REQ call of notify_ssid: %d %f", mbin, rsidfreq);
 		REQ(notify_rsid, mbin, rsidfreq);
+	}
 
 	if (progdefaults.rsid_notify_only) {
 		if (data_io_enabled == KISS_IO) {
