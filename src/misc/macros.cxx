@@ -4348,7 +4348,7 @@ std::string ReadFromPipe(void)
 	BOOL bSuccess = FALSE;
 //	HANDLE hParentStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	std::string sbuffer;
-LOG_INFO("Child std::cout handle: %s", g_hChildStd_OUT_Rd);
+LOG_INFO("Child std::cout handle: %p", g_hChildStd_OUT_Rd);
 
 	for (;;) {
 		memset(chBuf, 0, PIPESIZE);
@@ -4447,21 +4447,28 @@ LOG_INFO("CMD %s", cmd);
 		return;
 	}
 
-	WaitForSingleObject( pi.hProcess, INFINITE );
+	unsigned int waitret = WaitForSingleObject( pi.hProcess, 1000);  //INFINITE );
  	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 
 	free(cmd);
 
 // Read from pipe that is the standard output for child process. 
- 
-	LOG_INFO( "Contents of child process STDOUT:");
-	std::string read_from_pipe = ReadFromPipe(); 
 
-	LOG_INFO("End of MACRO <EXEC> execution.");
-
-	substitute(s, i, endbracket, read_from_pipe);
-//	s.erase(i, end + strlen("</EXEC>") - i);
+	if (waitret == WAIT_ABANDONED ||
+		waitret == WAIT_TIMEOUT ||
+		waitret == WAIT_FAILED ) {
+		LOG_INFO("%s", "Process SIGNAL return failed.");
+		substitute(s, i, endbracket, "");
+	} else {
+		std::string read_from_pipe = ReadFromPipe(); 
+		LOG_INFO("%s", "End of MACRO <EXEC> execution.");
+		LOG_INFO("Process returned %s", (read_from_pipe.empty() ? "" : read_from_pipe.c_str()));
+		if (!read_from_pipe.empty())
+			substitute(s, i, endbracket, read_from_pipe);
+		else
+			substitute(s, i, endbracket, "");
+	}
 }
 #endif // !__MINGW32__
 
