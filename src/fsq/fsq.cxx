@@ -1630,11 +1630,13 @@ void try_transmit(void *)
 		static char szwaiting[50];
 		snprintf(szwaiting, sizeof(szwaiting), "Waiting %4.2f", xmt_repeat_try);
 		fsq_que_clear();
+		write_fsq_que(std::string(szwaiting).append("\n").append(fsq_string));
 		LOG_INFO("%s", szwaiting);
 		Fl::add_timeout(0.5, try_transmit);
 		return;
 	} else {
 		static const char szsquelch[50] = "Squelch open.  Transmit timed out!";
+		display_fsq_rx_text(std::string("\n").append(szsquelch).append("\n").c_str(), FTextBase::ALTR);
 		LOG_WARN("%s", szsquelch);
 		tx_text_queue.clear();
 		fsq_que_clear();
