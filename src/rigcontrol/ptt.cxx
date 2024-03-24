@@ -291,7 +291,7 @@ void export_gpio(int bcm)
 	gpioEXEC(exec_str);
 	LOG_INFO("%s", exec_str.c_str());
 	// Wait a bit for OS to set file permissions 
-	MilliSleep(1);
+	MilliSleep(100);
 	exec_str = "echo 'out' >/sys/class/gpio/gpio";
 	exec_str.append(gpio_name[bcm]).append("/direction");
 	gpioEXEC(exec_str);
