@@ -55,8 +55,12 @@
 #define SOFTPROFILE false
 //#define SOFTPROFILE true
 
-char thormsg[80];
-char confidence[80];
+static char thormsg[80];
+static char confidence[80];
+
+static double s2nvals[500];
+static double quavals[500];
+static int    s2nptr = 0;
 
 #include "thor-pic.cxx"
 
@@ -355,6 +359,10 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 
 	symcounter = 0;
 	metric = 0.0;
+	for (int n = 0; n < 500; n++) {
+		s2nvals[n] = -20;
+		quavals[n] = 0;
+	}
 
 	fragmentsize = symlen;
 
@@ -929,20 +937,21 @@ void thor::synchronize()
 
 }
 
-
 void thor::eval_s2n()
 {
 	double s = abs(pipe[pipeptr].vector[currsymbol]);
 	double n = (THORNUMTONES - 1) *
 				abs( pipe[(pipeptr + symlen) % twosym].vector[currsymbol]);
 
+	if (trx_state != STATE_RX) return;
+
 	sig = decayavg( sig, s, s - sig > 0 ? 4 : 20);
 	noise = decayavg( noise, n, 64);
 
-	if (noise)
-		s2n = 20*log10(sig / noise);
-	else
-		s2n = 0;
+	if (noise == 0) noise = sig / 1000.0;
+
+	s2n = 20*log10(sig / noise);
+
 	// To partially offset the increase of noise by (THORNUMTONES -1)
 	// in the noise calculation above,
 	// add 15*log10(THORNUMTONES -1) = 18.4, and multiply by 6
@@ -958,11 +967,31 @@ void thor::eval_s2n()
 
 	display_metric(metric);
 
-	snprintf(thormsg, sizeof(thormsg), "s/n %3.0f dB", s2n );
-	put_Status1(thormsg);
+	s2nvals[s2nptr] = s2n;
+	quavals[s2nptr] = get_quality();
+	++s2nptr;
+	if (s2nptr == 100) s2nptr = 0;
 
-	snprintf(confidence, sizeof(confidence), "FEC: %3.1d%%", get_quality());
-	put_Status2(confidence);
+	double maxs2n = -20;
+	double maxqual = 0;
+
+	for (int n = 0; n < 500; n++) {
+		if (s2nvals[n] > maxs2n) maxs2n = s2nvals[n];
+		if (quavals[n] > maxqual) maxqual = quavals[n];
+	}
+
+	if (metric < progStatus.sldrSquelchValue)
+		return;
+
+	if (maxs2n >= -14) {
+		snprintf(thormsg, sizeof(thormsg), "s/n %3.0f dB", maxs2n );
+		put_Status1(thormsg, 15, STATUS_CLEAR);
+	}
+
+	if (maxqual >= 10) {
+		snprintf(confidence, sizeof(confidence), "err: %3d %%", (int)(100 - maxqual));
+		put_Status2(confidence, 15, STATUS_CLEAR);
+	}
 }
 
 void thor::recvpic(double smpl)

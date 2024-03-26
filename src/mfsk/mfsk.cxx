@@ -68,7 +68,9 @@ TRACEPAIR tracepair(45, 352);
 static bool xmt_filter = false;
 
 //=============================================================================
-char mfskmsg[80];
+static char   mfskmsg[80];
+static double s2nvals[100];
+static int    s2nptr = 0;
 //=============================================================================
 
 #include "mfsk-pic.cxx"
@@ -105,14 +107,18 @@ void  mfsk::rx_init()
 			pipe[i].vector[j] = cmplx(0,0);
 	}
 	reset_afc();
-	s2n = 0.0;
+
 	memset(picheader, ' ', PICHEADER - 1);
 	picheader[PICHEADER -1] = 0;
 	put_MODEstatus(mode);
 	syncfilter->reset();
 	staticburst = false;
 
+	s2n = 0.0;
 	s2n_valid = false;
+	for (int n = 0; n < 100; n++) {
+		s2nvals[n] = -20;
+	}
 }
 
 
@@ -744,8 +750,6 @@ void mfsk::update_syncscope()
 	set_scope(scopedata, SCOPESIZE);
 
 	scopedata.next(); // change buffers
-	snprintf(mfskmsg, sizeof(mfskmsg), "s/n %3.0f dB", 20.0 * log10(s2n));
-	put_Status1(mfskmsg);
 }
 
 void mfsk::synchronize()
@@ -829,7 +833,22 @@ void mfsk::eval_s2n()
 	noise = (numtones -1) * abs(pipe[pipeptr].vector[prev2symbol]);
 	if (noise > 0)
 		s2n = decayavg ( s2n, sig / noise, 64 );
+	else
+		s2n = -20;
 
+	s2nvals[s2nptr] = s2n;
+	++s2nptr;
+	if (s2nptr == 100) s2nptr = 0;
+
+	double maxs2n = -20;
+
+	for (int n = 0; n < 100; n++) {
+		if (s2nvals[n] > maxs2n) maxs2n = s2nvals[n];
+	}
+	if (20 * log10(maxs2n) >= -12) {
+		snprintf(mfskmsg, sizeof(mfskmsg), "s/n %3.0f dB", 20.0 * log10(maxs2n));
+		put_Status1(mfskmsg, 15, STATUS_CLEAR);
+	}
 }
 
 int mfsk::rx_process(const double *buf, int len)
