@@ -177,9 +177,9 @@ std::ostream & operator<<( std::ostream & ostrm, const CoordinateT & ref )
 	bool sign = ref.m_angle > 0 ;
 	double ang = sign ? ref.m_angle : -ref.m_angle;
 
-	ostrm << std::setfill('0') << std::setw( ref.m_is_lon ? 3 : 2 ) << (int)ang << "°"
-		<< std::setfill('0') << std::setw(2) << ( (int)( 0.5 + ang * 60.0 ) % 60 ) << "'"
-		<< std::setfill('0') << std::setw(2) << (int)fmod( ang * 3600.0, 60 ) << "''"
+	ostrm << std::setfill('0') << std::setw( ref.m_is_lon ? 3 : 2 ) << (int)ang << " "
+		<< std::setfill('0') << std::setw(2) << ( (int)( 0.5 + ang * 60.0 ) % 60 ) << " "
+		<< std::setfill('0') << std::setw(2) << (int)fmod( ang * 3600.0, 60 ) << " "
 		<< " ";
 	ostrm << ( ref.m_is_lon ? sign ? 'E' : 'W' : sign ? 'N' : 'S' );
 	return ostrm;

@@ -219,10 +219,10 @@ static const synop_test tests_arr_full[] = {
 		"Cloud base: 600 - 999 m (2000 - 3333 ft).\n"
 		"Horizontal visibility: 25 km.\n"
 		"Total cloud cover: 7/8ths or more, but not 8/8ths.\n"
-		"Wind direction: 250°.\n"
+		"Wind direction: 250.\n"
 		"Wind speed: 12 knots, from anemometer.\n"
-		"Air temperature: 17.1 °C.\n"
-		"Dewpoint temperature: 12.8 °C.\n"
+		"Air temperature: 17.1 C.\n"
+		"Dewpoint temperature: 12.8 C.\n"
 		"Sea level pressure: 1025.0 hPa.\n"
 		"Pressure change over last 3 hours: -0.5 hPa, decreasing steadily.\n"
 		"Present weather: not significant.\n"
@@ -230,7 +230,7 @@ static const synop_test tests_arr_full[] = {
 		"Low cloud type: stratocumulus other than stratocumulus cumulogenitus.\n"
 		"Middle cloud type: no altocumulus, altostratus or nimbostratus.\n"
 		"High cloud type: cirrus spissatus, or cirrus castellanus or cirrus floccus.\n"
-		"Maximum temperature: 18.2 °C.\n"
+		"Maximum temperature: 18.2 C.\n"
 	}, { 1,
 		"16597 32562 33113 10139 20097 30053 40140 53022 81130 333 10170 81826\n"
 		" 83357 91132 91531 =\n",
@@ -241,10 +241,10 @@ static const synop_test tests_arr_full[] = {
 		"Cloud base: 600 - 999 m (2000 - 3333 ft).\n"
 		"Horizontal visibility: 12 km.\n"
 		"Total cloud cover: 3/8ths.\n"
-		"Wind direction: 310°.\n"
+		"Wind direction: 310.\n"
 		"Wind speed: 13 knots, from anemometer.\n"
-		"Air temperature: 13.9 °C.\n"
-		"Dewpoint temperature: 9.7 °C.\n"
+		"Air temperature: 13.9 C.\n"
+		"Dewpoint temperature: 9.7 C.\n"
 		"Sea level pressure: 1014.0 hPa.\n"
 		"Pressure change over last 3 hours: 2.2 hPa, decreasing or steady, then increasing.\n"
 		"Precipitation amount: 0.0 mm.\n"
@@ -253,7 +253,7 @@ static const synop_test tests_arr_full[] = {
 		"Low cloud type: cumulus humulis or fractus (no vertical development).\n"
 		"Middle cloud type: altocumulus translucidous at one level.\n"
 		"High cloud type: no cirrus, cirrocumulus or cirrostratus.\n"
-		"Maximum temperature: 17.0 °C.\n"
+		"Maximum temperature: 17.0 C.\n"
 	}
 };
 static const size_t nb_tests_full = G_N_ELEMENTS(tests_arr_full);
