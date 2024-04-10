@@ -43,9 +43,11 @@
 #  include <fstream>
 
 // TODO: figure out the percentage automatically; hopefully not in a horribly kludgy way
+// English always first in list so it is the new installation default.
+
 struct lang_def_t ui_langs[] = {
-	{ "ca", "ca_CA", "Catalan"},
 	{ "en", "en_US", "English"},
+	{ "ca", "ca_CA", "Catalan"},
 	{ "de", "de_DE", "Deutsch (German)"},
 	{ "nl", "nl_NL", "Nederlands (Dutch)"},
 	{ "es", "es_ES", "Espa\361ol (Spanish)"},
