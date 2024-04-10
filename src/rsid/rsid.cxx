@@ -281,8 +281,8 @@ void cRsId::search(void)
 	else {
 		float centerfreq = active_modem->get_freq();
 		float bpf = 1.0 * RSID_ARRAY_SIZE / RSID_SAMPLE_RATE;
-		nBinLow = (int)((centerfreq  - 100.0 * 2) * bpf);
-		nBinHigh = (int)((centerfreq  + 100.0 * 2) * bpf);
+		nBinLow = (int)((centerfreq  - progdefaults.rsid_min_bw / 2) * bpf);
+		nBinHigh = (int)((centerfreq  + progdefaults.rsid_min_bw / 2) * bpf);
 	}
 	if (nBinLow < 3) nBinLow = 3;
 	if (nBinHigh > RSID_FFT_SIZE - 32) nBinHigh = RSID_FFT_SIZE - 32;

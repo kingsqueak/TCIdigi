@@ -1108,6 +1108,30 @@ case Step: for (int row = 0; row < image_height; row++) { \
 		}
 	}
 
+// draw RsID detection zone
+	if ( progdefaults.rsid &&
+		 !progdefaults.rsidWideSearch &&
+		( (carrierfreq - progdefaults.rsid_min_bw / 2) > 1) && 
+		( (carrierfreq + progdefaults.rsid_min_bw / 2) < (progdefaults.HighFreqCutoff - 1))) {
+		RGBI RGBIrsid;
+		RGBIrsid.I = progdefaults.rsidRGBI.I;
+		RGBIrsid.R = progdefaults.rsidRGBI.R;
+		RGBIrsid.G = progdefaults.rsidRGBI.G;
+		RGBIrsid.B = progdefaults.rsidRGBI.B;
+		RGBI  *pos1 = fft_img + (carrierfreq - offset - progdefaults.rsid_min_bw / 2) / step;
+		RGBI  *pos2 = fft_img + (carrierfreq - offset + progdefaults.rsid_min_bw / 2) / step;
+		int dash = 0;
+		for (int y = 0; y < image_height; y++) {
+			dash = (dash + 1) % 6;
+			if (dash == 0 || dash == 1 || dash == 2) {
+				*(pos1) = RGBIrsid;
+				*(pos2) = RGBIrsid;
+			}
+			pos1 += disp_width;
+			pos2 += disp_width;
+		}
+	}
+
 	if (active_modem && progdefaults.UseBWTracks) {
 		trx_mode mode = active_modem->get_mode();
 		if (mode == MODE_FMT) {

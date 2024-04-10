@@ -95,9 +95,15 @@
         ELEM_(int, rsid_squelch, "RSIDSQUELCH",                                         \
               "RSID detection opens squelch for nn seconds",                            \
               5)                                                                        \
+        ELEM_(int, rsid_min_bw, "RSID_MIN_BW",                                          \
+              "RSID minimum search bandwidth in Hertz",                                 \
+              200)                                                                      \
         ELEM_(bool, rsid, "RECEIVERSID",                                                \
               "Enable Reed Soloman ID decoding",                                        \
               false)                                                                    \
+        ELEM_(RGBI, rsidRGBI, "RSIDCOLORS",                                             \
+              "Color of RsID detection markers (RGBI)",                                 \
+              {255, 255, 255, 255})                                                     \
         ELEM_(bool, TransmitRSid, "TRANSMITRSID",                                       \
               "Send RSID at beginning and end of transmission",                         \
               false)                                                                    \

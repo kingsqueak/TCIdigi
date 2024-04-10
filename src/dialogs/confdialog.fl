@@ -2634,7 +2634,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {IDs/RsID}
+      label {IDs/RsID} open
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("IDs/RsID"));}
       code1 {config_pages.push_back(p);}
@@ -2642,7 +2642,7 @@ progdefaults.changed = true;}
     } {
       Fl_Group {} {
         label {Reed-Solomon ID (Rx)} open
-        xywh {243 22 535 220} box ENGRAVED_FRAME align 21
+        xywh {216 20 560 220} box ENGRAVED_FRAME align 21
       } {
         Fl_Check_Button chkRSidNotifyOnly {
           label {Notify only}
@@ -2658,7 +2658,7 @@ else {
 }
 progdefaults.changed = true;}
           tooltip {Check this to be notified when an RSID is received
-without changing modem and frequency} xywh {251 89 168 20} down_box DOWN_BOX
+without changing modem and frequency} xywh {241 87 168 20} down_box DOWN_BOX
           code0 {chkRSidNotifyOnly->value(progdefaults.rsid_notify_only);}
         }
         Fl_Button bRSIDRxModes {
@@ -2667,33 +2667,15 @@ without changing modem and frequency} xywh {251 89 168 20} down_box DOWN_BOX
 mode_browser->callback(0);
 mode_browser->show_(&progdefaults.rsid_rx_modes);
 progdefaults.changed = true;}
-          xywh {251 48 87 24}
-        }
-        Fl_Check_Button chkRSidWideSearch {
-          label {Searches passband}
-          callback {progdefaults.rsidWideSearch=o->value();
-rxid_selection_color();
-progdefaults.changed = true;}
-          tooltip {ON - search over entire waterfall
-OFF - limit search to +/- 200 Hz} xywh {251 119 203 20} down_box DOWN_BOX
-          code0 {o->value(progdefaults.rsidWideSearch);}
+          xywh {224 46 87 24}
         }
         Fl_Check_Button chkRSidMark {
           label {Mark prev freq/mode}
           callback {progdefaults.rsid_mark = o->value();
 progdefaults.changed = true;}
           tooltip {Insert RX text marker before
-changing frequency and modem} xywh {251 149 203 20} down_box DOWN_BOX
+changing frequency and modem} xywh {241 147 203 20} down_box DOWN_BOX
           code0 {chkRSidMark->value(progdefaults.rsid_mark);}
-        }
-        Fl_Check_Button chkRSidAutoDisable {
-          label {Disables detector}
-          callback {progdefaults.rsid_auto_disable = o->value();
-progdefaults.changed = true;}
-          tooltip {Disable further detection when RSID is received} xywh {251 179 203 20} down_box DOWN_BOX
-          code0 {if (progdefaults.rsid_notify_only) progdefaults.rsid_auto_disable = false;}
-          code1 {chkRSidAutoDisable->value(progdefaults.rsid_auto_disable);}
-          code2 {if (progdefaults.rsid_notify_only) chkRSidAutoDisable->deactivate();}
         }
         Fl_Group listbox_rsid_errors {
           label {Allow errors}
@@ -2701,7 +2683,7 @@ progdefaults.changed = true;}
 progdefaults.changed = true;} open
           tooltip {Low = zero errors
 Medium = 1 error
-High = 2 errors} xywh {251 210 100 22} box DOWN_BOX color 7 align 8
+High = 2 errors} xywh {224 208 100 22} box DOWN_BOX color 7 align 8
           code0 {listbox_rsid_errors->add(_("Low")); listbox_rsid_errors->add(_("Medium")); listbox_rsid_errors->add(_("High"));}
           code1 {listbox_rsid_errors->index(progdefaults.RsID_label_type);}
           code2 {o->labelsize(FL_NORMAL_SIZE);}
@@ -2711,59 +2693,68 @@ High = 2 errors} xywh {251 210 100 22} box DOWN_BOX color 7 align 8
           label {Disable alert dialog}
           callback {progdefaults.disable_rsid_warning_dialog_box = o->value();
 progdefaults.changed = true;}
-          tooltip {Do not show RsID alert dialog box} xywh {487 89 203 20} down_box DOWN_BOX
+          tooltip {Do not show RsID alert dialog box} xywh {464 87 203 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.disable_rsid_warning_dialog_box);}
+        }
+        Fl_Check_Button chkRSidAutoDisable {
+          label {Disables detector}
+          callback {progdefaults.rsid_auto_disable = o->value();
+progdefaults.changed = true;}
+          tooltip {Disable further detection when RSID is received} xywh {464 113 203 20} down_box DOWN_BOX
+          code0 {if (progdefaults.rsid_notify_only) progdefaults.rsid_auto_disable = false;}
+          code1 {chkRSidAutoDisable->value(progdefaults.rsid_auto_disable);}
+          code2 {if (progdefaults.rsid_notify_only) chkRSidAutoDisable->deactivate();}
         }
         Fl_Check_Button chkRetainFreqLock {
           label {Retain tx freq lock}
           callback {progdefaults.retain_freq_lock = o->value();
 progdefaults.changed = true;}
-          tooltip {Retain TX lock frequency (Lk) when changing to RX RsID frequency} xywh {487 119 203 20} down_box DOWN_BOX
+          tooltip {Retain TX lock frequency (Lk) when changing to RX RsID frequency} xywh {241 117 203 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.retain_freq_lock);}
         }
         Fl_Check_Button chkDisableFreqChange {
           label {Disable freq change}
           callback {progdefaults.disable_rsid_freq_change = o->value();
 progdefaults.changed = true;}
-          tooltip {Do not automatically change to RX RsID frequency} xywh {487 149 203 20} down_box DOWN_BOX
+          tooltip {Do not automatically change to RX RsID frequency} xywh {464 147 203 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.disable_rsid_freq_change);}
         }
         Fl_Check_Button chk_RSID_EOT {
           label {Rx/Tx RsID EOT}
           callback {progdefaults.rsid_eot_squelch = o->value();
 progdefaults.changed = true;}
-          tooltip {Do not automatically change to RX RsID frequency} xywh {487 179 232 20} down_box DOWN_BOX
+          tooltip {Do not automatically change to RX RsID frequency} xywh {464 177 232 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.rsid_eot_squelch);}
         }
         Fl_Counter val_RSIDsquelch {
           label {Squelch open (sec)}
           callback {progdefaults.rsid_squelch = (int)o->value();
 progdefaults.changed = true;}
-          tooltip {Use for triggering amplifier carrier detect} xywh {471 210 140 21} align 8 minimum 0 maximum 300 step 1
+          tooltip {Use for triggering amplifier carrier detect} xywh {444 208 140 21} align 8 minimum 0 maximum 300 step 1
           code0 {o->value(progdefaults.rsid_squelch);}
           code1 {o->lstep(10.0);}
         }
         Fl_Group {} {
           label {The RsID notification message contents and display
 characteristics are configured on the "Notifications" tab.} open
-          xywh {363 45 406 38} box BORDER_BOX align 21
+          xywh {336 43 406 38} box BORDER_BOX align 21
         } {}
       }
       Fl_Group {} {
         label {Pre-Signal Tone} open
-        xywh {243 245 265 97} box ENGRAVED_FRAME align 21
+        xywh {216 243 180 100} box ENGRAVED_FRAME align 21
       } {
         Fl_Counter val_pretone {
           label Seconds
           callback {progdefaults.pretone = o->value();
 progdefaults.changed = true;}
-          tooltip {Use for triggering amplifier carrier detect} xywh {299 283 140 21} minimum 0 maximum 10
+          tooltip {Use for triggering amplifier carrier detect} xywh {228 281 120 21} minimum 0 maximum 10
           code0 {o->value(progdefaults.pretone);}
         }
       }
       Fl_Group {} {
         label {Reed-Solomon ID (Tx)} open
-        xywh {511 245 265 97} box ENGRAVED_FRAME align 21
+        xywh {406 243 180 100} box ENGRAVED_FRAME align 21
       } {
         Fl_Button bRSIDTxModes {
           label {Transmit modes}
@@ -2771,14 +2762,42 @@ progdefaults.changed = true;}
 mode_browser->callback(0);
 mode_browser->show_(&progdefaults.rsid_tx_modes);
 progdefaults.changed = true;}
-          xywh {588 272 130 24}
+          xywh {412 269 130 26}
         }
         Fl_Check_Button btn_post_rsid {
           label {End of xmt ID}
           callback {progdefaults.rsid_post=o->value();
 progdefaults.changed = true;}
-          tooltip {Add RsID signal to end of transmission} xywh {588 307 97 17} down_box DOWN_BOX
+          tooltip {Add RsID signal to end of transmission} xywh {426 306 97 18} down_box DOWN_BOX
           code0 {o->value(progdefaults.rsid_post);}
+        }
+      }
+      Fl_Group {} {
+        label {Min BW Detection} open
+        xywh {596 243 180 100} box ENGRAVED_FRAME align 21
+      } {
+        Fl_Counter val_rsid_min_bw {
+          label Hertz
+          callback {progdefaults.rsid_min_bw = o->value();
+progdefaults.changed = true;}
+          tooltip {Minimum bandwidth} xywh {635 271 100 21} type Simple minimum 180 maximum 1000 step 10 value 200
+          code0 {o->value(progdefaults.rsid_min_bw);}
+        }
+        Fl_Check_Button chkRSidWideSearch {
+          label Passband
+          callback {progdefaults.rsidWideSearch=o->value();
+rxid_selection_color();
+progdefaults.changed = true;}
+          tooltip {ON - search over entire waterfall
+OFF - limit search to BW selector} xywh {601 316 93 20} down_box DOWN_BOX
+          code0 {o->value(progdefaults.rsidWideSearch);}
+        }
+        Fl_Button btn_rsid_default_bw {
+          label Default
+          callback {val_rsid_min_bw->value(200);
+progdefaults.rsid_min_bw = 200;
+progdefaults.changed = true;}
+          xywh {696 315 70 20}
         }
       }
     }
@@ -3427,7 +3446,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/CW/General} open selected
+      label {Modem/CW/General}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/CW/General"));}
       code1 {config_pages.push_back(p);}
@@ -11773,7 +11792,7 @@ WF_UI();}
       }
     }
     Fl_Group {} {
-      label {Waterfall/Display}
+      label {Waterfall/Display} open selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Waterfall/Display"));}
       code1 {config_pages.push_back(p);}
@@ -11781,12 +11800,12 @@ WF_UI();}
     } {
       Fl_Group {} {
         label {Colors and cursors} open
-        xywh {249 32 536 190} box ENGRAVED_FRAME align 21
+        xywh {210 32 580 190} box ENGRAVED_FRAME align 21
       } {
         Fl_Button WF_Palette {
           label aa
           callback {progdefaults.changed = true;}
-          xywh {259 68 380 24} box DOWN_BOX color 0 labelsize 12 align 5
+          xywh {219 68 380 24} box DOWN_BOX color 0 labelsize 12 align 5
           code0 {\#include "colorbox.h"}
           code1 {o->label(progdefaults.PaletteName.c_str());}
           code2 {o->labelsize(FL_NORMAL_SIZE);}
@@ -11795,64 +11814,64 @@ WF_UI();}
         Fl_Button {btnColor[0]} {
           callback {selectColor(0);
 progdefaults.changed = true;}
-          tooltip {Change color} xywh {259 94 20 24}
+          tooltip {Change color} xywh {219 94 20 24}
         }
         Fl_Button {btnColor[1]} {
           callback {selectColor(1);
 progdefaults.changed = true;}
-          tooltip {Change color} xywh {304 94 20 24}
+          tooltip {Change color} xywh {264 94 20 24}
         }
         Fl_Button {btnColor[2]} {
           callback {selectColor(2);
 progdefaults.changed = true;}
-          tooltip {Change color} xywh {349 94 20 24}
+          tooltip {Change color} xywh {309 94 20 24}
         }
         Fl_Button {btnColor[3]} {
           callback {selectColor(3);
 progdefaults.changed = true;}
-          tooltip {Change color} xywh {394 94 20 24}
+          tooltip {Change color} xywh {354 94 20 24}
         }
         Fl_Button {btnColor[4]} {
           callback {selectColor(4);
 progdefaults.changed = true;}
-          tooltip {Change color} xywh {439 94 20 24}
+          tooltip {Change color} xywh {399 94 20 24}
         }
         Fl_Button {btnColor[5]} {
           callback {selectColor(5);
 progdefaults.changed = true;}
-          tooltip {Change color} xywh {484 94 20 24}
+          tooltip {Change color} xywh {444 94 20 24}
         }
         Fl_Button {btnColor[6]} {
           callback {selectColor(6);
 progdefaults.changed = true;}
-          tooltip {Change color} xywh {529 94 20 24}
+          tooltip {Change color} xywh {489 94 20 24}
         }
         Fl_Button {btnColor[7]} {
           callback {selectColor(7);
 progdefaults.changed = true;}
-          tooltip {Change color} xywh {574 94 20 24}
+          tooltip {Change color} xywh {534 94 20 24}
         }
         Fl_Button {btnColor[8]} {
           callback {selectColor(8);
 progdefaults.changed = true;}
-          tooltip {Change color} xywh {619 94 20 24}
+          tooltip {Change color} xywh {579 94 20 24}
         }
         Fl_Button btnLoadPalette {
           label {Load...}
           callback {loadPalette();
 progdefaults.changed = true;}
-          tooltip {Load a new palette} xywh {649 68 70 24}
+          tooltip {Load a new palette} xywh {609 68 70 24}
           code0 {\#include "colorbox.h"}
         }
         Fl_Button btnSavePalette {
           label {Save...}
           callback {savePalette();}
-          tooltip {Save this palette} xywh {649 94 70 24}
+          tooltip {Save this palette} xywh {609 94 70 24}
           code0 {\#include "colorbox.h"}
         }
         Fl_Group {} {
-          label Bandwidth open
-          xywh {258 122 102 96} box ENGRAVED_FRAME align 21
+          label {Signal BW} open
+          xywh {218 122 90 96} box ENGRAVED_FRAME align 21
         } {
           Fl_Check_Button btnUseCursorLines {
             label ON
@@ -11862,7 +11881,7 @@ if (o->value())
 else
     btnCursorBWcolor->deactivate();
 progdefaults.changed = true;}
-            tooltip {Show cursor with bandwidth lines} xywh {260 142 56 20} down_box DOWN_BOX
+            tooltip {Show cursor with bandwidth lines} xywh {220 142 56 20} down_box DOWN_BOX
             code0 {o->value(progdefaults.UseCursorLines);}
           }
           Fl_Button btnCursorBWcolor {
@@ -11875,7 +11894,7 @@ o->color(fl_rgb_color(progdefaults.cursorLineRGBI.R,progdefaults.cursorLineRGBI.
 o->redraw();
 progdefaults.changed = true;
 }}
-            tooltip {Change color} xywh {260 165 20 20} color 3 align 8
+            tooltip {Change color} xywh {220 165 20 20} color 3 align 8
             code0 {\#include <FL/Fl_Color_Chooser.H>}
             code1 {o->color(fl_rgb_color(progdefaults.cursorLineRGBI.R,progdefaults.cursorLineRGBI.G,progdefaults.cursorLineRGBI.B));}
           }
@@ -11883,19 +11902,19 @@ progdefaults.changed = true;
             label Wide
             callback {progdefaults.UseWideCursor = o->value();
 progdefaults.changed = true;}
-            tooltip {Show bandwidth tracks on waterfall} xywh {260 188 62 20} down_box DOWN_BOX
+            xywh {220 188 62 20} down_box DOWN_BOX
             code0 {o->value(progdefaults.UseWideCursor);}
           }
         }
         Fl_Group {} {
           label {Center line} open
-          xywh {363 122 102 96} box ENGRAVED_FRAME align 21
+          xywh {312 122 90 96} box ENGRAVED_FRAME align 21
         } {
           Fl_Check_Button btnUseCursorCenterLine {
             label ON
             callback {progdefaults.UseCursorCenterLine = o->value();
 progdefaults.changed = true;}
-            tooltip {Show cursor with center line} xywh {369 142 48 20} down_box DOWN_BOX
+            tooltip {Show cursor with center line} xywh {318 142 48 20} down_box DOWN_BOX
             code0 {o->value(progdefaults.UseCursorCenterLine);}
           }
           Fl_Button btnCursorCenterLineColor {
@@ -11908,26 +11927,26 @@ o->color(fl_rgb_color(progdefaults.cursorCenterRGBI.R,progdefaults.cursorCenterR
 o->redraw();
 progdefaults.changed = true;
 }}
-            tooltip {Change color} xywh {369 165 20 20} color 7 align 8
+            tooltip {Change color} xywh {318 165 20 20} color 7 align 8
             code0 {o->color(fl_rgb_color(progdefaults.cursorCenterRGBI.R,progdefaults.cursorCenterRGBI.G,progdefaults.cursorCenterRGBI.B));}
           }
           Fl_Check_Button btnUseWideCenter {
             label Wide
             callback {progdefaults.UseWideCenter = o->value();
 progdefaults.changed = true;}
-            tooltip {Show bandwidth tracks on waterfall} xywh {369 190 69 20} down_box DOWN_BOX
+            xywh {318 190 69 20} down_box DOWN_BOX
             code0 {o->value(progdefaults.UseWideCenter);}
           }
         }
         Fl_Group {} {
-          label {Signal tracks} open
-          xywh {468 122 102 96} box ENGRAVED_FRAME align 21
+          label {Signal trks} open
+          xywh {406 122 90 96} box ENGRAVED_FRAME align 21
         } {
           Fl_Check_Button btnUseBWTracks {
             label ON
             callback {progdefaults.UseBWTracks = o->value();
 progdefaults.changed = true;}
-            tooltip {Show bandwidth tracks on waterfall} xywh {470 141 56 20} down_box DOWN_BOX
+            tooltip {Show bandwidth tracks on waterfall} xywh {408 141 56 20} down_box DOWN_BOX
             code0 {o->value(progdefaults.UseBWTracks);}
           }
           Fl_Button btnBwTracksColor {
@@ -11941,20 +11960,20 @@ o->redraw();
 wf->redraw_marker();
 progdefaults.changed = true;
 }}
-            tooltip {Change color} xywh {470 164 20 20} color 1 align 8
+            tooltip {Change color} xywh {408 164 20 20} color 1 align 8
             code0 {o->color(fl_rgb_color(progdefaults.bwTrackRGBI.R,progdefaults.bwTrackRGBI.G,progdefaults.bwTrackRGBI.B));}
           }
           Fl_Check_Button btnUseWideTracks {
             label Wide
             callback {progdefaults.UseWideTracks = o->value();
 progdefaults.changed = true;}
-            tooltip {Show bandwidth tracks on waterfall} xywh {470 188 74 20} down_box DOWN_BOX
+            xywh {408 188 74 20} down_box DOWN_BOX
             code0 {o->value(progdefaults.UseWideTracks);}
           }
         }
         Fl_Group {} {
           label Notch open
-          xywh {573 122 102 96} box ENGRAVED_FRAME align 21
+          xywh {501 122 90 96} box ENGRAVED_FRAME align 21
         } {
           Fl_Button btnNotchColor {
             label Color
@@ -11967,13 +11986,32 @@ o->redraw();
 wf->redraw_marker();
 progdefaults.changed = true;
 }}
-            tooltip {Change color} xywh {575 164 20 20} color 1 align 8
+            tooltip {Change color} xywh {503 164 20 20} color 1 align 8
             code0 {o->color(fl_rgb_color(progdefaults.notchRGBI.R,progdefaults.notchRGBI.G,progdefaults.notchRGBI.B));}
           }
         }
         Fl_Group {} {
+          label {RsID Zone} open
+          xywh {595 124 90 96} box ENGRAVED_FRAME align 21
+        } {
+          Fl_Button btnRsIDZoneColor {
+            label Color
+            callback {if (fl_color_chooser("RsID Zone Lines",
+  progdefaults.rsidRGBI.R,
+  progdefaults.rsidRGBI.G,
+  progdefaults.rsidRGBI.B) ) {
+o->color(fl_rgb_color(progdefaults.rsidRGBI.R,progdefaults.rsidRGBI.G,progdefaults.rsidRGBI.B));
+o->redraw();
+wf->redraw_marker();
+progdefaults.changed = true;
+}}
+            tooltip {Change color} xywh {597 166 20 20} color 1 align 8
+            code0 {o->color(fl_rgb_color(progdefaults.rsidRGBI.R,progdefaults.rsidRGBI.G,progdefaults.rsidRGBI.B));}
+          }
+        }
+        Fl_Group {} {
           label Monitor open
-          tooltip {Audio monitor} xywh {678 122 102 96} box ENGRAVED_FRAME align 21
+          tooltip {Audio monitor} xywh {690 122 90 96} box ENGRAVED_FRAME align 21
         } {
           Fl_Button btnMonitorColor {
             label Color
@@ -11986,27 +12024,27 @@ o->redraw();
 wf->redraw_marker();
 progdefaults.changed = true;
 }}
-            tooltip {Change color} xywh {680 164 20 20} color 2 align 8
+            tooltip {Change color} xywh {692 164 20 20} color 2 align 8
             code0 {o->color(fl_rgb_color(progdefaults.monitorRGBI.R,progdefaults.monitorRGBI.G,progdefaults.monitorRGBI.B));}
           }
           Fl_Check_Button btnUseWideMonitor {
             label Wide
             callback {progdefaults.mon_wide_tracks = o->value();
 progdefaults.changed = true;}
-            tooltip {Show bandwidth tracks on waterfall} xywh {680 190 74 20} down_box DOWN_BOX
+            xywh {692 190 74 20} down_box DOWN_BOX
             code0 {o->value(progdefaults.mon_wide_tracks);}
           }
         }
       }
       Fl_Group {} {
         label {Frequency scale} open
-        xywh {249 223 536 55} box ENGRAVED_FRAME align 21
+        xywh {210 223 580 55} box ENGRAVED_FRAME align 21
       } {
         Fl_Check_Button chkShowAudioScale {
           label {Always show audio frequencies}
           callback {progdefaults.wf_audioscale = o->value();
 progdefaults.changed = true;}
-          tooltip {Audio or RF frequencies on waterfall scale} xywh {259 246 241 20} down_box DOWN_BOX
+          tooltip {Audio or RF frequencies on waterfall scale} xywh {219 246 241 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.wf_audioscale);}
         }
         Fl_Button btnWaterfallFont {
@@ -12020,32 +12058,32 @@ else
     font_browser->fontFilter(Font_Browser::ALL_TYPES);
 font_browser->callback((Fl_Callback*)cbWaterfallFontBrowser);
 font_browser->show();}
-          tooltip {Select waterfall scale font} xywh {559 246 71 24}
+          tooltip {Select waterfall scale font} xywh {519 246 71 24}
         }
       }
       Fl_Group {} {
         label {Transmit signal} open
-        xywh {249 279 536 65} box ENGRAVED_FRAME align 21
+        xywh {210 279 580 65} box ENGRAVED_FRAME align 21
       } {
         Fl_Check_Button btnViewXmtSignal {
           label {Monitor transmitted signal}
           callback {progdefaults.viewXmtSignal=o->value();
 progdefaults.changed = true;}
-          tooltip {Show transmit signal on waterfall} xywh {259 305 208 20} down_box DOWN_BOX
+          tooltip {Show transmit signal on waterfall} xywh {219 305 208 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.viewXmtSignal);}
         }
         Fl_Counter valTxMonitorLevel {
           label {Signal Level (dB)}
           callback {progdefaults.TxMonitorLevel = pow(10.0, o->value()/20);
 progdefaults.changed = true;}
-          tooltip {Set level for good viewing} xywh {537 304 114 21} align 1 minimum -80 maximum 0 step 1 value -20
+          tooltip {Set level for good viewing} xywh {497 304 114 21} align 1 minimum -80 maximum 0 step 1 value -20
           code0 {o->value(20*log10(progdefaults.TxMonitorLevel));}
           code1 {o->lstep(10);}
         }
       }
     }
     Fl_Group {} {
-      label {Waterfall/FFT Processing}
+      label {Waterfall/FFT Processing} open
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Waterfall/FFT Processing"));}
       code1 {config_pages.push_back(p);}

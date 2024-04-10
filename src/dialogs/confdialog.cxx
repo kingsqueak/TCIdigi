@@ -2198,25 +2198,10 @@ mode_browser->show_(&progdefaults.rsid_rx_modes);
 progdefaults.changed = true;
 }
 
-Fl_Check_Button *chkRSidWideSearch=(Fl_Check_Button *)0;
-
-static void cb_chkRSidWideSearch(Fl_Check_Button* o, void*) {
-  progdefaults.rsidWideSearch=o->value();
-rxid_selection_color();
-progdefaults.changed = true;
-}
-
 Fl_Check_Button *chkRSidMark=(Fl_Check_Button *)0;
 
 static void cb_chkRSidMark(Fl_Check_Button* o, void*) {
   progdefaults.rsid_mark = o->value();
-progdefaults.changed = true;
-}
-
-Fl_Check_Button *chkRSidAutoDisable=(Fl_Check_Button *)0;
-
-static void cb_chkRSidAutoDisable(Fl_Check_Button* o, void*) {
-  progdefaults.rsid_auto_disable = o->value();
 progdefaults.changed = true;
 }
 
@@ -2231,6 +2216,13 @@ Fl_Check_Button *chkRSidShowAlert=(Fl_Check_Button *)0;
 
 static void cb_chkRSidShowAlert(Fl_Check_Button* o, void*) {
   progdefaults.disable_rsid_warning_dialog_box = o->value();
+progdefaults.changed = true;
+}
+
+Fl_Check_Button *chkRSidAutoDisable=(Fl_Check_Button *)0;
+
+static void cb_chkRSidAutoDisable(Fl_Check_Button* o, void*) {
+  progdefaults.rsid_auto_disable = o->value();
 progdefaults.changed = true;
 }
 
@@ -2282,6 +2274,29 @@ Fl_Check_Button *btn_post_rsid=(Fl_Check_Button *)0;
 
 static void cb_btn_post_rsid(Fl_Check_Button* o, void*) {
   progdefaults.rsid_post=o->value();
+progdefaults.changed = true;
+}
+
+Fl_Counter *val_rsid_min_bw=(Fl_Counter *)0;
+
+static void cb_val_rsid_min_bw(Fl_Counter* o, void*) {
+  progdefaults.rsid_min_bw = o->value();
+progdefaults.changed = true;
+}
+
+Fl_Check_Button *chkRSidWideSearch=(Fl_Check_Button *)0;
+
+static void cb_chkRSidWideSearch(Fl_Check_Button* o, void*) {
+  progdefaults.rsidWideSearch=o->value();
+rxid_selection_color();
+progdefaults.changed = true;
+}
+
+Fl_Button *btn_rsid_default_bw=(Fl_Button *)0;
+
+static void cb_btn_rsid_default_bw(Fl_Button*, void*) {
+  val_rsid_min_bw->value(200);
+progdefaults.rsid_min_bw = 200;
 progdefaults.changed = true;
 }
 
@@ -9490,6 +9505,20 @@ progdefaults.changed = true;
 };
 }
 
+Fl_Button *btnRsIDZoneColor=(Fl_Button *)0;
+
+static void cb_btnRsIDZoneColor(Fl_Button* o, void*) {
+  if (fl_color_chooser("RsID Zone Lines",
+  progdefaults.rsidRGBI.R,
+  progdefaults.rsidRGBI.G,
+  progdefaults.rsidRGBI.B) ) {
+o->color(fl_rgb_color(progdefaults.rsidRGBI.R,progdefaults.rsidRGBI.G,progdefaults.rsidRGBI.B));
+o->redraw();
+wf->redraw_marker();
+progdefaults.changed = true;
+};
+}
+
 Fl_Button *btnMonitorColor=(Fl_Button *)0;
 
 static void cb_btnMonitorColor(Fl_Button* o, void*) {
@@ -11086,40 +11115,26 @@ Fl_Double_Window* ConfigureDialog() {
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
-      { Fl_Group* o = new Fl_Group(243, 22, 535, 220, _("Reed-Solomon ID (Rx)"));
+      { Fl_Group* o = new Fl_Group(216, 20, 560, 220, _("Reed-Solomon ID (Rx)"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { chkRSidNotifyOnly = new Fl_Check_Button(251, 89, 168, 20, _("Notify only"));
+        { chkRSidNotifyOnly = new Fl_Check_Button(241, 87, 168, 20, _("Notify only"));
           chkRSidNotifyOnly->tooltip(_("Check this to be notified when an RSID is received\nwithout changing modem an\
 d frequency"));
           chkRSidNotifyOnly->down_box(FL_DOWN_BOX);
           chkRSidNotifyOnly->callback((Fl_Callback*)cb_chkRSidNotifyOnly);
           chkRSidNotifyOnly->value(progdefaults.rsid_notify_only);
         } // Fl_Check_Button* chkRSidNotifyOnly
-        { bRSIDRxModes = new Fl_Button(251, 48, 87, 24, _("Rx modes"));
+        { bRSIDRxModes = new Fl_Button(224, 46, 87, 24, _("Rx modes"));
           bRSIDRxModes->callback((Fl_Callback*)cb_bRSIDRxModes);
         } // Fl_Button* bRSIDRxModes
-        { Fl_Check_Button* o = chkRSidWideSearch = new Fl_Check_Button(251, 119, 203, 20, _("Searches passband"));
-          chkRSidWideSearch->tooltip(_("ON - search over entire waterfall\nOFF - limit search to +/- 200 Hz"));
-          chkRSidWideSearch->down_box(FL_DOWN_BOX);
-          chkRSidWideSearch->callback((Fl_Callback*)cb_chkRSidWideSearch);
-          o->value(progdefaults.rsidWideSearch);
-        } // Fl_Check_Button* chkRSidWideSearch
-        { chkRSidMark = new Fl_Check_Button(251, 149, 203, 20, _("Mark prev freq/mode"));
+        { chkRSidMark = new Fl_Check_Button(241, 147, 203, 20, _("Mark prev freq/mode"));
           chkRSidMark->tooltip(_("Insert RX text marker before\nchanging frequency and modem"));
           chkRSidMark->down_box(FL_DOWN_BOX);
           chkRSidMark->callback((Fl_Callback*)cb_chkRSidMark);
           chkRSidMark->value(progdefaults.rsid_mark);
         } // Fl_Check_Button* chkRSidMark
-        { chkRSidAutoDisable = new Fl_Check_Button(251, 179, 203, 20, _("Disables detector"));
-          chkRSidAutoDisable->tooltip(_("Disable further detection when RSID is received"));
-          chkRSidAutoDisable->down_box(FL_DOWN_BOX);
-          chkRSidAutoDisable->callback((Fl_Callback*)cb_chkRSidAutoDisable);
-          if (progdefaults.rsid_notify_only) progdefaults.rsid_auto_disable = false;
-          chkRSidAutoDisable->value(progdefaults.rsid_auto_disable);
-          if (progdefaults.rsid_notify_only) chkRSidAutoDisable->deactivate();
-        } // Fl_Check_Button* chkRSidAutoDisable
-        { Fl_ListBox* o = listbox_rsid_errors = new Fl_ListBox(251, 210, 100, 22, _("Allow errors"));
+        { Fl_ListBox* o = listbox_rsid_errors = new Fl_ListBox(224, 208, 100, 22, _("Allow errors"));
           listbox_rsid_errors->tooltip(_("Low = zero errors\nMedium = 1 error\nHigh = 2 errors"));
           listbox_rsid_errors->box(FL_DOWN_BOX);
           listbox_rsid_errors->color(FL_BACKGROUND2_COLOR);
@@ -11136,31 +11151,39 @@ d frequency"));
           o->labelsize(FL_NORMAL_SIZE);
           listbox_rsid_errors->end();
         } // Fl_ListBox* listbox_rsid_errors
-        { Fl_Check_Button* o = chkRSidShowAlert = new Fl_Check_Button(487, 89, 203, 20, _("Disable alert dialog"));
+        { Fl_Check_Button* o = chkRSidShowAlert = new Fl_Check_Button(464, 87, 203, 20, _("Disable alert dialog"));
           chkRSidShowAlert->tooltip(_("Do not show RsID alert dialog box"));
           chkRSidShowAlert->down_box(FL_DOWN_BOX);
           chkRSidShowAlert->callback((Fl_Callback*)cb_chkRSidShowAlert);
           o->value(progdefaults.disable_rsid_warning_dialog_box);
         } // Fl_Check_Button* chkRSidShowAlert
-        { Fl_Check_Button* o = chkRetainFreqLock = new Fl_Check_Button(487, 119, 203, 20, _("Retain tx freq lock"));
+        { chkRSidAutoDisable = new Fl_Check_Button(464, 113, 203, 20, _("Disables detector"));
+          chkRSidAutoDisable->tooltip(_("Disable further detection when RSID is received"));
+          chkRSidAutoDisable->down_box(FL_DOWN_BOX);
+          chkRSidAutoDisable->callback((Fl_Callback*)cb_chkRSidAutoDisable);
+          if (progdefaults.rsid_notify_only) progdefaults.rsid_auto_disable = false;
+          chkRSidAutoDisable->value(progdefaults.rsid_auto_disable);
+          if (progdefaults.rsid_notify_only) chkRSidAutoDisable->deactivate();
+        } // Fl_Check_Button* chkRSidAutoDisable
+        { Fl_Check_Button* o = chkRetainFreqLock = new Fl_Check_Button(241, 117, 203, 20, _("Retain tx freq lock"));
           chkRetainFreqLock->tooltip(_("Retain TX lock frequency (Lk) when changing to RX RsID frequency"));
           chkRetainFreqLock->down_box(FL_DOWN_BOX);
           chkRetainFreqLock->callback((Fl_Callback*)cb_chkRetainFreqLock);
           o->value(progdefaults.retain_freq_lock);
         } // Fl_Check_Button* chkRetainFreqLock
-        { Fl_Check_Button* o = chkDisableFreqChange = new Fl_Check_Button(487, 149, 203, 20, _("Disable freq change"));
+        { Fl_Check_Button* o = chkDisableFreqChange = new Fl_Check_Button(464, 147, 203, 20, _("Disable freq change"));
           chkDisableFreqChange->tooltip(_("Do not automatically change to RX RsID frequency"));
           chkDisableFreqChange->down_box(FL_DOWN_BOX);
           chkDisableFreqChange->callback((Fl_Callback*)cb_chkDisableFreqChange);
           o->value(progdefaults.disable_rsid_freq_change);
         } // Fl_Check_Button* chkDisableFreqChange
-        { Fl_Check_Button* o = chk_RSID_EOT = new Fl_Check_Button(487, 179, 232, 20, _("Rx/Tx RsID EOT"));
+        { Fl_Check_Button* o = chk_RSID_EOT = new Fl_Check_Button(464, 177, 232, 20, _("Rx/Tx RsID EOT"));
           chk_RSID_EOT->tooltip(_("Do not automatically change to RX RsID frequency"));
           chk_RSID_EOT->down_box(FL_DOWN_BOX);
           chk_RSID_EOT->callback((Fl_Callback*)cb_chk_RSID_EOT);
           o->value(progdefaults.rsid_eot_squelch);
         } // Fl_Check_Button* chk_RSID_EOT
-        { Fl_Counter* o = val_RSIDsquelch = new Fl_Counter(471, 210, 140, 21, _("Squelch open (sec)"));
+        { Fl_Counter* o = val_RSIDsquelch = new Fl_Counter(444, 208, 140, 21, _("Squelch open (sec)"));
           val_RSIDsquelch->tooltip(_("Use for triggering amplifier carrier detect"));
           val_RSIDsquelch->minimum(0);
           val_RSIDsquelch->maximum(300);
@@ -11170,7 +11193,7 @@ d frequency"));
           o->value(progdefaults.rsid_squelch);
           o->lstep(10.0);
         } // Fl_Counter* val_RSIDsquelch
-        { Fl_Group* o = new Fl_Group(363, 45, 406, 38, _("The RsID notification message contents and display\ncharacteristics are confi\
+        { Fl_Group* o = new Fl_Group(336, 43, 406, 38, _("The RsID notification message contents and display\ncharacteristics are confi\
 gured on the \"Notifications\" tab."));
           o->box(FL_BORDER_BOX);
           o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
@@ -11178,10 +11201,10 @@ gured on the \"Notifications\" tab."));
         } // Fl_Group* o
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(243, 245, 265, 97, _("Pre-Signal Tone"));
+      { Fl_Group* o = new Fl_Group(216, 243, 180, 100, _("Pre-Signal Tone"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { Fl_Counter* o = val_pretone = new Fl_Counter(299, 283, 140, 21, _("Seconds"));
+        { Fl_Counter* o = val_pretone = new Fl_Counter(228, 281, 120, 21, _("Seconds"));
           val_pretone->tooltip(_("Use for triggering amplifier carrier detect"));
           val_pretone->minimum(0);
           val_pretone->maximum(10);
@@ -11190,18 +11213,42 @@ gured on the \"Notifications\" tab."));
         } // Fl_Counter* val_pretone
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(511, 245, 265, 97, _("Reed-Solomon ID (Tx)"));
+      { Fl_Group* o = new Fl_Group(406, 243, 180, 100, _("Reed-Solomon ID (Tx)"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { bRSIDTxModes = new Fl_Button(588, 272, 130, 24, _("Transmit modes"));
+        { bRSIDTxModes = new Fl_Button(412, 269, 130, 26, _("Transmit modes"));
           bRSIDTxModes->callback((Fl_Callback*)cb_bRSIDTxModes);
         } // Fl_Button* bRSIDTxModes
-        { Fl_Check_Button* o = btn_post_rsid = new Fl_Check_Button(588, 307, 97, 17, _("End of xmt ID"));
+        { Fl_Check_Button* o = btn_post_rsid = new Fl_Check_Button(426, 306, 97, 18, _("End of xmt ID"));
           btn_post_rsid->tooltip(_("Add RsID signal to end of transmission"));
           btn_post_rsid->down_box(FL_DOWN_BOX);
           btn_post_rsid->callback((Fl_Callback*)cb_btn_post_rsid);
           o->value(progdefaults.rsid_post);
         } // Fl_Check_Button* btn_post_rsid
+        o->end();
+      } // Fl_Group* o
+      { Fl_Group* o = new Fl_Group(596, 243, 180, 100, _("Min BW Detection"));
+        o->box(FL_ENGRAVED_FRAME);
+        o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
+        { Fl_Counter* o = val_rsid_min_bw = new Fl_Counter(635, 271, 100, 21, _("Hertz"));
+          val_rsid_min_bw->tooltip(_("Minimum bandwidth"));
+          val_rsid_min_bw->type(1);
+          val_rsid_min_bw->minimum(180);
+          val_rsid_min_bw->maximum(1000);
+          val_rsid_min_bw->step(10);
+          val_rsid_min_bw->value(200);
+          val_rsid_min_bw->callback((Fl_Callback*)cb_val_rsid_min_bw);
+          o->value(progdefaults.rsid_min_bw);
+        } // Fl_Counter* val_rsid_min_bw
+        { Fl_Check_Button* o = chkRSidWideSearch = new Fl_Check_Button(601, 316, 93, 20, _("Passband"));
+          chkRSidWideSearch->tooltip(_("ON - search over entire waterfall\nOFF - limit search to BW selector"));
+          chkRSidWideSearch->down_box(FL_DOWN_BOX);
+          chkRSidWideSearch->callback((Fl_Callback*)cb_chkRSidWideSearch);
+          o->value(progdefaults.rsidWideSearch);
+        } // Fl_Check_Button* chkRSidWideSearch
+        { btn_rsid_default_bw = new Fl_Button(696, 315, 70, 20, _("Default"));
+          btn_rsid_default_bw->callback((Fl_Callback*)cb_btn_rsid_default_bw);
+        } // Fl_Button* btn_rsid_default_bw
         o->end();
       } // Fl_Group* o
       CONFIG_PAGE *p = new CONFIG_PAGE(o, _("IDs/RsID"));
@@ -19539,10 +19586,10 @@ i on a\ntouch screen device such as a tablet."));
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
-      { Fl_Group* o = new Fl_Group(249, 32, 536, 190, _("Colors and cursors"));
+      { Fl_Group* o = new Fl_Group(210, 32, 580, 190, _("Colors and cursors"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { colorbox* o = WF_Palette = new colorbox(259, 68, 380, 24, _("aa"));
+        { colorbox* o = WF_Palette = new colorbox(219, 68, 380, 24, _("aa"));
           WF_Palette->box(FL_DOWN_BOX);
           WF_Palette->color(FL_FOREGROUND_COLOR);
           WF_Palette->selection_color(FL_BACKGROUND_COLOR);
@@ -19556,126 +19603,123 @@ i on a\ntouch screen device such as a tablet."));
           o->label(progdefaults.PaletteName.c_str());
           o->labelsize(FL_NORMAL_SIZE);
         } // colorbox* WF_Palette
-        { btnColor[0] = new Fl_Button(259, 94, 20, 24);
+        { btnColor[0] = new Fl_Button(219, 94, 20, 24);
           btnColor[0]->tooltip(_("Change color"));
           btnColor[0]->callback((Fl_Callback*)cb_btnColor);
         } // Fl_Button* btnColor[0]
-        { btnColor[1] = new Fl_Button(304, 94, 20, 24);
+        { btnColor[1] = new Fl_Button(264, 94, 20, 24);
           btnColor[1]->tooltip(_("Change color"));
           btnColor[1]->callback((Fl_Callback*)cb_btnColor1);
         } // Fl_Button* btnColor[1]
-        { btnColor[2] = new Fl_Button(349, 94, 20, 24);
+        { btnColor[2] = new Fl_Button(309, 94, 20, 24);
           btnColor[2]->tooltip(_("Change color"));
           btnColor[2]->callback((Fl_Callback*)cb_btnColor2);
         } // Fl_Button* btnColor[2]
-        { btnColor[3] = new Fl_Button(394, 94, 20, 24);
+        { btnColor[3] = new Fl_Button(354, 94, 20, 24);
           btnColor[3]->tooltip(_("Change color"));
           btnColor[3]->callback((Fl_Callback*)cb_btnColor3);
         } // Fl_Button* btnColor[3]
-        { btnColor[4] = new Fl_Button(439, 94, 20, 24);
+        { btnColor[4] = new Fl_Button(399, 94, 20, 24);
           btnColor[4]->tooltip(_("Change color"));
           btnColor[4]->callback((Fl_Callback*)cb_btnColor4);
         } // Fl_Button* btnColor[4]
-        { btnColor[5] = new Fl_Button(484, 94, 20, 24);
+        { btnColor[5] = new Fl_Button(444, 94, 20, 24);
           btnColor[5]->tooltip(_("Change color"));
           btnColor[5]->callback((Fl_Callback*)cb_btnColor5);
         } // Fl_Button* btnColor[5]
-        { btnColor[6] = new Fl_Button(529, 94, 20, 24);
+        { btnColor[6] = new Fl_Button(489, 94, 20, 24);
           btnColor[6]->tooltip(_("Change color"));
           btnColor[6]->callback((Fl_Callback*)cb_btnColor6);
         } // Fl_Button* btnColor[6]
-        { btnColor[7] = new Fl_Button(574, 94, 20, 24);
+        { btnColor[7] = new Fl_Button(534, 94, 20, 24);
           btnColor[7]->tooltip(_("Change color"));
           btnColor[7]->callback((Fl_Callback*)cb_btnColor7);
         } // Fl_Button* btnColor[7]
-        { btnColor[8] = new Fl_Button(619, 94, 20, 24);
+        { btnColor[8] = new Fl_Button(579, 94, 20, 24);
           btnColor[8]->tooltip(_("Change color"));
           btnColor[8]->callback((Fl_Callback*)cb_btnColor8);
         } // Fl_Button* btnColor[8]
-        { btnLoadPalette = new Fl_Button(649, 68, 70, 24, _("Load..."));
+        { btnLoadPalette = new Fl_Button(609, 68, 70, 24, _("Load..."));
           btnLoadPalette->tooltip(_("Load a new palette"));
           btnLoadPalette->callback((Fl_Callback*)cb_btnLoadPalette);
         } // Fl_Button* btnLoadPalette
-        { btnSavePalette = new Fl_Button(649, 94, 70, 24, _("Save..."));
+        { btnSavePalette = new Fl_Button(609, 94, 70, 24, _("Save..."));
           btnSavePalette->tooltip(_("Save this palette"));
           btnSavePalette->callback((Fl_Callback*)cb_btnSavePalette);
         } // Fl_Button* btnSavePalette
-        { Fl_Group* o = new Fl_Group(258, 122, 102, 96, _("Bandwidth"));
+        { Fl_Group* o = new Fl_Group(218, 122, 90, 96, _("Signal BW"));
           o->box(FL_ENGRAVED_FRAME);
           o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-          { Fl_Check_Button* o = btnUseCursorLines = new Fl_Check_Button(260, 142, 56, 20, _("ON"));
+          { Fl_Check_Button* o = btnUseCursorLines = new Fl_Check_Button(220, 142, 56, 20, _("ON"));
             btnUseCursorLines->tooltip(_("Show cursor with bandwidth lines"));
             btnUseCursorLines->down_box(FL_DOWN_BOX);
             btnUseCursorLines->callback((Fl_Callback*)cb_btnUseCursorLines);
             o->value(progdefaults.UseCursorLines);
           } // Fl_Check_Button* btnUseCursorLines
-          { Fl_Button* o = btnCursorBWcolor = new Fl_Button(260, 165, 20, 20, _("Color"));
+          { Fl_Button* o = btnCursorBWcolor = new Fl_Button(220, 165, 20, 20, _("Color"));
             btnCursorBWcolor->tooltip(_("Change color"));
             btnCursorBWcolor->color((Fl_Color)3);
             btnCursorBWcolor->callback((Fl_Callback*)cb_btnCursorBWcolor);
             btnCursorBWcolor->align(Fl_Align(FL_ALIGN_RIGHT));
             o->color(fl_rgb_color(progdefaults.cursorLineRGBI.R,progdefaults.cursorLineRGBI.G,progdefaults.cursorLineRGBI.B));
           } // Fl_Button* btnCursorBWcolor
-          { Fl_Check_Button* o = btnUseWideCursor = new Fl_Check_Button(260, 188, 62, 20, _("Wide"));
-            btnUseWideCursor->tooltip(_("Show bandwidth tracks on waterfall"));
+          { Fl_Check_Button* o = btnUseWideCursor = new Fl_Check_Button(220, 188, 62, 20, _("Wide"));
             btnUseWideCursor->down_box(FL_DOWN_BOX);
             btnUseWideCursor->callback((Fl_Callback*)cb_btnUseWideCursor);
             o->value(progdefaults.UseWideCursor);
           } // Fl_Check_Button* btnUseWideCursor
           o->end();
         } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(363, 122, 102, 96, _("Center line"));
+        { Fl_Group* o = new Fl_Group(312, 122, 90, 96, _("Center line"));
           o->box(FL_ENGRAVED_FRAME);
           o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-          { Fl_Check_Button* o = btnUseCursorCenterLine = new Fl_Check_Button(369, 142, 48, 20, _("ON"));
+          { Fl_Check_Button* o = btnUseCursorCenterLine = new Fl_Check_Button(318, 142, 48, 20, _("ON"));
             btnUseCursorCenterLine->tooltip(_("Show cursor with center line"));
             btnUseCursorCenterLine->down_box(FL_DOWN_BOX);
             btnUseCursorCenterLine->callback((Fl_Callback*)cb_btnUseCursorCenterLine);
             o->value(progdefaults.UseCursorCenterLine);
           } // Fl_Check_Button* btnUseCursorCenterLine
-          { Fl_Button* o = btnCursorCenterLineColor = new Fl_Button(369, 165, 20, 20, _("Color"));
+          { Fl_Button* o = btnCursorCenterLineColor = new Fl_Button(318, 165, 20, 20, _("Color"));
             btnCursorCenterLineColor->tooltip(_("Change color"));
             btnCursorCenterLineColor->color(FL_BACKGROUND2_COLOR);
             btnCursorCenterLineColor->callback((Fl_Callback*)cb_btnCursorCenterLineColor);
             btnCursorCenterLineColor->align(Fl_Align(FL_ALIGN_RIGHT));
             o->color(fl_rgb_color(progdefaults.cursorCenterRGBI.R,progdefaults.cursorCenterRGBI.G,progdefaults.cursorCenterRGBI.B));
           } // Fl_Button* btnCursorCenterLineColor
-          { Fl_Check_Button* o = btnUseWideCenter = new Fl_Check_Button(369, 190, 69, 20, _("Wide"));
-            btnUseWideCenter->tooltip(_("Show bandwidth tracks on waterfall"));
+          { Fl_Check_Button* o = btnUseWideCenter = new Fl_Check_Button(318, 190, 69, 20, _("Wide"));
             btnUseWideCenter->down_box(FL_DOWN_BOX);
             btnUseWideCenter->callback((Fl_Callback*)cb_btnUseWideCenter);
             o->value(progdefaults.UseWideCenter);
           } // Fl_Check_Button* btnUseWideCenter
           o->end();
         } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(468, 122, 102, 96, _("Signal tracks"));
+        { Fl_Group* o = new Fl_Group(406, 122, 90, 96, _("Signal trks"));
           o->box(FL_ENGRAVED_FRAME);
           o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-          { Fl_Check_Button* o = btnUseBWTracks = new Fl_Check_Button(470, 141, 56, 20, _("ON"));
+          { Fl_Check_Button* o = btnUseBWTracks = new Fl_Check_Button(408, 141, 56, 20, _("ON"));
             btnUseBWTracks->tooltip(_("Show bandwidth tracks on waterfall"));
             btnUseBWTracks->down_box(FL_DOWN_BOX);
             btnUseBWTracks->callback((Fl_Callback*)cb_btnUseBWTracks);
             o->value(progdefaults.UseBWTracks);
           } // Fl_Check_Button* btnUseBWTracks
-          { Fl_Button* o = btnBwTracksColor = new Fl_Button(470, 164, 20, 20, _("Color"));
+          { Fl_Button* o = btnBwTracksColor = new Fl_Button(408, 164, 20, 20, _("Color"));
             btnBwTracksColor->tooltip(_("Change color"));
             btnBwTracksColor->color((Fl_Color)1);
             btnBwTracksColor->callback((Fl_Callback*)cb_btnBwTracksColor);
             btnBwTracksColor->align(Fl_Align(FL_ALIGN_RIGHT));
             o->color(fl_rgb_color(progdefaults.bwTrackRGBI.R,progdefaults.bwTrackRGBI.G,progdefaults.bwTrackRGBI.B));
           } // Fl_Button* btnBwTracksColor
-          { Fl_Check_Button* o = btnUseWideTracks = new Fl_Check_Button(470, 188, 74, 20, _("Wide"));
-            btnUseWideTracks->tooltip(_("Show bandwidth tracks on waterfall"));
+          { Fl_Check_Button* o = btnUseWideTracks = new Fl_Check_Button(408, 188, 74, 20, _("Wide"));
             btnUseWideTracks->down_box(FL_DOWN_BOX);
             btnUseWideTracks->callback((Fl_Callback*)cb_btnUseWideTracks);
             o->value(progdefaults.UseWideTracks);
           } // Fl_Check_Button* btnUseWideTracks
           o->end();
         } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(573, 122, 102, 96, _("Notch"));
+        { Fl_Group* o = new Fl_Group(501, 122, 90, 96, _("Notch"));
           o->box(FL_ENGRAVED_FRAME);
           o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-          { Fl_Button* o = btnNotchColor = new Fl_Button(575, 164, 20, 20, _("Color"));
+          { Fl_Button* o = btnNotchColor = new Fl_Button(503, 164, 20, 20, _("Color"));
             btnNotchColor->tooltip(_("Change color"));
             btnNotchColor->color((Fl_Color)1);
             btnNotchColor->callback((Fl_Callback*)cb_btnNotchColor);
@@ -19684,19 +19728,30 @@ i on a\ntouch screen device such as a tablet."));
           } // Fl_Button* btnNotchColor
           o->end();
         } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(678, 122, 102, 96, _("Monitor"));
+        { Fl_Group* o = new Fl_Group(595, 124, 90, 96, _("RsID Zone"));
+          o->box(FL_ENGRAVED_FRAME);
+          o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
+          { Fl_Button* o = btnRsIDZoneColor = new Fl_Button(597, 166, 20, 20, _("Color"));
+            btnRsIDZoneColor->tooltip(_("Change color"));
+            btnRsIDZoneColor->color((Fl_Color)1);
+            btnRsIDZoneColor->callback((Fl_Callback*)cb_btnRsIDZoneColor);
+            btnRsIDZoneColor->align(Fl_Align(FL_ALIGN_RIGHT));
+            o->color(fl_rgb_color(progdefaults.rsidRGBI.R,progdefaults.rsidRGBI.G,progdefaults.rsidRGBI.B));
+          } // Fl_Button* btnRsIDZoneColor
+          o->end();
+        } // Fl_Group* o
+        { Fl_Group* o = new Fl_Group(690, 122, 90, 96, _("Monitor"));
           o->tooltip(_("Audio monitor"));
           o->box(FL_ENGRAVED_FRAME);
           o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-          { Fl_Button* o = btnMonitorColor = new Fl_Button(680, 164, 20, 20, _("Color"));
+          { Fl_Button* o = btnMonitorColor = new Fl_Button(692, 164, 20, 20, _("Color"));
             btnMonitorColor->tooltip(_("Change color"));
             btnMonitorColor->color((Fl_Color)2);
             btnMonitorColor->callback((Fl_Callback*)cb_btnMonitorColor);
             btnMonitorColor->align(Fl_Align(FL_ALIGN_RIGHT));
             o->color(fl_rgb_color(progdefaults.monitorRGBI.R,progdefaults.monitorRGBI.G,progdefaults.monitorRGBI.B));
           } // Fl_Button* btnMonitorColor
-          { Fl_Check_Button* o = btnUseWideMonitor = new Fl_Check_Button(680, 190, 74, 20, _("Wide"));
-            btnUseWideMonitor->tooltip(_("Show bandwidth tracks on waterfall"));
+          { Fl_Check_Button* o = btnUseWideMonitor = new Fl_Check_Button(692, 190, 74, 20, _("Wide"));
             btnUseWideMonitor->down_box(FL_DOWN_BOX);
             btnUseWideMonitor->callback((Fl_Callback*)cb_btnUseWideMonitor);
             o->value(progdefaults.mon_wide_tracks);
@@ -19705,31 +19760,31 @@ i on a\ntouch screen device such as a tablet."));
         } // Fl_Group* o
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(249, 223, 536, 55, _("Frequency scale"));
+      { Fl_Group* o = new Fl_Group(210, 223, 580, 55, _("Frequency scale"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { Fl_Check_Button* o = chkShowAudioScale = new Fl_Check_Button(259, 246, 241, 20, _("Always show audio frequencies"));
+        { Fl_Check_Button* o = chkShowAudioScale = new Fl_Check_Button(219, 246, 241, 20, _("Always show audio frequencies"));
           chkShowAudioScale->tooltip(_("Audio or RF frequencies on waterfall scale"));
           chkShowAudioScale->down_box(FL_DOWN_BOX);
           chkShowAudioScale->callback((Fl_Callback*)cb_chkShowAudioScale);
           o->value(progdefaults.wf_audioscale);
         } // Fl_Check_Button* chkShowAudioScale
-        { btnWaterfallFont = new Fl_Button(559, 246, 71, 24, _("Font..."));
+        { btnWaterfallFont = new Fl_Button(519, 246, 71, 24, _("Font..."));
           btnWaterfallFont->tooltip(_("Select waterfall scale font"));
           btnWaterfallFont->callback((Fl_Callback*)cb_btnWaterfallFont);
         } // Fl_Button* btnWaterfallFont
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(249, 279, 536, 65, _("Transmit signal"));
+      { Fl_Group* o = new Fl_Group(210, 279, 580, 65, _("Transmit signal"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { Fl_Check_Button* o = btnViewXmtSignal = new Fl_Check_Button(259, 305, 208, 20, _("Monitor transmitted signal"));
+        { Fl_Check_Button* o = btnViewXmtSignal = new Fl_Check_Button(219, 305, 208, 20, _("Monitor transmitted signal"));
           btnViewXmtSignal->tooltip(_("Show transmit signal on waterfall"));
           btnViewXmtSignal->down_box(FL_DOWN_BOX);
           btnViewXmtSignal->callback((Fl_Callback*)cb_btnViewXmtSignal);
           o->value(progdefaults.viewXmtSignal);
         } // Fl_Check_Button* btnViewXmtSignal
-        { Fl_Counter* o = valTxMonitorLevel = new Fl_Counter(537, 304, 114, 21, _("Signal Level (dB)"));
+        { Fl_Counter* o = valTxMonitorLevel = new Fl_Counter(497, 304, 114, 21, _("Signal Level (dB)"));
           valTxMonitorLevel->tooltip(_("Set level for good viewing"));
           valTxMonitorLevel->minimum(-80);
           valTxMonitorLevel->maximum(0);
