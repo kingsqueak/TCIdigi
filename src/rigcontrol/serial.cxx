@@ -82,7 +82,9 @@ bool Cserial::OpenPort()  {
 		oflags = oflags | O_CLOEXEC;
 #	endif
 
-	if ((fd = fl_open( device.c_str(), oflags)) < 0)
+	fd = fl_open( device.c_str(), oflags);
+
+	if (fd < 0)
 		return false;
 
 // the status port must be set before any other control attributes are
@@ -247,6 +249,7 @@ void Cserial::SetPTT(bool b)
 ///////////////////////////////////////////////////////
 void Cserial::ClosePort()
 {
+
 	if (fd < 0) return;
 	if (restore_tio) {
 // Some serial drivers force RTS and DTR high immediately upon
@@ -313,49 +316,34 @@ bool Cserial::ReadByte(unsigned char &c)
 int  Cserial::ReadBuffer (unsigned char *buf, int nchars)
 {
 	if (fd < 0) return 0;
+	int retnum, nread = 0;
+	size_t start = zusec();
+	unsigned char buffer[500];
+	while (((zusec() - start) < (size_t)(timeout * 1000))) {
+		if (IOselect()) {
+			retnum = read (fd, (char *)(buffer + nread), 500 - nread);
+			if (retnum > 0) nread += retnum;
+			if (nread >= nchars) break;
+		} else
+			MilliSleep(1);
+	}
+	if (nread == 0) return 0;
 
 	std::string buff;
-	int      retval = 0;
-	bool     timedout;
-	int      bytes = 0;
-	int      maxchars = nchars + bytes_written;
-	unsigned char uctemp[maxchars + 1];
-	size_t   start, tnow = zusec();
+	for (int n = 0; n < nread; n++) buff += buffer[n];
 
-	start = tnow;
-	buff.clear();
-
-	while (1) {
-		ioctl( fd, FIONREAD, &bytes);
-		if (bytes) {
-			retval = read (fd, uctemp, bytes);
-			memset(traceinfo, 0, sizeof(traceinfo));
-			snprintf(traceinfo, sizeof(traceinfo), "read %d bytes", bytes);
-			LOG_DEBUG("%s", traceinfo);
-
-			if (retval > 0) {
-				for (int nc = 0; nc < retval; nc++)
-					buff += uctemp[nc];
-			}
-		}
-		timedout = ( (zusec() - tnow) > (size_t)(timeout * 1000));
-		if ((buff.length() >= (unsigned int)nchars ) &&  ((buff[3] & 0xFF) != 0xE0)) break;
-		if ((buff.length() >= (unsigned int)maxchars)) break;
-		if (timedout) break;
-		MilliSleep(1);
-	}
-
-	if ((buff[3] & 0xFF) == 0xE0)
+// remove any ICOM echo bytes
+	if ( (buff[3] & 0xFF) == 0xE0) {
 		buff = buff.substr(bytes_written);
-
-	if (!buff.length()) {
-		LOG_ERROR("READ failed (%0.2f msec)", ((zusec() - start)/1000.0));
-		return 0;
+		if (!buff.length()) {
+			LOG_ERROR("READ failed (%0.2f msec)", ((zusec() - start)/1000.0));
+			return 0;
+		}
 	}
-
 	memcpy(buf, buff.c_str(), buff.length());
 
 	if ((buff[0] & 0xFF) == 0xFE)
+//printf		("ReadData (%0.2f msec) [%lu]: %s\n", 
 		LOG_VERBOSE("ReadData (%0.2f msec) [%lu]: %s", 
 			(zusec() - start) / 1000.0,
 			buff.length(),
@@ -378,11 +366,19 @@ int  Cserial::ReadBuffer (unsigned char *buf, int nchars)
 int Cserial::WriteBuffer(unsigned char *buff, int n)
 {
 	if (fd < 0) {
+		LOG_DEBUG("%s", "WriteBuffer(...) fd < 0");
 		bytes_written = 0;
 		return 0;
 	}
+
+	if ( isalnum(buff[0] & 0xFF) )
+		LOG_VERBOSE("WriteBuffer: %s", buff);
+	else
+		LOG_VERBOSE("WriteBuffer: %s", str2hex(buff, n) );
+
 	int ret = write (fd, buff, n);
 	bytes_written = n;
+
 	return ret;
 }
 
@@ -530,7 +526,7 @@ int  Cserial::ReadData (unsigned char *buf, int nchars)
 
 	while ( (zusec() - start) < (timeout * 1000.0) ) {
 		memset(uctemp, 0, sizeof(uctemp));
-		if ( (retval = ReadFile (hComm, uctemp, maxchars, &thisread, NULL)) ) {
+		if ( (retval = ReadFile (hComm, uctemp, maxchars, &thisread, NULL)) > 0 ) {
 			for (size_t n = 0; n < thisread; n++)
 				sbuf += uctemp[n];
 		}

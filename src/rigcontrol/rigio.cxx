@@ -159,6 +159,7 @@ xmlrig.ascii = true;
 	}
 
 	numread = rigio.ReadBuffer(replybuff, retnbr);
+
 	snprintf(traceinfo, sizeof(traceinfo), 
 		"Reply (%d): '%s'", 
 		numread, 
