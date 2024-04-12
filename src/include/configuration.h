@@ -540,9 +540,15 @@
               18)                                                                       \
         ELEM_(double, CWfarnsworth, "CWFARNSWORTH",                                     \
               "Speed for Farnsworth timing (WPM)",                                      \
-              18)                                                                       \
+              15)                                                                       \
         ELEM_(bool, CWusefarnsworth, "CWUSEFARNSWORTH",                                 \
               "Use Farnsworth timing",                                                  \
+              false)                                                                    \
+        ELEM_(double, CWwordsworth, "CWWORDSWORTH",                                     \
+              "Speed for wordsworth timing (WPM)",                                      \
+              15)                                                                       \
+        ELEM_(bool, CWusewordsworth, "CWUSEWORDSWORTH",                                 \
+              "Use Wordsworth timing",                                                  \
               false)                                                                    \
         ELEM_(double, defCWspeed, "CWDEFSPEED",                                         \
               "Default speed (WPM)",                                                    \

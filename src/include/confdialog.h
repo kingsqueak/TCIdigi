@@ -319,6 +319,8 @@ extern Fl_Counter *cntCWlowerlimit;
 extern Fl_Counter *cntCWupperlimit;
 extern Fl_Value_Slider2 *sldrCWfarnsworth;
 extern Fl_Check_Button *btnCWusefarnsworth;
+extern Fl_Value_Slider2 *sldrCWwordsworth;
+extern Fl_Check_Button *btnCWusewordsworth;
 extern Fl_Counter2 *cntCWdash2dot;
 extern Fl_Counter2 *cntCWrisetime;
 extern Fl_ListBox *i_listboxQSKshape;

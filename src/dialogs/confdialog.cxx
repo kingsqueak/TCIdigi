@@ -2907,6 +2907,20 @@ static void cb_btnCWusefarnsworth(Fl_Check_Button* o, void*) {
 progdefaults.changed = true;
 }
 
+Fl_Value_Slider2 *sldrCWwordsworth=(Fl_Value_Slider2 *)0;
+
+static void cb_sldrCWwordsworth(Fl_Value_Slider2* o, void*) {
+  progdefaults.CWwordsworth = (int)o->value();
+progdefaults.changed = true;
+}
+
+Fl_Check_Button *btnCWusewordsworth=(Fl_Check_Button *)0;
+
+static void cb_btnCWusewordsworth(Fl_Check_Button* o, void*) {
+  progdefaults.CWusewordsworth=o->value();
+progdefaults.changed = true;
+}
+
 Fl_Counter2 *cntCWdash2dot=(Fl_Counter2 *)0;
 
 static void cb_cntCWdash2dot(Fl_Counter2* o, void*) {
@@ -11839,24 +11853,24 @@ work!"));
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
-      { Fl_Group* o = new Fl_Group(225, 37, 560, 147, _("Receive"));
+      { Fl_Group* o = new Fl_Group(225, 22, 560, 147, _("Receive"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { Fl_Check_Button* o = btnCWuseSOMdecoding = new Fl_Check_Button(296, 72, 125, 20, _("SOM decoding"));
+        { Fl_Check_Button* o = btnCWuseSOMdecoding = new Fl_Check_Button(296, 57, 125, 20, _("SOM decoding"));
           btnCWuseSOMdecoding->tooltip(_("Self Organizing Mapping"));
           btnCWuseSOMdecoding->down_box(FL_DOWN_BOX);
           btnCWuseSOMdecoding->value(1);
           btnCWuseSOMdecoding->callback((Fl_Callback*)cb_btnCWuseSOMdecoding);
           o->value(progdefaults.CWuseSOMdecoding);
         } // Fl_Check_Button* btnCWuseSOMdecoding
-        { Fl_Check_Button* o = btnCWrcvTrack = new Fl_Check_Button(450, 72, 80, 20, _("WPM Tracking"));
+        { Fl_Check_Button* o = btnCWrcvTrack = new Fl_Check_Button(450, 57, 80, 20, _("WPM Tracking"));
           btnCWrcvTrack->tooltip(_("Automatic Rx speed tracking"));
           btnCWrcvTrack->down_box(FL_DOWN_BOX);
           btnCWrcvTrack->value(1);
           btnCWrcvTrack->callback((Fl_Callback*)cb_btnCWrcvTrack);
           o->value(progdefaults.CWtrack);
         } // Fl_Check_Button* btnCWrcvTrack
-        { Fl_Value_Slider2* o = sldrCWbandwidth = new Fl_Value_Slider2(250, 113, 250, 20, _("Filter bandwidth"));
+        { Fl_Value_Slider2* o = sldrCWbandwidth = new Fl_Value_Slider2(250, 98, 250, 20, _("Filter bandwidth"));
           sldrCWbandwidth->tooltip(_("CW dsp filter bandwidth"));
           sldrCWbandwidth->type(1);
           sldrCWbandwidth->box(FL_DOWN_BOX);
@@ -11877,25 +11891,25 @@ work!"));
           o->value(progdefaults.CWbandwidth);
           o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);
         } // Fl_Value_Slider2* sldrCWbandwidth
-        { Fl_Check_Button* o = btnCWmfilt = new Fl_Check_Button(503, 113, 80, 20, _("Matched Filt\'"));
+        { Fl_Check_Button* o = btnCWmfilt = new Fl_Check_Button(503, 98, 80, 20, _("Matched Filt\'"));
           btnCWmfilt->tooltip(_("Matched Filter bandwidth"));
           btnCWmfilt->down_box(FL_DOWN_BOX);
           btnCWmfilt->value(1);
           btnCWmfilt->callback((Fl_Callback*)cb_btnCWmfilt);
           o->value(progdefaults.CWmfilt);
         } // Fl_Check_Button* btnCWmfilt
-        { valCWrcvWPM = new Fl_Value_Output(250, 152, 35, 20, _("Rx WPM"));
+        { valCWrcvWPM = new Fl_Value_Output(250, 137, 35, 20, _("Rx WPM"));
           valCWrcvWPM->color(FL_BACKGROUND2_COLOR);
           valCWrcvWPM->callback((Fl_Callback*)cb_valCWrcvWPM);
           valCWrcvWPM->align(Fl_Align(FL_ALIGN_TOP_LEFT));
         } // Fl_Value_Output* valCWrcvWPM
-        { prgsCWrcvWPM = new Fl_Progress(286, 152, 214, 20);
+        { prgsCWrcvWPM = new Fl_Progress(286, 137, 214, 20);
           prgsCWrcvWPM->tooltip(_("Tracked CW speed in WPM"));
           prgsCWrcvWPM->color(FL_BACKGROUND_COLOR);
           prgsCWrcvWPM->selection_color(FL_SELECTION_COLOR);
           prgsCWrcvWPM->align(Fl_Align(FL_ALIGN_CENTER));
         } // Fl_Progress* prgsCWrcvWPM
-        { Fl_Counter2* o = cntLower = new Fl_Counter2(409, 72, 65, 20, _("Lower"));
+        { Fl_Counter2* o = cntLower = new Fl_Counter2(409, 57, 65, 20, _("Lower"));
           cntLower->tooltip(_("Detector low threshold"));
           cntLower->type(1);
           cntLower->box(FL_UP_BOX);
@@ -11916,7 +11930,7 @@ work!"));
           o->value(progdefaults.CWlower);
           o->labelsize(FL_NORMAL_SIZE);
         } // Fl_Counter2* cntLower
-        { Fl_Counter2* o = cntUpper = new Fl_Counter2(502, 72, 65, 20, _("Upper"));
+        { Fl_Counter2* o = cntUpper = new Fl_Counter2(502, 57, 65, 20, _("Upper"));
           cntUpper->tooltip(_("Detector high threshold"));
           cntUpper->type(1);
           cntUpper->box(FL_UP_BOX);
@@ -11937,7 +11951,7 @@ work!"));
           o->value(progdefaults.CWupper);
           o->labelsize(FL_NORMAL_SIZE);
         } // Fl_Counter2* cntUpper
-        { Fl_Counter2* o = cntCWrange = new Fl_Counter2(503, 151, 65, 20, _("Range"));
+        { Fl_Counter2* o = cntCWrange = new Fl_Counter2(503, 136, 65, 20, _("Range"));
           cntCWrange->tooltip(_("Range +/- wpm"));
           cntCWrange->type(1);
           cntCWrange->box(FL_UP_BOX);
@@ -11957,32 +11971,32 @@ work!"));
           o->value(progdefaults.CWrange);
           o->labelsize(FL_NORMAL_SIZE);
         } // Fl_Counter2* cntCWrange
-        { Fl_Group* o = new Fl_Group(625, 45, 135, 124, _("Signal tracking"));
+        { Fl_Group* o = new Fl_Group(625, 30, 135, 124, _("Signal tracking"));
           o->box(FL_ENGRAVED_BOX);
           o->align(Fl_Align(FL_ALIGN_TOP|FL_ALIGN_INSIDE));
-          { Fl_Choice* o = mnu_cwrx_attack = new Fl_Choice(680, 70, 72, 20, _("Attack"));
+          { Fl_Choice* o = mnu_cwrx_attack = new Fl_Choice(680, 55, 72, 20, _("Attack"));
             mnu_cwrx_attack->down_box(FL_BORDER_BOX);
             mnu_cwrx_attack->callback((Fl_Callback*)cb_mnu_cwrx_attack);
             o->add("Slow|Med|Fast");
             o->value(progdefaults.cwrx_attack);
           } // Fl_Choice* mnu_cwrx_attack
-          { Fl_Choice* o = mnu_cwrx_decay = new Fl_Choice(680, 105, 72, 20, _("Decay"));
+          { Fl_Choice* o = mnu_cwrx_decay = new Fl_Choice(680, 90, 72, 20, _("Decay"));
             mnu_cwrx_decay->down_box(FL_BORDER_BOX);
             mnu_cwrx_decay->callback((Fl_Callback*)cb_mnu_cwrx_decay);
             o->add("Slow|Med|Fast");
             o->value(progdefaults.cwrx_decay);
           } // Fl_Choice* mnu_cwrx_decay
-          { btn_cw_tracking_defaults = new Fl_Button(680, 135, 70, 20, _("Defaults"));
+          { btn_cw_tracking_defaults = new Fl_Button(680, 120, 70, 20, _("Defaults"));
             btn_cw_tracking_defaults->callback((Fl_Callback*)cb_btn_cw_tracking_defaults);
           } // Fl_Button* btn_cw_tracking_defaults
           o->end();
         } // Fl_Group* o
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(225, 184, 560, 161, _("Transmit"));
+      { Fl_Group* o = new Fl_Group(225, 170, 560, 174, _("Transmit"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { Fl_Value_Slider2* o = sldrCWxmtWPM = new Fl_Value_Slider2(250, 213, 440, 20, _("char WPM"));
+        { Fl_Value_Slider2* o = sldrCWxmtWPM = new Fl_Value_Slider2(250, 195, 440, 20, _("char WPM"));
           sldrCWxmtWPM->tooltip(_("My transmit CW WPM"));
           sldrCWxmtWPM->type(1);
           sldrCWxmtWPM->box(FL_DOWN_BOX);
@@ -12003,7 +12017,7 @@ work!"));
           o->value(progdefaults.CWspeed);
           o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);
         } // Fl_Value_Slider2* sldrCWxmtWPM
-        { Fl_Counter2* o = cntCWdefWPM = new Fl_Counter2(291, 254, 64, 20, _("Default"));
+        { Fl_Counter2* o = cntCWdefWPM = new Fl_Counter2(307, 224, 64, 20, _("Default"));
           cntCWdefWPM->tooltip(_("The default CW speed"));
           cntCWdefWPM->type(1);
           cntCWdefWPM->box(FL_UP_BOX);
@@ -12018,12 +12032,12 @@ work!"));
           cntCWdefWPM->step(1);
           cntCWdefWPM->value(18);
           cntCWdefWPM->callback((Fl_Callback*)cb_cntCWdefWPM);
-          cntCWdefWPM->align(Fl_Align(FL_ALIGN_TOP));
+          cntCWdefWPM->align(Fl_Align(FL_ALIGN_LEFT));
           cntCWdefWPM->when(FL_WHEN_CHANGED);
           o->value(progdefaults.defCWspeed);
           o->labelsize(FL_NORMAL_SIZE);
         } // Fl_Counter2* cntCWdefWPM
-        { Fl_Counter* o = cntCWlowerlimit = new Fl_Counter(445, 254, 65, 20, _("Lower limit"));
+        { Fl_Counter* o = cntCWlowerlimit = new Fl_Counter(497, 224, 65, 20, _("Lower limit"));
           cntCWlowerlimit->tooltip(_("No slower than this"));
           cntCWlowerlimit->type(1);
           cntCWlowerlimit->minimum(5);
@@ -12031,11 +12045,11 @@ work!"));
           cntCWlowerlimit->step(5);
           cntCWlowerlimit->value(10);
           cntCWlowerlimit->callback((Fl_Callback*)cb_cntCWlowerlimit);
-          cntCWlowerlimit->align(Fl_Align(FL_ALIGN_TOP));
+          cntCWlowerlimit->align(Fl_Align(FL_ALIGN_LEFT));
           o->value(progdefaults.CWlowerlimit);
           o->labelsize(FL_NORMAL_SIZE);
         } // Fl_Counter* cntCWlowerlimit
-        { Fl_Counter* o = cntCWupperlimit = new Fl_Counter(601, 254, 65, 20, _("Upper limit"));
+        { Fl_Counter* o = cntCWupperlimit = new Fl_Counter(688, 224, 65, 20, _("Upper limit"));
           cntCWupperlimit->tooltip(_("No faster than this"));
           cntCWupperlimit->type(1);
           cntCWupperlimit->minimum(25);
@@ -12043,11 +12057,11 @@ work!"));
           cntCWupperlimit->step(5);
           cntCWupperlimit->value(100);
           cntCWupperlimit->callback((Fl_Callback*)cb_cntCWupperlimit);
-          cntCWupperlimit->align(Fl_Align(FL_ALIGN_TOP));
+          cntCWupperlimit->align(Fl_Align(FL_ALIGN_LEFT));
           o->value(progdefaults.CWupperlimit);
           o->labelsize(FL_NORMAL_SIZE);
         } // Fl_Counter* cntCWupperlimit
-        { Fl_Value_Slider2* o = sldrCWfarnsworth = new Fl_Value_Slider2(250, 308, 440, 20, _("text WPM"));
+        { Fl_Value_Slider2* o = sldrCWfarnsworth = new Fl_Value_Slider2(250, 271, 400, 20, _("text WPM"));
           sldrCWfarnsworth->tooltip(_("My transmit CW WPM"));
           sldrCWfarnsworth->type(1);
           sldrCWfarnsworth->box(FL_DOWN_BOX);
@@ -12058,9 +12072,9 @@ work!"));
           sldrCWfarnsworth->labelsize(14);
           sldrCWfarnsworth->labelcolor(FL_FOREGROUND_COLOR);
           sldrCWfarnsworth->minimum(5);
-          sldrCWfarnsworth->maximum(100);
+          sldrCWfarnsworth->maximum(50);
           sldrCWfarnsworth->step(1);
-          sldrCWfarnsworth->value(20);
+          sldrCWfarnsworth->value(15);
           sldrCWfarnsworth->textsize(14);
           sldrCWfarnsworth->callback((Fl_Callback*)cb_sldrCWfarnsworth);
           sldrCWfarnsworth->align(Fl_Align(FL_ALIGN_RIGHT));
@@ -12068,12 +12082,39 @@ work!"));
           o->value(progdefaults.CWfarnsworth);
           o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);
         } // Fl_Value_Slider2* sldrCWfarnsworth
-        { Fl_Check_Button* o = btnCWusefarnsworth = new Fl_Check_Button(270, 285, 180, 15, _("Use Farnsworth timing"));
+        { Fl_Check_Button* o = btnCWusefarnsworth = new Fl_Check_Button(270, 252, 180, 15, _("Use Farnsworth timing"));
           btnCWusefarnsworth->tooltip(_("text WPM <= char WPM"));
           btnCWusefarnsworth->down_box(FL_DOWN_BOX);
           btnCWusefarnsworth->callback((Fl_Callback*)cb_btnCWusefarnsworth);
           o->value(progdefaults.CWusefarnsworth);
         } // Fl_Check_Button* btnCWusefarnsworth
+        { Fl_Value_Slider2* o = sldrCWwordsworth = new Fl_Value_Slider2(251, 319, 400, 20, _("Spacing WPM"));
+          sldrCWwordsworth->tooltip(_("My transmit CW WPM"));
+          sldrCWwordsworth->type(1);
+          sldrCWwordsworth->box(FL_DOWN_BOX);
+          sldrCWwordsworth->color(FL_BACKGROUND_COLOR);
+          sldrCWwordsworth->selection_color(FL_BACKGROUND_COLOR);
+          sldrCWwordsworth->labeltype(FL_NORMAL_LABEL);
+          sldrCWwordsworth->labelfont(0);
+          sldrCWwordsworth->labelsize(14);
+          sldrCWwordsworth->labelcolor(FL_FOREGROUND_COLOR);
+          sldrCWwordsworth->minimum(5);
+          sldrCWwordsworth->maximum(50);
+          sldrCWwordsworth->step(1);
+          sldrCWwordsworth->value(15);
+          sldrCWwordsworth->textsize(14);
+          sldrCWwordsworth->callback((Fl_Callback*)cb_sldrCWwordsworth);
+          sldrCWwordsworth->align(Fl_Align(FL_ALIGN_RIGHT));
+          sldrCWwordsworth->when(FL_WHEN_CHANGED);
+          o->value(progdefaults.CWwordsworth);
+          o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);
+        } // Fl_Value_Slider2* sldrCWwordsworth
+        { Fl_Check_Button* o = btnCWusewordsworth = new Fl_Check_Button(271, 300, 180, 15, _("Use Wordsworth timing"));
+          btnCWusewordsworth->tooltip(_("text WPM <= char WPM"));
+          btnCWusewordsworth->down_box(FL_DOWN_BOX);
+          btnCWusewordsworth->callback((Fl_Callback*)cb_btnCWusewordsworth);
+          o->value(progdefaults.CWusewordsworth);
+        } // Fl_Check_Button* btnCWusewordsworth
         o->end();
       } // Fl_Group* o
       CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/CW/General"));

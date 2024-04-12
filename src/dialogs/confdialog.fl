@@ -767,7 +767,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Colors-Fonts/Buttons-Menus} selected
+      label {Colors-Fonts/Buttons-Menus}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons-Menus"));}
       code1 {config_pages.push_back(p);}
@@ -3427,7 +3427,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/CW/General}
+      label {Modem/CW/General} open selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/CW/General"));}
       code1 {config_pages.push_back(p);}
@@ -3435,27 +3435,27 @@ progdefaults.changed = true;}
     } {
       Fl_Group {} {
         label Receive
-        xywh {225 37 560 147} box ENGRAVED_FRAME align 21
+        xywh {225 22 560 147} box ENGRAVED_FRAME align 21
       } {
         Fl_Check_Button btnCWuseSOMdecoding {
           label {SOM decoding}
           callback {progdefaults.CWuseSOMdecoding = o->value();
 progdefaults.changed = true;}
-          tooltip {Self Organizing Mapping} xywh {296 72 125 20} down_box DOWN_BOX value 1
+          tooltip {Self Organizing Mapping} xywh {296 57 125 20} down_box DOWN_BOX value 1
           code0 {o->value(progdefaults.CWuseSOMdecoding);}
         }
         Fl_Check_Button btnCWrcvTrack {
           label {WPM Tracking}
           callback {progdefaults.CWtrack = o->value();
 progdefaults.changed = true;}
-          tooltip {Automatic Rx speed tracking} xywh {450 72 80 20} down_box DOWN_BOX value 1
+          tooltip {Automatic Rx speed tracking} xywh {450 57 80 20} down_box DOWN_BOX value 1
           code0 {o->value(progdefaults.CWtrack);}
         }
         Fl_Value_Slider sldrCWbandwidth {
           label {Filter bandwidth}
           callback {progdefaults.CWbandwidth = (int)o->value();
 progdefaults.changed = true;}
-          tooltip {CW dsp filter bandwidth} xywh {250 113 250 20} type Horizontal align 5 minimum 10 maximum 400 step 1 value 66 textsize 14
+          tooltip {CW dsp filter bandwidth} xywh {250 98 250 20} type Horizontal align 5 minimum 10 maximum 400 step 1 value 66 textsize 14
           code0 {o->value(progdefaults.CWbandwidth);}
           code1 {o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);}
           class Fl_Value_Slider2
@@ -3464,22 +3464,22 @@ progdefaults.changed = true;}
           label {Matched Filt'}
           callback {progdefaults.CWmfilt = o->value();
 progdefaults.changed = true;}
-          tooltip {Matched Filter bandwidth} xywh {503 113 80 20} down_box DOWN_BOX value 1
+          tooltip {Matched Filter bandwidth} xywh {503 98 80 20} down_box DOWN_BOX value 1
           code0 {o->value(progdefaults.CWmfilt);}
         }
         Fl_Value_Output valCWrcvWPM {
           label {Rx WPM}
           callback {progdefaults.changed = true;}
-          xywh {250 152 35 20} color 7 align 5
+          xywh {250 137 35 20} color 7 align 5
         }
         Fl_Progress prgsCWrcvWPM {
-          tooltip {Tracked CW speed in WPM} xywh {286 152 214 20} color 49 selection_color 15 align 0
+          tooltip {Tracked CW speed in WPM} xywh {286 137 214 20} color 49 selection_color 15 align 0
         }
         Fl_Counter cntLower {
           label Lower
           callback {progdefaults.CWlower = o->value();
 progdefaults.changed = true;}
-          tooltip {Detector low threshold} xywh {409 72 65 20} type Simple align 1 minimum 0.01 maximum 0.99 step 0.01 value 0.45 hide
+          tooltip {Detector low threshold} xywh {409 57 65 20} type Simple align 1 minimum 0.01 maximum 0.99 step 0.01 value 0.45 hide
           code0 {o->value(progdefaults.CWlower);}
           code1 {o->labelsize(FL_NORMAL_SIZE);}
           class Fl_Counter2
@@ -3488,7 +3488,7 @@ progdefaults.changed = true;}
           label Upper
           callback {progdefaults.CWupper = o->value();
 progdefaults.changed = true;}
-          tooltip {Detector high threshold} xywh {502 72 65 20} type Simple align 1 minimum 0.01 maximum 0.99 step 0.01 value 0.55 hide
+          tooltip {Detector high threshold} xywh {502 57 65 20} type Simple align 1 minimum 0.01 maximum 0.99 step 0.01 value 0.55 hide
           code0 {o->value(progdefaults.CWupper);}
           code1 {o->labelsize(FL_NORMAL_SIZE);}
           class Fl_Counter2
@@ -3497,20 +3497,20 @@ progdefaults.changed = true;}
           label Range
           callback {progdefaults.CWrange = (int)o->value();
 progdefaults.changed = true;}
-          tooltip {Range +/- wpm} xywh {503 151 65 20} type Simple align 8 minimum 5 maximum 25 step 1 value 10
+          tooltip {Range +/- wpm} xywh {503 136 65 20} type Simple align 8 minimum 5 maximum 25 step 1 value 10
           code0 {o->value(progdefaults.CWrange);}
           code1 {o->labelsize(FL_NORMAL_SIZE);}
           class Fl_Counter2
         }
         Fl_Group {} {
           label {Signal tracking} open
-          xywh {625 45 135 124} box ENGRAVED_BOX align 17
+          xywh {625 30 135 124} box ENGRAVED_BOX align 17
         } {
           Fl_Choice mnu_cwrx_attack {
             label Attack
             callback {progdefaults.cwrx_attack = o->value();
 progdefaults.changed = true;} open
-            xywh {680 70 72 20} down_box BORDER_BOX
+            xywh {680 55 72 20} down_box BORDER_BOX
             code0 {o->add("Slow|Med|Fast");}
             code1 {o->value(progdefaults.cwrx_attack);}
           } {}
@@ -3518,7 +3518,7 @@ progdefaults.changed = true;} open
             label Decay
             callback {progdefaults.cwrx_decay = o->value();
 progdefaults.changed = true;} open
-            xywh {680 105 72 20} down_box BORDER_BOX
+            xywh {680 90 72 20} down_box BORDER_BOX
             code0 {o->add("Slow|Med|Fast");}
             code1 {o->value(progdefaults.cwrx_decay);}
           } {}
@@ -3529,13 +3529,13 @@ progdefaults.cwrx_decay = 0;
 mnu_cwrx_attack->value(progdefaults.cwrx_attack);
 mnu_cwrx_decay->value(progdefaults.cwrx_decay);
 progdefaults.changed = true;}
-            xywh {680 135 70 20}
+            xywh {680 120 70 20}
           }
         }
       }
       Fl_Group {} {
         label Transmit open
-        xywh {225 184 560 161} box ENGRAVED_FRAME align 21
+        xywh {225 170 560 174} box ENGRAVED_FRAME align 21
       } {
         Fl_Value_Slider sldrCWxmtWPM {
           label {char WPM}
@@ -3544,7 +3544,7 @@ cntCW_WPM->value(progdefaults.CWspeed);
 cntr_nanoCW_WPM->value(progdefaults.CWspeed);
 progdefaults.changed = true;
 sync_cw_parameters();}
-          tooltip {My transmit CW WPM} xywh {250 213 440 20} type Horizontal align 8 minimum 5 maximum 100 step 1 value 20 textsize 14
+          tooltip {My transmit CW WPM} xywh {250 195 440 20} type Horizontal align 8 minimum 5 maximum 100 step 1 value 20 textsize 14
           code0 {o->value(progdefaults.CWspeed);}
           code1 {o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);}
           class Fl_Value_Slider2
@@ -3553,7 +3553,7 @@ sync_cw_parameters();}
           label Default
           callback {progdefaults.defCWspeed = (int)o->value();
 progdefaults.changed = true;}
-          tooltip {The default CW speed} xywh {291 254 64 20} type Simple align 1 minimum 5 maximum 200 step 1 value 18
+          tooltip {The default CW speed} xywh {307 224 64 20} type Simple align 4 minimum 5 maximum 200 step 1 value 18
           code0 {o->value(progdefaults.defCWspeed);}
           code1 {o->labelsize(FL_NORMAL_SIZE);}
           class Fl_Counter2
@@ -3567,7 +3567,7 @@ sldrCWxmtWPM->value(progdefaults.CWspeed);
 sldrCWxmtWPM->redraw();
 cntCWupperlimit->minimum(progdefaults.CWlowerlimit+20);
 cntCW_WPM->minimum(progdefaults.CWlowerlimit);}
-          tooltip {No slower than this} xywh {445 254 65 20} type Simple align 1 minimum 5 maximum 20 step 5 value 10
+          tooltip {No slower than this} xywh {497 224 65 20} type Simple align 4 minimum 5 maximum 20 step 5 value 10
           code0 {o->value(progdefaults.CWlowerlimit);}
           code1 {o->labelsize(FL_NORMAL_SIZE);}
         }
@@ -3580,7 +3580,7 @@ sldrCWxmtWPM->value(progdefaults.CWspeed);
 sldrCWxmtWPM->redraw();
 cntCWlowerlimit->maximum(progdefaults.CWupperlimit-20);
 cntCW_WPM->maximum(progdefaults.CWupperlimit);}
-          tooltip {No faster than this} xywh {601 254 65 20} type Simple align 1 minimum 25 maximum 200 step 5 value 100
+          tooltip {No faster than this} xywh {688 224 65 20} type Simple align 4 minimum 25 maximum 200 step 5 value 100
           code0 {o->value(progdefaults.CWupperlimit);}
           code1 {o->labelsize(FL_NORMAL_SIZE);}
         }
@@ -3588,7 +3588,7 @@ cntCW_WPM->maximum(progdefaults.CWupperlimit);}
           label {text WPM}
           callback {progdefaults.CWfarnsworth = (int)o->value();
 progdefaults.changed = true;}
-          tooltip {My transmit CW WPM} xywh {250 308 440 20} type Horizontal align 8 minimum 5 maximum 100 step 1 value 20 textsize 14
+          tooltip {My transmit CW WPM} xywh {250 271 400 20} type Horizontal align 8 minimum 5 maximum 50 step 1 value 15 textsize 14
           code0 {o->value(progdefaults.CWfarnsworth);}
           code1 {o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);}
           class Fl_Value_Slider2
@@ -3597,8 +3597,24 @@ progdefaults.changed = true;}
           label {Use Farnsworth timing}
           callback {progdefaults.CWusefarnsworth=o->value();
 progdefaults.changed = true;}
-          tooltip {text WPM <= char WPM} xywh {270 285 180 15} down_box DOWN_BOX
+          tooltip {text WPM <= char WPM} xywh {270 252 180 15} down_box DOWN_BOX
           code0 {o->value(progdefaults.CWusefarnsworth);}
+        }
+        Fl_Value_Slider sldrCWwordsworth {
+          label {Spacing WPM}
+          callback {progdefaults.CWwordsworth = (int)o->value();
+progdefaults.changed = true;}
+          tooltip {My transmit CW WPM} xywh {251 319 400 20} type Horizontal align 8 minimum 5 maximum 50 step 1 value 15 textsize 14
+          code0 {o->value(progdefaults.CWwordsworth);}
+          code1 {o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);}
+          class Fl_Value_Slider2
+        }
+        Fl_Check_Button btnCWusewordsworth {
+          label {Use Wordsworth timing}
+          callback {progdefaults.CWusewordsworth=o->value();
+progdefaults.changed = true;}
+          tooltip {text WPM <= char WPM} xywh {271 300 180 15} down_box DOWN_BOX
+          code0 {o->value(progdefaults.CWusewordsworth);}
         }
       }
     }

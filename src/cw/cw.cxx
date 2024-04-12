@@ -1067,7 +1067,6 @@ void cw::send_symbol(int bit, int len, int state)
 // send_ch()
 // sends a morse character and the space afterwards
 //=======================================================================
-
 void cw::send_ch(int ch)
 {
 	std::string code;
@@ -1082,6 +1081,9 @@ void cw::send_ch(int ch)
 		tch = 3 * ta / 19;
 		twd = 4 * ta / 19;
 	}
+	if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth))
+		twd = 4800 / progdefaults.CWwordsworth;
+
 	tc *= kfactor;
 	tch *= kfactor;
 	twd *= kfactor;
@@ -1108,7 +1110,7 @@ void cw::send_ch(int ch)
 
 	code = morse->tx_lookup(ch);
 
-std::cout << (char)ch << "[" << code << "]"; std::cout.flush();
+//std::cout << (char)ch << "[" << code << "]"; std::cout.flush();
 
 	if (!code.length()) {
 		return;
@@ -1375,16 +1377,6 @@ void flrig_cwio_send(char c)
 		cwio_morse = new cMorse;
 		cwio_morse->init();
 	}
-
-//	if (c == '[') {
-//		flrig_cwio_ptt(1);
-//		return;
-//	}
-//	if (c == ']') {
-//		flrig_cwio_ptt(0);
-//		return;
-//	}
-
 	std::string s = " ";
 	s[0] = c;
 	flrig_cwio_send_text(s);
@@ -1396,8 +1388,13 @@ void flrig_cwio_send(char c)
 		tc = 1200 / progdefaults.CWfarnsworth;
 
 	if (c == ' ') {
-		if (lastcwiochar == ' ')
+		if (lastcwiochar == ' ') {
 			tc *= 7;
+			if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth))
+				tc *= 1.0 * progdefaults.CWspeed / progdefaults.CWwordsworth;
+			if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth))
+				tc = 4800 / progdefaults.CWwordsworth;
+		}
 		else
 		tc *= 5;
 	} else
@@ -1578,6 +1575,8 @@ void send_cwio(int c)
 		tch = 3 * ta / 19;
 		twd = 4 * ta / 19;
 	}
+	if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth))
+		twd = 4800 / progdefaults.CWwordsworth;
 
 	if (c == 0x0a) c = ' ';
 
@@ -1635,7 +1634,9 @@ void cwio_calibrate()
 {
 	std::string paris = "PARIS "; 
 	bool farnsworth = progdefaults.CWusefarnsworth;
+	bool wordsworth = progdefaults.CWusewordsworth;
 	progdefaults.CWusefarnsworth = false;
+	progdefaults.CWusewordsworth = false;
 
 	guard_lock lk(&fifo_mutex);
 
@@ -1646,6 +1647,7 @@ void cwio_calibrate()
 	end_time = zmsec();
 
 	progdefaults.CWusefarnsworth = farnsworth;
+	progdefaults.CWusewordsworth = wordsworth;
 
 	Fl::awake(cwio_calibrate_finished);
 }
