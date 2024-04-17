@@ -359,12 +359,11 @@ status progStatus = {
 
 void status::saveLastState()
 {
-    int mX = fl_digi_main->x();
-    int mY = fl_digi_main->y();
-    if (mX >= 0 && mX >= 0) {
-    	mainX = mX;
-	    mainY = mY;
-    }
+	int mX = fl_digi_main->x();
+	int mY = fl_digi_main->y();
+	mainX = mX;
+	mainY = mY;
+
 	mainW = fl_digi_main->w();
 	mainH = fl_digi_main->h();
 
