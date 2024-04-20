@@ -56,7 +56,6 @@
 Cserial WK_serial;
 
 pthread_t WK_serial_thread;
-pthread_mutex_t WK_mutex_serial = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t WK_buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 //======================================================================
@@ -189,8 +188,6 @@ static void WK_send_command(std::string &cmd, int what = NOTHING)
 	if (!WK_str_out.empty())
 		return;
 
-	guard_lock wklock(&WK_mutex_serial);
-
 	upcase(cmd);
 	cnt = 101;
 	WK_str_out = cmd;
@@ -277,7 +274,6 @@ int WK_send_char(int c)
 	Fl::awake(dispbyte);
 
 	if (ch != ' ') {
-		guard_lock wklock(&WK_mutex_serial);
 		static unsigned char szstr[2];
 		szstr[0] = ch; szstr[1] = 0;
 		WK_serial.WriteBuffer(szstr, 1);
@@ -312,7 +308,6 @@ unsigned char byte;
 
 // receive WinKeyer response
 		{
-			guard_lock wklock(&WK_mutex_serial);
 			if (WK_serial.ReadBuffer(&byte, 1) == 1) {
 
 				if ((byte == 0xA5 || read_EEPROM))
@@ -631,9 +626,7 @@ LOG_DEBUG("ECHO_TEST : %s", hexstr(cmd).c_str());
 			debug::show();
 			LOG_ERROR("%s", "Winkeyer not responding");
 			WK_test_echo = false;
-			pthread_mutex_lock(&WK_mutex_serial);
-				WK_bypass_serial_thread_loop = true;
-			pthread_mutex_unlock(&WK_mutex_serial);
+			WK_bypass_serial_thread_loop = true;
 			WK_serial.ClosePort();
 			progStatus.WK_serial_port_name = "NONE";
 			select_WK_CommPort->value(progStatus.WK_serial_port_name.c_str());
@@ -936,7 +929,7 @@ bool WK_start_wkey_serial()
 	WK_serial.Baud(1200);
 	WK_serial.Stopbits(2);
 	WK_serial.Retries(1);
-	WK_serial.Timeout(1);//50);
+	WK_serial.Timeout(100); // default is 50 msec
 	WK_serial.RTSptt(false);
 	WK_serial.DTRptt(false);
 	WK_serial.RTSCTS(false);
@@ -1025,9 +1018,7 @@ void WK_exit()
 	if (progStatus.WK_online)
 		WKCW_connect(false);
 
-	pthread_mutex_lock(&WK_mutex_serial);
-		WK_run_serial_thread = false;
-	pthread_mutex_unlock(&WK_mutex_serial);
+	WK_run_serial_thread = false;
 	pthread_join(WK_serial_thread, NULL);
 
 }

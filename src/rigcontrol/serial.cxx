@@ -47,6 +47,17 @@ char traceinfo[1000];
 
 #include <memory>
 
+bool check_hex(const void *s, size_t len)
+{
+	unsigned char *str = (unsigned char *)s;
+	for (size_t n = 0; n < len; n++) {
+		if (str[n] == '\r' || str[n] == '\n') continue;
+		if (str[n] < 0x20) return true;
+		if (str[n] > 0x7F) return true;
+	}
+	return false;
+}
+
 Cserial::Cserial() {
 	device = "/dev/ttyS0";
 	baud = 1200;
@@ -333,7 +344,10 @@ int  Cserial::ReadBuffer (unsigned char *buf, int nchars)
 	for (int n = 0; n < nread; n++) buff += buffer[n];
 
 // remove any ICOM echo bytes
-	if ( (buff[3] & 0xFF) == 0xE0) {
+	if (((int)buff.length() >= bytes_written) &&
+		((buff[0] & 0xFF) == 0xFE) && 
+		((buff[1] & 0xFF) == 0xFE) &&
+		((buff[3] & 0xFF) == 0xE0) ) {
 		buff = buff.substr(bytes_written);
 		if (!buff.length()) {
 			LOG_ERROR("READ failed (%0.2f msec)", ((zusec() - start)/1000.0));
@@ -342,8 +356,7 @@ int  Cserial::ReadBuffer (unsigned char *buf, int nchars)
 	}
 	memcpy(buf, buff.c_str(), buff.length());
 
-	if ((buff[0] & 0xFF) == 0xFE)
-//printf		("ReadData (%0.2f msec) [%lu]: %s\n", 
+	if (check_hex(buff.c_str(), buff.length()))
 		LOG_VERBOSE("ReadData (%0.2f msec) [%lu]: %s", 
 			(zusec() - start) / 1000.0,
 			buff.length(),
