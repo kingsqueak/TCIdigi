@@ -262,11 +262,15 @@ static int assign_integer(widget_type * widget, ScriptParsing *sp, SCRIPT_COMMAN
 	if(!widget)
 		return script_no_errors;
 
-	int min = (int) widget->minimum();
-	int max = (int) widget->maximum();
+	int min  = (int) widget->minimum();
+	int max  = (int) widget->maximum();
+	int step = (int) widget->step();
 
 	if((value < min) || (value > max))
 		return script_invalid_parameter;
+
+	if(step > 1 && value > 0)
+		value = (value / step) * step;
 
 	widget->value(value);
 	widget->do_callback();
@@ -285,7 +289,7 @@ static int assign_integer(widget_type * widget, ScriptParsing *sp, SCRIPT_COMMAN
 template <typename widget_type>
 static int assign_integer(widget_type * widget, ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
-	int data = 0.0;
+	int data = 0;
 	return assign_integer(widget, sp, sc, data);
 }
 
@@ -806,6 +810,17 @@ int process_wf_hz_offset(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 	active_modem->set_freq(value);
 
 	return script_no_errors;
+}
+
+/** ********************************************************
+ * \brief
+ * \param sp Access to ScritpParsing members.
+ * \param sc Access to SCRIPT_COMMANDS structure variables.
+ * \return 0 (no error) Other (error)
+ ***********************************************************/
+int process_rsid_min_bw(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
+{
+	return assign_integer(val_rsid_min_bw, sp, sc);
 }
 
 /** ********************************************************
