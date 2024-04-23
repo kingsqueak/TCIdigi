@@ -16,24 +16,47 @@ or \ref mt63_page "MT63".
 
 <b>RSID</b>, <b>R</b>eed <b>S</b>olomon <b>ID</b>entifier
 is a special transmission designed by Patrick Lindecker, F6CTE, for the
-modem program MultiPsk. It has been adapted to other modem
-programs. Fldigi's implementation is compatible with the MultiPsk
-RSID, but provides a slight variation. You can transmit RSID at
-both the beginning and end of a transmission. The detection of
-RSID normally only occurs in the near vicinity of the current waterfall
-tracking point. This cuts down on extraneous RSID detections when the
-band is crowded and several RSID signals might be present. If you want
-fldigi to search the entire waterfall for RSID signals you can do so by
-enabling the "Detector searches entire passband". You start the
-search for a signal based on RSID by using the main panel switch.
-The RSID detector is a separate decoder that operates in parallel with all
-other modem decoders. If you select the "Mark previous frequency and
-mode" a restore link will be inserted into the RX text upon detecting
-an RSID signal. Clicking on this link restores the previous
-frequency and mode of operation. You elect to disable the RSID
-upon first detection. You also have the option of just receiving
-notification when an RSID signal is detected. The notification
-occurs with a pop-up message box.
+modem program MultiPsk. It has been adapted to other modem programs.
+Fldigi's implementation is compatible with the MultiPsk RSID, but
+provides a slight variation. You can transmit RSID at both the beginning
+and end of a transmission. The RSID detector is a
+separate decoder that operates in parallel with all other modem decoders.
+
+\subsection subsec_enable_id Enabling RSID
+
+You start the search for RSID signals by enabling RxID button on FLDIGI's
+main panel. Conversely, enabling the transmission of RSID signals requires
+the toggling of the TxID button located next to the RxID button.
+<br>
+
+\subsection subsec_limited_bw_id Bandwidth Search Limiting
+
+The detection of RSID normally only occurs in the near vicinity of the
+current waterfall tracking point. This cuts down on extraneous RSID
+detections when the band is crowded and several RSID signals might be
+present. This limited detection bandwidth can be adjusted using
+"Min BW Detection" Hertz counter. Ensure "passband" check box is
+disabled for this option to function. See \ref subsec_bandpass_id for
+"passband" check box locations.
+<br>
+
+\subsection subsec_bandpass_id Bandpass Search
+
+If you want fldigi to search the entire waterfall for RSID signals
+you can do so by enabling the "Passband" checkbox in "Min BW Detection"
+section. The second enable option is by right mouse button clicking on the
+RxID button located on FLDIGI's main panel, then select the "passband"
+checkbox.
+<br>
+
+\subsection subsec_mark_previous_id Other Options
+
+If you select the "Mark previous frequency and mode" a restore link will be
+inserted into the RX text upon detecting an RSID signal. Clicking on this
+link restores the previous frequency and mode of operation. You elect
+to disable the RSID upon first detection. You also have the option of
+just receiving notification when an RSID signal is detected. The
+notification occurs with a pop-up message box.
 <br>
 
 You can select which modes will include the transmitted RS identifier,
