@@ -1,6 +1,37 @@
-2024-01-16  dave-w1hkj  <w1hkj@bellsouth.net>
+2024-04-23  dave-w1hkj  <w1hkj@bellsouth.net>
 
-	ed10b8e74: Version 4.2.04
+	b4256bd6a: Version 4.2.05
+
+2024-04-23  kk5vd  <kk5vd@yahoo.com>
+
+	ac7f2ae04: Documentation Update
+	98504be5f: RSID Scripting
+
+2024-04-20  dave-w1hkj  <w1hkj@bellsouth.net>
+
+	b1cf7440a: winkeyer
+	51554e4dc:  Main X-Y-W-H restore
+	79c2f941d: pi-winkeyer
+	467c17391: Wordsworth CW
+	580fdc566: Default language
+	e64e3bc15: RSID Min Bandwidth
+	e2b68197f: OFDM documentation
+	2d021cff7: Deprecate °
+	7debbe875: DominoEX MFSK Thor s/n
+
+2024-03-24  Steve Magnuson  <steve.magnuson@gmail.com>
+
+	99db787dc: gpio ptt
+
+2024-03-23  dave-w1hkj  <w1hkj@bellsouth.net>
+
+	05d48ff12: fsq mod
+	b40f6084f: Windows EXEC macro
+	533b9d0c5: RsID
+	2494dd84f: menu fonts
+	4347ae589: Update po files
+	1867fbb9f: Scope colors
+	5fdcbc2da: Version 4.2.04
 	17f9744fa: PO files
 	07c178911: xmlrpc remote log
 	19e981128: font browser
