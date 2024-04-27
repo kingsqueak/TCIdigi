@@ -31,6 +31,10 @@
 #include <unistd.h>
 #include <string.h>
 
+#ifdef __WIN32__
+#	include <share.h>
+#endif
+
 #include "configuration.h"
 #include "confdialog.h"
 #include "fmt.h"
@@ -115,7 +119,6 @@ static double rfreq = 0, ramp = 0;
 
 // formatting std::strings used by csv export method
 static std::string csv_string;
-static std::string buffered_csv_string;
 
 // uncomment next line to enable debugging data file
 //#define DEBUG_CSV
@@ -186,7 +189,7 @@ void start_fmt_wav_record()
 	gmtime_r(&wav_time, &File_Start_Date);
 
 	static char temp[200];
-	strftime(temp, sizeof(temp), "fmt_%Y.%m.%d.%H.%M.%S", 
+	strftime(temp, sizeof(temp), "fmt_%Y.%m.%d.%H.%M.%S",
 		&File_Start_Date);
 
 	fmt_wav_pathfname.assign(FMTDir).
@@ -229,7 +232,48 @@ static void noshow(void *) {
 	txt_fmt_wav_filename->value("");
 }
 
-static std::ofstream csv_file;
+
+static FILE  *csv_file;
+
+// Function to lock a file on Windows
+bool lockFile(FILE* file) {
+	#ifdef __WIN32__
+	// Get the file descriptor from the FILE* stream
+	int fd = _fileno(file);
+	if (fd == -1) return false;
+	// Convert file descriptor to HANDLE
+	HANDLE hFile = reinterpret_cast <HANDLE>(_get_osfhandle(fd));
+	if (hFile == INVALID_HANDLE_VALUE) return false;
+
+	// Lock file (starting from byte 0, locking the whole file)
+	return LockFile(hFile, 0, 0, MAXDWORD, MAXDWORD);
+	#else
+	// Non-Windows version would go here, but since it's Windows-specific, we return true
+	return true;
+	#endif
+}
+
+// Function to open and lock a file -- use instead of fopen()
+FILE* openAndLockFile(const char* filename, const char* mode) {
+#ifdef __WIN32__
+	FILE* file = _fsopen( filename, mode, _SH_DENYWR  );
+#else
+	FILE* file = fopen( filename, mode );
+#endif
+	if (!file) {
+		std::cerr << "Failed to open file." << std::endl;
+		return NULL;
+	}
+
+	if (!lockFile(file)) {
+		std::cerr << "Failed to lock file." << std::endl;
+		fclose(file);
+		return NULL;
+	}
+
+	return file;
+}
+
 
 static void fmt_create_file()
 {
@@ -247,9 +291,13 @@ static void fmt_create_file()
 		append(".").append(call).
 		append(".csv");
 
-	csv_file.open(fmt_filename.c_str());
+#ifdef __WIN32__
+	csv_file = openAndLockFile(fmt_filename.c_str(), "wt");
+#else
+	csv_file = openAndLockFile(fmt_filename.c_str(), "wx");
+#endif
 
-	if (!csv_file.is_open()) {
+	if (csv_file == NULL) {
 		LOG_ERROR("fl_fopen: %s", fmt_filename.c_str());
 		return;
 	}
@@ -274,6 +322,7 @@ csv_string.append("\
 		for (size_t n = 0; n < csv_string.length(); n++)
 			if (csv_string[n] == ',') csv_string[n] = '\t';
 	}
+	fprintf(csv_file, "%s", csv_string.c_str());
 
 	csvrow = 4;
 
@@ -353,7 +402,7 @@ void stop_auto_recording(void *)
 	write_recs = false;
 }
 
-static char sz_temp[512];
+//static char sz_temp[512];
 
 #ifdef DEBUG_CSV
 // debugging
@@ -447,11 +496,10 @@ void fmt_write_file()
 			fmt_auto_record = 0;
 
 		if (!record_unk && !record_ref && !btn_fmt_autorecord->value()) {
-			if (csv_file.is_open()) {
-				buffered_csv_string.assign(csv_string);
-				csv_file << buffered_csv_string;
-				csv_file.flush();
-				csv_file.close();
+			if (csv_file) {
+				fprintf(csv_file, "%s", csv_string.c_str());
+				fclose(csv_file);
+				csv_file = NULL;
 #ifdef DEBUG_CSV
 				debug_csv_string.append(csv_string);
 				write_debug_string();
@@ -466,17 +514,16 @@ void fmt_write_file()
 			break;
 		}
 
-		if (write_recs && !csv_file.is_open()) {
+		if (write_recs && csv_file == NULL) {
 			fmt_create_file();
 			record_ok = false;
 			reset_ticks = true;
 			Fl::awake (fmt_show_recording, (void *)1);
-		} else if (!write_recs && csv_file.is_open()) {
+		} else if (!write_recs && csv_file != NULL) {
 			Fl::awake (fmt_show_recording, (void *)0);
-			buffered_csv_string.assign(csv_string);
-			csv_file << buffered_csv_string;
-			csv_file.flush();
-			csv_file.close();
+			fprintf(csv_file, "%s", csv_string.c_str());
+			fclose(csv_file);
+			csv_file = NULL;
 #ifdef DEBUG_CSV
 			debug_csv_string.append(csv_string);
 			write_debug_string();
@@ -489,7 +536,7 @@ void fmt_write_file()
 
 		if (ticks % rec_interval[progStatus.FMT_rec_interval] == 0) {
 
-			if (record_ok && (record_unk || record_ref) && write_recs && csv_file.is_open()) {
+			if (record_ok && (record_unk || record_ref) && write_recs && csv_file != NULL) {
 				{
 					guard_lock datalock (&data_mutex);
 						ufreq = fmt_unk_base_freq;
@@ -518,26 +565,23 @@ void fmt_write_file()
 					snprintf(unk_equation, sizeof(unk_equation), lsb_unk_equation, csvrow, csvrow, csvrow, csvrow);
 				}
 
-				snprintf(sz_temp, sizeof(sz_temp),
+				fprintf(csv_file,
 					(progdefaults.FMT_use_tabs ? tab_format : comma_format),
 					hrs, mins, secs, ticks % 100,
 					ticks * 0.01,
 					1.0 * (double) qsoFreqDisp->value(),
 					progdefaults.FMT_freq_corr,
 					(record_ref ? progStatus.FMT_ref_freq : 0),
-					rfreq, 
+					rfreq,
 					(record_ref ? ref_equation : "0"),
 					ramp,
 					(record_unk ? progStatus.FMT_unk_freq : 0),
-					ufreq, 
+					ufreq,
 					(record_unk ? unk_equation : "0"),
 					uamp,
 					csvrow, csvrow, csvrow);
-				csv_string.append(sz_temp);
+
 				csvrow++;
-				buffered_csv_string.assign(csv_string);
-				csv_file << buffered_csv_string;
-				csv_file.flush();
 #ifdef DEBUG_CSV
 				debug_csv_string.append(csv_string);
 #endif
@@ -574,6 +618,11 @@ void *FMT_loop(void *args)
 //======================================================================
 void FMT_thread_init(void)
 {
+	if (FMT_enabled) {
+		LOG_ERROR("FMT already running");
+		return;
+	}
+
 	FMT_exit = false;
 
 	if (pthread_create(&FMT_thread, NULL, FMT_loop, NULL) < 0) {
@@ -619,6 +668,8 @@ void fmt::init()
 
 fmt::~fmt()
 {
+	FMT_thread_close();
+
 	delete unk_ffilt;
 	delete unk_afilt;
 
@@ -826,14 +877,14 @@ int fmt::rx_process_dft()
 {
 	double amp;
 
-	if (unk_count == 0 || 
+	if (unk_count == 0 ||
 		((fabs(dft_unk_base) > progdefaults.FMT_freq_err) && record_unk) ) {
 		unk_freq = progStatus.FMT_unk_freq;
 		unk_count = 1;
 		LOG_VERBOSE("FMT unknown freq reset to track @ %f Hz", progStatus.FMT_unk_freq);
 	}
 
-	if (ref_count == 0 || 
+	if (ref_count == 0 ||
 		((fabs(dft_ref_base) > progdefaults.FMT_freq_err) && record_ref) ) {
 		ref_freq = progStatus.FMT_ref_freq;
 		ref_count = 1;
