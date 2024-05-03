@@ -1644,7 +1644,7 @@ void remove_windows()
 	std::string titles[] = {
 		"scope view", "record loader", "cluster viewer", "dxcc window",
 		"viewer", "logbook", "lotw review",
-		"export", "cabrillo",
+		"export", "cabrillo", "UDP fields",
 		"config", "notify",
 		"mfsk rxwin", "mfsk txwin",
 		"thor rxwin", "thor txwin",
@@ -1657,7 +1657,7 @@ void remove_windows()
 		scopeview, dlgRecordLoader,
 		dxcluster_viewer, dxcc_window,
 		dlgViewer, dlgLogbook, lotw_review_dialog,  
-		wExport, wCabrillo,
+		wExport, wCabrillo, wUDPfields,
 		dlgConfig, notify_window,
 		picRxWin, picTxWin,
 		thorpicRxWin, thorpicTxWin,

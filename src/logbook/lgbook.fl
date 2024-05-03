@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0305
+version 1.0309
 i18n_type 1
 i18n_include "gettext.h"
 i18n_function _
@@ -21,6 +21,9 @@ decl {\#include "pixmaps.h"} {private local
 }
 
 decl {\#include "flinput2.h"} {public local
+}
+
+decl {\#include "logger.h"} {public local
 }
 
 decl {// Avoid 'nitems' macro collision between FreeBSD's sys/params.h and fltk's
@@ -900,8 +903,8 @@ wBrowser->allowResize (1);
 wBrowser->gridEnabled (0);
 dlgLogbook->xclass(PACKAGE_TARNAME);} {}
   Fl_Window wCabrillo {
-    label {Cabrillo Setup} open
-    xywh {495 31 675 340} type Double visible
+    label {Cabrillo Setup}
+    xywh {583 34 675 340} type Double hide
   } {
     Fl_Group {} {
       label {Select Records to Export} open
@@ -989,7 +992,7 @@ WriteCabrillo();}
         xywh {533 172 70 15} down_box DOWN_BOX value 1
       }
       Fl_Check_Button btnCabState {
-        label State selected
+        label State
         xywh {533 196 70 15} down_box DOWN_BOX value 1
       }
       Fl_Check_Button btnCabCounty {
@@ -1025,6 +1028,840 @@ btnCabMyXchg->value(1);
 btnCabRSTsent->value(1);
 btnCabRSTrcvd->value(1);}
         xywh {539 277 110 24}
+      }
+    }
+  }
+  Fl_Window wUDPfields {
+    label {UDP export fields} open
+    xywh {566 318 423 405} type Double visible
+  } {
+    Fl_Group {} {
+      label {Select Fields to Export} open selected
+      xywh {5 5 410 397} box ENGRAVED_FRAME align 21
+    } {
+      Fl_Check_Button btn_udp_Call {
+        label Call
+        callback {udp_fields.call = o->value();}
+        xywh {13 26 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(udp_fields.call);}
+      }
+      Fl_Check_Button btn_udp_Name {
+        label Name
+        callback {udp_fields.name = o->value();}
+        xywh {13 47 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(udp_fields.name);}
+      }
+      Fl_Check_Button btn_udp_Freq {
+        label Freq
+        callback {udp_fields.freq = o->value();}
+        xywh {13 68 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(udp_fields.freq);}
+      }
+      Fl_Check_Button btn_udp_Band {
+        label Band
+        callback {udp_fields.band = o->value();}
+        xywh {13 90 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.band);}
+      }
+      Fl_Check_Button btn_udp_Mode {
+        label Mode
+        callback {udp_fields.mode = o->value();}
+        xywh {13 111 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(udp_fields.mode);}
+      }
+      Fl_Check_Button btn_udp_QSOdateOn {
+        label {QSO Date On}
+        callback {udp_fields.date_on = o->value();}
+        xywh {13 133 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(udp_fields.date_on);}
+      }
+      Fl_Check_Button btn_udp_QSOdateOff {
+        label {QSO Date Off}
+        callback {udp_fields.date_off = o->value();}
+        xywh {13 154 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(udp_fields.date_off);}
+      }
+      Fl_Check_Button btn_udp_TimeON {
+        label {Time ON}
+        callback {udp_fields.time_on = o->value();}
+        xywh {13 176 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(udp_fields.time_on);}
+      }
+      Fl_Check_Button btn_udp_TimeOFF {
+        label {Time OFF}
+        callback {udp_fields.time_off = o->value();}
+        xywh {13 197 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.time_off);}
+      }
+      Fl_Check_Button btn_udp_TX_pwr {
+        label {TX Power}
+        callback {udp_fields.tx_pwr = o->value();}
+        xywh {13 219 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.tx_pwr);}
+      }
+      Fl_Check_Button btn_udp_RSTsent {
+        label {RST sent}
+        callback {udp_fields.rst_sent = o->value();}
+        xywh {13 240 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(udp_fields.rst_sent);}
+      }
+      Fl_Check_Button btn_udp_RSTrcvd {
+        label {RST rcvd}
+        callback {udp_fields.rst_rcvd = o->value();}
+        xywh {13 262 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(udp_fields.rst_rcvd);}
+      }
+      Fl_Check_Button btn_udp_Qth {
+        label Qth
+        callback {udp_fields.qth = o->value();}
+        xywh {13 283 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.qth);}
+      }
+      Fl_Check_Button btn_udp_LOC {
+        label LOC
+        callback {udp_fields.gridsquare = o->value();}
+        xywh {13 305 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.gridsquare);}
+      }
+      Fl_Check_Button btn_udp_State {
+        label State
+        callback {udp_fields.state = o->value();}
+        xywh {13 326 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.state);}
+      }
+      Fl_Check_Button btn_udp_Age {
+        label Age
+        callback {udp_fields.age = o->value();}
+        xywh {13 348 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.age);}
+      }
+      Fl_Check_Button btn_udp_StaCall {
+        label {Station Call}
+        callback {udp_fields.sta_call = o->value();}
+        xywh {147 26 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.sta_call);}
+      }
+      Fl_Check_Button btn_udp_StaCity {
+        label {Station QTH}
+        callback {udp_fields.mycity = o->value();}
+        xywh {147 47 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.mycity);}
+      }
+      Fl_Check_Button btn_udp_StaGrid {
+        label {Station LOC}
+        callback {udp_fields.mygrid = o->value();}
+        xywh {147 68 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.mygrid);}
+      }
+      Fl_Check_Button btn_udp_Operator {
+        label Operator
+        callback {udp_fields.op_call = o->value();}
+        xywh {147 90 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.op_call);}
+      }
+      Fl_Check_Button btn_udp_Province {
+        label Province
+        callback {udp_fields.province = o->value();}
+        xywh {147 111 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.province);}
+      }
+      Fl_Check_Button btn_udp_Country {
+        label Country
+        callback {udp_fields.country = o->value();}
+        xywh {147 133 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.country);}
+      }
+      Fl_Check_Button btn_udp_Notes {
+        label Notes
+        callback {udp_fields.notes = o->value();}
+        xywh {147 154 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.notes);}
+      }
+      Fl_Check_Button btn_udp_QSLrcvd {
+        label {QSL rcvd date}
+        callback {udp_fields.qsl_rcvd = o->value();}
+        xywh {147 176 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.qsl_rcvd);}
+      }
+      Fl_Check_Button btn_udp_QSLsent {
+        label {QSL sent date}
+        callback {udp_fields.qsl_sent = o->value();}
+        xywh {147 197 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.qsl_sent);}
+      }
+      Fl_Check_Button btn_udp_eQSLrcvd {
+        label {eQSL rcvd date}
+        callback {udp_fields.eqsl_rcvd = o->value();}
+        xywh {147 219 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.eqsl_rcvd);}
+      }
+      Fl_Check_Button btn_udp_eQSLsent {
+        label {eQSL sent date}
+        callback {udp_fields.eqsl_sent = o->value();}
+        xywh {147 240 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.eqsl_sent);}
+      }
+      Fl_Check_Button btn_udp_LOTWrcvd {
+        label {LoTW rcvd date}
+        callback {udp_fields.lotw_rcvd = o->value();}
+        xywh {147 262 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.lotw_rcvd);}
+      }
+      Fl_Check_Button btn_udp_LOTWsent {
+        label {LoTW sent date}
+        callback {udp_fields.lotw_sent = o->value();}
+        xywh {147 283 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.lotw_sent);}
+      }
+      Fl_Check_Button btn_udp_QSL_VIA {
+        label {QSL-VIA}
+        callback {udp_fields.qsl_via = o->value();}
+        xywh {147 305 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.qsl_via);}
+      }
+      Fl_Check_Button btn_udp_SerialIN {
+        label {Serial \# in}
+        callback {udp_fields.srx = o->value();}
+        xywh {147 326 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.srx);}
+      }
+      Fl_Check_Button btn_udp_SerialOUT {
+        label {Serial \# out}
+        callback {udp_fields.stx = o->value();}
+        xywh {147 348 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.stx);}
+      }
+      Fl_Check_Button btn_udp_Check {
+        label Check
+        callback {udp_fields.check = o->value();}
+        xywh {281 26 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.check);}
+      }
+      Fl_Check_Button btn_udp_XchgIn {
+        label {Exchange In}
+        callback {udp_fields.xchg1 = o->value();}
+        xywh {281 47 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.xchg1);}
+      }
+      Fl_Check_Button btn_udp_MyXchg {
+        label {Exchange Out}
+        callback {udp_fields.myxchg = o->value();}
+        xywh {281 68 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.myxchg);}
+      }
+      Fl_Check_Button btn_udp_CNTY {
+        label County
+        callback {udp_fields.county = o->value();}
+        xywh {281 90 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.county);}
+      }
+      Fl_Check_Button btn_udp_CONT {
+        label Continent
+        callback {udp_fields.continent = o->value();}
+        xywh {281 111 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.continent);}
+      }
+      Fl_Check_Button btn_udp_CQZ {
+        label CQZ
+        callback {udp_fields.cqz = o->value();}
+        xywh {281 133 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.cqz);}
+      }
+      Fl_Check_Button btn_udp_DXCC {
+        label DXCC
+        callback {udp_fields.dxcc = o->value();}
+        xywh {281 154 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.dxcc);}
+      }
+      Fl_Check_Button btn_udp_IOTA {
+        label IOTA
+        callback {udp_fields.iota = o->value();}
+        xywh {281 176 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.iota);}
+      }
+      Fl_Check_Button btn_udp_ITUZ {
+        label ITUZ
+        callback {udp_fields.ituz = o->value();}
+        xywh {281 197 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.ituz);}
+      }
+      Fl_Check_Button btn_udp_Class {
+        label {FD class}
+        callback {udp_fields.arrl_class = o->value();}
+        xywh {281 219 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.arrl_class);}
+      }
+      Fl_Check_Button btn_udp_Section {
+        label {FD section}
+        callback {udp_fields.arrl_sect = o->value();}
+        xywh {281 240 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.arrl_sect);}
+      }
+      Fl_Check_Button btn_udp_cwss_serno {
+        label {CW SS SerNo R}
+        callback {udp_fields.cwss_serno = o->value();}
+        tooltip {CW sweepstakes rcvd ser. no.} xywh {281 262 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.cwss_serno);}
+      }
+      Fl_Check_Button btn_udp_cwss_prec {
+        label {CW SS Prec'}
+        callback {udp_fields.cwss_prec = o->value();}
+        tooltip {CW sweepstakes precedence} xywh {281 283 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.cwss_prec);}
+      }
+      Fl_Check_Button btn_udp_cwss_check {
+        label {CW SS Check}
+        callback {udp_fields.cwss_check = o->value();}
+        xywh {281 305 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.cwss_check);}
+      }
+      Fl_Check_Button btn_udp_cwss_section {
+        label {CW SS Section}
+        callback {udp_fields.cwss_section = o->value();}
+        tooltip {CW sweepstakes section} xywh {281 326 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.cwss_section);}
+      }
+      Fl_Check_Button btn_udp_1010 {
+        label {10-10}
+        callback {udp_fields.ten_ten = o->value();}
+        tooltip {CW sweepstakes section} xywh {281 348 70 15} down_box DOWN_BOX
+        code0 {o->value(udp_fields.ten_ten);}
+      }
+      Fl_Button btnUDPClearAllFields {
+        label {Clear All}
+        callback {btn_udp_Call->value(0);
+btn_udp_Name->value(0);
+btn_udp_Freq->value(0);
+btn_udp_Band->value(0);
+btn_udp_Mode->value(0);
+btn_udp_QSOdateOn->value(0);
+btn_udp_QSOdateOff->value(0);
+btn_udp_TimeON->value(0);
+btn_udp_TimeOFF->value(0);
+btn_udp_TX_pwr->value(0);
+btn_udp_RSTsent->value(0);
+btn_udp_RSTrcvd->value(0);
+btn_udp_Qth->value(0);
+btn_udp_LOC->value(0);
+btn_udp_State->value(0);
+btn_udp_Age->value(0);
+
+btn_udp_StaCall->value(0);
+btn_udp_StaGrid->value(0);
+btn_udp_StaCity->value(0);
+btn_udp_Operator->value(0);
+btn_udp_Province->value(0);
+btn_udp_Country->value(0);
+btn_udp_Notes->value(0);
+btn_udp_QSLrcvd->value(0);
+btn_udp_QSLsent->value(0);
+btn_udp_eQSLrcvd->value(0);
+btn_udp_eQSLsent->value(0);
+btn_udp_LOTWrcvd->value(0);
+btn_udp_LOTWsent->value(0);
+btn_udp_QSL_VIA->value(0);
+btn_udp_SerialIN->value(0);
+btn_udp_SerialOUT->value(0);
+
+btn_udp_Check->value(0);
+btn_udp_XchgIn->value(0);
+btn_udp_MyXchg->value(0);
+btn_udp_CNTY->value(0);
+btn_udp_CONT->value(0);
+btn_udp_CQZ->value(0);
+btn_udp_DXCC->value(0);
+btn_udp_IOTA->value(0);
+btn_udp_ITUZ->value(0);
+btn_udp_Class->value(0);
+btn_udp_Section->value(0);
+btn_udp_cwss_serno->value(0);
+btn_udp_cwss_prec->value(0);
+btn_udp_cwss_section->value(0);
+btn_udp_cwss_check->value(0);
+btn_udp_1010->value(0);}
+        xywh {8 373 85 20}
+      }
+      Fl_Button btnUDPCheckAllFields {
+        label {Check All}
+        callback {btn_udp_Call->value(1);
+btn_udp_Name->value(1);
+btn_udp_Freq->value(1);
+btn_udp_Band->value(1);
+btn_udp_Mode->value(1);
+btn_udp_QSOdateOn->value(1);
+btn_udp_QSOdateOff->value(1);
+btn_udp_TimeON->value(1);
+btn_udp_TimeOFF->value(1);
+btn_udp_TX_pwr->value(1);
+btn_udp_RSTsent->value(1);
+btn_udp_RSTrcvd->value(1);
+btn_udp_Qth->value(1);
+btn_udp_LOC->value(1);
+btn_udp_State->value(1);
+btn_udp_Age->value(1);
+
+btn_udp_StaCall->value(1);
+btn_udp_StaGrid->value(1);
+btn_udp_StaCity->value(1);
+btn_udp_Operator->value(1);
+btn_udp_Province->value(1);
+btn_udp_Country->value(1);
+btn_udp_Notes->value(1);
+btn_udp_QSLrcvd->value(1);
+btn_udp_QSLsent->value(1);
+btn_udp_eQSLrcvd->value(1);
+btn_udp_eQSLsent->value(1);
+btn_udp_LOTWrcvd->value(1);
+btn_udp_LOTWsent->value(1);
+btn_udp_QSL_VIA->value(1);
+btn_udp_SerialIN->value(1);
+btn_udp_SerialOUT->value(1);
+
+btn_udp_Check->value(1);
+btn_udp_XchgIn->value(1);
+btn_udp_MyXchg->value(1);
+btn_udp_CNTY->value(1);
+btn_udp_CONT->value(1);
+btn_udp_CQZ->value(1);
+btn_udp_DXCC->value(1);
+btn_udp_IOTA->value(1);
+btn_udp_ITUZ->value(1);
+btn_udp_Class->value(1);
+btn_udp_Section->value(1);
+btn_udp_cwss_serno->value(1);
+btn_udp_cwss_prec->value(1);
+btn_udp_cwss_check->value(1);
+btn_udp_cwss_section->value(1);
+btn_udp_1010->value(1);}
+        xywh {101 373 85 20}
+      }
+      Fl_Return_Button btnUDPOK {
+        label OK
+        callback {save_udp_prefs();
+wUDPfields->hide();}
+        xywh {308 373 85 20}
+      }
+      Fl_Button btnUDPcancel {
+        label Cancel
+        callback {wUDPfields->hide();}
+        xywh {204 373 85 20}
+      }
+    }
+  }
+  Fl_Window wCLDfields {
+    label {Cloud Log export fields} open
+    xywh {566 318 423 405} type Double visible
+  } {
+    Fl_Group {} {
+      label {Select Fields to Export} open selected
+      xywh {5 5 410 397} box ENGRAVED_FRAME align 21
+    } {
+      Fl_Check_Button btn_cloud_Call {
+        label Call
+        callback {cloud_fields.call = o->value();}
+        xywh {13 26 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(cloud_fields.call);}
+      }
+      Fl_Check_Button btn_cloud_Name {
+        label Name
+        callback {cloud_fields.name = o->value();}
+        xywh {13 47 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(cloud_fields.name);}
+      }
+      Fl_Check_Button btn_cloud_Freq {
+        label Freq
+        callback {cloud_fields.freq = o->value();}
+        xywh {13 68 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(cloud_fields.freq);}
+      }
+      Fl_Check_Button btn_cloud_Band {
+        label Band
+        callback {cloud_fields.band = o->value();}
+        xywh {13 90 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.band);}
+      }
+      Fl_Check_Button btn_cloud_Mode {
+        label Mode
+        callback {cloud_fields.mode = o->value();}
+        xywh {13 111 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(cloud_fields.mode);}
+      }
+      Fl_Check_Button btn_cloud_QSOdateOn {
+        label {QSO Date On}
+        callback {cloud_fields.date_on = o->value();}
+        xywh {13 133 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(cloud_fields.date_on);}
+      }
+      Fl_Check_Button btn_cloud_QSOdateOff {
+        label {QSO Date Off}
+        callback {cloud_fields.date_off = o->value();}
+        xywh {13 154 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(cloud_fields.date_off);}
+      }
+      Fl_Check_Button btn_cloud_TimeON {
+        label {Time ON}
+        callback {cloud_fields.time_on = o->value();}
+        xywh {13 176 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(cloud_fields.time_on);}
+      }
+      Fl_Check_Button btn_cloud_TimeOFF {
+        label {Time OFF}
+        callback {cloud_fields.time_off = o->value();}
+        xywh {13 197 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.time_off);}
+      }
+      Fl_Check_Button btn_cloud_TX_pwr {
+        label {TX Power}
+        callback {cloud_fields.tx_pwr = o->value();}
+        xywh {13 219 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.tx_pwr);}
+      }
+      Fl_Check_Button btn_cloud_RSTsent {
+        label {RST sent}
+        callback {cloud_fields.rst_sent = o->value();}
+        xywh {13 240 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(cloud_fields.rst_sent);}
+      }
+      Fl_Check_Button btn_cloud_RSTrcvd {
+        label {RST rcvd}
+        callback {cloud_fields.rst_rcvd = o->value();}
+        xywh {13 262 70 15} down_box DOWN_BOX value 1
+        code0 {o->value(cloud_fields.rst_rcvd);}
+      }
+      Fl_Check_Button btn_cloud_Qth {
+        label Qth
+        callback {cloud_fields.qth = o->value();}
+        xywh {13 283 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.qth);}
+      }
+      Fl_Check_Button btn_cloud_LOC {
+        label LOC
+        callback {cloud_fields.gridsquare = o->value();}
+        xywh {13 305 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.gridsquare);}
+      }
+      Fl_Check_Button btn_cloud_State {
+        label State
+        callback {cloud_fields.state = o->value();}
+        xywh {13 326 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.state);}
+      }
+      Fl_Check_Button btn_cloud_Age {
+        label Age
+        callback {cloud_fields.age = o->value();}
+        xywh {13 348 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.age);}
+      }
+      Fl_Check_Button btn_cloud_StaCall {
+        label {Station Call}
+        callback {cloud_fields.sta_call = o->value();}
+        xywh {147 26 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.sta_call);}
+      }
+      Fl_Check_Button btn_cloud_StaCity {
+        label {Station QTH}
+        callback {cloud_fields.mycity = o->value();}
+        xywh {147 47 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.mycity);}
+      }
+      Fl_Check_Button btn_cloud_StaGrid {
+        label {Station LOC}
+        callback {cloud_fields.mygrid = o->value();}
+        xywh {147 68 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.mygrid);}
+      }
+      Fl_Check_Button btn_cloud_Operator {
+        label Operator
+        callback {cloud_fields.op_call = o->value();}
+        xywh {147 90 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.op_call);}
+      }
+      Fl_Check_Button btn_cloud_Province {
+        label Province
+        callback {cloud_fields.province = o->value();}
+        xywh {147 111 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.province);}
+      }
+      Fl_Check_Button btn_cloud_Country {
+        label Country
+        callback {cloud_fields.country = o->value();}
+        xywh {147 133 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.country);}
+      }
+      Fl_Check_Button btn_cloud_Notes {
+        label Notes
+        callback {cloud_fields.notes = o->value();}
+        xywh {147 154 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.notes);}
+      }
+      Fl_Check_Button btn_cloud_QSLrcvd {
+        label {QSL rcvd date}
+        callback {cloud_fields.qsl_rcvd = o->value();}
+        xywh {147 176 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.qsl_rcvd);}
+      }
+      Fl_Check_Button btn_cloud_QSLsent {
+        label {QSL sent date}
+        callback {cloud_fields.qsl_sent = o->value();}
+        xywh {147 197 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.qsl_sent);}
+      }
+      Fl_Check_Button btn_cloud_eQSLrcvd {
+        label {eQSL rcvd date}
+        callback {cloud_fields.eqsl_rcvd = o->value();}
+        xywh {147 219 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.eqsl_rcvd);}
+      }
+      Fl_Check_Button btn_cloud_eQSLsent {
+        label {eQSL sent date}
+        callback {cloud_fields.eqsl_sent = o->value();}
+        xywh {147 240 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.eqsl_sent);}
+      }
+      Fl_Check_Button btn_cloud_LOTWrcvd {
+        label {LoTW rcvd date}
+        callback {cloud_fields.lotw_rcvd = o->value();}
+        xywh {147 262 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.lotw_rcvd);}
+      }
+      Fl_Check_Button btn_cloud_LOTWsent {
+        label {LoTW sent date}
+        callback {cloud_fields.lotw_sent = o->value();}
+        xywh {147 283 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.lotw_sent);}
+      }
+      Fl_Check_Button btn_cloud_QSL_VIA {
+        label {QSL-VIA}
+        callback {cloud_fields.qsl_via = o->value();}
+        xywh {147 305 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.qsl_via);}
+      }
+      Fl_Check_Button btn_cloud_SerialIN {
+        label {Serial \# in}
+        callback {cloud_fields.srx = o->value();}
+        xywh {147 326 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.srx);}
+      }
+      Fl_Check_Button btn_cloud_SerialOUT {
+        label {Serial \# out}
+        callback {cloud_fields.stx = o->value();}
+        xywh {147 348 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.stx);}
+      }
+      Fl_Check_Button btn_cloud_Check {
+        label Check
+        callback {cloud_fields.check = o->value();}
+        xywh {281 26 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.check);}
+      }
+      Fl_Check_Button btn_cloud_XchgIn {
+        label {Exchange In}
+        callback {cloud_fields.xchg1 = o->value();}
+        xywh {281 47 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.xchg1);}
+      }
+      Fl_Check_Button btn_cloud_MyXchg {
+        label {Exchange Out}
+        callback {cloud_fields.myxchg = o->value();}
+        xywh {281 68 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.myxchg);}
+      }
+      Fl_Check_Button btn_cloud_CNTY {
+        label County
+        callback {cloud_fields.county = o->value();}
+        xywh {281 90 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.county);}
+      }
+      Fl_Check_Button btn_cloud_CONT {
+        label Continent
+        callback {cloud_fields.continent = o->value();}
+        xywh {281 111 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.continent);}
+      }
+      Fl_Check_Button btn_cloud_CQZ {
+        label CQZ
+        callback {cloud_fields.cqz = o->value();}
+        xywh {281 133 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.cqz);}
+      }
+      Fl_Check_Button btn_cloud_DXCC {
+        label DXCC
+        callback {cloud_fields.dxcc = o->value();}
+        xywh {281 154 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.dxcc);}
+      }
+      Fl_Check_Button btn_cloud_IOTA {
+        label IOTA
+        callback {cloud_fields.iota = o->value();}
+        xywh {281 176 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.iota);}
+      }
+      Fl_Check_Button btn_cloud_ITUZ {
+        label ITUZ
+        callback {cloud_fields.ituz = o->value();}
+        xywh {281 197 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.ituz);}
+      }
+      Fl_Check_Button btn_cloud_Class {
+        label {FD class}
+        callback {cloud_fields.arrl_class = o->value();}
+        xywh {281 219 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.arrl_class);}
+      }
+      Fl_Check_Button btn_cloud_Section {
+        label {FD section}
+        callback {cloud_fields.arrl_sect = o->value();}
+        xywh {281 240 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.arrl_sect);}
+      }
+      Fl_Check_Button btn_cloud_cwss_serno {
+        label {CW SS SerNo R}
+        callback {cloud_fields.cwss_serno = o->value();}
+        tooltip {CW sweepstakes rcvd ser. no.} xywh {281 262 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.cwss_serno);}
+      }
+      Fl_Check_Button btn_cloud_cwss_prec {
+        label {CW SS Prec'}
+        callback {cloud_fields.cwss_prec = o->value();}
+        tooltip {CW sweepstakes precedence} xywh {281 283 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.cwss_prec);}
+      }
+      Fl_Check_Button btn_cloud_cwss_check {
+        label {CW SS Check}
+        callback {cloud_fields.cwss_check = o->value();}
+        xywh {281 305 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.cwss_check);}
+      }
+      Fl_Check_Button btn_cloud_cwss_section {
+        label {CW SS Section}
+        callback {cloud_fields.cwss_section = o->value();}
+        tooltip {CW sweepstakes section} xywh {281 326 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.cwss_section);}
+      }
+      Fl_Check_Button btn_cloud_1010 {
+        label {10-10}
+        callback {cloud_fields.ten_ten = o->value();}
+        tooltip {CW sweepstakes section} xywh {281 348 70 15} down_box DOWN_BOX
+        code0 {o->value(cloud_fields.ten_ten);}
+      }
+      Fl_Button btnCLDClearAllFields {
+        label {Clear All}
+        callback {btn_cloud_Call->value(0);
+btn_cloud_Name->value(0);
+btn_cloud_Freq->value(0);
+btn_cloud_Band->value(0);
+btn_cloud_Mode->value(0);
+btn_cloud_QSOdateOn->value(0);
+btn_cloud_QSOdateOff->value(0);
+btn_cloud_TimeON->value(0);
+btn_cloud_TimeOFF->value(0);
+btn_cloud_TX_pwr->value(0);
+btn_cloud_RSTsent->value(0);
+btn_cloud_RSTrcvd->value(0);
+btn_cloud_Qth->value(0);
+btn_cloud_LOC->value(0);
+btn_cloud_State->value(0);
+btn_cloud_Age->value(0);
+
+btn_cloud_StaCall->value(0);
+btn_cloud_StaGrid->value(0);
+btn_cloud_StaCity->value(0);
+btn_cloud_Operator->value(0);
+btn_cloud_Province->value(0);
+btn_cloud_Country->value(0);
+btn_cloud_Notes->value(0);
+btn_cloud_QSLrcvd->value(0);
+btn_cloud_QSLsent->value(0);
+btn_cloud_eQSLrcvd->value(0);
+btn_cloud_eQSLsent->value(0);
+btn_cloud_LOTWrcvd->value(0);
+btn_cloud_LOTWsent->value(0);
+btn_cloud_QSL_VIA->value(0);
+btn_cloud_SerialIN->value(0);
+btn_cloud_SerialOUT->value(0);
+
+btn_cloud_Check->value(0);
+btn_cloud_XchgIn->value(0);
+btn_cloud_MyXchg->value(0);
+btn_cloud_CNTY->value(0);
+btn_cloud_CONT->value(0);
+btn_cloud_CQZ->value(0);
+btn_cloud_DXCC->value(0);
+btn_cloud_IOTA->value(0);
+btn_cloud_ITUZ->value(0);
+btn_cloud_Class->value(0);
+btn_cloud_Section->value(0);
+btn_cloud_cwss_serno->value(0);
+btn_cloud_cwss_prec->value(0);
+btn_cloud_cwss_section->value(0);
+btn_cloud_cwss_check->value(0);
+btn_cloud_1010->value(0);}
+        xywh {8 373 85 20}
+      }
+      Fl_Button btnCLDCheckAllFields {
+        label {Check All}
+        callback {btn_cloud_Call->value(1);
+btn_cloud_Name->value(1);
+btn_cloud_Freq->value(1);
+btn_cloud_Band->value(1);
+btn_cloud_Mode->value(1);
+btn_cloud_QSOdateOn->value(1);
+btn_cloud_QSOdateOff->value(1);
+btn_cloud_TimeON->value(1);
+btn_cloud_TimeOFF->value(1);
+btn_cloud_TX_pwr->value(1);
+btn_cloud_RSTsent->value(1);
+btn_cloud_RSTrcvd->value(1);
+btn_cloud_Qth->value(1);
+btn_cloud_LOC->value(1);
+btn_cloud_State->value(1);
+btn_cloud_Age->value(1);
+
+btn_cloud_StaCall->value(1);
+btn_cloud_StaGrid->value(1);
+btn_cloud_StaCity->value(1);
+btn_cloud_Operator->value(1);
+btn_cloud_Province->value(1);
+btn_cloud_Country->value(1);
+btn_cloud_Notes->value(1);
+btn_cloud_QSLrcvd->value(1);
+btn_cloud_QSLsent->value(1);
+btn_cloud_eQSLrcvd->value(1);
+btn_cloud_eQSLsent->value(1);
+btn_cloud_LOTWrcvd->value(1);
+btn_cloud_LOTWsent->value(1);
+btn_cloud_QSL_VIA->value(1);
+btn_cloud_SerialIN->value(1);
+btn_cloud_SerialOUT->value(1);
+
+btn_cloud_Check->value(1);
+btn_cloud_XchgIn->value(1);
+btn_cloud_MyXchg->value(1);
+btn_cloud_CNTY->value(1);
+btn_cloud_CONT->value(1);
+btn_cloud_CQZ->value(1);
+btn_cloud_DXCC->value(1);
+btn_cloud_IOTA->value(1);
+btn_cloud_ITUZ->value(1);
+btn_cloud_Class->value(1);
+btn_cloud_Section->value(1);
+btn_cloud_cwss_serno->value(1);
+btn_cloud_cwss_prec->value(1);
+btn_cloud_cwss_check->value(1);
+btn_cloud_cwss_section->value(1);
+btn_cloud_1010->value(1);}
+        xywh {101 373 85 20}
+      }
+      Fl_Return_Button btnCLDOK {
+        label OK
+        callback {save_cloud_prefs();
+wCLDfields->hide();}
+        xywh {308 373 85 20}
+      }
+      Fl_Button btnCLDcancel {
+        label Cancel
+        callback {wCLDfields->hide();}
+        xywh {204 373 85 20}
       }
     }
   }

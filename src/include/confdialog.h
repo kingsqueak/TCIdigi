@@ -290,6 +290,11 @@ extern Fl_Input2 *txt_cloudlog_api_key;
 #include <FL/Fl_Spinner.H>
 extern Fl_Spinner *sp_cloudlog_station_id;
 extern Fl_Button *btnTestApiKey;
+extern Fl_Button *btnCLOUDselect;
+extern Fl_Input2 *txt_udp_address;
+extern Fl_Input2 *txt_udp_port;
+extern Fl_Check_Button *btn_enable_udp_logging;
+extern Fl_Button *btnUDPselect;
 extern Fl_Check_Button *btnNagMe;
 extern Fl_Check_Button *btnClearOnSave;
 extern Fl_Check_Button *btnCallUpperCase;

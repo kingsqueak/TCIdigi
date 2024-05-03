@@ -32,6 +32,8 @@
 #include <fstream>
 #include <vector>
 
+#include <FL/Fl_Preferences.H>
+
 #include "icons.h"
 #include "logger.h"
 #include "lgbook.h"
@@ -55,6 +57,8 @@
 #include "lookupcall.h"
 #include "fd_logger.h"
 
+#include "socket.h"
+
 #include "n3fjp_logger.h"
 
 #include "dx_cluster.h"
@@ -63,12 +67,20 @@
 
 #include <FL/fl_ask.H>
 
-//---------------------------------------------------------------------
+//======================================================================
 const char *logmode;
 
 static std::string log_msg;
 static std::string errmsg;
 static std::string notes;
+//======================================================================
+
+std::string comma2period(std::string in)
+{
+	for (size_t n = 0; n < in.length(); n++)
+		if (in[n] == ',') in[n] = '.';
+	return in;
+}
 
 //======================================================================
 // LoTW
@@ -79,16 +91,6 @@ static std::string lotw_log_fname;
 static int tracefile_timeout = 0;
 
 std::string str_lotw;
-//======================================================================
-// eQSL
-void submit_eQSL(cQsoRec &rec, std::string msg);
-//======================================================================
-
-//======================================================================
-// Cloudlog
-void submit_cloudlog(cQsoRec &rec);
-//======================================================================
-//
 static std::string adif;
 
 void writeADIF () {
@@ -294,7 +296,7 @@ std::string lotw_rec(cQsoRec &rec)
 
 	temp = rec.getField(FREQ);
 	temp.resize(7);
-	putadif(FREQ, temp.c_str(), strrec);
+	putadif(FREQ, comma2period(temp).c_str(), strrec);
 
 	putadif(QSO_DATE, rec.getField(QSO_DATE), strrec);
 
@@ -332,7 +334,7 @@ void submit_ADIF(cQsoRec &rec)
 	putadif(QSO_DATE_OFF, rec.getField(QSO_DATE_OFF));
 	putadif(TIME_OFF, rec.getField(TIME_OFF));
 	putadif(CALL, rec.getField(CALL));
-	putadif(FREQ, rec.getField(FREQ));
+	putadif(FREQ, comma2period(rec.getField(FREQ)).c_str());
 	putadif(ADIF_MODE, adif2export(rec.getField(ADIF_MODE)).c_str());
 
 	std::string sm = adif2submode(rec.getField(ADIF_MODE));
@@ -458,6 +460,8 @@ void submit_record(cQsoRec &rec)
 		submit_eQSL(rec, "");
 	if (progdefaults.EnCloudlog)
 		submit_cloudlog(rec);
+	if (progdefaults.enable_udp_logging)
+		post_udp_log(rec);
 	n3fjp_add_record(rec);
 }
 
@@ -692,7 +696,7 @@ void submit_eQSL(cQsoRec &rec, std::string msg)
 
 	tempstr = rec.getField(FREQ);
 	tempstr.resize(7);
-	putadif(FREQ, tempstr.c_str(), eQSL_data);
+	putadif(FREQ, comma2period(tempstr).c_str(), eQSL_data);
 	putadif(BAND, rec.getField(BAND), eQSL_data);
 	putadif(QSO_DATE, sDate_on.c_str(), eQSL_data);
 	tempstr = rec.getField(TIME_ON);
@@ -796,46 +800,751 @@ void makeEQSL(const char *message)
 
 }
 
+//----------------------------------------------------------------------
+// Cloud Log export
+//----------------------------------------------------------------------
+
+EXPORT_LOG_FIELDS cloud_fields;
+
 void submit_cloudlog(cQsoRec &rec)
 {
 	std::string cloudlog_data;
 	std::string tempstr;
-	cloudlog_data = "";
-	putadif(CALL, rec.getField(CALL), cloudlog_data);
-	putadif(ADIF_MODE, adif2export(rec.getField(ADIF_MODE)).c_str(), cloudlog_data);
 
-	std::string sm = adif2submode(rec.getField(ADIF_MODE));
-	if (!sm.empty())
-		putadif(SUBMODE, sm.c_str(), cloudlog_data);
+	cloudlog_data.clear();
 
-	tempstr = rec.getField(FREQ);
-	tempstr.resize(7);
-	size_t p = 0;
-	if ((p = tempstr.find(",")) != std::string::npos)
-		tempstr.replace(p, 1, ".");
-	putadif(FREQ, tempstr.c_str(), cloudlog_data);
-	putadif(BAND, rec.getField(BAND), cloudlog_data);
-	putadif(QSO_DATE, sDate_on.c_str(), cloudlog_data);
-	tempstr = rec.getField(TIME_ON);
-	if (tempstr.length() > 4) tempstr.erase(4);
-	putadif(TIME_ON, tempstr.c_str(), cloudlog_data);
-	putadif(QSO_DATE_OFF, rec.getField(QSO_DATE_OFF), cloudlog_data);
-	putadif(TIME_OFF, rec.getField(TIME_OFF), cloudlog_data);
-	putadif(GRIDSQUARE, rec.getField(GRIDSQUARE), cloudlog_data);
-	putadif(NAME, rec.getField(NAME), cloudlog_data);
-	putadif(QTH, rec.getField(QTH), cloudlog_data);
-	putadif(STATE, rec.getField(STATE), cloudlog_data);
-	putadif(VE_PROV, rec.getField(VE_PROV), cloudlog_data);
-	putadif(COUNTRY, rec.getField(COUNTRY), cloudlog_data);
-	putadif(RST_SENT, rec.getField(RST_SENT), cloudlog_data);
-	putadif(RST_RCVD, rec.getField(RST_RCVD), cloudlog_data);
-	putadif(STX, rec.getField(STX), cloudlog_data);
-	putadif(SRX, rec.getField(SRX), cloudlog_data);
+	if (cloud_fields.call)
+		putadif(CALL, rec.getField(CALL), cloudlog_data);
+
+	if (cloud_fields.mode) {
+		putadif(ADIF_MODE, adif2export(rec.getField(ADIF_MODE)).c_str(), cloudlog_data);
+
+		std::string sm = adif2submode(rec.getField(ADIF_MODE));
+		if (!sm.empty())
+			putadif(SUBMODE, sm.c_str(), cloudlog_data);
+	}
+
+	if (cloud_fields.freq)
+		putadif(FREQ, comma2period(rec.getField(FREQ)).c_str(), cloudlog_data);
+
+	if (cloud_fields.band)
+		putadif(BAND, rec.getField(BAND), cloudlog_data);
+
+	if (cloud_fields.date_on)
+		putadif(QSO_DATE, sDate_on.c_str(), cloudlog_data);
+
+	if (cloud_fields.time_on) {
+		tempstr = rec.getField(TIME_ON);
+		if (tempstr.length() > 4) tempstr.erase(4);
+		putadif(TIME_ON, tempstr.c_str(), cloudlog_data);
+	}
+
+	if (cloud_fields.date_off)
+		putadif(QSO_DATE_OFF, rec.getField(QSO_DATE_OFF), cloudlog_data);
+
+	if (cloud_fields.time_off) {
+		tempstr = rec.getField(TIME_ON);
+		if (tempstr.length() > 4) tempstr.erase(4);
+		putadif(TIME_OFF, tempstr.c_str(), cloudlog_data);
+	}
+
+	if (cloud_fields.name)
+		putadif(NAME, rec.getField(NAME), cloudlog_data);
+
+	if (cloud_fields.qth)
+		putadif(QTH, rec.getField(QTH), cloudlog_data);
+
+	if (cloud_fields.state)
+		putadif(STATE, rec.getField(STATE), cloudlog_data);
+
+	if (cloud_fields.province)
+		putadif(VE_PROV, rec.getField(VE_PROV), cloudlog_data);
+
+	if (cloud_fields.country)
+		putadif(COUNTRY, rec.getField(COUNTRY), cloudlog_data);
+
+	if (cloud_fields.rst_sent)
+		putadif(RST_SENT, rec.getField(RST_SENT), cloudlog_data);
+
+	if (cloud_fields.rst_rcvd)
+		putadif(RST_RCVD, rec.getField(RST_RCVD), cloudlog_data);
+
+	if (cloud_fields.tx_pwr)
+		putadif(TX_PWR, rec.getField(TX_PWR), cloudlog_data);
+
+	if (cloud_fields.county)
+		putadif(CNTY, rec.getField(CNTY), cloudlog_data);
+
+	if (cloud_fields.dxcc)
+		putadif( DXCC, rec.getField(DXCC), cloudlog_data);
+
+	if (cloud_fields.cqz)
+		putadif(CQZ, rec.getField(CQZ), cloudlog_data);
+
+	if (cloud_fields.iota)
+		putadif(IOTA, rec.getField(IOTA), cloudlog_data);
+
+	if (cloud_fields.continent)
+		putadif(CONT, rec.getField(CONT), cloudlog_data);
+
+	if (cloud_fields.ituz)
+		putadif(ITUZ, rec.getField(ITUZ), cloudlog_data);
+
+	if (cloud_fields.gridsquare)
+		putadif(GRIDSQUARE, rec.getField(GRIDSQUARE), cloudlog_data);
+
+	if (cloud_fields.qsl_rcvd)
+		putadif(QSLRDATE, rec.getField(QSLRDATE), cloudlog_data);
+
+	if (cloud_fields.qsl_sent)
+		putadif(QSLSDATE, rec.getField(QSLSDATE), cloudlog_data);
+
+	if (cloud_fields.eqsl_rcvd)
+		putadif(EQSLRDATE, rec.getField(EQSLRDATE), cloudlog_data);
+
+	if (cloud_fields.eqsl_sent)
+		putadif(EQSLSDATE, rec.getField(EQSLSDATE), cloudlog_data);
+
+	if (cloud_fields.lotw_rcvd)
+		putadif(LOTWRDATE, rec.getField(LOTWRDATE), cloudlog_data);
+
+	if (cloud_fields.lotw_sent)
+		putadif(LOTWSDATE, rec.getField(LOTWSDATE), cloudlog_data);
+
+	if (cloud_fields.qsl_via)
+		putadif(QSL_VIA, rec.getField(QSL_VIA), cloudlog_data);
+
+	if (cloud_fields.notes) {
+		std::string temp = rec.getField(NOTES);
+		for (size_t n = 0; n < temp.length(); n++)
+			if (temp[n] == '\n') temp[n] = ';';
+		putadif(NOTES, temp.c_str(), cloudlog_data);
+	}
+
+	if (cloud_fields.srx)
+		putadif(SRX, rec.getField(SRX), cloudlog_data);
+
+	if (cloud_fields.stx)
+		putadif(STX, rec.getField(STX), cloudlog_data);
+
+	if (cloud_fields.xchg1)
+		putadif(XCHG1, rec.getField(XCHG1), cloudlog_data);
+
+	if (cloud_fields.myxchg)
+		putadif(MYXCHG, rec.getField(MYXCHG), cloudlog_data);
+
+	if (cloud_fields.arrl_class)
+		putadif(CLASS, rec.getField(CLASS), cloudlog_data);
+
+	if (cloud_fields.arrl_sect)
+		putadif(ARRL_SECT, rec.getField(ARRL_SECT), cloudlog_data);
+
+	if (cloud_fields.op_call)
+		putadif(OP_CALL, rec.getField(OP_CALL), cloudlog_data);
+
+	if (cloud_fields.sta_call)
+		putadif(STA_CALL, rec.getField(STA_CALL), cloudlog_data);
+
+	if (cloud_fields.mygrid)
+		putadif(MY_GRID, rec.getField(MY_GRID), cloudlog_data);
+
+	if (cloud_fields.mycity)
+		putadif(MY_CITY, rec.getField(MY_CITY), cloudlog_data);
+
+	if (cloud_fields.check)
+		putadif(CHECK, rec.getField(CHECK), cloudlog_data);
+
+	if (cloud_fields.age)
+		putadif(AGE, rec.getField(AGE), cloudlog_data);
+
+	if (cloud_fields.ten_ten)
+		putadif(TEN_TEN, rec.getField(TEN_TEN), cloudlog_data);
+
+	if (cloud_fields.cwss_check)
+		putadif(SS_CHK, rec.getField(SS_CHK), cloudlog_data);
+
+	if (cloud_fields.cwss_serno)
+		putadif(SS_SERNO, rec.getField(SS_SERNO), cloudlog_data);
+
+	if (cloud_fields.cwss_prec)
+		putadif(SS_PREC, rec.getField(SS_PREC), cloudlog_data);
+
+	if (cloud_fields.cwss_section)
+		putadif(SS_SEC, rec.getField(SS_SEC), cloudlog_data);
+
 	cloudlog_data.append("<EOR>");
+
 	tempstr.clear();
 	std::string cloudlogUrl    = progdefaults.cloudlog_api_url;
 	cloudlogUrl                = cloudlogUrl + "/index.php/api/qso";
 	std::string cloudlogApiKey = progdefaults.cloudlog_api_key;
 	int cloudlogStationId      = progdefaults.cloudlog_station_id;
 	post_http(cloudlogUrl.c_str(), cloudlogApiKey.c_str(), cloudlogStationId, cloudlog_data.c_str(), EQSL_xmlpage, 5.0);
+}
+
+static int cld_first_use = 1;
+
+void save_cloud_prefs()
+{
+	cloud_fields.name         = btn_cloud_Name->value();
+	cloud_fields.freq         = btn_cloud_Freq->value();
+	cloud_fields.band         = btn_cloud_Band->value();
+	cloud_fields.mode         = btn_cloud_Mode->value();
+	cloud_fields.date_on      = btn_cloud_QSOdateOn->value();
+	cloud_fields.date_off     = btn_cloud_QSOdateOff->value();
+	cloud_fields.time_on      = btn_cloud_TimeON->value();
+	cloud_fields.time_off     = btn_cloud_TimeOFF->value();
+	cloud_fields.tx_pwr       = btn_cloud_TX_pwr->value();
+	cloud_fields.rst_sent     = btn_cloud_RSTsent->value();
+	cloud_fields.rst_rcvd     = btn_cloud_RSTrcvd->value();
+	cloud_fields.qth          = btn_cloud_Qth->value();
+	cloud_fields.gridsquare   = btn_cloud_LOC->value();
+	cloud_fields.state        = btn_cloud_State->value();
+	cloud_fields.age          = btn_cloud_Age->value();
+
+	cloud_fields.sta_call     = btn_cloud_StaCall->value();
+	cloud_fields.mygrid       = btn_cloud_StaGrid->value();
+	cloud_fields.mycity       = btn_cloud_StaCity->value();
+	cloud_fields.op_call      = btn_cloud_Operator->value();
+	cloud_fields.province     = btn_cloud_Province->value();
+	cloud_fields.country      = btn_cloud_Country->value();
+	cloud_fields.notes        = btn_cloud_Notes->value();
+	cloud_fields.qsl_rcvd     = btn_cloud_QSLrcvd->value();
+	cloud_fields.qsl_sent     = btn_cloud_QSLsent->value();
+	cloud_fields.eqsl_rcvd    = btn_cloud_eQSLrcvd->value();
+	cloud_fields.eqsl_sent    = btn_cloud_eQSLsent->value();
+	cloud_fields.lotw_rcvd    = btn_cloud_LOTWrcvd->value();
+	cloud_fields.lotw_sent    = btn_cloud_LOTWsent->value();
+	cloud_fields.qsl_via      = btn_cloud_QSL_VIA->value();
+	cloud_fields.srx          = btn_cloud_SerialIN->value();
+	cloud_fields.stx          = btn_cloud_SerialOUT->value();
+
+	cloud_fields.check        = btn_cloud_Check->value();
+	cloud_fields.xchg1        = btn_cloud_XchgIn->value();
+	cloud_fields.myxchg       = btn_cloud_MyXchg->value();
+	cloud_fields.county       = btn_cloud_CNTY->value();
+	cloud_fields.continent    = btn_cloud_CONT->value();
+	cloud_fields.cqz          = btn_cloud_CQZ->value();
+	cloud_fields.dxcc         = btn_cloud_DXCC->value();
+	cloud_fields.iota         = btn_cloud_IOTA->value();
+	cloud_fields.ituz         = btn_cloud_ITUZ->value();
+	cloud_fields.arrl_class   = btn_cloud_Class->value();
+	cloud_fields.arrl_sect    = btn_cloud_Section->value();
+	cloud_fields.cwss_serno   = btn_cloud_cwss_serno->value();
+	cloud_fields.cwss_prec    = btn_cloud_cwss_prec->value();
+	cloud_fields.cwss_check   = btn_cloud_cwss_check->value();
+	cloud_fields.cwss_section = btn_cloud_cwss_section->value();
+	cloud_fields.ten_ten      = btn_cloud_1010->value();
+
+	std::string pref;
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "cloud_fields");
+
+	spref.set("cld_first_use", 0);
+
+	spref.set("call", cloud_fields.call);
+	spref.set("mode", cloud_fields.mode);
+	spref.set("freq", cloud_fields.freq);
+	spref.set("band", cloud_fields.band);
+	spref.set("date_on", cloud_fields.date_on);
+	spref.set("time_on", cloud_fields.time_on);
+	spref.set("date_off", cloud_fields.date_off);
+	spref.set("time_off", cloud_fields.time_off);
+	spref.set("name", cloud_fields.name);
+	spref.set("qth", cloud_fields.qth);
+	spref.set("state", cloud_fields.state);
+	spref.set("province", cloud_fields.province);
+	spref.set("country", cloud_fields.country);
+	spref.set("rst_sent", cloud_fields.rst_sent);
+	spref.set("rst_rcvd", cloud_fields.rst_rcvd);
+	spref.set("tx_pwr", cloud_fields.tx_pwr);
+	spref.set("county", cloud_fields.country);
+	spref.set("dxcc", cloud_fields.dxcc);
+	spref.set("cqz", cloud_fields.cqz);
+	spref.set("iota", cloud_fields.iota);
+	spref.set("continent", cloud_fields.continent);
+	spref.set("ituz", cloud_fields.ituz);
+	spref.set("gridsquare", cloud_fields.gridsquare);
+	spref.set("qsl_rcvd", cloud_fields.qsl_rcvd);
+	spref.set("qsl_sent", cloud_fields.qsl_sent);
+	spref.set("eqsl_rcvd", cloud_fields.eqsl_rcvd);
+	spref.set("eqsl_sent", cloud_fields.eqsl_sent);
+	spref.set("lotw_rcvd", cloud_fields.lotw_rcvd);
+	spref.set("lotw_sent", cloud_fields.lotw_sent);
+	spref.set("qsl_via", cloud_fields.qsl_via);
+	spref.set("notes", cloud_fields.notes);
+	spref.set("srx", cloud_fields.srx);
+	spref.set("stx", cloud_fields.stx);
+	spref.set("xchg1", cloud_fields.xchg1);
+	spref.set("myxchg", cloud_fields.myxchg);
+	spref.set("arrl_class", cloud_fields.arrl_class);
+	spref.set("arrl_sect", cloud_fields.arrl_sect);
+	spref.set("op_call", cloud_fields.op_call);
+	spref.set("sta_call", cloud_fields.sta_call);
+	spref.set("mygrid", cloud_fields.mygrid);
+	spref.set("mycity", cloud_fields.mycity);
+	spref.set("check", cloud_fields.check);
+	spref.set("age", cloud_fields.age);
+	spref.set("ten_ten", cloud_fields.ten_ten);
+	spref.set("cwss_serno", cloud_fields.cwss_serno);
+	spref.set("cwss_prec", cloud_fields.cwss_prec);
+	spref.set("cwss_check", cloud_fields.cwss_check);
+	spref.set("cwss_section", cloud_fields.cwss_section);
+
+}
+
+void load_cloud_prefs()
+{
+	std::string pref;
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "cloud_fields");
+
+	spref.get("cld_first_use", cld_first_use, cld_first_use);
+	if (cld_first_use)
+		return;
+
+	spref.get("call", cloud_fields.call, cloud_fields.call);
+	spref.get("mode", cloud_fields.mode, cloud_fields.mode);
+	spref.get("freq", cloud_fields.freq, cloud_fields.freq);
+	spref.get("band", cloud_fields.band, cloud_fields.band);
+	spref.get("date_on", cloud_fields.date_on, cloud_fields.date_on);
+	spref.get("time_on", cloud_fields.time_on, cloud_fields.time_on);
+	spref.get("date_off", cloud_fields.date_off, cloud_fields.date_off);
+	spref.get("time_off", cloud_fields.time_off, cloud_fields.time_off);
+	spref.get("name", cloud_fields.name, cloud_fields.name);
+	spref.get("qth", cloud_fields.qth, cloud_fields.qth);
+	spref.get("state", cloud_fields.state, cloud_fields.state);
+	spref.get("province", cloud_fields.province, cloud_fields.province);
+	spref.get("country", cloud_fields.country, cloud_fields.country);
+	spref.get("rst_sent", cloud_fields.rst_sent, cloud_fields.rst_sent);
+	spref.get("rst_rcvd", cloud_fields.rst_rcvd, cloud_fields.rst_rcvd);
+	spref.get("tx_pwr", cloud_fields.tx_pwr, cloud_fields.tx_pwr);
+	spref.get("county", cloud_fields.country, cloud_fields.country);
+	spref.get("dxcc", cloud_fields.dxcc, cloud_fields.dxcc);
+	spref.get("cqz", cloud_fields.cqz, cloud_fields.cqz);
+	spref.get("iota", cloud_fields.iota, cloud_fields.iota);
+	spref.get("continent", cloud_fields.continent, cloud_fields.continent);
+	spref.get("ituz", cloud_fields.ituz, cloud_fields.ituz);
+	spref.get("gridsquare", cloud_fields.gridsquare, cloud_fields.gridsquare);
+	spref.get("qsl_rcvd", cloud_fields.qsl_rcvd, cloud_fields.qsl_rcvd);
+	spref.get("qsl_sent", cloud_fields.qsl_sent, cloud_fields.qsl_sent);
+	spref.get("eqsl_rcvd", cloud_fields.eqsl_rcvd, cloud_fields.eqsl_rcvd);
+	spref.get("eqsl_sent", cloud_fields.eqsl_sent, cloud_fields.eqsl_sent);
+	spref.get("lotw_rcvd", cloud_fields.lotw_rcvd, cloud_fields.lotw_rcvd);
+	spref.get("lotw_sent", cloud_fields.lotw_sent, cloud_fields.lotw_sent);
+	spref.get("qsl_via", cloud_fields.qsl_via, cloud_fields.qsl_via);
+	spref.get("notes", cloud_fields.notes, cloud_fields.notes);
+	spref.get("srx", cloud_fields.srx, cloud_fields.srx);
+	spref.get("stx", cloud_fields.stx, cloud_fields.stx);
+	spref.get("xchg1", cloud_fields.xchg1, cloud_fields.xchg1);
+	spref.get("myxchg", cloud_fields.myxchg, cloud_fields.myxchg);
+	spref.get("arrl_class", cloud_fields.arrl_class, cloud_fields.arrl_class);
+	spref.get("arrl_sect", cloud_fields.arrl_sect, cloud_fields.arrl_sect);
+	spref.get("op_call", cloud_fields.op_call, cloud_fields.op_call);
+	spref.get("sta_call", cloud_fields.sta_call, cloud_fields.sta_call);
+	spref.get("mygrid", cloud_fields.mygrid, cloud_fields.mygrid);
+	spref.get("mycity", cloud_fields.mycity, cloud_fields.mycity);
+	spref.get("check", cloud_fields.check, cloud_fields.check);
+	spref.get("age", cloud_fields.age, cloud_fields.age);
+	spref.get("ten_ten", cloud_fields.ten_ten, cloud_fields.ten_ten);
+	spref.get("cwss_serno", cloud_fields.cwss_serno, cloud_fields.cwss_serno);
+	spref.get("cwss_prec", cloud_fields.cwss_prec, cloud_fields.cwss_prec);
+	spref.get("cwss_check", cloud_fields.cwss_check, cloud_fields.cwss_check);
+	spref.get("cwss_section", cloud_fields.cwss_section, cloud_fields.cwss_section);
+
+}
+
+//----------------------------------------------------------------------
+// UDP log export
+//----------------------------------------------------------------------
+
+EXPORT_LOG_FIELDS udp_fields;
+
+void post_udp_log(cQsoRec &rec)
+{
+	std::string udp_data;
+	std::string tempstr;
+
+	udp_data.clear();
+
+	if (udp_fields.call)
+		putadif(CALL, rec.getField(CALL), udp_data);
+
+	if (udp_fields.mode) {
+		putadif(ADIF_MODE, adif2export(rec.getField(ADIF_MODE)).c_str(), udp_data);
+
+		std::string sm = adif2submode(rec.getField(ADIF_MODE));
+		if (!sm.empty())
+			putadif(SUBMODE, sm.c_str(), udp_data);
+	}
+
+	if (udp_fields.freq)
+		putadif(FREQ, comma2period(rec.getField(FREQ)).c_str(), udp_data);
+
+	if (udp_fields.band)
+		putadif(BAND, rec.getField(BAND), udp_data);
+
+	if (udp_fields.date_on)
+		putadif(QSO_DATE, sDate_on.c_str(), udp_data);
+
+	if (udp_fields.time_on) {
+		tempstr = rec.getField(TIME_ON);
+		if (tempstr.length() > 4) tempstr.erase(4);
+		putadif(TIME_ON, tempstr.c_str(), udp_data);
+	}
+
+	if (udp_fields.date_off)
+		putadif(QSO_DATE_OFF, rec.getField(QSO_DATE_OFF), udp_data);
+
+	if (udp_fields.time_off) {
+		tempstr = rec.getField(TIME_ON);
+		if (tempstr.length() > 4) tempstr.erase(4);
+		putadif(TIME_OFF, tempstr.c_str(), udp_data);
+	}
+
+	if (udp_fields.name)
+		putadif(NAME, rec.getField(NAME), udp_data);
+
+	if (udp_fields.qth)
+		putadif(QTH, rec.getField(QTH), udp_data);
+
+	if (udp_fields.state)
+		putadif(STATE, rec.getField(STATE), udp_data);
+
+	if (udp_fields.province)
+		putadif(VE_PROV, rec.getField(VE_PROV), udp_data);
+
+	if (udp_fields.country)
+		putadif(COUNTRY, rec.getField(COUNTRY), udp_data);
+
+	if (udp_fields.rst_sent)
+		putadif(RST_SENT, rec.getField(RST_SENT), udp_data);
+
+	if (udp_fields.rst_rcvd)
+		putadif(RST_RCVD, rec.getField(RST_RCVD), udp_data);
+
+	if (udp_fields.tx_pwr)
+		putadif(TX_PWR, rec.getField(TX_PWR), udp_data);
+
+	if (udp_fields.county)
+		putadif(CNTY, rec.getField(CNTY), udp_data);
+
+	if (udp_fields.dxcc)
+		putadif( DXCC, rec.getField(DXCC), udp_data);
+
+	if (udp_fields.cqz)
+		putadif(CQZ, rec.getField(CQZ), udp_data);
+
+	if (udp_fields.iota)
+		putadif(IOTA, rec.getField(IOTA), udp_data);
+
+	if (udp_fields.continent)
+		putadif(CONT, rec.getField(CONT), udp_data);
+
+	if (udp_fields.ituz)
+		putadif(ITUZ, rec.getField(ITUZ), udp_data);
+
+	if (udp_fields.gridsquare)
+		putadif(GRIDSQUARE, rec.getField(GRIDSQUARE), udp_data);
+
+	if (udp_fields.qsl_rcvd)
+		putadif(QSLRDATE, rec.getField(QSLRDATE), udp_data);
+
+	if (udp_fields.qsl_sent)
+		putadif(QSLSDATE, rec.getField(QSLSDATE), udp_data);
+
+	if (udp_fields.eqsl_rcvd)
+		putadif(EQSLRDATE, rec.getField(EQSLRDATE), udp_data);
+
+	if (udp_fields.eqsl_sent)
+		putadif(EQSLSDATE, rec.getField(EQSLSDATE), udp_data);
+
+	if (udp_fields.lotw_rcvd)
+		putadif(LOTWRDATE, rec.getField(LOTWRDATE), udp_data);
+
+	if (udp_fields.lotw_sent)
+		putadif(LOTWSDATE, rec.getField(LOTWSDATE), udp_data);
+
+	if (udp_fields.qsl_via)
+		putadif(QSL_VIA, rec.getField(QSL_VIA), udp_data);
+
+	if (udp_fields.notes) {
+		std::string temp = rec.getField(NOTES);
+		for (size_t n = 0; n < temp.length(); n++)
+			if (temp[n] == '\n') temp[n] = ';';
+		putadif(NOTES, temp.c_str(), udp_data);
+	}
+
+	if (udp_fields.srx)
+		putadif(SRX, rec.getField(SRX), udp_data);
+
+	if (udp_fields.stx)
+		putadif(STX, rec.getField(STX), udp_data);
+
+	if (udp_fields.xchg1)
+		putadif(XCHG1, rec.getField(XCHG1), udp_data);
+
+	if (udp_fields.myxchg)
+		putadif(MYXCHG, rec.getField(MYXCHG), udp_data);
+
+	if (udp_fields.arrl_class)
+		putadif(CLASS, rec.getField(CLASS), udp_data);
+
+	if (udp_fields.arrl_sect)
+		putadif(ARRL_SECT, rec.getField(ARRL_SECT), udp_data);
+
+	if (udp_fields.op_call)
+		putadif(OP_CALL, rec.getField(OP_CALL), udp_data);
+
+	if (udp_fields.sta_call)
+		putadif(STA_CALL, rec.getField(STA_CALL), udp_data);
+
+	if (udp_fields.mygrid)
+		putadif(MY_GRID, rec.getField(MY_GRID), udp_data);
+
+	if (udp_fields.mycity)
+		putadif(MY_CITY, rec.getField(MY_CITY), udp_data);
+
+	if (udp_fields.check)
+		putadif(CHECK, rec.getField(CHECK), udp_data);
+
+	if (udp_fields.age)
+		putadif(AGE, rec.getField(AGE), udp_data);
+
+	if (udp_fields.ten_ten)
+		putadif(TEN_TEN, rec.getField(TEN_TEN), udp_data);
+
+	if (udp_fields.cwss_check)
+		putadif(SS_CHK, rec.getField(SS_CHK), udp_data);
+
+	if (udp_fields.cwss_serno)
+		putadif(SS_SERNO, rec.getField(SS_SERNO), udp_data);
+
+	if (udp_fields.cwss_prec)
+		putadif(SS_PREC, rec.getField(SS_PREC), udp_data);
+
+	if (udp_fields.cwss_section)
+		putadif(SS_SEC, rec.getField(SS_SEC), udp_data);
+
+	udp_data.append("<EOR>");
+
+	Socket * udp_socket;
+
+	try {
+		udp_socket = new Socket(Address(progdefaults.udp_address.c_str(), progdefaults.udp_port.c_str(), "udp"));
+		udp_socket->connect();
+		if (udp_socket->send( udp_data.c_str(), udp_data.length() ) != udp_data.length()) 
+			throw SocketException("udp send failed");
+		LOG_INFO("UDP record: %s", udp_data.c_str());
+	} catch (const SocketException& e) {
+		tempstr.assign("Could not send udp data to ").append(progdefaults.udp_address);
+		tempstr.append(", port ").append(progdefaults.udp_port);
+		tempstr.append(": ").append(e.what());
+		LOG_ERROR("%s", tempstr.c_str());
+	}
+
+}
+
+void udp_test()
+{
+	Socket *udp_socket;
+
+	std::string payload = "Test UDP broadcast on ";
+	payload.append(progdefaults.udp_address).append(" : " ).append(progdefaults.udp_port);
+
+	char udp_data[50 + payload.length()];
+	snprintf(udp_data, sizeof(udp_data), "<FLDIGI_TEST:%d>%s<STATION_CALLSIGN:5>W1HKJ<EOR>",
+		(int)payload.length(), payload.c_str() );
+
+	try {
+		udp_socket = new Socket(Address(progdefaults.udp_address.c_str(), progdefaults.udp_port.c_str(), "udp"));
+		udp_socket->connect();
+		if (udp_socket->send( udp_data, strlen(udp_data) ) != strlen(udp_data)) 
+			throw SocketException("udp send failed");
+		LOG_INFO("UDP TEST record: %s", udp_data);
+		fl_alert2("Sent UDP test record:\n%s", udp_data);
+	} catch (const SocketException& e) {
+		std::string tempstr;
+		tempstr.assign("Could not send udp data to ").append(progdefaults.udp_address);
+		tempstr.append(", port ").append(progdefaults.udp_port);
+		tempstr.append(": ").append(e.what());
+		LOG_ERROR("%s", tempstr.c_str());
+	}
+}
+
+static int udp_first_use = 1;
+
+void save_udp_prefs()
+{
+	udp_fields.name         = btn_udp_Name->value();
+	udp_fields.freq         = btn_udp_Freq->value();
+	udp_fields.band         = btn_udp_Band->value();
+	udp_fields.mode         = btn_udp_Mode->value();
+	udp_fields.date_on      = btn_udp_QSOdateOn->value();
+	udp_fields.date_off     = btn_udp_QSOdateOff->value();
+	udp_fields.time_on      = btn_udp_TimeON->value();
+	udp_fields.time_off     = btn_udp_TimeOFF->value();
+	udp_fields.tx_pwr       = btn_udp_TX_pwr->value();
+	udp_fields.rst_sent     = btn_udp_RSTsent->value();
+	udp_fields.rst_rcvd     = btn_udp_RSTrcvd->value();
+	udp_fields.qth          = btn_udp_Qth->value();
+	udp_fields.gridsquare   = btn_udp_LOC->value();
+	udp_fields.state        = btn_udp_State->value();
+	udp_fields.age          = btn_udp_Age->value();
+
+	udp_fields.sta_call     = btn_udp_StaCall->value();
+	udp_fields.mygrid       = btn_udp_StaGrid->value();
+	udp_fields.mycity       = btn_udp_StaCity->value();
+	udp_fields.op_call      = btn_udp_Operator->value();
+	udp_fields.province     = btn_udp_Province->value();
+	udp_fields.country      = btn_udp_Country->value();
+	udp_fields.notes        = btn_udp_Notes->value();
+	udp_fields.qsl_rcvd     = btn_udp_QSLrcvd->value();
+	udp_fields.qsl_sent     = btn_udp_QSLsent->value();
+	udp_fields.eqsl_rcvd    = btn_udp_eQSLrcvd->value();
+	udp_fields.eqsl_sent    = btn_udp_eQSLsent->value();
+	udp_fields.lotw_rcvd    = btn_udp_LOTWrcvd->value();
+	udp_fields.lotw_sent    = btn_udp_LOTWsent->value();
+	udp_fields.qsl_via      = btn_udp_QSL_VIA->value();
+	udp_fields.srx          = btn_udp_SerialIN->value();
+	udp_fields.stx          = btn_udp_SerialOUT->value();
+
+	udp_fields.check        = btn_udp_Check->value();
+	udp_fields.xchg1        = btn_udp_XchgIn->value();
+	udp_fields.myxchg       = btn_udp_MyXchg->value();
+	udp_fields.county       = btn_udp_CNTY->value();
+	udp_fields.continent    = btn_udp_CONT->value();
+	udp_fields.cqz          = btn_udp_CQZ->value();
+	udp_fields.dxcc         = btn_udp_DXCC->value();
+	udp_fields.iota         = btn_udp_IOTA->value();
+	udp_fields.ituz         = btn_udp_ITUZ->value();
+	udp_fields.arrl_class   = btn_udp_Class->value();
+	udp_fields.arrl_sect    = btn_udp_Section->value();
+	udp_fields.cwss_serno   = btn_udp_cwss_serno->value();
+	udp_fields.cwss_prec    = btn_udp_cwss_prec->value();
+	udp_fields.cwss_check   = btn_udp_cwss_check->value();
+	udp_fields.cwss_section = btn_udp_cwss_section->value();
+	udp_fields.ten_ten      = btn_udp_1010->value();
+
+	std::string pref;
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "udp_fields");
+
+	spref.set("udp_first_use", 0);
+
+	spref.set("call", udp_fields.call);
+	spref.set("mode", udp_fields.mode);
+	spref.set("freq", udp_fields.freq);
+	spref.set("band", udp_fields.band);
+	spref.set("date_on", udp_fields.date_on);
+	spref.set("time_on", udp_fields.time_on);
+	spref.set("date_off", udp_fields.date_off);
+	spref.set("time_off", udp_fields.time_off);
+	spref.set("name", udp_fields.name);
+	spref.set("qth", udp_fields.qth);
+	spref.set("state", udp_fields.state);
+	spref.set("province", udp_fields.province);
+	spref.set("country", udp_fields.country);
+	spref.set("rst_sent", udp_fields.rst_sent);
+	spref.set("rst_rcvd", udp_fields.rst_rcvd);
+	spref.set("tx_pwr", udp_fields.tx_pwr);
+	spref.set("county", udp_fields.country);
+	spref.set("dxcc", udp_fields.dxcc);
+	spref.set("cqz", udp_fields.cqz);
+	spref.set("iota", udp_fields.iota);
+	spref.set("continent", udp_fields.continent);
+	spref.set("ituz", udp_fields.ituz);
+	spref.set("gridsquare", udp_fields.gridsquare);
+	spref.set("qsl_rcvd", udp_fields.qsl_rcvd);
+	spref.set("qsl_sent", udp_fields.qsl_sent);
+	spref.set("eqsl_rcvd", udp_fields.eqsl_rcvd);
+	spref.set("eqsl_sent", udp_fields.eqsl_sent);
+	spref.set("lotw_rcvd", udp_fields.lotw_rcvd);
+	spref.set("lotw_sent", udp_fields.lotw_sent);
+	spref.set("qsl_via", udp_fields.qsl_via);
+	spref.set("notes", udp_fields.notes);
+	spref.set("srx", udp_fields.srx);
+	spref.set("stx", udp_fields.stx);
+	spref.set("xchg1", udp_fields.xchg1);
+	spref.set("myxchg", udp_fields.myxchg);
+	spref.set("arrl_class", udp_fields.arrl_class);
+	spref.set("arrl_sect", udp_fields.arrl_sect);
+	spref.set("op_call", udp_fields.op_call);
+	spref.set("sta_call", udp_fields.sta_call);
+	spref.set("mygrid", udp_fields.mygrid);
+	spref.set("mycity", udp_fields.mycity);
+	spref.set("check", udp_fields.check);
+	spref.set("age", udp_fields.age);
+	spref.set("ten_ten", udp_fields.ten_ten);
+	spref.set("cwss_serno", udp_fields.cwss_serno);
+	spref.set("cwss_prec", udp_fields.cwss_prec);
+	spref.set("cwss_check", udp_fields.cwss_check);
+	spref.set("cwss_section", udp_fields.cwss_section);
+
+}
+
+void load_udp_prefs()
+{
+	std::string pref;
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "udp_fields");
+
+	spref.get("udp_first_use", udp_first_use, udp_first_use);
+	if (udp_first_use)
+		return;
+
+	spref.get("call", udp_fields.call, udp_fields.call);
+	spref.get("mode", udp_fields.mode, udp_fields.mode);
+	spref.get("freq", udp_fields.freq, udp_fields.freq);
+	spref.get("band", udp_fields.band, udp_fields.band);
+	spref.get("date_on", udp_fields.date_on, udp_fields.date_on);
+	spref.get("time_on", udp_fields.time_on, udp_fields.time_on);
+	spref.get("date_off", udp_fields.date_off, udp_fields.date_off);
+	spref.get("time_off", udp_fields.time_off, udp_fields.time_off);
+	spref.get("name", udp_fields.name, udp_fields.name);
+	spref.get("qth", udp_fields.qth, udp_fields.qth);
+	spref.get("state", udp_fields.state, udp_fields.state);
+	spref.get("province", udp_fields.province, udp_fields.province);
+	spref.get("country", udp_fields.country, udp_fields.country);
+	spref.get("rst_sent", udp_fields.rst_sent, udp_fields.rst_sent);
+	spref.get("rst_rcvd", udp_fields.rst_rcvd, udp_fields.rst_rcvd);
+	spref.get("tx_pwr", udp_fields.tx_pwr, udp_fields.tx_pwr);
+	spref.get("county", udp_fields.country, udp_fields.country);
+	spref.get("dxcc", udp_fields.dxcc, udp_fields.dxcc);
+	spref.get("cqz", udp_fields.cqz, udp_fields.cqz);
+	spref.get("iota", udp_fields.iota, udp_fields.iota);
+	spref.get("continent", udp_fields.continent, udp_fields.continent);
+	spref.get("ituz", udp_fields.ituz, udp_fields.ituz);
+	spref.get("gridsquare", udp_fields.gridsquare, udp_fields.gridsquare);
+	spref.get("qsl_rcvd", udp_fields.qsl_rcvd, udp_fields.qsl_rcvd);
+	spref.get("qsl_sent", udp_fields.qsl_sent, udp_fields.qsl_sent);
+	spref.get("eqsl_rcvd", udp_fields.eqsl_rcvd, udp_fields.eqsl_rcvd);
+	spref.get("eqsl_sent", udp_fields.eqsl_sent, udp_fields.eqsl_sent);
+	spref.get("lotw_rcvd", udp_fields.lotw_rcvd, udp_fields.lotw_rcvd);
+	spref.get("lotw_sent", udp_fields.lotw_sent, udp_fields.lotw_sent);
+	spref.get("qsl_via", udp_fields.qsl_via, udp_fields.qsl_via);
+	spref.get("notes", udp_fields.notes, udp_fields.notes);
+	spref.get("srx", udp_fields.srx, udp_fields.srx);
+	spref.get("stx", udp_fields.stx, udp_fields.stx);
+	spref.get("xchg1", udp_fields.xchg1, udp_fields.xchg1);
+	spref.get("myxchg", udp_fields.myxchg, udp_fields.myxchg);
+	spref.get("arrl_class", udp_fields.arrl_class, udp_fields.arrl_class);
+	spref.get("arrl_sect", udp_fields.arrl_sect, udp_fields.arrl_sect);
+	spref.get("op_call", udp_fields.op_call, udp_fields.op_call);
+	spref.get("sta_call", udp_fields.sta_call, udp_fields.sta_call);
+	spref.get("mygrid", udp_fields.mygrid, udp_fields.mygrid);
+	spref.get("mycity", udp_fields.mycity, udp_fields.mycity);
+	spref.get("check", udp_fields.check, udp_fields.check);
+	spref.get("age", udp_fields.age, udp_fields.age);
+	spref.get("ten_ten", udp_fields.ten_ten, udp_fields.ten_ten);
+	spref.get("cwss_serno", udp_fields.cwss_serno, udp_fields.cwss_serno);
+	spref.get("cwss_prec", udp_fields.cwss_prec, udp_fields.cwss_prec);
+	spref.get("cwss_check", udp_fields.cwss_check, udp_fields.cwss_check);
+	spref.get("cwss_section", udp_fields.cwss_section, udp_fields.cwss_section);
+
+}
+
+
+void save_export_prefs()
+{
+}
+
+void load_export_prefs()
+{
 }

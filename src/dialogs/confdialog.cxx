@@ -2707,6 +2707,43 @@ if (url.empty() || apiKey.empty()) {
 progdefaults.changed = true;
 }
 
+Fl_Button *btnCLOUDselect=(Fl_Button *)0;
+
+static void cb_btnCLOUDselect(Fl_Button*, void*) {
+  wCLDfields->show();
+}
+
+Fl_Input2 *txt_udp_address=(Fl_Input2 *)0;
+
+static void cb_txt_udp_address(Fl_Input2* o, void*) {
+  progdefaults.udp_address = o->value();
+progdefaults.changed = true;
+}
+
+Fl_Input2 *txt_udp_port=(Fl_Input2 *)0;
+
+static void cb_txt_udp_port(Fl_Input2* o, void*) {
+  progdefaults.udp_port = o->value();
+progdefaults.changed = true;
+}
+
+Fl_Check_Button *btn_enable_udp_logging=(Fl_Check_Button *)0;
+
+static void cb_btn_enable_udp_logging(Fl_Check_Button* o, void*) {
+  progdefaults.enable_udp_logging = o->value();
+progdefaults.changed = true;
+}
+
+Fl_Button *btnUDPselect=(Fl_Button *)0;
+
+static void cb_btnUDPselect(Fl_Button*, void*) {
+  wUDPfields->show();
+}
+
+static void cb_TEST(Fl_Button*, void*) {
+  udp_test();
+}
+
 Fl_Check_Button *btnNagMe=(Fl_Check_Button *)0;
 
 static void cb_btnNagMe(Fl_Check_Button* o, void*) {
@@ -11753,61 +11790,114 @@ work!"));
       tab_tree->add(_("Logging/LoTW"));
       o->end();
     } // Fl_Group* o
-    { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Logging/Cloudlog"));
+    { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Logging/Cloud-UDP"));
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
-      { Fl_Group* o = new Fl_Group(205, 25, 590, 35, _("This allows for logging of QSOs to a Cloudlog instance."));
-        o->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
+      { Fl_Group* o = new Fl_Group(210, 29, 580, 165, _("Log QSO record to a Cloudlog instance."));
+        o->box(FL_ENGRAVED_BOX);
+        o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
+        { Fl_Check_Button* o = btnEnCloudlog = new Fl_Check_Button(232, 153, 70, 15, _("Enable Cloudlog API logging"));
+          btnEnCloudlog->tooltip(_("This enables logging of QSOs to Cloudlog via API"));
+          btnEnCloudlog->down_box(FL_DOWN_BOX);
+          btnEnCloudlog->callback((Fl_Callback*)cb_btnEnCloudlog);
+          o->value(progdefaults.EnCloudlog);
+        } // Fl_Check_Button* btnEnCloudlog
+        { Fl_Input2* o = txt_cloudlog_api_url = new Fl_Input2(286, 70, 400, 24, _("API URL:"));
+          txt_cloudlog_api_url->tooltip(_("Enter the URL of your Cloudlog API"));
+          txt_cloudlog_api_url->box(FL_DOWN_BOX);
+          txt_cloudlog_api_url->color(FL_BACKGROUND2_COLOR);
+          txt_cloudlog_api_url->selection_color(FL_SELECTION_COLOR);
+          txt_cloudlog_api_url->labeltype(FL_NORMAL_LABEL);
+          txt_cloudlog_api_url->labelfont(0);
+          txt_cloudlog_api_url->labelsize(14);
+          txt_cloudlog_api_url->labelcolor(FL_FOREGROUND_COLOR);
+          txt_cloudlog_api_url->callback((Fl_Callback*)cb_txt_cloudlog_api_url);
+          txt_cloudlog_api_url->align(Fl_Align(FL_ALIGN_LEFT));
+          txt_cloudlog_api_url->when(FL_WHEN_RELEASE);
+          o->value(progdefaults.cloudlog_api_url.c_str());
+        } // Fl_Input2* txt_cloudlog_api_url
+        { Fl_Input2* o = txt_cloudlog_api_key = new Fl_Input2(286, 110, 400, 24, _("API Key:"));
+          txt_cloudlog_api_key->tooltip(_("Enter the API key for your Cloudlog instance"));
+          txt_cloudlog_api_key->box(FL_DOWN_BOX);
+          txt_cloudlog_api_key->color(FL_BACKGROUND2_COLOR);
+          txt_cloudlog_api_key->selection_color(FL_SELECTION_COLOR);
+          txt_cloudlog_api_key->labeltype(FL_NORMAL_LABEL);
+          txt_cloudlog_api_key->labelfont(0);
+          txt_cloudlog_api_key->labelsize(14);
+          txt_cloudlog_api_key->labelcolor(FL_FOREGROUND_COLOR);
+          txt_cloudlog_api_key->callback((Fl_Callback*)cb_txt_cloudlog_api_key);
+          txt_cloudlog_api_key->align(Fl_Align(FL_ALIGN_LEFT));
+          txt_cloudlog_api_key->when(FL_WHEN_RELEASE);
+          o->value(progdefaults.cloudlog_api_key.c_str());
+        } // Fl_Input2* txt_cloudlog_api_key
+        { Fl_Spinner* o = sp_cloudlog_station_id = new Fl_Spinner(710, 109, 60, 25, _("Station ID:"));
+          sp_cloudlog_station_id->maximum(9999);
+          sp_cloudlog_station_id->callback((Fl_Callback*)cb_sp_cloudlog_station_id);
+          sp_cloudlog_station_id->align(Fl_Align(FL_ALIGN_TOP));
+          o->value(progdefaults.cloudlog_station_id);
+        } // Fl_Spinner* sp_cloudlog_station_id
+        { btnTestApiKey = new Fl_Button(690, 148, 80, 24, _("Initialize"));
+          btnTestApiKey->tooltip(_("Test API Key"));
+          btnTestApiKey->callback((Fl_Callback*)cb_btnTestApiKey);
+        } // Fl_Button* btnTestApiKey
+        { btnCLOUDselect = new Fl_Button(488, 150, 118, 20, _("Select Fields"));
+          btnCLOUDselect->tooltip(_("Open field selection dialog"));
+          btnCLOUDselect->callback((Fl_Callback*)cb_btnCLOUDselect);
+        } // Fl_Button* btnCLOUDselect
         o->end();
       } // Fl_Group* o
-      { Fl_Check_Button* o = btnEnCloudlog = new Fl_Check_Button(265, 76, 70, 15, _("Enable Cloudlog API logging"));
-        btnEnCloudlog->tooltip(_("This enables logging of QSOs to Cloudlog via API"));
-        btnEnCloudlog->down_box(FL_DOWN_BOX);
-        btnEnCloudlog->callback((Fl_Callback*)cb_btnEnCloudlog);
-        o->value(progdefaults.EnCloudlog);
-      } // Fl_Check_Button* btnEnCloudlog
-      { Fl_Input2* o = txt_cloudlog_api_url = new Fl_Input2(310, 131, 379, 24, _("API URL:"));
-        txt_cloudlog_api_url->tooltip(_("Enter the URL of your Cloudlog API"));
-        txt_cloudlog_api_url->box(FL_DOWN_BOX);
-        txt_cloudlog_api_url->color(FL_BACKGROUND2_COLOR);
-        txt_cloudlog_api_url->selection_color(FL_SELECTION_COLOR);
-        txt_cloudlog_api_url->labeltype(FL_NORMAL_LABEL);
-        txt_cloudlog_api_url->labelfont(0);
-        txt_cloudlog_api_url->labelsize(14);
-        txt_cloudlog_api_url->labelcolor(FL_FOREGROUND_COLOR);
-        txt_cloudlog_api_url->callback((Fl_Callback*)cb_txt_cloudlog_api_url);
-        txt_cloudlog_api_url->align(Fl_Align(FL_ALIGN_LEFT));
-        txt_cloudlog_api_url->when(FL_WHEN_RELEASE);
-        o->value(progdefaults.cloudlog_api_url.c_str());
-      } // Fl_Input2* txt_cloudlog_api_url
-      { Fl_Input2* o = txt_cloudlog_api_key = new Fl_Input2(310, 171, 379, 24, _("API Key:"));
-        txt_cloudlog_api_key->tooltip(_("Enter the API key for your Cloudlog instance"));
-        txt_cloudlog_api_key->box(FL_DOWN_BOX);
-        txt_cloudlog_api_key->color(FL_BACKGROUND2_COLOR);
-        txt_cloudlog_api_key->selection_color(FL_SELECTION_COLOR);
-        txt_cloudlog_api_key->labeltype(FL_NORMAL_LABEL);
-        txt_cloudlog_api_key->labelfont(0);
-        txt_cloudlog_api_key->labelsize(14);
-        txt_cloudlog_api_key->labelcolor(FL_FOREGROUND_COLOR);
-        txt_cloudlog_api_key->callback((Fl_Callback*)cb_txt_cloudlog_api_key);
-        txt_cloudlog_api_key->align(Fl_Align(FL_ALIGN_LEFT));
-        txt_cloudlog_api_key->when(FL_WHEN_RELEASE);
-        o->value(progdefaults.cloudlog_api_key.c_str());
-      } // Fl_Input2* txt_cloudlog_api_key
-      { Fl_Spinner* o = sp_cloudlog_station_id = new Fl_Spinner(310, 215, 60, 25, _("Station ID:"));
-        sp_cloudlog_station_id->maximum(9999);
-        sp_cloudlog_station_id->callback((Fl_Callback*)cb_sp_cloudlog_station_id);
-        o->value(progdefaults.cloudlog_station_id);
-      } // Fl_Spinner* sp_cloudlog_station_id
-      { btnTestApiKey = new Fl_Button(696, 313, 80, 24, _("Initialize"));
-        btnTestApiKey->tooltip(_("Test API Key"));
-        btnTestApiKey->callback((Fl_Callback*)cb_btnTestApiKey);
-      } // Fl_Button* btnTestApiKey
-      CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Logging/Cloudlog"));
+      { Fl_Group* o = new Fl_Group(210, 200, 580, 141, _("Broadcast UDP ADIF record"));
+        o->box(FL_ENGRAVED_BOX);
+        o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
+        { Fl_Input2* o = txt_udp_address = new Fl_Input2(286, 248, 486, 22, _("Address"));
+          txt_udp_address->tooltip(_("IP Address for ARQ interface\nIP Address format: nnn.nnn.nnn.nnn\nor name: i.\
+e. localhost"));
+          txt_udp_address->box(FL_DOWN_BOX);
+          txt_udp_address->color(FL_BACKGROUND2_COLOR);
+          txt_udp_address->selection_color(FL_SELECTION_COLOR);
+          txt_udp_address->labeltype(FL_NORMAL_LABEL);
+          txt_udp_address->labelfont(0);
+          txt_udp_address->labelsize(14);
+          txt_udp_address->labelcolor(FL_FOREGROUND_COLOR);
+          txt_udp_address->callback((Fl_Callback*)cb_txt_udp_address);
+          txt_udp_address->align(Fl_Align(FL_ALIGN_LEFT));
+          txt_udp_address->when(FL_WHEN_CHANGED);
+          o->labelsize(FL_NORMAL_SIZE);
+          o->value(progdefaults.udp_address.c_str());
+        } // Fl_Input2* txt_udp_address
+        { Fl_Input2* o = txt_udp_port = new Fl_Input2(286, 282, 76, 22, _("Port"));
+          txt_udp_port->tooltip(_("IP Address Port Number"));
+          txt_udp_port->box(FL_DOWN_BOX);
+          txt_udp_port->color(FL_BACKGROUND2_COLOR);
+          txt_udp_port->selection_color(FL_SELECTION_COLOR);
+          txt_udp_port->labeltype(FL_NORMAL_LABEL);
+          txt_udp_port->labelfont(0);
+          txt_udp_port->labelsize(14);
+          txt_udp_port->labelcolor(FL_FOREGROUND_COLOR);
+          txt_udp_port->callback((Fl_Callback*)cb_txt_udp_port);
+          txt_udp_port->align(Fl_Align(FL_ALIGN_LEFT));
+          txt_udp_port->when(FL_WHEN_CHANGED);
+          o->labelsize(FL_NORMAL_SIZE);
+          o->value(progdefaults.udp_port.c_str());
+        } // Fl_Input2* txt_udp_port
+        { Fl_Check_Button* o = btn_enable_udp_logging = new Fl_Check_Button(412, 285, 71, 15, _("Enable"));
+          btn_enable_udp_logging->down_box(FL_DOWN_BOX);
+          btn_enable_udp_logging->callback((Fl_Callback*)cb_btn_enable_udp_logging);
+          o->value(progdefaults.enable_udp_logging);
+        } // Fl_Check_Button* btn_enable_udp_logging
+        { btnUDPselect = new Fl_Button(533, 283, 119, 20, _("Select Fields"));
+          btnUDPselect->tooltip(_("Open field selection dialog"));
+          btnUDPselect->callback((Fl_Callback*)cb_btnUDPselect);
+        } // Fl_Button* btnUDPselect
+        { Fl_Button* o = new Fl_Button(700, 283, 70, 20, _("TEST"));
+          o->callback((Fl_Callback*)cb_TEST);
+        } // Fl_Button* o
+        o->end();
+      } // Fl_Group* o
+      CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Logging/Cloud-UDP"));
       config_pages.push_back(p);
-      tab_tree->add(_("Logging/Cloudlog"));
-      tab_tree->close(_("Logging"));
+      tab_tree->add(_("Logging/Cloud-UDP"));
       o->end();
     } // Fl_Group* o
     { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Logging/QSO logging"));

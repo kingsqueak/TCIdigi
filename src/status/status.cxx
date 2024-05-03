@@ -70,6 +70,7 @@
 
 #include "lgbook.h"
 #include "logsupport.h"
+#include "logger.h"
 #include "qso_db.h"
 #include "dx_dialog.h"
 #include "contest.h"
@@ -1121,6 +1122,8 @@ void status::loadLastState()
 //----------------------------------------------------------------------
 
 	modeband.load_mode_state();
+	load_udp_prefs();
+	load_cloud_prefs();
 
 	set_debug_mask(debug_mask);
 }

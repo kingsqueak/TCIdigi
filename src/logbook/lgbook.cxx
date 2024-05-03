@@ -611,6 +611,832 @@ btnCabRSTsent->value(1);
 btnCabRSTrcvd->value(1);
 }
 
+Fl_Double_Window *wUDPfields=(Fl_Double_Window *)0;
+
+Fl_Check_Button *btn_udp_Call=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Call(Fl_Check_Button* o, void*) {
+  udp_fields.call = o->value();
+}
+
+Fl_Check_Button *btn_udp_Name=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Name(Fl_Check_Button* o, void*) {
+  udp_fields.name = o->value();
+}
+
+Fl_Check_Button *btn_udp_Freq=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Freq(Fl_Check_Button* o, void*) {
+  udp_fields.freq = o->value();
+}
+
+Fl_Check_Button *btn_udp_Band=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Band(Fl_Check_Button* o, void*) {
+  udp_fields.band = o->value();
+}
+
+Fl_Check_Button *btn_udp_Mode=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Mode(Fl_Check_Button* o, void*) {
+  udp_fields.mode = o->value();
+}
+
+Fl_Check_Button *btn_udp_QSOdateOn=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_QSOdateOn(Fl_Check_Button* o, void*) {
+  udp_fields.date_on = o->value();
+}
+
+Fl_Check_Button *btn_udp_QSOdateOff=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_QSOdateOff(Fl_Check_Button* o, void*) {
+  udp_fields.date_off = o->value();
+}
+
+Fl_Check_Button *btn_udp_TimeON=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_TimeON(Fl_Check_Button* o, void*) {
+  udp_fields.time_on = o->value();
+}
+
+Fl_Check_Button *btn_udp_TimeOFF=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_TimeOFF(Fl_Check_Button* o, void*) {
+  udp_fields.time_off = o->value();
+}
+
+Fl_Check_Button *btn_udp_TX_pwr=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_TX_pwr(Fl_Check_Button* o, void*) {
+  udp_fields.tx_pwr = o->value();
+}
+
+Fl_Check_Button *btn_udp_RSTsent=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_RSTsent(Fl_Check_Button* o, void*) {
+  udp_fields.rst_sent = o->value();
+}
+
+Fl_Check_Button *btn_udp_RSTrcvd=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_RSTrcvd(Fl_Check_Button* o, void*) {
+  udp_fields.rst_rcvd = o->value();
+}
+
+Fl_Check_Button *btn_udp_Qth=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Qth(Fl_Check_Button* o, void*) {
+  udp_fields.qth = o->value();
+}
+
+Fl_Check_Button *btn_udp_LOC=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_LOC(Fl_Check_Button* o, void*) {
+  udp_fields.gridsquare = o->value();
+}
+
+Fl_Check_Button *btn_udp_State=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_State(Fl_Check_Button* o, void*) {
+  udp_fields.state = o->value();
+}
+
+Fl_Check_Button *btn_udp_Age=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Age(Fl_Check_Button* o, void*) {
+  udp_fields.age = o->value();
+}
+
+Fl_Check_Button *btn_udp_StaCall=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_StaCall(Fl_Check_Button* o, void*) {
+  udp_fields.sta_call = o->value();
+}
+
+Fl_Check_Button *btn_udp_StaCity=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_StaCity(Fl_Check_Button* o, void*) {
+  udp_fields.mycity = o->value();
+}
+
+Fl_Check_Button *btn_udp_StaGrid=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_StaGrid(Fl_Check_Button* o, void*) {
+  udp_fields.mygrid = o->value();
+}
+
+Fl_Check_Button *btn_udp_Operator=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Operator(Fl_Check_Button* o, void*) {
+  udp_fields.op_call = o->value();
+}
+
+Fl_Check_Button *btn_udp_Province=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Province(Fl_Check_Button* o, void*) {
+  udp_fields.province = o->value();
+}
+
+Fl_Check_Button *btn_udp_Country=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Country(Fl_Check_Button* o, void*) {
+  udp_fields.country = o->value();
+}
+
+Fl_Check_Button *btn_udp_Notes=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Notes(Fl_Check_Button* o, void*) {
+  udp_fields.notes = o->value();
+}
+
+Fl_Check_Button *btn_udp_QSLrcvd=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_QSLrcvd(Fl_Check_Button* o, void*) {
+  udp_fields.qsl_rcvd = o->value();
+}
+
+Fl_Check_Button *btn_udp_QSLsent=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_QSLsent(Fl_Check_Button* o, void*) {
+  udp_fields.qsl_sent = o->value();
+}
+
+Fl_Check_Button *btn_udp_eQSLrcvd=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_eQSLrcvd(Fl_Check_Button* o, void*) {
+  udp_fields.eqsl_rcvd = o->value();
+}
+
+Fl_Check_Button *btn_udp_eQSLsent=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_eQSLsent(Fl_Check_Button* o, void*) {
+  udp_fields.eqsl_sent = o->value();
+}
+
+Fl_Check_Button *btn_udp_LOTWrcvd=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_LOTWrcvd(Fl_Check_Button* o, void*) {
+  udp_fields.lotw_rcvd = o->value();
+}
+
+Fl_Check_Button *btn_udp_LOTWsent=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_LOTWsent(Fl_Check_Button* o, void*) {
+  udp_fields.lotw_sent = o->value();
+}
+
+Fl_Check_Button *btn_udp_QSL_VIA=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_QSL_VIA(Fl_Check_Button* o, void*) {
+  udp_fields.qsl_via = o->value();
+}
+
+Fl_Check_Button *btn_udp_SerialIN=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_SerialIN(Fl_Check_Button* o, void*) {
+  udp_fields.srx = o->value();
+}
+
+Fl_Check_Button *btn_udp_SerialOUT=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_SerialOUT(Fl_Check_Button* o, void*) {
+  udp_fields.stx = o->value();
+}
+
+Fl_Check_Button *btn_udp_Check=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Check(Fl_Check_Button* o, void*) {
+  udp_fields.check = o->value();
+}
+
+Fl_Check_Button *btn_udp_XchgIn=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_XchgIn(Fl_Check_Button* o, void*) {
+  udp_fields.xchg1 = o->value();
+}
+
+Fl_Check_Button *btn_udp_MyXchg=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_MyXchg(Fl_Check_Button* o, void*) {
+  udp_fields.myxchg = o->value();
+}
+
+Fl_Check_Button *btn_udp_CNTY=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_CNTY(Fl_Check_Button* o, void*) {
+  udp_fields.county = o->value();
+}
+
+Fl_Check_Button *btn_udp_CONT=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_CONT(Fl_Check_Button* o, void*) {
+  udp_fields.continent = o->value();
+}
+
+Fl_Check_Button *btn_udp_CQZ=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_CQZ(Fl_Check_Button* o, void*) {
+  udp_fields.cqz = o->value();
+}
+
+Fl_Check_Button *btn_udp_DXCC=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_DXCC(Fl_Check_Button* o, void*) {
+  udp_fields.dxcc = o->value();
+}
+
+Fl_Check_Button *btn_udp_IOTA=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_IOTA(Fl_Check_Button* o, void*) {
+  udp_fields.iota = o->value();
+}
+
+Fl_Check_Button *btn_udp_ITUZ=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_ITUZ(Fl_Check_Button* o, void*) {
+  udp_fields.ituz = o->value();
+}
+
+Fl_Check_Button *btn_udp_Class=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Class(Fl_Check_Button* o, void*) {
+  udp_fields.arrl_class = o->value();
+}
+
+Fl_Check_Button *btn_udp_Section=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_Section(Fl_Check_Button* o, void*) {
+  udp_fields.arrl_sect = o->value();
+}
+
+Fl_Check_Button *btn_udp_cwss_serno=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_cwss_serno(Fl_Check_Button* o, void*) {
+  udp_fields.cwss_serno = o->value();
+}
+
+Fl_Check_Button *btn_udp_cwss_prec=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_cwss_prec(Fl_Check_Button* o, void*) {
+  udp_fields.cwss_prec = o->value();
+}
+
+Fl_Check_Button *btn_udp_cwss_check=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_cwss_check(Fl_Check_Button* o, void*) {
+  udp_fields.cwss_check = o->value();
+}
+
+Fl_Check_Button *btn_udp_cwss_section=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_cwss_section(Fl_Check_Button* o, void*) {
+  udp_fields.cwss_section = o->value();
+}
+
+Fl_Check_Button *btn_udp_1010=(Fl_Check_Button *)0;
+
+static void cb_btn_udp_1010(Fl_Check_Button* o, void*) {
+  udp_fields.ten_ten = o->value();
+}
+
+Fl_Button *btnUDPClearAllFields=(Fl_Button *)0;
+
+static void cb_btnUDPClearAllFields(Fl_Button*, void*) {
+  btn_udp_Call->value(0);
+btn_udp_Name->value(0);
+btn_udp_Freq->value(0);
+btn_udp_Band->value(0);
+btn_udp_Mode->value(0);
+btn_udp_QSOdateOn->value(0);
+btn_udp_QSOdateOff->value(0);
+btn_udp_TimeON->value(0);
+btn_udp_TimeOFF->value(0);
+btn_udp_TX_pwr->value(0);
+btn_udp_RSTsent->value(0);
+btn_udp_RSTrcvd->value(0);
+btn_udp_Qth->value(0);
+btn_udp_LOC->value(0);
+btn_udp_State->value(0);
+btn_udp_Age->value(0);
+
+btn_udp_StaCall->value(0);
+btn_udp_StaGrid->value(0);
+btn_udp_StaCity->value(0);
+btn_udp_Operator->value(0);
+btn_udp_Province->value(0);
+btn_udp_Country->value(0);
+btn_udp_Notes->value(0);
+btn_udp_QSLrcvd->value(0);
+btn_udp_QSLsent->value(0);
+btn_udp_eQSLrcvd->value(0);
+btn_udp_eQSLsent->value(0);
+btn_udp_LOTWrcvd->value(0);
+btn_udp_LOTWsent->value(0);
+btn_udp_QSL_VIA->value(0);
+btn_udp_SerialIN->value(0);
+btn_udp_SerialOUT->value(0);
+
+btn_udp_Check->value(0);
+btn_udp_XchgIn->value(0);
+btn_udp_MyXchg->value(0);
+btn_udp_CNTY->value(0);
+btn_udp_CONT->value(0);
+btn_udp_CQZ->value(0);
+btn_udp_DXCC->value(0);
+btn_udp_IOTA->value(0);
+btn_udp_ITUZ->value(0);
+btn_udp_Class->value(0);
+btn_udp_Section->value(0);
+btn_udp_cwss_serno->value(0);
+btn_udp_cwss_prec->value(0);
+btn_udp_cwss_section->value(0);
+btn_udp_cwss_check->value(0);
+btn_udp_1010->value(0);
+}
+
+Fl_Button *btnUDPCheckAllFields=(Fl_Button *)0;
+
+static void cb_btnUDPCheckAllFields(Fl_Button*, void*) {
+  btn_udp_Call->value(1);
+btn_udp_Name->value(1);
+btn_udp_Freq->value(1);
+btn_udp_Band->value(1);
+btn_udp_Mode->value(1);
+btn_udp_QSOdateOn->value(1);
+btn_udp_QSOdateOff->value(1);
+btn_udp_TimeON->value(1);
+btn_udp_TimeOFF->value(1);
+btn_udp_TX_pwr->value(1);
+btn_udp_RSTsent->value(1);
+btn_udp_RSTrcvd->value(1);
+btn_udp_Qth->value(1);
+btn_udp_LOC->value(1);
+btn_udp_State->value(1);
+btn_udp_Age->value(1);
+
+btn_udp_StaCall->value(1);
+btn_udp_StaGrid->value(1);
+btn_udp_StaCity->value(1);
+btn_udp_Operator->value(1);
+btn_udp_Province->value(1);
+btn_udp_Country->value(1);
+btn_udp_Notes->value(1);
+btn_udp_QSLrcvd->value(1);
+btn_udp_QSLsent->value(1);
+btn_udp_eQSLrcvd->value(1);
+btn_udp_eQSLsent->value(1);
+btn_udp_LOTWrcvd->value(1);
+btn_udp_LOTWsent->value(1);
+btn_udp_QSL_VIA->value(1);
+btn_udp_SerialIN->value(1);
+btn_udp_SerialOUT->value(1);
+
+btn_udp_Check->value(1);
+btn_udp_XchgIn->value(1);
+btn_udp_MyXchg->value(1);
+btn_udp_CNTY->value(1);
+btn_udp_CONT->value(1);
+btn_udp_CQZ->value(1);
+btn_udp_DXCC->value(1);
+btn_udp_IOTA->value(1);
+btn_udp_ITUZ->value(1);
+btn_udp_Class->value(1);
+btn_udp_Section->value(1);
+btn_udp_cwss_serno->value(1);
+btn_udp_cwss_prec->value(1);
+btn_udp_cwss_check->value(1);
+btn_udp_cwss_section->value(1);
+btn_udp_1010->value(1);
+}
+
+Fl_Return_Button *btnUDPOK=(Fl_Return_Button *)0;
+
+static void cb_btnUDPOK(Fl_Return_Button*, void*) {
+  save_udp_prefs();
+wUDPfields->hide();
+}
+
+Fl_Button *btnUDPcancel=(Fl_Button *)0;
+
+static void cb_btnUDPcancel(Fl_Button*, void*) {
+  wUDPfields->hide();
+}
+
+Fl_Double_Window *wCLDfields=(Fl_Double_Window *)0;
+
+Fl_Check_Button *btn_cloud_Call=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Call(Fl_Check_Button* o, void*) {
+  cloud_fields.call = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Name=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Name(Fl_Check_Button* o, void*) {
+  cloud_fields.name = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Freq=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Freq(Fl_Check_Button* o, void*) {
+  cloud_fields.freq = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Band=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Band(Fl_Check_Button* o, void*) {
+  cloud_fields.band = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Mode=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Mode(Fl_Check_Button* o, void*) {
+  cloud_fields.mode = o->value();
+}
+
+Fl_Check_Button *btn_cloud_QSOdateOn=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_QSOdateOn(Fl_Check_Button* o, void*) {
+  cloud_fields.date_on = o->value();
+}
+
+Fl_Check_Button *btn_cloud_QSOdateOff=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_QSOdateOff(Fl_Check_Button* o, void*) {
+  cloud_fields.date_off = o->value();
+}
+
+Fl_Check_Button *btn_cloud_TimeON=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_TimeON(Fl_Check_Button* o, void*) {
+  cloud_fields.time_on = o->value();
+}
+
+Fl_Check_Button *btn_cloud_TimeOFF=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_TimeOFF(Fl_Check_Button* o, void*) {
+  cloud_fields.time_off = o->value();
+}
+
+Fl_Check_Button *btn_cloud_TX_pwr=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_TX_pwr(Fl_Check_Button* o, void*) {
+  cloud_fields.tx_pwr = o->value();
+}
+
+Fl_Check_Button *btn_cloud_RSTsent=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_RSTsent(Fl_Check_Button* o, void*) {
+  cloud_fields.rst_sent = o->value();
+}
+
+Fl_Check_Button *btn_cloud_RSTrcvd=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_RSTrcvd(Fl_Check_Button* o, void*) {
+  cloud_fields.rst_rcvd = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Qth=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Qth(Fl_Check_Button* o, void*) {
+  cloud_fields.qth = o->value();
+}
+
+Fl_Check_Button *btn_cloud_LOC=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_LOC(Fl_Check_Button* o, void*) {
+  cloud_fields.gridsquare = o->value();
+}
+
+Fl_Check_Button *btn_cloud_State=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_State(Fl_Check_Button* o, void*) {
+  cloud_fields.state = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Age=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Age(Fl_Check_Button* o, void*) {
+  cloud_fields.age = o->value();
+}
+
+Fl_Check_Button *btn_cloud_StaCall=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_StaCall(Fl_Check_Button* o, void*) {
+  cloud_fields.sta_call = o->value();
+}
+
+Fl_Check_Button *btn_cloud_StaCity=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_StaCity(Fl_Check_Button* o, void*) {
+  cloud_fields.mycity = o->value();
+}
+
+Fl_Check_Button *btn_cloud_StaGrid=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_StaGrid(Fl_Check_Button* o, void*) {
+  cloud_fields.mygrid = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Operator=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Operator(Fl_Check_Button* o, void*) {
+  cloud_fields.op_call = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Province=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Province(Fl_Check_Button* o, void*) {
+  cloud_fields.province = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Country=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Country(Fl_Check_Button* o, void*) {
+  cloud_fields.country = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Notes=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Notes(Fl_Check_Button* o, void*) {
+  cloud_fields.notes = o->value();
+}
+
+Fl_Check_Button *btn_cloud_QSLrcvd=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_QSLrcvd(Fl_Check_Button* o, void*) {
+  cloud_fields.qsl_rcvd = o->value();
+}
+
+Fl_Check_Button *btn_cloud_QSLsent=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_QSLsent(Fl_Check_Button* o, void*) {
+  cloud_fields.qsl_sent = o->value();
+}
+
+Fl_Check_Button *btn_cloud_eQSLrcvd=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_eQSLrcvd(Fl_Check_Button* o, void*) {
+  cloud_fields.eqsl_rcvd = o->value();
+}
+
+Fl_Check_Button *btn_cloud_eQSLsent=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_eQSLsent(Fl_Check_Button* o, void*) {
+  cloud_fields.eqsl_sent = o->value();
+}
+
+Fl_Check_Button *btn_cloud_LOTWrcvd=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_LOTWrcvd(Fl_Check_Button* o, void*) {
+  cloud_fields.lotw_rcvd = o->value();
+}
+
+Fl_Check_Button *btn_cloud_LOTWsent=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_LOTWsent(Fl_Check_Button* o, void*) {
+  cloud_fields.lotw_sent = o->value();
+}
+
+Fl_Check_Button *btn_cloud_QSL_VIA=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_QSL_VIA(Fl_Check_Button* o, void*) {
+  cloud_fields.qsl_via = o->value();
+}
+
+Fl_Check_Button *btn_cloud_SerialIN=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_SerialIN(Fl_Check_Button* o, void*) {
+  cloud_fields.srx = o->value();
+}
+
+Fl_Check_Button *btn_cloud_SerialOUT=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_SerialOUT(Fl_Check_Button* o, void*) {
+  cloud_fields.stx = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Check=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Check(Fl_Check_Button* o, void*) {
+  cloud_fields.check = o->value();
+}
+
+Fl_Check_Button *btn_cloud_XchgIn=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_XchgIn(Fl_Check_Button* o, void*) {
+  cloud_fields.xchg1 = o->value();
+}
+
+Fl_Check_Button *btn_cloud_MyXchg=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_MyXchg(Fl_Check_Button* o, void*) {
+  cloud_fields.myxchg = o->value();
+}
+
+Fl_Check_Button *btn_cloud_CNTY=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_CNTY(Fl_Check_Button* o, void*) {
+  cloud_fields.county = o->value();
+}
+
+Fl_Check_Button *btn_cloud_CONT=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_CONT(Fl_Check_Button* o, void*) {
+  cloud_fields.continent = o->value();
+}
+
+Fl_Check_Button *btn_cloud_CQZ=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_CQZ(Fl_Check_Button* o, void*) {
+  cloud_fields.cqz = o->value();
+}
+
+Fl_Check_Button *btn_cloud_DXCC=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_DXCC(Fl_Check_Button* o, void*) {
+  cloud_fields.dxcc = o->value();
+}
+
+Fl_Check_Button *btn_cloud_IOTA=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_IOTA(Fl_Check_Button* o, void*) {
+  cloud_fields.iota = o->value();
+}
+
+Fl_Check_Button *btn_cloud_ITUZ=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_ITUZ(Fl_Check_Button* o, void*) {
+  cloud_fields.ituz = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Class=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Class(Fl_Check_Button* o, void*) {
+  cloud_fields.arrl_class = o->value();
+}
+
+Fl_Check_Button *btn_cloud_Section=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_Section(Fl_Check_Button* o, void*) {
+  cloud_fields.arrl_sect = o->value();
+}
+
+Fl_Check_Button *btn_cloud_cwss_serno=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_cwss_serno(Fl_Check_Button* o, void*) {
+  cloud_fields.cwss_serno = o->value();
+}
+
+Fl_Check_Button *btn_cloud_cwss_prec=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_cwss_prec(Fl_Check_Button* o, void*) {
+  cloud_fields.cwss_prec = o->value();
+}
+
+Fl_Check_Button *btn_cloud_cwss_check=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_cwss_check(Fl_Check_Button* o, void*) {
+  cloud_fields.cwss_check = o->value();
+}
+
+Fl_Check_Button *btn_cloud_cwss_section=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_cwss_section(Fl_Check_Button* o, void*) {
+  cloud_fields.cwss_section = o->value();
+}
+
+Fl_Check_Button *btn_cloud_1010=(Fl_Check_Button *)0;
+
+static void cb_btn_cloud_1010(Fl_Check_Button* o, void*) {
+  cloud_fields.ten_ten = o->value();
+}
+
+Fl_Button *btnCLDClearAllFields=(Fl_Button *)0;
+
+static void cb_btnCLDClearAllFields(Fl_Button*, void*) {
+  btn_cloud_Call->value(0);
+btn_cloud_Name->value(0);
+btn_cloud_Freq->value(0);
+btn_cloud_Band->value(0);
+btn_cloud_Mode->value(0);
+btn_cloud_QSOdateOn->value(0);
+btn_cloud_QSOdateOff->value(0);
+btn_cloud_TimeON->value(0);
+btn_cloud_TimeOFF->value(0);
+btn_cloud_TX_pwr->value(0);
+btn_cloud_RSTsent->value(0);
+btn_cloud_RSTrcvd->value(0);
+btn_cloud_Qth->value(0);
+btn_cloud_LOC->value(0);
+btn_cloud_State->value(0);
+btn_cloud_Age->value(0);
+
+btn_cloud_StaCall->value(0);
+btn_cloud_StaGrid->value(0);
+btn_cloud_StaCity->value(0);
+btn_cloud_Operator->value(0);
+btn_cloud_Province->value(0);
+btn_cloud_Country->value(0);
+btn_cloud_Notes->value(0);
+btn_cloud_QSLrcvd->value(0);
+btn_cloud_QSLsent->value(0);
+btn_cloud_eQSLrcvd->value(0);
+btn_cloud_eQSLsent->value(0);
+btn_cloud_LOTWrcvd->value(0);
+btn_cloud_LOTWsent->value(0);
+btn_cloud_QSL_VIA->value(0);
+btn_cloud_SerialIN->value(0);
+btn_cloud_SerialOUT->value(0);
+
+btn_cloud_Check->value(0);
+btn_cloud_XchgIn->value(0);
+btn_cloud_MyXchg->value(0);
+btn_cloud_CNTY->value(0);
+btn_cloud_CONT->value(0);
+btn_cloud_CQZ->value(0);
+btn_cloud_DXCC->value(0);
+btn_cloud_IOTA->value(0);
+btn_cloud_ITUZ->value(0);
+btn_cloud_Class->value(0);
+btn_cloud_Section->value(0);
+btn_cloud_cwss_serno->value(0);
+btn_cloud_cwss_prec->value(0);
+btn_cloud_cwss_section->value(0);
+btn_cloud_cwss_check->value(0);
+btn_cloud_1010->value(0);
+}
+
+Fl_Button *btnCLDCheckAllFields=(Fl_Button *)0;
+
+static void cb_btnCLDCheckAllFields(Fl_Button*, void*) {
+  btn_cloud_Call->value(1);
+btn_cloud_Name->value(1);
+btn_cloud_Freq->value(1);
+btn_cloud_Band->value(1);
+btn_cloud_Mode->value(1);
+btn_cloud_QSOdateOn->value(1);
+btn_cloud_QSOdateOff->value(1);
+btn_cloud_TimeON->value(1);
+btn_cloud_TimeOFF->value(1);
+btn_cloud_TX_pwr->value(1);
+btn_cloud_RSTsent->value(1);
+btn_cloud_RSTrcvd->value(1);
+btn_cloud_Qth->value(1);
+btn_cloud_LOC->value(1);
+btn_cloud_State->value(1);
+btn_cloud_Age->value(1);
+
+btn_cloud_StaCall->value(1);
+btn_cloud_StaGrid->value(1);
+btn_cloud_StaCity->value(1);
+btn_cloud_Operator->value(1);
+btn_cloud_Province->value(1);
+btn_cloud_Country->value(1);
+btn_cloud_Notes->value(1);
+btn_cloud_QSLrcvd->value(1);
+btn_cloud_QSLsent->value(1);
+btn_cloud_eQSLrcvd->value(1);
+btn_cloud_eQSLsent->value(1);
+btn_cloud_LOTWrcvd->value(1);
+btn_cloud_LOTWsent->value(1);
+btn_cloud_QSL_VIA->value(1);
+btn_cloud_SerialIN->value(1);
+btn_cloud_SerialOUT->value(1);
+
+btn_cloud_Check->value(1);
+btn_cloud_XchgIn->value(1);
+btn_cloud_MyXchg->value(1);
+btn_cloud_CNTY->value(1);
+btn_cloud_CONT->value(1);
+btn_cloud_CQZ->value(1);
+btn_cloud_DXCC->value(1);
+btn_cloud_IOTA->value(1);
+btn_cloud_ITUZ->value(1);
+btn_cloud_Class->value(1);
+btn_cloud_Section->value(1);
+btn_cloud_cwss_serno->value(1);
+btn_cloud_cwss_prec->value(1);
+btn_cloud_cwss_check->value(1);
+btn_cloud_cwss_section->value(1);
+btn_cloud_1010->value(1);
+}
+
+Fl_Return_Button *btnCLDOK=(Fl_Return_Button *)0;
+
+static void cb_btnCLDOK(Fl_Return_Button*, void*) {
+  save_cloud_prefs();
+wCLDfields->hide();
+}
+
+Fl_Button *btnCLDcancel=(Fl_Button *)0;
+
+static void cb_btnCLDcancel(Fl_Button*, void*) {
+  wCLDfields->hide();
+}
+
 void create_logbook_dialogs() {
   { wExport = new Fl_Double_Window(805, 440, _("Export Setup"));
     { Fl_Group* o = new Fl_Group(4, 4, 388, 430, _("Select Records to Export"));
@@ -1725,4 +2551,550 @@ void create_logbook_dialogs() {
     } // Fl_Group* o
     wCabrillo->end();
   } // Fl_Double_Window* wCabrillo
+  { wUDPfields = new Fl_Double_Window(423, 405, _("UDP export fields"));
+    { Fl_Group* o = new Fl_Group(5, 5, 410, 397, _("Select Fields to Export"));
+      o->box(FL_ENGRAVED_FRAME);
+      o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
+      { Fl_Check_Button* o = btn_udp_Call = new Fl_Check_Button(13, 26, 70, 15, _("Call"));
+        btn_udp_Call->down_box(FL_DOWN_BOX);
+        btn_udp_Call->value(1);
+        btn_udp_Call->callback((Fl_Callback*)cb_btn_udp_Call);
+        o->value(udp_fields.call);
+      } // Fl_Check_Button* btn_udp_Call
+      { Fl_Check_Button* o = btn_udp_Name = new Fl_Check_Button(13, 47, 70, 15, _("Name"));
+        btn_udp_Name->down_box(FL_DOWN_BOX);
+        btn_udp_Name->value(1);
+        btn_udp_Name->callback((Fl_Callback*)cb_btn_udp_Name);
+        o->value(udp_fields.name);
+      } // Fl_Check_Button* btn_udp_Name
+      { Fl_Check_Button* o = btn_udp_Freq = new Fl_Check_Button(13, 68, 70, 15, _("Freq"));
+        btn_udp_Freq->down_box(FL_DOWN_BOX);
+        btn_udp_Freq->value(1);
+        btn_udp_Freq->callback((Fl_Callback*)cb_btn_udp_Freq);
+        o->value(udp_fields.freq);
+      } // Fl_Check_Button* btn_udp_Freq
+      { Fl_Check_Button* o = btn_udp_Band = new Fl_Check_Button(13, 90, 70, 15, _("Band"));
+        btn_udp_Band->down_box(FL_DOWN_BOX);
+        btn_udp_Band->callback((Fl_Callback*)cb_btn_udp_Band);
+        o->value(udp_fields.band);
+      } // Fl_Check_Button* btn_udp_Band
+      { Fl_Check_Button* o = btn_udp_Mode = new Fl_Check_Button(13, 111, 70, 15, _("Mode"));
+        btn_udp_Mode->down_box(FL_DOWN_BOX);
+        btn_udp_Mode->value(1);
+        btn_udp_Mode->callback((Fl_Callback*)cb_btn_udp_Mode);
+        o->value(udp_fields.mode);
+      } // Fl_Check_Button* btn_udp_Mode
+      { Fl_Check_Button* o = btn_udp_QSOdateOn = new Fl_Check_Button(13, 133, 70, 15, _("QSO Date On"));
+        btn_udp_QSOdateOn->down_box(FL_DOWN_BOX);
+        btn_udp_QSOdateOn->value(1);
+        btn_udp_QSOdateOn->callback((Fl_Callback*)cb_btn_udp_QSOdateOn);
+        o->value(udp_fields.date_on);
+      } // Fl_Check_Button* btn_udp_QSOdateOn
+      { Fl_Check_Button* o = btn_udp_QSOdateOff = new Fl_Check_Button(13, 154, 70, 15, _("QSO Date Off"));
+        btn_udp_QSOdateOff->down_box(FL_DOWN_BOX);
+        btn_udp_QSOdateOff->value(1);
+        btn_udp_QSOdateOff->callback((Fl_Callback*)cb_btn_udp_QSOdateOff);
+        o->value(udp_fields.date_off);
+      } // Fl_Check_Button* btn_udp_QSOdateOff
+      { Fl_Check_Button* o = btn_udp_TimeON = new Fl_Check_Button(13, 176, 70, 15, _("Time ON"));
+        btn_udp_TimeON->down_box(FL_DOWN_BOX);
+        btn_udp_TimeON->value(1);
+        btn_udp_TimeON->callback((Fl_Callback*)cb_btn_udp_TimeON);
+        o->value(udp_fields.time_on);
+      } // Fl_Check_Button* btn_udp_TimeON
+      { Fl_Check_Button* o = btn_udp_TimeOFF = new Fl_Check_Button(13, 197, 70, 15, _("Time OFF"));
+        btn_udp_TimeOFF->down_box(FL_DOWN_BOX);
+        btn_udp_TimeOFF->callback((Fl_Callback*)cb_btn_udp_TimeOFF);
+        o->value(udp_fields.time_off);
+      } // Fl_Check_Button* btn_udp_TimeOFF
+      { Fl_Check_Button* o = btn_udp_TX_pwr = new Fl_Check_Button(13, 219, 70, 15, _("TX Power"));
+        btn_udp_TX_pwr->down_box(FL_DOWN_BOX);
+        btn_udp_TX_pwr->callback((Fl_Callback*)cb_btn_udp_TX_pwr);
+        o->value(udp_fields.tx_pwr);
+      } // Fl_Check_Button* btn_udp_TX_pwr
+      { Fl_Check_Button* o = btn_udp_RSTsent = new Fl_Check_Button(13, 240, 70, 15, _("RST sent"));
+        btn_udp_RSTsent->down_box(FL_DOWN_BOX);
+        btn_udp_RSTsent->value(1);
+        btn_udp_RSTsent->callback((Fl_Callback*)cb_btn_udp_RSTsent);
+        o->value(udp_fields.rst_sent);
+      } // Fl_Check_Button* btn_udp_RSTsent
+      { Fl_Check_Button* o = btn_udp_RSTrcvd = new Fl_Check_Button(13, 262, 70, 15, _("RST rcvd"));
+        btn_udp_RSTrcvd->down_box(FL_DOWN_BOX);
+        btn_udp_RSTrcvd->value(1);
+        btn_udp_RSTrcvd->callback((Fl_Callback*)cb_btn_udp_RSTrcvd);
+        o->value(udp_fields.rst_rcvd);
+      } // Fl_Check_Button* btn_udp_RSTrcvd
+      { Fl_Check_Button* o = btn_udp_Qth = new Fl_Check_Button(13, 283, 70, 15, _("Qth"));
+        btn_udp_Qth->down_box(FL_DOWN_BOX);
+        btn_udp_Qth->callback((Fl_Callback*)cb_btn_udp_Qth);
+        o->value(udp_fields.qth);
+      } // Fl_Check_Button* btn_udp_Qth
+      { Fl_Check_Button* o = btn_udp_LOC = new Fl_Check_Button(13, 305, 70, 15, _("LOC"));
+        btn_udp_LOC->down_box(FL_DOWN_BOX);
+        btn_udp_LOC->callback((Fl_Callback*)cb_btn_udp_LOC);
+        o->value(udp_fields.gridsquare);
+      } // Fl_Check_Button* btn_udp_LOC
+      { Fl_Check_Button* o = btn_udp_State = new Fl_Check_Button(13, 326, 70, 15, _("State"));
+        btn_udp_State->down_box(FL_DOWN_BOX);
+        btn_udp_State->callback((Fl_Callback*)cb_btn_udp_State);
+        o->value(udp_fields.state);
+      } // Fl_Check_Button* btn_udp_State
+      { Fl_Check_Button* o = btn_udp_Age = new Fl_Check_Button(13, 348, 70, 15, _("Age"));
+        btn_udp_Age->down_box(FL_DOWN_BOX);
+        btn_udp_Age->callback((Fl_Callback*)cb_btn_udp_Age);
+        o->value(udp_fields.age);
+      } // Fl_Check_Button* btn_udp_Age
+      { Fl_Check_Button* o = btn_udp_StaCall = new Fl_Check_Button(147, 26, 70, 15, _("Station Call"));
+        btn_udp_StaCall->down_box(FL_DOWN_BOX);
+        btn_udp_StaCall->callback((Fl_Callback*)cb_btn_udp_StaCall);
+        o->value(udp_fields.sta_call);
+      } // Fl_Check_Button* btn_udp_StaCall
+      { Fl_Check_Button* o = btn_udp_StaCity = new Fl_Check_Button(147, 47, 70, 15, _("Station QTH"));
+        btn_udp_StaCity->down_box(FL_DOWN_BOX);
+        btn_udp_StaCity->callback((Fl_Callback*)cb_btn_udp_StaCity);
+        o->value(udp_fields.mycity);
+      } // Fl_Check_Button* btn_udp_StaCity
+      { Fl_Check_Button* o = btn_udp_StaGrid = new Fl_Check_Button(147, 68, 70, 15, _("Station LOC"));
+        btn_udp_StaGrid->down_box(FL_DOWN_BOX);
+        btn_udp_StaGrid->callback((Fl_Callback*)cb_btn_udp_StaGrid);
+        o->value(udp_fields.mygrid);
+      } // Fl_Check_Button* btn_udp_StaGrid
+      { Fl_Check_Button* o = btn_udp_Operator = new Fl_Check_Button(147, 90, 70, 15, _("Operator"));
+        btn_udp_Operator->down_box(FL_DOWN_BOX);
+        btn_udp_Operator->callback((Fl_Callback*)cb_btn_udp_Operator);
+        o->value(udp_fields.op_call);
+      } // Fl_Check_Button* btn_udp_Operator
+      { Fl_Check_Button* o = btn_udp_Province = new Fl_Check_Button(147, 111, 70, 15, _("Province"));
+        btn_udp_Province->down_box(FL_DOWN_BOX);
+        btn_udp_Province->callback((Fl_Callback*)cb_btn_udp_Province);
+        o->value(udp_fields.province);
+      } // Fl_Check_Button* btn_udp_Province
+      { Fl_Check_Button* o = btn_udp_Country = new Fl_Check_Button(147, 133, 70, 15, _("Country"));
+        btn_udp_Country->down_box(FL_DOWN_BOX);
+        btn_udp_Country->callback((Fl_Callback*)cb_btn_udp_Country);
+        o->value(udp_fields.country);
+      } // Fl_Check_Button* btn_udp_Country
+      { Fl_Check_Button* o = btn_udp_Notes = new Fl_Check_Button(147, 154, 70, 15, _("Notes"));
+        btn_udp_Notes->down_box(FL_DOWN_BOX);
+        btn_udp_Notes->callback((Fl_Callback*)cb_btn_udp_Notes);
+        o->value(udp_fields.notes);
+      } // Fl_Check_Button* btn_udp_Notes
+      { Fl_Check_Button* o = btn_udp_QSLrcvd = new Fl_Check_Button(147, 176, 70, 15, _("QSL rcvd date"));
+        btn_udp_QSLrcvd->down_box(FL_DOWN_BOX);
+        btn_udp_QSLrcvd->callback((Fl_Callback*)cb_btn_udp_QSLrcvd);
+        o->value(udp_fields.qsl_rcvd);
+      } // Fl_Check_Button* btn_udp_QSLrcvd
+      { Fl_Check_Button* o = btn_udp_QSLsent = new Fl_Check_Button(147, 197, 70, 15, _("QSL sent date"));
+        btn_udp_QSLsent->down_box(FL_DOWN_BOX);
+        btn_udp_QSLsent->callback((Fl_Callback*)cb_btn_udp_QSLsent);
+        o->value(udp_fields.qsl_sent);
+      } // Fl_Check_Button* btn_udp_QSLsent
+      { Fl_Check_Button* o = btn_udp_eQSLrcvd = new Fl_Check_Button(147, 219, 70, 15, _("eQSL rcvd date"));
+        btn_udp_eQSLrcvd->down_box(FL_DOWN_BOX);
+        btn_udp_eQSLrcvd->callback((Fl_Callback*)cb_btn_udp_eQSLrcvd);
+        o->value(udp_fields.eqsl_rcvd);
+      } // Fl_Check_Button* btn_udp_eQSLrcvd
+      { Fl_Check_Button* o = btn_udp_eQSLsent = new Fl_Check_Button(147, 240, 70, 15, _("eQSL sent date"));
+        btn_udp_eQSLsent->down_box(FL_DOWN_BOX);
+        btn_udp_eQSLsent->callback((Fl_Callback*)cb_btn_udp_eQSLsent);
+        o->value(udp_fields.eqsl_sent);
+      } // Fl_Check_Button* btn_udp_eQSLsent
+      { Fl_Check_Button* o = btn_udp_LOTWrcvd = new Fl_Check_Button(147, 262, 70, 15, _("LoTW rcvd date"));
+        btn_udp_LOTWrcvd->down_box(FL_DOWN_BOX);
+        btn_udp_LOTWrcvd->callback((Fl_Callback*)cb_btn_udp_LOTWrcvd);
+        o->value(udp_fields.lotw_rcvd);
+      } // Fl_Check_Button* btn_udp_LOTWrcvd
+      { Fl_Check_Button* o = btn_udp_LOTWsent = new Fl_Check_Button(147, 283, 70, 15, _("LoTW sent date"));
+        btn_udp_LOTWsent->down_box(FL_DOWN_BOX);
+        btn_udp_LOTWsent->callback((Fl_Callback*)cb_btn_udp_LOTWsent);
+        o->value(udp_fields.lotw_sent);
+      } // Fl_Check_Button* btn_udp_LOTWsent
+      { Fl_Check_Button* o = btn_udp_QSL_VIA = new Fl_Check_Button(147, 305, 70, 15, _("QSL-VIA"));
+        btn_udp_QSL_VIA->down_box(FL_DOWN_BOX);
+        btn_udp_QSL_VIA->callback((Fl_Callback*)cb_btn_udp_QSL_VIA);
+        o->value(udp_fields.qsl_via);
+      } // Fl_Check_Button* btn_udp_QSL_VIA
+      { Fl_Check_Button* o = btn_udp_SerialIN = new Fl_Check_Button(147, 326, 70, 15, _("Serial # in"));
+        btn_udp_SerialIN->down_box(FL_DOWN_BOX);
+        btn_udp_SerialIN->callback((Fl_Callback*)cb_btn_udp_SerialIN);
+        o->value(udp_fields.srx);
+      } // Fl_Check_Button* btn_udp_SerialIN
+      { Fl_Check_Button* o = btn_udp_SerialOUT = new Fl_Check_Button(147, 348, 70, 15, _("Serial # out"));
+        btn_udp_SerialOUT->down_box(FL_DOWN_BOX);
+        btn_udp_SerialOUT->callback((Fl_Callback*)cb_btn_udp_SerialOUT);
+        o->value(udp_fields.stx);
+      } // Fl_Check_Button* btn_udp_SerialOUT
+      { Fl_Check_Button* o = btn_udp_Check = new Fl_Check_Button(281, 26, 70, 15, _("Check"));
+        btn_udp_Check->down_box(FL_DOWN_BOX);
+        btn_udp_Check->callback((Fl_Callback*)cb_btn_udp_Check);
+        o->value(udp_fields.check);
+      } // Fl_Check_Button* btn_udp_Check
+      { Fl_Check_Button* o = btn_udp_XchgIn = new Fl_Check_Button(281, 47, 70, 15, _("Exchange In"));
+        btn_udp_XchgIn->down_box(FL_DOWN_BOX);
+        btn_udp_XchgIn->callback((Fl_Callback*)cb_btn_udp_XchgIn);
+        o->value(udp_fields.xchg1);
+      } // Fl_Check_Button* btn_udp_XchgIn
+      { Fl_Check_Button* o = btn_udp_MyXchg = new Fl_Check_Button(281, 68, 70, 15, _("Exchange Out"));
+        btn_udp_MyXchg->down_box(FL_DOWN_BOX);
+        btn_udp_MyXchg->callback((Fl_Callback*)cb_btn_udp_MyXchg);
+        o->value(udp_fields.myxchg);
+      } // Fl_Check_Button* btn_udp_MyXchg
+      { Fl_Check_Button* o = btn_udp_CNTY = new Fl_Check_Button(281, 90, 70, 15, _("County"));
+        btn_udp_CNTY->down_box(FL_DOWN_BOX);
+        btn_udp_CNTY->callback((Fl_Callback*)cb_btn_udp_CNTY);
+        o->value(udp_fields.county);
+      } // Fl_Check_Button* btn_udp_CNTY
+      { Fl_Check_Button* o = btn_udp_CONT = new Fl_Check_Button(281, 111, 70, 15, _("Continent"));
+        btn_udp_CONT->down_box(FL_DOWN_BOX);
+        btn_udp_CONT->callback((Fl_Callback*)cb_btn_udp_CONT);
+        o->value(udp_fields.continent);
+      } // Fl_Check_Button* btn_udp_CONT
+      { Fl_Check_Button* o = btn_udp_CQZ = new Fl_Check_Button(281, 133, 70, 15, _("CQZ"));
+        btn_udp_CQZ->down_box(FL_DOWN_BOX);
+        btn_udp_CQZ->callback((Fl_Callback*)cb_btn_udp_CQZ);
+        o->value(udp_fields.cqz);
+      } // Fl_Check_Button* btn_udp_CQZ
+      { Fl_Check_Button* o = btn_udp_DXCC = new Fl_Check_Button(281, 154, 70, 15, _("DXCC"));
+        btn_udp_DXCC->down_box(FL_DOWN_BOX);
+        btn_udp_DXCC->callback((Fl_Callback*)cb_btn_udp_DXCC);
+        o->value(udp_fields.dxcc);
+      } // Fl_Check_Button* btn_udp_DXCC
+      { Fl_Check_Button* o = btn_udp_IOTA = new Fl_Check_Button(281, 176, 70, 15, _("IOTA"));
+        btn_udp_IOTA->down_box(FL_DOWN_BOX);
+        btn_udp_IOTA->callback((Fl_Callback*)cb_btn_udp_IOTA);
+        o->value(udp_fields.iota);
+      } // Fl_Check_Button* btn_udp_IOTA
+      { Fl_Check_Button* o = btn_udp_ITUZ = new Fl_Check_Button(281, 197, 70, 15, _("ITUZ"));
+        btn_udp_ITUZ->down_box(FL_DOWN_BOX);
+        btn_udp_ITUZ->callback((Fl_Callback*)cb_btn_udp_ITUZ);
+        o->value(udp_fields.ituz);
+      } // Fl_Check_Button* btn_udp_ITUZ
+      { Fl_Check_Button* o = btn_udp_Class = new Fl_Check_Button(281, 219, 70, 15, _("FD class"));
+        btn_udp_Class->down_box(FL_DOWN_BOX);
+        btn_udp_Class->callback((Fl_Callback*)cb_btn_udp_Class);
+        o->value(udp_fields.arrl_class);
+      } // Fl_Check_Button* btn_udp_Class
+      { Fl_Check_Button* o = btn_udp_Section = new Fl_Check_Button(281, 240, 70, 15, _("FD section"));
+        btn_udp_Section->down_box(FL_DOWN_BOX);
+        btn_udp_Section->callback((Fl_Callback*)cb_btn_udp_Section);
+        o->value(udp_fields.arrl_sect);
+      } // Fl_Check_Button* btn_udp_Section
+      { Fl_Check_Button* o = btn_udp_cwss_serno = new Fl_Check_Button(281, 262, 70, 15, _("CW SS SerNo R"));
+        btn_udp_cwss_serno->tooltip(_("CW sweepstakes rcvd ser. no."));
+        btn_udp_cwss_serno->down_box(FL_DOWN_BOX);
+        btn_udp_cwss_serno->callback((Fl_Callback*)cb_btn_udp_cwss_serno);
+        o->value(udp_fields.cwss_serno);
+      } // Fl_Check_Button* btn_udp_cwss_serno
+      { Fl_Check_Button* o = btn_udp_cwss_prec = new Fl_Check_Button(281, 283, 70, 15, _("CW SS Prec\'"));
+        btn_udp_cwss_prec->tooltip(_("CW sweepstakes precedence"));
+        btn_udp_cwss_prec->down_box(FL_DOWN_BOX);
+        btn_udp_cwss_prec->callback((Fl_Callback*)cb_btn_udp_cwss_prec);
+        o->value(udp_fields.cwss_prec);
+      } // Fl_Check_Button* btn_udp_cwss_prec
+      { Fl_Check_Button* o = btn_udp_cwss_check = new Fl_Check_Button(281, 305, 70, 15, _("CW SS Check"));
+        btn_udp_cwss_check->down_box(FL_DOWN_BOX);
+        btn_udp_cwss_check->callback((Fl_Callback*)cb_btn_udp_cwss_check);
+        o->value(udp_fields.cwss_check);
+      } // Fl_Check_Button* btn_udp_cwss_check
+      { Fl_Check_Button* o = btn_udp_cwss_section = new Fl_Check_Button(281, 326, 70, 15, _("CW SS Section"));
+        btn_udp_cwss_section->tooltip(_("CW sweepstakes section"));
+        btn_udp_cwss_section->down_box(FL_DOWN_BOX);
+        btn_udp_cwss_section->callback((Fl_Callback*)cb_btn_udp_cwss_section);
+        o->value(udp_fields.cwss_section);
+      } // Fl_Check_Button* btn_udp_cwss_section
+      { Fl_Check_Button* o = btn_udp_1010 = new Fl_Check_Button(281, 348, 70, 15, _("10-10"));
+        btn_udp_1010->tooltip(_("CW sweepstakes section"));
+        btn_udp_1010->down_box(FL_DOWN_BOX);
+        btn_udp_1010->callback((Fl_Callback*)cb_btn_udp_1010);
+        o->value(udp_fields.ten_ten);
+      } // Fl_Check_Button* btn_udp_1010
+      { btnUDPClearAllFields = new Fl_Button(8, 373, 85, 20, _("Clear All"));
+        btnUDPClearAllFields->callback((Fl_Callback*)cb_btnUDPClearAllFields);
+      } // Fl_Button* btnUDPClearAllFields
+      { btnUDPCheckAllFields = new Fl_Button(101, 373, 85, 20, _("Check All"));
+        btnUDPCheckAllFields->callback((Fl_Callback*)cb_btnUDPCheckAllFields);
+      } // Fl_Button* btnUDPCheckAllFields
+      { btnUDPOK = new Fl_Return_Button(308, 373, 85, 20, _("OK"));
+        btnUDPOK->callback((Fl_Callback*)cb_btnUDPOK);
+      } // Fl_Return_Button* btnUDPOK
+      { btnUDPcancel = new Fl_Button(204, 373, 85, 20, _("Cancel"));
+        btnUDPcancel->callback((Fl_Callback*)cb_btnUDPcancel);
+      } // Fl_Button* btnUDPcancel
+      o->end();
+    } // Fl_Group* o
+    wUDPfields->end();
+  } // Fl_Double_Window* wUDPfields
+  { wCLDfields = new Fl_Double_Window(423, 405, _("Cloud Log export fields"));
+    { Fl_Group* o = new Fl_Group(5, 5, 410, 397, _("Select Fields to Export"));
+      o->box(FL_ENGRAVED_FRAME);
+      o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
+      { Fl_Check_Button* o = btn_cloud_Call = new Fl_Check_Button(13, 26, 70, 15, _("Call"));
+        btn_cloud_Call->down_box(FL_DOWN_BOX);
+        btn_cloud_Call->value(1);
+        btn_cloud_Call->callback((Fl_Callback*)cb_btn_cloud_Call);
+        o->value(cloud_fields.call);
+      } // Fl_Check_Button* btn_cloud_Call
+      { Fl_Check_Button* o = btn_cloud_Name = new Fl_Check_Button(13, 47, 70, 15, _("Name"));
+        btn_cloud_Name->down_box(FL_DOWN_BOX);
+        btn_cloud_Name->value(1);
+        btn_cloud_Name->callback((Fl_Callback*)cb_btn_cloud_Name);
+        o->value(cloud_fields.name);
+      } // Fl_Check_Button* btn_cloud_Name
+      { Fl_Check_Button* o = btn_cloud_Freq = new Fl_Check_Button(13, 68, 70, 15, _("Freq"));
+        btn_cloud_Freq->down_box(FL_DOWN_BOX);
+        btn_cloud_Freq->value(1);
+        btn_cloud_Freq->callback((Fl_Callback*)cb_btn_cloud_Freq);
+        o->value(cloud_fields.freq);
+      } // Fl_Check_Button* btn_cloud_Freq
+      { Fl_Check_Button* o = btn_cloud_Band = new Fl_Check_Button(13, 90, 70, 15, _("Band"));
+        btn_cloud_Band->down_box(FL_DOWN_BOX);
+        btn_cloud_Band->callback((Fl_Callback*)cb_btn_cloud_Band);
+        o->value(cloud_fields.band);
+      } // Fl_Check_Button* btn_cloud_Band
+      { Fl_Check_Button* o = btn_cloud_Mode = new Fl_Check_Button(13, 111, 70, 15, _("Mode"));
+        btn_cloud_Mode->down_box(FL_DOWN_BOX);
+        btn_cloud_Mode->value(1);
+        btn_cloud_Mode->callback((Fl_Callback*)cb_btn_cloud_Mode);
+        o->value(cloud_fields.mode);
+      } // Fl_Check_Button* btn_cloud_Mode
+      { Fl_Check_Button* o = btn_cloud_QSOdateOn = new Fl_Check_Button(13, 133, 70, 15, _("QSO Date On"));
+        btn_cloud_QSOdateOn->down_box(FL_DOWN_BOX);
+        btn_cloud_QSOdateOn->value(1);
+        btn_cloud_QSOdateOn->callback((Fl_Callback*)cb_btn_cloud_QSOdateOn);
+        o->value(cloud_fields.date_on);
+      } // Fl_Check_Button* btn_cloud_QSOdateOn
+      { Fl_Check_Button* o = btn_cloud_QSOdateOff = new Fl_Check_Button(13, 154, 70, 15, _("QSO Date Off"));
+        btn_cloud_QSOdateOff->down_box(FL_DOWN_BOX);
+        btn_cloud_QSOdateOff->value(1);
+        btn_cloud_QSOdateOff->callback((Fl_Callback*)cb_btn_cloud_QSOdateOff);
+        o->value(cloud_fields.date_off);
+      } // Fl_Check_Button* btn_cloud_QSOdateOff
+      { Fl_Check_Button* o = btn_cloud_TimeON = new Fl_Check_Button(13, 176, 70, 15, _("Time ON"));
+        btn_cloud_TimeON->down_box(FL_DOWN_BOX);
+        btn_cloud_TimeON->value(1);
+        btn_cloud_TimeON->callback((Fl_Callback*)cb_btn_cloud_TimeON);
+        o->value(cloud_fields.time_on);
+      } // Fl_Check_Button* btn_cloud_TimeON
+      { Fl_Check_Button* o = btn_cloud_TimeOFF = new Fl_Check_Button(13, 197, 70, 15, _("Time OFF"));
+        btn_cloud_TimeOFF->down_box(FL_DOWN_BOX);
+        btn_cloud_TimeOFF->callback((Fl_Callback*)cb_btn_cloud_TimeOFF);
+        o->value(cloud_fields.time_off);
+      } // Fl_Check_Button* btn_cloud_TimeOFF
+      { Fl_Check_Button* o = btn_cloud_TX_pwr = new Fl_Check_Button(13, 219, 70, 15, _("TX Power"));
+        btn_cloud_TX_pwr->down_box(FL_DOWN_BOX);
+        btn_cloud_TX_pwr->callback((Fl_Callback*)cb_btn_cloud_TX_pwr);
+        o->value(cloud_fields.tx_pwr);
+      } // Fl_Check_Button* btn_cloud_TX_pwr
+      { Fl_Check_Button* o = btn_cloud_RSTsent = new Fl_Check_Button(13, 240, 70, 15, _("RST sent"));
+        btn_cloud_RSTsent->down_box(FL_DOWN_BOX);
+        btn_cloud_RSTsent->value(1);
+        btn_cloud_RSTsent->callback((Fl_Callback*)cb_btn_cloud_RSTsent);
+        o->value(cloud_fields.rst_sent);
+      } // Fl_Check_Button* btn_cloud_RSTsent
+      { Fl_Check_Button* o = btn_cloud_RSTrcvd = new Fl_Check_Button(13, 262, 70, 15, _("RST rcvd"));
+        btn_cloud_RSTrcvd->down_box(FL_DOWN_BOX);
+        btn_cloud_RSTrcvd->value(1);
+        btn_cloud_RSTrcvd->callback((Fl_Callback*)cb_btn_cloud_RSTrcvd);
+        o->value(cloud_fields.rst_rcvd);
+      } // Fl_Check_Button* btn_cloud_RSTrcvd
+      { Fl_Check_Button* o = btn_cloud_Qth = new Fl_Check_Button(13, 283, 70, 15, _("Qth"));
+        btn_cloud_Qth->down_box(FL_DOWN_BOX);
+        btn_cloud_Qth->callback((Fl_Callback*)cb_btn_cloud_Qth);
+        o->value(cloud_fields.qth);
+      } // Fl_Check_Button* btn_cloud_Qth
+      { Fl_Check_Button* o = btn_cloud_LOC = new Fl_Check_Button(13, 305, 70, 15, _("LOC"));
+        btn_cloud_LOC->down_box(FL_DOWN_BOX);
+        btn_cloud_LOC->callback((Fl_Callback*)cb_btn_cloud_LOC);
+        o->value(cloud_fields.gridsquare);
+      } // Fl_Check_Button* btn_cloud_LOC
+      { Fl_Check_Button* o = btn_cloud_State = new Fl_Check_Button(13, 326, 70, 15, _("State"));
+        btn_cloud_State->down_box(FL_DOWN_BOX);
+        btn_cloud_State->callback((Fl_Callback*)cb_btn_cloud_State);
+        o->value(cloud_fields.state);
+      } // Fl_Check_Button* btn_cloud_State
+      { Fl_Check_Button* o = btn_cloud_Age = new Fl_Check_Button(13, 348, 70, 15, _("Age"));
+        btn_cloud_Age->down_box(FL_DOWN_BOX);
+        btn_cloud_Age->callback((Fl_Callback*)cb_btn_cloud_Age);
+        o->value(cloud_fields.age);
+      } // Fl_Check_Button* btn_cloud_Age
+      { Fl_Check_Button* o = btn_cloud_StaCall = new Fl_Check_Button(147, 26, 70, 15, _("Station Call"));
+        btn_cloud_StaCall->down_box(FL_DOWN_BOX);
+        btn_cloud_StaCall->callback((Fl_Callback*)cb_btn_cloud_StaCall);
+        o->value(cloud_fields.sta_call);
+      } // Fl_Check_Button* btn_cloud_StaCall
+      { Fl_Check_Button* o = btn_cloud_StaCity = new Fl_Check_Button(147, 47, 70, 15, _("Station QTH"));
+        btn_cloud_StaCity->down_box(FL_DOWN_BOX);
+        btn_cloud_StaCity->callback((Fl_Callback*)cb_btn_cloud_StaCity);
+        o->value(cloud_fields.mycity);
+      } // Fl_Check_Button* btn_cloud_StaCity
+      { Fl_Check_Button* o = btn_cloud_StaGrid = new Fl_Check_Button(147, 68, 70, 15, _("Station LOC"));
+        btn_cloud_StaGrid->down_box(FL_DOWN_BOX);
+        btn_cloud_StaGrid->callback((Fl_Callback*)cb_btn_cloud_StaGrid);
+        o->value(cloud_fields.mygrid);
+      } // Fl_Check_Button* btn_cloud_StaGrid
+      { Fl_Check_Button* o = btn_cloud_Operator = new Fl_Check_Button(147, 90, 70, 15, _("Operator"));
+        btn_cloud_Operator->down_box(FL_DOWN_BOX);
+        btn_cloud_Operator->callback((Fl_Callback*)cb_btn_cloud_Operator);
+        o->value(cloud_fields.op_call);
+      } // Fl_Check_Button* btn_cloud_Operator
+      { Fl_Check_Button* o = btn_cloud_Province = new Fl_Check_Button(147, 111, 70, 15, _("Province"));
+        btn_cloud_Province->down_box(FL_DOWN_BOX);
+        btn_cloud_Province->callback((Fl_Callback*)cb_btn_cloud_Province);
+        o->value(cloud_fields.province);
+      } // Fl_Check_Button* btn_cloud_Province
+      { Fl_Check_Button* o = btn_cloud_Country = new Fl_Check_Button(147, 133, 70, 15, _("Country"));
+        btn_cloud_Country->down_box(FL_DOWN_BOX);
+        btn_cloud_Country->callback((Fl_Callback*)cb_btn_cloud_Country);
+        o->value(cloud_fields.country);
+      } // Fl_Check_Button* btn_cloud_Country
+      { Fl_Check_Button* o = btn_cloud_Notes = new Fl_Check_Button(147, 154, 70, 15, _("Notes"));
+        btn_cloud_Notes->down_box(FL_DOWN_BOX);
+        btn_cloud_Notes->callback((Fl_Callback*)cb_btn_cloud_Notes);
+        o->value(cloud_fields.notes);
+      } // Fl_Check_Button* btn_cloud_Notes
+      { Fl_Check_Button* o = btn_cloud_QSLrcvd = new Fl_Check_Button(147, 176, 70, 15, _("QSL rcvd date"));
+        btn_cloud_QSLrcvd->down_box(FL_DOWN_BOX);
+        btn_cloud_QSLrcvd->callback((Fl_Callback*)cb_btn_cloud_QSLrcvd);
+        o->value(cloud_fields.qsl_rcvd);
+      } // Fl_Check_Button* btn_cloud_QSLrcvd
+      { Fl_Check_Button* o = btn_cloud_QSLsent = new Fl_Check_Button(147, 197, 70, 15, _("QSL sent date"));
+        btn_cloud_QSLsent->down_box(FL_DOWN_BOX);
+        btn_cloud_QSLsent->callback((Fl_Callback*)cb_btn_cloud_QSLsent);
+        o->value(cloud_fields.qsl_sent);
+      } // Fl_Check_Button* btn_cloud_QSLsent
+      { Fl_Check_Button* o = btn_cloud_eQSLrcvd = new Fl_Check_Button(147, 219, 70, 15, _("eQSL rcvd date"));
+        btn_cloud_eQSLrcvd->down_box(FL_DOWN_BOX);
+        btn_cloud_eQSLrcvd->callback((Fl_Callback*)cb_btn_cloud_eQSLrcvd);
+        o->value(cloud_fields.eqsl_rcvd);
+      } // Fl_Check_Button* btn_cloud_eQSLrcvd
+      { Fl_Check_Button* o = btn_cloud_eQSLsent = new Fl_Check_Button(147, 240, 70, 15, _("eQSL sent date"));
+        btn_cloud_eQSLsent->down_box(FL_DOWN_BOX);
+        btn_cloud_eQSLsent->callback((Fl_Callback*)cb_btn_cloud_eQSLsent);
+        o->value(cloud_fields.eqsl_sent);
+      } // Fl_Check_Button* btn_cloud_eQSLsent
+      { Fl_Check_Button* o = btn_cloud_LOTWrcvd = new Fl_Check_Button(147, 262, 70, 15, _("LoTW rcvd date"));
+        btn_cloud_LOTWrcvd->down_box(FL_DOWN_BOX);
+        btn_cloud_LOTWrcvd->callback((Fl_Callback*)cb_btn_cloud_LOTWrcvd);
+        o->value(cloud_fields.lotw_rcvd);
+      } // Fl_Check_Button* btn_cloud_LOTWrcvd
+      { Fl_Check_Button* o = btn_cloud_LOTWsent = new Fl_Check_Button(147, 283, 70, 15, _("LoTW sent date"));
+        btn_cloud_LOTWsent->down_box(FL_DOWN_BOX);
+        btn_cloud_LOTWsent->callback((Fl_Callback*)cb_btn_cloud_LOTWsent);
+        o->value(cloud_fields.lotw_sent);
+      } // Fl_Check_Button* btn_cloud_LOTWsent
+      { Fl_Check_Button* o = btn_cloud_QSL_VIA = new Fl_Check_Button(147, 305, 70, 15, _("QSL-VIA"));
+        btn_cloud_QSL_VIA->down_box(FL_DOWN_BOX);
+        btn_cloud_QSL_VIA->callback((Fl_Callback*)cb_btn_cloud_QSL_VIA);
+        o->value(cloud_fields.qsl_via);
+      } // Fl_Check_Button* btn_cloud_QSL_VIA
+      { Fl_Check_Button* o = btn_cloud_SerialIN = new Fl_Check_Button(147, 326, 70, 15, _("Serial # in"));
+        btn_cloud_SerialIN->down_box(FL_DOWN_BOX);
+        btn_cloud_SerialIN->callback((Fl_Callback*)cb_btn_cloud_SerialIN);
+        o->value(cloud_fields.srx);
+      } // Fl_Check_Button* btn_cloud_SerialIN
+      { Fl_Check_Button* o = btn_cloud_SerialOUT = new Fl_Check_Button(147, 348, 70, 15, _("Serial # out"));
+        btn_cloud_SerialOUT->down_box(FL_DOWN_BOX);
+        btn_cloud_SerialOUT->callback((Fl_Callback*)cb_btn_cloud_SerialOUT);
+        o->value(cloud_fields.stx);
+      } // Fl_Check_Button* btn_cloud_SerialOUT
+      { Fl_Check_Button* o = btn_cloud_Check = new Fl_Check_Button(281, 26, 70, 15, _("Check"));
+        btn_cloud_Check->down_box(FL_DOWN_BOX);
+        btn_cloud_Check->callback((Fl_Callback*)cb_btn_cloud_Check);
+        o->value(cloud_fields.check);
+      } // Fl_Check_Button* btn_cloud_Check
+      { Fl_Check_Button* o = btn_cloud_XchgIn = new Fl_Check_Button(281, 47, 70, 15, _("Exchange In"));
+        btn_cloud_XchgIn->down_box(FL_DOWN_BOX);
+        btn_cloud_XchgIn->callback((Fl_Callback*)cb_btn_cloud_XchgIn);
+        o->value(cloud_fields.xchg1);
+      } // Fl_Check_Button* btn_cloud_XchgIn
+      { Fl_Check_Button* o = btn_cloud_MyXchg = new Fl_Check_Button(281, 68, 70, 15, _("Exchange Out"));
+        btn_cloud_MyXchg->down_box(FL_DOWN_BOX);
+        btn_cloud_MyXchg->callback((Fl_Callback*)cb_btn_cloud_MyXchg);
+        o->value(cloud_fields.myxchg);
+      } // Fl_Check_Button* btn_cloud_MyXchg
+      { Fl_Check_Button* o = btn_cloud_CNTY = new Fl_Check_Button(281, 90, 70, 15, _("County"));
+        btn_cloud_CNTY->down_box(FL_DOWN_BOX);
+        btn_cloud_CNTY->callback((Fl_Callback*)cb_btn_cloud_CNTY);
+        o->value(cloud_fields.county);
+      } // Fl_Check_Button* btn_cloud_CNTY
+      { Fl_Check_Button* o = btn_cloud_CONT = new Fl_Check_Button(281, 111, 70, 15, _("Continent"));
+        btn_cloud_CONT->down_box(FL_DOWN_BOX);
+        btn_cloud_CONT->callback((Fl_Callback*)cb_btn_cloud_CONT);
+        o->value(cloud_fields.continent);
+      } // Fl_Check_Button* btn_cloud_CONT
+      { Fl_Check_Button* o = btn_cloud_CQZ = new Fl_Check_Button(281, 133, 70, 15, _("CQZ"));
+        btn_cloud_CQZ->down_box(FL_DOWN_BOX);
+        btn_cloud_CQZ->callback((Fl_Callback*)cb_btn_cloud_CQZ);
+        o->value(cloud_fields.cqz);
+      } // Fl_Check_Button* btn_cloud_CQZ
+      { Fl_Check_Button* o = btn_cloud_DXCC = new Fl_Check_Button(281, 154, 70, 15, _("DXCC"));
+        btn_cloud_DXCC->down_box(FL_DOWN_BOX);
+        btn_cloud_DXCC->callback((Fl_Callback*)cb_btn_cloud_DXCC);
+        o->value(cloud_fields.dxcc);
+      } // Fl_Check_Button* btn_cloud_DXCC
+      { Fl_Check_Button* o = btn_cloud_IOTA = new Fl_Check_Button(281, 176, 70, 15, _("IOTA"));
+        btn_cloud_IOTA->down_box(FL_DOWN_BOX);
+        btn_cloud_IOTA->callback((Fl_Callback*)cb_btn_cloud_IOTA);
+        o->value(cloud_fields.iota);
+      } // Fl_Check_Button* btn_cloud_IOTA
+      { Fl_Check_Button* o = btn_cloud_ITUZ = new Fl_Check_Button(281, 197, 70, 15, _("ITUZ"));
+        btn_cloud_ITUZ->down_box(FL_DOWN_BOX);
+        btn_cloud_ITUZ->callback((Fl_Callback*)cb_btn_cloud_ITUZ);
+        o->value(cloud_fields.ituz);
+      } // Fl_Check_Button* btn_cloud_ITUZ
+      { Fl_Check_Button* o = btn_cloud_Class = new Fl_Check_Button(281, 219, 70, 15, _("FD class"));
+        btn_cloud_Class->down_box(FL_DOWN_BOX);
+        btn_cloud_Class->callback((Fl_Callback*)cb_btn_cloud_Class);
+        o->value(cloud_fields.arrl_class);
+      } // Fl_Check_Button* btn_cloud_Class
+      { Fl_Check_Button* o = btn_cloud_Section = new Fl_Check_Button(281, 240, 70, 15, _("FD section"));
+        btn_cloud_Section->down_box(FL_DOWN_BOX);
+        btn_cloud_Section->callback((Fl_Callback*)cb_btn_cloud_Section);
+        o->value(cloud_fields.arrl_sect);
+      } // Fl_Check_Button* btn_cloud_Section
+      { Fl_Check_Button* o = btn_cloud_cwss_serno = new Fl_Check_Button(281, 262, 70, 15, _("CW SS SerNo R"));
+        btn_cloud_cwss_serno->tooltip(_("CW sweepstakes rcvd ser. no."));
+        btn_cloud_cwss_serno->down_box(FL_DOWN_BOX);
+        btn_cloud_cwss_serno->callback((Fl_Callback*)cb_btn_cloud_cwss_serno);
+        o->value(cloud_fields.cwss_serno);
+      } // Fl_Check_Button* btn_cloud_cwss_serno
+      { Fl_Check_Button* o = btn_cloud_cwss_prec = new Fl_Check_Button(281, 283, 70, 15, _("CW SS Prec\'"));
+        btn_cloud_cwss_prec->tooltip(_("CW sweepstakes precedence"));
+        btn_cloud_cwss_prec->down_box(FL_DOWN_BOX);
+        btn_cloud_cwss_prec->callback((Fl_Callback*)cb_btn_cloud_cwss_prec);
+        o->value(cloud_fields.cwss_prec);
+      } // Fl_Check_Button* btn_cloud_cwss_prec
+      { Fl_Check_Button* o = btn_cloud_cwss_check = new Fl_Check_Button(281, 305, 70, 15, _("CW SS Check"));
+        btn_cloud_cwss_check->down_box(FL_DOWN_BOX);
+        btn_cloud_cwss_check->callback((Fl_Callback*)cb_btn_cloud_cwss_check);
+        o->value(cloud_fields.cwss_check);
+      } // Fl_Check_Button* btn_cloud_cwss_check
+      { Fl_Check_Button* o = btn_cloud_cwss_section = new Fl_Check_Button(281, 326, 70, 15, _("CW SS Section"));
+        btn_cloud_cwss_section->tooltip(_("CW sweepstakes section"));
+        btn_cloud_cwss_section->down_box(FL_DOWN_BOX);
+        btn_cloud_cwss_section->callback((Fl_Callback*)cb_btn_cloud_cwss_section);
+        o->value(cloud_fields.cwss_section);
+      } // Fl_Check_Button* btn_cloud_cwss_section
+      { Fl_Check_Button* o = btn_cloud_1010 = new Fl_Check_Button(281, 348, 70, 15, _("10-10"));
+        btn_cloud_1010->tooltip(_("CW sweepstakes section"));
+        btn_cloud_1010->down_box(FL_DOWN_BOX);
+        btn_cloud_1010->callback((Fl_Callback*)cb_btn_cloud_1010);
+        o->value(cloud_fields.ten_ten);
+      } // Fl_Check_Button* btn_cloud_1010
+      { btnCLDClearAllFields = new Fl_Button(8, 373, 85, 20, _("Clear All"));
+        btnCLDClearAllFields->callback((Fl_Callback*)cb_btnCLDClearAllFields);
+      } // Fl_Button* btnCLDClearAllFields
+      { btnCLDCheckAllFields = new Fl_Button(101, 373, 85, 20, _("Check All"));
+        btnCLDCheckAllFields->callback((Fl_Callback*)cb_btnCLDCheckAllFields);
+      } // Fl_Button* btnCLDCheckAllFields
+      { btnCLDOK = new Fl_Return_Button(308, 373, 85, 20, _("OK"));
+        btnCLDOK->callback((Fl_Callback*)cb_btnCLDOK);
+      } // Fl_Return_Button* btnCLDOK
+      { btnCLDcancel = new Fl_Button(204, 373, 85, 20, _("Cancel"));
+        btnCLDcancel->callback((Fl_Callback*)cb_btnCLDcancel);
+      } // Fl_Button* btnCLDcancel
+      o->end();
+    } // Fl_Group* o
+    wCLDfields->end();
+  } // Fl_Double_Window* wCLDfields
 }

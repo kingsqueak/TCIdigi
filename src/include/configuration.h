@@ -1347,6 +1347,16 @@
         ELEM_(int, tracefile_timeout, "tracefile_timeout",                              \
               "Tqsl trace file timeout in seconds",                                     \
               15)                                                                       \
+        /* UDP log interface */                                                         \
+        ELEM_(std::string, udp_address, "UDP_LOG_ADDRESS",                              \
+              "IP Address of UDP broadcast socket",                                     \
+              "127.0.0.1")                                                              \
+        ELEM_(std::string, udp_port, "UDP_LOG_PORT",                                    \
+              "IP port number of UDP socket",                                           \
+              "9876")                                                                   \
+        ELEM_(bool, enable_udp_logging, "ENABLE_UDP_LOGGING",                           \
+              "set TRUE to enable UDP broadcast of log record",                         \
+              false)                                                                    \
         /* MacLogger interface */                                                       \
         ELEM_(bool, connect_to_maclogger, "CONNECT_TO_MACLOGGER",                       \
               "Connect to MacLogger UDP server on 255.255.255.255 / 9932",              \
