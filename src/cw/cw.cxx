@@ -1081,8 +1081,15 @@ void cw::send_ch(int ch)
 		tch = 3 * ta / 19;
 		twd = 4 * ta / 19;
 	}
-	if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth))
-		twd = 4800 / progdefaults.CWwordsworth;
+	if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth)) {
+std::cout << "twd: " << twd << " + "
+  << 50 * 1200.0 / progdefaults.CWwordsworth << " - "
+  << 50 * 1200.0 / progdefaults.CWspeed << " = ";
+		twd += (50.0 * 1200.0 / progdefaults.CWwordsworth - 50.0 * 1200.0 / progdefaults.CWspeed);
+std::cout << twd << std::endl;
+//		twd = (50.0 * 1200 / progdefaults.CWwordsworth - 50.0 * 1200 / progdefaults.CWspeed);
+//		twd += (4800.0 / progdefaults.CWspeed) * (1.0 * progdefaults.CWspeed / progdefaults.CWwordsworth - 1);
+}
 
 	tc *= kfactor;
 	tch *= kfactor;
@@ -1101,16 +1108,15 @@ void cw::send_ch(int ch)
 		kpost = progdefaults.CWpost * kfactor;
 
 	if ((ch == ' ') || (ch == '\n')) {
-		send_symbol(0, 
-			twd,
-			SPACE);
+		while (twd > 0) {
+			send_symbol(0, (twd < 4096 ? twd : 4096), SPACE);
+			twd -= 4096;
+		}
 		put_echo_char(progdefaults.rx_lowercase ? tolower(ch) : ch);
 		return;
 	}
 
 	code = morse->tx_lookup(ch);
-
-//std::cout << (char)ch << "[" << code << "]"; std::cout.flush();
 
 	if (!code.length()) {
 		return;
@@ -1391,9 +1397,8 @@ void flrig_cwio_send(char c)
 		if (lastcwiochar == ' ') {
 			tc *= 7;
 			if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth))
-				tc *= 1.0 * progdefaults.CWspeed / progdefaults.CWwordsworth;
-			if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth))
-				tc = 4800 / progdefaults.CWwordsworth;
+				tc += (50.0 * 1200 / progdefaults.CWwordsworth - 50.0 * 1200 / progdefaults.CWspeed);
+//				tc = 50.0 * 1200 * (1.0 / progdefaults.CWwordsworth - 1.0 /progdefaults.CWspeed);
 		}
 		else
 		tc *= 5;
@@ -1575,9 +1580,13 @@ void send_cwio(int c)
 		tch = 3 * ta / 19;
 		twd = 4 * ta / 19;
 	}
-	if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth))
-		twd = 4800 / progdefaults.CWwordsworth;
-
+	if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth)) {
+std::cout << "twd: " << twd << " --> ";
+		twd += (50.0 * 1200 / progdefaults.CWwordsworth - 50.0 * 1200 / progdefaults.CWspeed);
+std::cout << twd << std::endl;
+//		twd = (50.0 * 1200 / progdefaults.CWwordsworth - 50.0 * 1200 / progdefaults.CWspeed);
+//		twd += (4800.0 / progdefaults.CWspeed) * (1.0 * progdefaults.CWspeed / progdefaults.CWwordsworth - 1);
+}
 	if (c == 0x0a) c = ' ';
 
 	if (c == ' ') {
