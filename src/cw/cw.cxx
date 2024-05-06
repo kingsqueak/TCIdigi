@@ -1075,21 +1075,17 @@ void cw::send_ch(int ch)
 	float tc = 1200.0 / progdefaults.CWspeed;
 	float ta = 0.0;
 	float tch = 3 * tc, twd = 4 * tc;
+	int   stdwpm = progdefaults.CWspeed;
 
-	if (progdefaults.CWusefarnsworth && (progdefaults.CWspeed > progdefaults.CWfarnsworth)) {
+	if (progdefaults.CWusefarnsworth && (stdwpm > progdefaults.CWfarnsworth)) {
 		ta = 60000.0 / progdefaults.CWfarnsworth - 37200.0 / progdefaults.CWspeed;
 		tch = 3 * ta / 19;
 		twd = 4 * ta / 19;
+		stdwpm = progdefaults.CWfarnsworth;
 	}
-	if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth)) {
-std::cout << "twd: " << twd << " + "
-  << 50 * 1200.0 / progdefaults.CWwordsworth << " - "
-  << 50 * 1200.0 / progdefaults.CWspeed << " = ";
-		twd += (50.0 * 1200.0 / progdefaults.CWwordsworth - 50.0 * 1200.0 / progdefaults.CWspeed);
-std::cout << twd << std::endl;
-//		twd = (50.0 * 1200 / progdefaults.CWwordsworth - 50.0 * 1200 / progdefaults.CWspeed);
-//		twd += (4800.0 / progdefaults.CWspeed) * (1.0 * progdefaults.CWspeed / progdefaults.CWwordsworth - 1);
-}
+	if (progdefaults.CWusewordsworth && (stdwpm > progdefaults.CWwordsworth)) {
+		twd += (50.0 * 1200.0 / progdefaults.CWwordsworth - 50.0 * 1200.0 / stdwpm);
+	}
 
 	tc *= kfactor;
 	tch *= kfactor;
@@ -1255,10 +1251,9 @@ int cw::tx_process()
 		progdefaults.CW_KEYLINE_on_cat_port ||
 		progdefaults.CW_KEYLINE_on_ptt_port)
 		send_CW(c);
-//	else {
 	send_ch(c);
 	first_char = false;
-//	}
+
 	char_samples = acc_symbols;
 
 	return 0;
@@ -1396,9 +1391,11 @@ void flrig_cwio_send(char c)
 	if (c == ' ') {
 		if (lastcwiochar == ' ') {
 			tc *= 7;
-			if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth))
-				tc += (50.0 * 1200 / progdefaults.CWwordsworth - 50.0 * 1200 / progdefaults.CWspeed);
-//				tc = 50.0 * 1200 * (1.0 / progdefaults.CWwordsworth - 1.0 /progdefaults.CWspeed);
+			if (progdefaults.CWusewordsworth && 
+				((progdefaults.CWusefarnsworth ? progdefaults.CWfarnsworth : progdefaults.CWspeed) 
+				  > progdefaults.CWwordsworth) )
+				tc += (50.0 * 1200 / progdefaults.CWwordsworth - 50.0 * 1200 / 
+				(progdefaults.CWusefarnsworth ? progdefaults.CWfarnsworth : progdefaults.CWspeed) );
 		}
 		else
 		tc *= 5;
@@ -1568,25 +1565,18 @@ void send_cwio(int c)
 	if (tc <= 0) tc = 1;
 	float ta = 0.0;
 	float tch = 3 * tc, twd = 4 * tc;
+	int   stdwpm = progdefaults.CWspeed;
 
-//	Cserial *ser = &CW_KEYLINE_serial;
-//	if (progdefaults.CW_KEYLINE_on_cat_port)
-//		ser = &rigio;
-//	else if (progdefaults.CW_KEYLINE_on_ptt_port)
-//		ser = &push2talk->serPort;
-
-	if (progdefaults.CWusefarnsworth && (progdefaults.CWspeed > progdefaults.CWfarnsworth)) {
-		ta = 60000.0 / progdefaults.CWfarnsworth - 37200 / progdefaults.CWspeed;
+	if (progdefaults.CWusefarnsworth && (stdwpm > progdefaults.CWfarnsworth)) {
+		ta = 60000.0 / progdefaults.CWfarnsworth - 37200.0 / progdefaults.CWspeed;
 		tch = 3 * ta / 19;
 		twd = 4 * ta / 19;
+		stdwpm = progdefaults.CWfarnsworth;
 	}
-	if (progdefaults.CWusewordsworth && (progdefaults.CWspeed > progdefaults.CWwordsworth)) {
-std::cout << "twd: " << twd << " --> ";
-		twd += (50.0 * 1200 / progdefaults.CWwordsworth - 50.0 * 1200 / progdefaults.CWspeed);
-std::cout << twd << std::endl;
-//		twd = (50.0 * 1200 / progdefaults.CWwordsworth - 50.0 * 1200 / progdefaults.CWspeed);
-//		twd += (4800.0 / progdefaults.CWspeed) * (1.0 * progdefaults.CWspeed / progdefaults.CWwordsworth - 1);
-}
+	if (progdefaults.CWusewordsworth && (stdwpm > progdefaults.CWwordsworth)) {
+		twd += (50.0 * 1200.0 / progdefaults.CWwordsworth - 50.0 * 1200.0 / stdwpm);
+	}
+
 	if (c == 0x0a) c = ' ';
 
 	if (c == ' ') {
