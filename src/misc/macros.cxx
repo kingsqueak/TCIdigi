@@ -1744,6 +1744,37 @@ static void pQSYPLUS(std::string &s, size_t &i, size_t endbracket)
 	substitute(s, i, endbracket, "");
 }
 
+static void doQSYPLUS(std::string s)
+{
+	unsigned long long rf = 0;
+	double rfd = 0;
+
+// no frequency(s) specified
+	if (s.length() < 9) {
+		que_ok = true;
+		return;
+	}
+	// rf first value
+	if (sscanf(s.c_str(), "<!QSY+:%lf>", &rfd)) {
+		if (rfd != 0) {
+			rf = wf->rfcarrier() + (1000.0*rfd);
+			qsy(rf, active_modem ? active_modem->get_freq() : 1500);
+		}
+	}
+	que_ok = true;
+}
+
+static void pRxQueQSYPLUS(std::string &s, size_t &i, size_t endbracket)
+{
+	if (within_exec) {
+		substitute(s, i, endbracket, "");
+		return;
+	}
+	struct CMDS cmd = { s.substr(i, endbracket - i + 1), doQSYPLUS };
+	push_rxcmd(cmd);
+	substitute(s, i, endbracket, "");
+}
+
 static void pCALL(std::string &s, size_t &i, size_t endbracket)
 {
 	std::string call = inpCall->value();
@@ -1765,12 +1796,12 @@ static void pFREQ(std::string &s, size_t &i, size_t endbracket)
 
 static void pBAND(std::string &s, size_t &i, size_t endbracket)
 {
-        s.replace( i, 6, band_name( band( wf->rfcarrier() ) ) );
+		s.replace( i, 6, band_name( band( wf->rfcarrier() ) ) );
 }
 
 static void pTX_PWR(std::string &s, size_t &i, size_t endbracket)
 {
-        s.replace( i, 8, log_power() );
+		s.replace( i, 8, log_power() );
 }
 
 static void pLOC(std::string &s, size_t &i, size_t endbracket)
@@ -2650,7 +2681,7 @@ static void doIMAGE(std::string s)
 				active_modem->send_color_image(fname);
 		} else if (active_mode >= MODE_THOR_FIRST && active_mode <= MODE_THOR_LAST) {
 			thor_load_scaled_image(fname, Greyscale);
-        } else if (active_mode == MODE_IFKP) {
+		} else if (active_mode == MODE_IFKP) {
 			ifkp_load_scaled_image(fname, Greyscale);
 		}
 	}
@@ -4326,7 +4357,7 @@ void WriteToPipe(void)
 	for (;;) { 
 		bSuccess = ReadFile(g_hInputFile, chBuf, PIPESIZE, &dwRead, NULL);
 		if ( ! bSuccess || dwRead == 0 ) break; 
-      
+	  
 		bSuccess = WriteFile(g_hChildStd_IN_Wr, chBuf, dwRead, &dwWritten, NULL);
 		if ( ! bSuccess ) break; 
 	} 
@@ -5011,8 +5042,8 @@ static const MTAGS mtags[] = {
 	{"<!MODEM:",	pTxQueMODEM},
 	{"<!RIGMODE:",	pTxQueRIGMODE},
 	{"<!FILWID:",	pTxQueFILWID},
-    {"<!RIGHI:",    pTxQueRIGHI},
-    {"<!RIGLO:",    pTxQueRIGLO},
+	{"<!RIGHI:",    pTxQueRIGHI},
+	{"<!RIGLO:",    pTxQueRIGLO},
 	{"<!TXATTEN:",	pTxQueTXATTEN},
 	{"<!RIGCAT:",	pTxQueRIGCAT},
 	{"<!FLRIG:",	pTxQueFLRIG},
@@ -5030,8 +5061,9 @@ static const MTAGS mtags[] = {
 	{"<@GOHOME>",	pRxQueGOHOME},
 	{"<@RIGMODE:",	pRxQueRIGMODE},
 	{"<@FILWID:",	pRxQueFILWID},
-    {"<@RIGHI:",    pRxQueRIGHI},
-    {"<@RIGLO:",    pRxQueRIGLO},
+	{"<@QSY+:",		pRxQueQSYPLUS},
+	{"<@RIGHI:",    pRxQueRIGHI},
+	{"<@RIGLO:",    pRxQueRIGLO},
 	{"<@TXRSID:",	pRxQueTXRSID},
 	{"<@LOCK:",		pRxQueLOCK},
 	{"<@WAIT:",     pRxQueWAIT},
