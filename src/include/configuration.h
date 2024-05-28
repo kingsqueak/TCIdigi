@@ -74,6 +74,15 @@
     ELEM_(bool, confirmExit, "CONFIRMEXIT",                                             \
           "Ensure user wants to leave flgidi",                                          \
           true)                                                                         \
+    ELEM_(Fl_Color, background, "BACKGROUND",                                           \
+          "background color",                                                           \
+          FL_BACKGROUND_COLOR)                                                          \
+    ELEM_(Fl_Color, background2, "BACKGROUND2",                                         \
+          "background2 color",                                                          \
+          FL_BACKGROUND2_COLOR)                                                         \
+    ELEM_(Fl_Color, foreground, "FOREGROUND",                                           \
+          "foreground color",                                                           \
+          FL_FOREGROUND_COLOR)                                                          \
         ELEM_(bool, show_tx_timer, "SHOW_TX_TIMER",                                     \
           "Show tx timer on menu bar",                                                  \
           true)                                                                         \

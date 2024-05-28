@@ -787,4 +787,6 @@ extern void FHdisp_char_height();
 
 extern bool clean_exit(bool);
 
+extern void redraw_windows();
+
 #endif

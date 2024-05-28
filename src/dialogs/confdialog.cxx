@@ -752,6 +752,112 @@ font_browser->callback(cbMenuFontBrowser);
 font_browser->show();
 }
 
+Fl_ListBox *listboxScheme=(Fl_ListBox *)0;
+
+static void cb_listboxScheme(Fl_ListBox* o, void*) {
+  progdefaults.ui_scheme = o->value();
+
+Fl::scheme(progdefaults.ui_scheme.c_str());
+
+progdefaults.changed = true;
+}
+
+Fl_Button *btn_background_color=(Fl_Button *)0;
+
+static void cb_btn_background_color(Fl_Button*, void*) {
+  uchar r, g, b;
+
+ Fl::get_color(progdefaults.background, r, g, b);
+
+ if (!fl_color_chooser("Background", r, g, b))
+   return;
+
+ progdefaults.background = fl_rgb_color(r, g, b);
+ background_color->color(progdefaults.background);
+ 
+uchar fg_r, fg_g, fg_b,
+       bg_r, bg_g, bg_b,
+       bg2_r, bg2_g, bg2_b;
+
+ Fl::get_color(progdefaults.foreground, fg_r, fg_g, fg_b);
+ Fl::get_color(progdefaults.background, bg_r, bg_g, bg_b);
+ Fl::get_color(progdefaults.background2, bg2_r, bg2_g, bg2_b);
+
+ Fl::background2(bg2_r, bg2_g, bg2_b);
+ Fl::background(bg_r, bg_g, bg_b);
+ Fl::foreground(fg_r, fg_g, fg_b);
+
+ redraw_windows();
+  
+ progdefaults.changed = true;
+}
+
+Fl_Box *background_color=(Fl_Box *)0;
+
+Fl_Button *btn_background2_color=(Fl_Button *)0;
+
+static void cb_btn_background2_color(Fl_Button*, void*) {
+  uchar r, g, b;
+
+ Fl::get_color(progdefaults.background2, r, g, b);
+
+ if (!fl_color_chooser("Background2", r, g, b))
+   return;
+
+ progdefaults.background2 = fl_rgb_color(r, g, b);
+ background2_color->color(progdefaults.background2);
+ 
+ uchar fg_r, fg_g, fg_b,
+       bg_r, bg_g, bg_b,
+       bg2_r, bg2_g, bg2_b;
+
+ Fl::get_color(progdefaults.foreground, fg_r, fg_g, fg_b);
+ Fl::get_color(progdefaults.background, bg_r, bg_g, bg_b);
+ Fl::get_color(progdefaults.background2, bg2_r, bg2_g, bg2_b);
+
+ Fl::background2(bg2_r, bg2_g, bg2_b);
+ Fl::background(bg_r, bg_g, bg_b);
+ Fl::foreground(fg_r, fg_g, fg_b);
+
+ redraw_windows();
+  
+ progdefaults.changed = true;
+}
+
+Fl_Box *background2_color=(Fl_Box *)0;
+
+Fl_Button *btn_foreground_color=(Fl_Button *)0;
+
+static void cb_btn_foreground_color(Fl_Button*, void*) {
+  uchar r, g, b;
+
+ Fl::get_color(progdefaults.foreground, r, g, b);
+
+ if (!fl_color_chooser("Foreground", r, g, b))
+   return;
+
+ progdefaults.foreground = fl_rgb_color(r, g, b);
+ foreground_color->color(progdefaults.foreground);
+ 
+ uchar fg_r, fg_g, fg_b,
+       bg_r, bg_g, bg_b,
+       bg2_r, bg2_g, bg2_b;
+
+ Fl::get_color(progdefaults.foreground, fg_r, fg_g, fg_b);
+ Fl::get_color(progdefaults.background, bg_r, bg_g, bg_b);
+ Fl::get_color(progdefaults.background2, bg2_r, bg2_g, bg2_b);
+
+ Fl::background2(bg2_r, bg2_g, bg2_b);
+ Fl::background(bg_r, bg_g, bg_b);
+ Fl::foreground(fg_r, fg_g, fg_b);
+
+ redraw_windows();
+ 
+ progdefaults.changed = true;
+}
+
+Fl_Box *foreground_color=(Fl_Box *)0;
+
 Fl_Box *FDdisplay=(Fl_Box *)0;
 
 Fl_Button *btn_freq_control_font=(Fl_Button *)0;
@@ -8935,15 +9041,6 @@ icons::toggle_icon_labels();
 progdefaults.changed = true;
 }
 
-Fl_ListBox *listboxScheme=(Fl_ListBox *)0;
-
-static void cb_listboxScheme(Fl_ListBox* o, void*) {
-  progdefaults.ui_scheme = o->value();
-    Fl::scheme(progdefaults.ui_scheme.c_str());
-
-    progdefaults.changed = true;
-}
-
 Fl_Button *bVisibleModes=(Fl_Button *)0;
 
 static void cb_bVisibleModes(Fl_Button* o, void*) {
@@ -10179,70 +10276,70 @@ Fl_Double_Window* ConfigureDialog() {
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
-      { btnSpotColor = new Fl_Button(284, 75, 100, 21, _("Spot"));
+      { btnSpotColor = new Fl_Button(284, 66, 110, 21, _("Spot"));
         btnSpotColor->callback((Fl_Callback*)cb_btnSpotColor);
       } // Fl_Button* btnSpotColor
-      { btnRevColor = new Fl_Button(284, 111, 100, 21, _("Rev"));
+      { btnRevColor = new Fl_Button(284, 103, 110, 21, _("Rev"));
         btnRevColor->callback((Fl_Callback*)cb_btnRevColor);
       } // Fl_Button* btnRevColor
-      { btnTuneColor = new Fl_Button(284, 148, 100, 21, _("Tune"));
+      { btnTuneColor = new Fl_Button(284, 141, 110, 21, _("Tune"));
         btnTuneColor->callback((Fl_Callback*)cb_btnTuneColor);
       } // Fl_Button* btnTuneColor
-      { btnRxIDColor = new Fl_Button(284, 183, 100, 21, _("RxID nar"));
+      { btnRxIDColor = new Fl_Button(284, 179, 110, 21, _("RxID nar"));
         btnRxIDColor->callback((Fl_Callback*)cb_btnRxIDColor);
       } // Fl_Button* btnRxIDColor
-      { btnLkColor = new Fl_Button(473, 75, 100, 21, _("Lk"));
+      { btnLkColor = new Fl_Button(473, 66, 110, 21, _("Lk"));
         btnLkColor->callback((Fl_Callback*)cb_btnLkColor);
       } // Fl_Button* btnLkColor
-      { btnSql1Color = new Fl_Button(473, 111, 100, 21, _("SQL-1"));
+      { btnSql1Color = new Fl_Button(473, 103, 110, 21, _("SQL-1"));
         btnSql1Color->callback((Fl_Callback*)cb_btnSql1Color);
       } // Fl_Button* btnSql1Color
-      { btnXmtColor = new Fl_Button(473, 148, 100, 20, _("T/R"));
+      { btnXmtColor = new Fl_Button(473, 141, 110, 20, _("T/R"));
         btnXmtColor->callback((Fl_Callback*)cb_btnXmtColor);
       } // Fl_Button* btnXmtColor
-      { btnRxIDwideColor = new Fl_Button(473, 183, 100, 21, _("RxID wide"));
+      { btnRxIDwideColor = new Fl_Button(473, 179, 110, 21, _("RxID wide"));
         btnRxIDwideColor->callback((Fl_Callback*)cb_btnRxIDwideColor);
       } // Fl_Button* btnRxIDwideColor
-      { btnAfcColor = new Fl_Button(663, 75, 100, 21, _("AFC"));
+      { btnAfcColor = new Fl_Button(663, 66, 110, 21, _("AFC"));
         btnAfcColor->callback((Fl_Callback*)cb_btnAfcColor);
       } // Fl_Button* btnAfcColor
-      { btnSql2Color = new Fl_Button(663, 111, 100, 20, _("SQL-2"));
+      { btnSql2Color = new Fl_Button(663, 103, 110, 20, _("SQL-2"));
         btnSql2Color->callback((Fl_Callback*)cb_btnSql2Color);
       } // Fl_Button* btnSql2Color
-      { btnTxIDColor = new Fl_Button(662, 183, 100, 20, _("TxID"));
+      { btnTxIDColor = new Fl_Button(662, 179, 110, 20, _("TxID"));
         btnTxIDColor->callback((Fl_Callback*)cb_btnTxIDColor);
       } // Fl_Button* btnTxIDColor
-      { Fl_Box* o = spotcolor = new Fl_Box(254, 76, 18, 19);
+      { Fl_Box* o = spotcolor = new Fl_Box(254, 67, 18, 19);
         spotcolor->box(FL_THIN_DOWN_BOX);
         spotcolor->color((Fl_Color)3);
         o->color(progdefaults.SpotColor);
       } // Fl_Box* spotcolor
-      { Fl_Box* o = revcolor = new Fl_Box(254, 112, 18, 19);
+      { Fl_Box* o = revcolor = new Fl_Box(254, 104, 18, 19);
         revcolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.RevColor);
       } // Fl_Box* revcolor
-      { Fl_Box* o = tunecolor = new Fl_Box(254, 149, 18, 19);
+      { Fl_Box* o = tunecolor = new Fl_Box(254, 142, 18, 19);
         tunecolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.TuneColor);
       } // Fl_Box* tunecolor
-      { Fl_Box* o = rxidcolor = new Fl_Box(254, 184, 18, 19);
+      { Fl_Box* o = rxidcolor = new Fl_Box(254, 180, 18, 19);
         rxidcolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.RxIDColor);
       } // Fl_Box* rxidcolor
-      { Fl_Box* o = lockcolor = new Fl_Box(442, 76, 18, 19);
+      { Fl_Box* o = lockcolor = new Fl_Box(442, 67, 18, 19);
         lockcolor->box(FL_THIN_DOWN_BOX);
         lockcolor->color((Fl_Color)3);
         o->color(progdefaults.LkColor);
       } // Fl_Box* lockcolor
-      { Fl_Box* o = sql1color = new Fl_Box(442, 112, 18, 19);
+      { Fl_Box* o = sql1color = new Fl_Box(442, 104, 18, 19);
         sql1color->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.Sql1Color);
       } // Fl_Box* sql1color
-      { Fl_Box* o = rxidcolorwide = new Fl_Box(442, 184, 18, 19);
+      { Fl_Box* o = rxidcolorwide = new Fl_Box(442, 180, 18, 19);
         rxidcolorwide->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.RxIDwideColor);
       } // Fl_Box* rxidcolorwide
-      { Fl_Box* o = xmtcolor = new Fl_Box(442, 149, 18, 18);
+      { Fl_Box* o = xmtcolor = new Fl_Box(442, 142, 18, 18);
         xmtcolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.XmtColor);
       } // Fl_Box* xmtcolor
@@ -10251,38 +10348,77 @@ Fl_Double_Window* ConfigureDialog() {
         afccolor->color((Fl_Color)3);
         o->color(progdefaults.AfcColor);
       } // Fl_Box* afccolor
-      { Fl_Box* o = sql2color = new Fl_Box(630, 112, 18, 18);
+      { Fl_Box* o = sql2color = new Fl_Box(630, 104, 18, 18);
         sql2color->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.Sql2Color);
       } // Fl_Box* sql2color
-      { Fl_Box* o = txidcolor = new Fl_Box(630, 184, 18, 18);
+      { Fl_Box* o = txidcolor = new Fl_Box(630, 180, 18, 18);
         txidcolor->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.TxIDColor);
       } // Fl_Box* txidcolor
-      { btn_default_btn_color = new Fl_Button(284, 218, 100, 21, _("Lighted Btns"));
+      { btn_default_btn_color = new Fl_Button(284, 217, 110, 21, _("Lighted Btns"));
         btn_default_btn_color->callback((Fl_Callback*)cb_btn_default_btn_color);
       } // Fl_Button* btn_default_btn_color
-      { Fl_Box* o = default_btn_color = new Fl_Box(254, 220, 18, 19);
+      { Fl_Box* o = default_btn_color = new Fl_Box(254, 218, 18, 19);
         default_btn_color->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.default_btn_color);
       } // Fl_Box* default_btn_color
-      { btn_check_btn_color = new Fl_Button(473, 218, 100, 21, _("Check Btns"));
+      { btn_check_btn_color = new Fl_Button(473, 217, 110, 21, _("Check Btns"));
         btn_check_btn_color->callback((Fl_Callback*)cb_btn_check_btn_color);
       } // Fl_Button* btn_check_btn_color
       { Fl_Box* o = default_check_btn_color = new Fl_Box(442, 220, 18, 19);
         default_check_btn_color->box(FL_THIN_DOWN_BOX);
         o->color(progdefaults.default_check_btn_color);
       } // Fl_Box* default_check_btn_color
-      { btn_default_round_btn_color = new Fl_Button(662, 218, 100, 21, _("Round Btns"));
+      { btn_default_round_btn_color = new Fl_Button(662, 217, 110, 21, _("Round Btns"));
         btn_default_round_btn_color->callback((Fl_Callback*)cb_btn_default_round_btn_color);
       } // Fl_Button* btn_default_round_btn_color
-      { Fl_Box* o = default_round_btn_color = new Fl_Box(630, 220, 18, 19);
+      { Fl_Box* o = default_round_btn_color = new Fl_Box(630, 218, 18, 19);
         default_round_btn_color->box(FL_ROUND_DOWN_BOX);
         o->color(progdefaults.default_round_btn_color);
       } // Fl_Box* default_round_btn_color
-      { btnMenuFont = new Fl_Button(284, 278, 100, 21, _("Menu font"));
+      { btnMenuFont = new Fl_Button(284, 255, 110, 21, _("Menu font"));
         btnMenuFont->callback((Fl_Callback*)cb_btnMenuFont);
       } // Fl_Button* btnMenuFont
+      { listboxScheme = new Fl_ListBox(314, 293, 80, 20, _("UI scheme"));
+        listboxScheme->tooltip(_("Change application look and feel"));
+        listboxScheme->box(FL_DOWN_BOX);
+        listboxScheme->color(FL_BACKGROUND2_COLOR);
+        listboxScheme->selection_color(FL_BACKGROUND_COLOR);
+        listboxScheme->labeltype(FL_NORMAL_LABEL);
+        listboxScheme->labelfont(0);
+        listboxScheme->labelsize(14);
+        listboxScheme->labelcolor(FL_FOREGROUND_COLOR);
+        listboxScheme->callback((Fl_Callback*)cb_listboxScheme);
+        listboxScheme->align(Fl_Align(FL_ALIGN_LEFT));
+        listboxScheme->when(FL_WHEN_RELEASE);
+        listboxScheme->add("base"); listboxScheme->add("gtk+");
+        listboxScheme->add("plastic"); listboxScheme->add("gleam");
+        listboxScheme->value(progdefaults.ui_scheme.c_str());
+        listboxScheme->labelsize(FL_NORMAL_SIZE);
+        listboxScheme->end();
+      } // Fl_ListBox* listboxScheme
+      { btn_background_color = new Fl_Button(473, 255, 110, 21, _("Background"));
+        btn_background_color->callback((Fl_Callback*)cb_btn_background_color);
+      } // Fl_Button* btn_background_color
+      { Fl_Box* o = background_color = new Fl_Box(442, 256, 18, 19);
+        background_color->box(FL_THIN_DOWN_BOX);
+        o->color(progdefaults.background);
+      } // Fl_Box* background_color
+      { btn_background2_color = new Fl_Button(473, 292, 110, 21, _("Background2"));
+        btn_background2_color->callback((Fl_Callback*)cb_btn_background2_color);
+      } // Fl_Button* btn_background2_color
+      { Fl_Box* o = background2_color = new Fl_Box(442, 293, 18, 19);
+        background2_color->box(FL_THIN_DOWN_BOX);
+        o->color(progdefaults.background2);
+      } // Fl_Box* background2_color
+      { btn_foreground_color = new Fl_Button(662, 255, 110, 21, _("Foreground"));
+        btn_foreground_color->callback((Fl_Callback*)cb_btn_foreground_color);
+      } // Fl_Button* btn_foreground_color
+      { Fl_Box* o = foreground_color = new Fl_Box(630, 256, 18, 19);
+        foreground_color->box(FL_THIN_DOWN_BOX);
+        o->color(progdefaults.foreground);
+      } // Fl_Box* foreground_color
       CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons-Menus"));
       config_pages.push_back(p);
       tab_tree->add(_("Colors-Fonts/Buttons-Menus"));
@@ -13869,6 +14005,7 @@ ver a +/- 10 WPM range.  Calibration/Test is 1 minute of\n\'PARIS \'."));
         { btnFMT_plot_background = new Fl_Button(209, 122, 60, 22, _("Bgnd"));
           btnFMT_plot_background->tooltip(_("Change plot background color"));
           btnFMT_plot_background->callback((Fl_Callback*)cb_btnFMT_plot_background);
+          btnFMT_plot_background->hide();
         } // Fl_Button* btnFMT_plot_background
         { btnFMT_unk_color = new Fl_Button(209, 153, 60, 22, _("Unkn"));
           btnFMT_unk_color->tooltip(_("Change plot unknown track color"));
@@ -19234,25 +19371,6 @@ ll with your audio device."));
           chkMenuIcons->callback((Fl_Callback*)cb_chkMenuIcons);
           o->value(progdefaults.menuicons);
         } // Fl_Check_Button* chkMenuIcons
-        { Fl_ListBox* o = listboxScheme = new Fl_ListBox(394, 63, 80, 20, _("UI scheme"));
-          listboxScheme->tooltip(_("Change application look and feel"));
-          listboxScheme->box(FL_DOWN_BOX);
-          listboxScheme->color(FL_BACKGROUND2_COLOR);
-          listboxScheme->selection_color(FL_BACKGROUND_COLOR);
-          listboxScheme->labeltype(FL_NORMAL_LABEL);
-          listboxScheme->labelfont(0);
-          listboxScheme->labelsize(14);
-          listboxScheme->labelcolor(FL_FOREGROUND_COLOR);
-          listboxScheme->callback((Fl_Callback*)cb_listboxScheme);
-          listboxScheme->align(Fl_Align(FL_ALIGN_RIGHT));
-          listboxScheme->when(FL_WHEN_RELEASE);
-          listboxScheme->add("base");
-          listboxScheme->add("gtk+");
-          listboxScheme->add("plastic"); listboxScheme->add("gleam");
-          listboxScheme->value(progdefaults.ui_scheme.c_str());
-                       o->labelsize(FL_NORMAL_SIZE);
-          listboxScheme->end();
-        } // Fl_ListBox* listboxScheme
         { bVisibleModes = new Fl_Button(259, 63, 110, 20, _("Visible modes"));
           bVisibleModes->tooltip(_("Select modes for menu access"));
           bVisibleModes->callback((Fl_Callback*)cb_bVisibleModes);

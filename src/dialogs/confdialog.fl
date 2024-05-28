@@ -503,7 +503,7 @@ static const char szBaudRates[] = "300|600|1200|2400|4800|9600|19200|38400|57600
 static const char szProsigns[] = "~|%|&|+|=|{|}|<|>|[|]| ";} {}
   Fl_Window {} {
     label {Fldigi configuration} open
-    xywh {900 39 800 380} type Double color 45 selection_color 51 labelsize 18 align 80 resizable size_range {750 380 0 380} visible
+    xywh {1057 93 800 380} type Double color 45 selection_color 51 labelsize 18 align 80 resizable size_range {750 380 0 380} visible
   } {
     Fl_Group {} {open
       xywh {0 0 201 380} resizable
@@ -767,7 +767,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Colors-Fonts/Buttons-Menus}
+      label {Colors-Fonts/Buttons-Menus} open selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons-Menus"));}
       code1 {config_pages.push_back(p);}
@@ -780,7 +780,7 @@ spotcolor->color(progdefaults.SpotColor);
 spotcolor->redraw();
 spot_selection_color();
 progdefaults.changed = true;}
-        xywh {284 75 100 21}
+        xywh {284 66 110 21}
       }
       Fl_Button btnRevColor {
         label Rev
@@ -789,7 +789,7 @@ revcolor->color(progdefaults.RevColor);
 revcolor->redraw();
 rev_selection_color();
 progdefaults.changed = true;}
-        xywh {284 111 100 21}
+        xywh {284 103 110 21}
       }
       Fl_Button btnTuneColor {
         label Tune
@@ -798,7 +798,7 @@ tunecolor->color(progdefaults.TuneColor);
 tunecolor->redraw();
 tune_selection_color();
 progdefaults.changed = true;}
-        xywh {284 148 100 21}
+        xywh {284 141 110 21}
       }
       Fl_Button btnRxIDColor {
         label {RxID nar}
@@ -811,7 +811,7 @@ progdefaults.changed = true;
 Fl_Color clr = progdefaults.rsidWideSearch ? progdefaults.RxIDwideColor : progdefaults.RxIDColor;
 btnRSID->selection_color(clr);
 btnRSID->redraw();}
-        xywh {284 183 100 21}
+        xywh {284 179 110 21}
       }
       Fl_Button btnLkColor {
         label Lk
@@ -820,7 +820,7 @@ lockcolor->color(progdefaults.LkColor);
 lockcolor->redraw();
 xmtlock_selection_color();
 progdefaults.changed = true;}
-        xywh {473 75 100 21}
+        xywh {473 66 110 21}
       }
       Fl_Button btnSql1Color {
         label {SQL-1}
@@ -829,7 +829,7 @@ sql1color->color(progdefaults.Sql1Color);
 sql1color->redraw();
 sql_selection_color();
 progdefaults.changed = true;}
-        xywh {473 111 100 21}
+        xywh {473 103 110 21}
       }
       Fl_Button btnXmtColor {
         label {T/R}
@@ -838,7 +838,7 @@ xmtcolor->color(progdefaults.XmtColor);
 xmtcolor->redraw();
 xmtrcv_selection_color();
 progdefaults.changed = true;}
-        xywh {473 148 100 20}
+        xywh {473 141 110 20}
       }
       Fl_Button btnRxIDwideColor {
         label {RxID wide}
@@ -851,7 +851,7 @@ progdefaults.changed = true;
 Fl_Color clr = progdefaults.rsidWideSearch ? progdefaults.RxIDwideColor : progdefaults.RxIDColor;
 btnRSID->selection_color(clr);
 btnRSID->redraw();}
-        xywh {473 183 100 21}
+        xywh {473 179 110 21}
       }
       Fl_Button btnAfcColor {
         label AFC
@@ -860,7 +860,7 @@ afccolor->color(progdefaults.AfcColor);
 afccolor->redraw();
 afc_selection_color();
 progdefaults.changed = true;}
-        xywh {663 75 100 21}
+        xywh {663 66 110 21}
       }
       Fl_Button btnSql2Color {
         label {SQL-2}
@@ -869,7 +869,7 @@ sql2color->color(progdefaults.Sql2Color);
 sql2color->redraw();
 sql_selection_color();
 progdefaults.changed = true;}
-        xywh {663 111 100 20}
+        xywh {663 103 110 20}
       }
       Fl_Button btnTxIDColor {
         label TxID
@@ -881,38 +881,38 @@ progdefaults.changed = true;
 
 btnTxRSID->selection_color(progdefaults.TxIDColor);
 btnTxRSID->redraw();}
-        xywh {662 183 100 20}
+        xywh {662 179 110 20}
       }
       Fl_Box spotcolor {
-        xywh {254 76 18 19} box THIN_DOWN_BOX color 3
+        xywh {254 67 18 19} box THIN_DOWN_BOX color 3
         code0 {o->color(progdefaults.SpotColor);}
       }
       Fl_Box revcolor {
-        xywh {254 112 18 19} box THIN_DOWN_BOX
+        xywh {254 104 18 19} box THIN_DOWN_BOX
         code0 {o->color(progdefaults.RevColor);}
       }
       Fl_Box tunecolor {
-        xywh {254 149 18 19} box THIN_DOWN_BOX
+        xywh {254 142 18 19} box THIN_DOWN_BOX
         code0 {o->color(progdefaults.TuneColor);}
       }
       Fl_Box rxidcolor {
-        xywh {254 184 18 19} box THIN_DOWN_BOX
+        xywh {254 180 18 19} box THIN_DOWN_BOX
         code0 {o->color(progdefaults.RxIDColor);}
       }
       Fl_Box lockcolor {
-        xywh {442 76 18 19} box THIN_DOWN_BOX color 3
+        xywh {442 67 18 19} box THIN_DOWN_BOX color 3
         code0 {o->color(progdefaults.LkColor);}
       }
       Fl_Box sql1color {
-        xywh {442 112 18 19} box THIN_DOWN_BOX
+        xywh {442 104 18 19} box THIN_DOWN_BOX
         code0 {o->color(progdefaults.Sql1Color);}
       }
       Fl_Box rxidcolorwide {
-        xywh {442 184 18 19} box THIN_DOWN_BOX
+        xywh {442 180 18 19} box THIN_DOWN_BOX
         code0 {o->color(progdefaults.RxIDwideColor);}
       }
       Fl_Box xmtcolor {
-        xywh {442 149 18 18} box THIN_DOWN_BOX
+        xywh {442 142 18 18} box THIN_DOWN_BOX
         code0 {o->color(progdefaults.XmtColor);}
       }
       Fl_Box afccolor {
@@ -920,11 +920,11 @@ btnTxRSID->redraw();}
         code0 {o->color(progdefaults.AfcColor);}
       }
       Fl_Box sql2color {
-        xywh {630 112 18 18} box THIN_DOWN_BOX
+        xywh {630 104 18 18} box THIN_DOWN_BOX
         code0 {o->color(progdefaults.Sql2Color);}
       }
       Fl_Box txidcolor {
-        xywh {630 184 18 18} box THIN_DOWN_BOX
+        xywh {630 180 18 18} box THIN_DOWN_BOX
         code0 {o->color(progdefaults.TxIDColor);}
       }
       Fl_Button btn_default_btn_color {
@@ -934,10 +934,10 @@ default_btn_color->color(progdefaults.default_btn_color);
 default_btn_color->redraw();
 set_default_btn_color();
 progdefaults.changed = true;}
-        xywh {284 218 100 21}
+        xywh {284 217 110 21}
       }
       Fl_Box default_btn_color {
-        xywh {254 220 18 19} box THIN_DOWN_BOX
+        xywh {254 218 18 19} box THIN_DOWN_BOX
         code0 {o->color(progdefaults.default_btn_color);}
       }
       Fl_Button btn_check_btn_color {
@@ -947,7 +947,7 @@ default_check_btn_color->color(progdefaults.default_check_btn_color);
 default_check_btn_color->redraw();
 set_default_btn_color();
 progdefaults.changed = true;}
-        xywh {473 218 100 21}
+        xywh {473 217 110 21}
       }
       Fl_Box default_check_btn_color {
         xywh {442 220 18 19} box THIN_DOWN_BOX
@@ -960,10 +960,10 @@ default_round_btn_color->color(progdefaults.default_round_btn_color);
 default_round_btn_color->redraw();
 set_default_btn_color();
 progdefaults.changed = true;}
-        xywh {662 218 100 21}
+        xywh {662 217 110 21}
       }
       Fl_Box default_round_btn_color {
-        xywh {630 220 18 19} box ROUND_DOWN_BOX
+        xywh {630 218 18 19} box ROUND_DOWN_BOX
         code0 {o->color(progdefaults.default_round_btn_color);}
       }
       Fl_Button btnMenuFont {
@@ -972,7 +972,120 @@ progdefaults.changed = true;}
 font_browser->fontSize(progdefaults.MenuFontsize);
 font_browser->callback(cbMenuFontBrowser);
 font_browser->show();}
-        xywh {284 278 100 21}
+        xywh {284 255 110 21}
+      }
+      Fl_Group listboxScheme {
+        label {UI scheme}
+        callback {progdefaults.ui_scheme = o->value();
+
+Fl::scheme(progdefaults.ui_scheme.c_str());
+
+progdefaults.changed = true;} open
+        tooltip {Change application look and feel} xywh {314 293 80 20} box DOWN_BOX color 7 align 4
+        code0 {listboxScheme->add("base"); listboxScheme->add("gtk+");}
+        code1 {listboxScheme->add("plastic"); listboxScheme->add("gleam");}
+        code2 {listboxScheme->value(progdefaults.ui_scheme.c_str());}
+        code3 {listboxScheme->labelsize(FL_NORMAL_SIZE);}
+        class Fl_ListBox
+      } {}
+      Fl_Button btn_background_color {
+        label Background
+        callback {uchar r, g, b;
+
+ Fl::get_color(progdefaults.background, r, g, b);
+
+ if (!fl_color_chooser("Background", r, g, b))
+   return;
+
+ progdefaults.background = fl_rgb_color(r, g, b);
+ background_color->color(progdefaults.background);
+ 
+uchar fg_r, fg_g, fg_b,
+       bg_r, bg_g, bg_b,
+       bg2_r, bg2_g, bg2_b;
+
+ Fl::get_color(progdefaults.foreground, fg_r, fg_g, fg_b);
+ Fl::get_color(progdefaults.background, bg_r, bg_g, bg_b);
+ Fl::get_color(progdefaults.background2, bg2_r, bg2_g, bg2_b);
+
+ Fl::background2(bg2_r, bg2_g, bg2_b);
+ Fl::background(bg_r, bg_g, bg_b);
+ Fl::foreground(fg_r, fg_g, fg_b);
+
+ redraw_windows();
+  
+ progdefaults.changed = true;}
+        xywh {473 255 110 21}
+      }
+      Fl_Box background_color {
+        xywh {442 256 18 19} box THIN_DOWN_BOX
+        code0 {o->color(progdefaults.background);}
+      }
+      Fl_Button btn_background2_color {
+        label Background2
+        callback {uchar r, g, b;
+
+ Fl::get_color(progdefaults.background2, r, g, b);
+
+ if (!fl_color_chooser("Background2", r, g, b))
+   return;
+
+ progdefaults.background2 = fl_rgb_color(r, g, b);
+ background2_color->color(progdefaults.background2);
+ 
+ uchar fg_r, fg_g, fg_b,
+       bg_r, bg_g, bg_b,
+       bg2_r, bg2_g, bg2_b;
+
+ Fl::get_color(progdefaults.foreground, fg_r, fg_g, fg_b);
+ Fl::get_color(progdefaults.background, bg_r, bg_g, bg_b);
+ Fl::get_color(progdefaults.background2, bg2_r, bg2_g, bg2_b);
+
+ Fl::background2(bg2_r, bg2_g, bg2_b);
+ Fl::background(bg_r, bg_g, bg_b);
+ Fl::foreground(fg_r, fg_g, fg_b);
+
+ redraw_windows();
+  
+ progdefaults.changed = true;}
+        xywh {473 292 110 21}
+      }
+      Fl_Box background2_color {
+        xywh {442 293 18 19} box THIN_DOWN_BOX
+        code0 {o->color(progdefaults.background2);}
+      }
+      Fl_Button btn_foreground_color {
+        label Foreground
+        callback {uchar r, g, b;
+
+ Fl::get_color(progdefaults.foreground, r, g, b);
+
+ if (!fl_color_chooser("Foreground", r, g, b))
+   return;
+
+ progdefaults.foreground = fl_rgb_color(r, g, b);
+ foreground_color->color(progdefaults.foreground);
+ 
+ uchar fg_r, fg_g, fg_b,
+       bg_r, bg_g, bg_b,
+       bg2_r, bg2_g, bg2_b;
+
+ Fl::get_color(progdefaults.foreground, fg_r, fg_g, fg_b);
+ Fl::get_color(progdefaults.background, bg_r, bg_g, bg_b);
+ Fl::get_color(progdefaults.background2, bg2_r, bg2_g, bg2_b);
+
+ Fl::background2(bg2_r, bg2_g, bg2_b);
+ Fl::background(bg_r, bg_g, bg_b);
+ Fl::foreground(fg_r, fg_g, fg_b);
+
+ redraw_windows();
+ 
+ progdefaults.changed = true;}
+        xywh {662 255 110 21}
+      }
+      Fl_Box foreground_color {
+        xywh {630 256 18 19} box THIN_DOWN_BOX
+        code0 {o->color(progdefaults.foreground);}
       }
     }
     Fl_Group {} {
@@ -3294,7 +3407,7 @@ o->label((inpLOTW_pwd->type() & FL_SECRET_INPUT) ? _("Show") : _("Hide"));}
       }
     }
     Fl_Group {} {
-      label {Logging/Cloud-UDP} open selected
+      label {Logging/Cloud-UDP} open
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Logging/Cloud-UDP"));}
       code1 {config_pages.push_back(p);}
@@ -5327,7 +5440,7 @@ progdefaults.changed = true;}
   fmt_plot->bk_color(progdefaults.FMT_background);
   fmt_plot->redraw();
   progdefaults.changed = true;}
-          tooltip {Change plot background color} xywh {209 122 60 22}
+          tooltip {Change plot background color} xywh {209 122 60 22} hide
         }
         Fl_Button btnFMT_unk_color {
           label Unkn
@@ -11294,20 +11407,6 @@ progdefaults.changed = true;}
           tooltip {Enable / disable icons on menus} xywh {420 34 150 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.menuicons);}
         }
-        Fl_Group listboxScheme {
-          label {UI scheme}
-          callback {progdefaults.ui_scheme = o->value();
-    Fl::scheme(progdefaults.ui_scheme.c_str());
-
-    progdefaults.changed = true;} open
-          tooltip {Change application look and feel} xywh {394 63 80 20} box DOWN_BOX color 7 align 8
-          code0 {listboxScheme->add("base");}
-          code1 {listboxScheme->add("gtk+");}
-          code2 {listboxScheme->add("plastic"); listboxScheme->add("gleam");}
-          code3 {listboxScheme->value(progdefaults.ui_scheme.c_str());
-                       o->labelsize(FL_NORMAL_SIZE);}
-          class Fl_ListBox
-        } {}
         Fl_Button bVisibleModes {
           label {Visible modes}
           callback {mode_browser->label(o->label());

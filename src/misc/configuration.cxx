@@ -715,6 +715,18 @@ int configuration::setDefaults()
 	listbox_language->hide();
 #endif
 
+	uchar fg_r, fg_g, fg_b;
+	uchar bg_r, bg_g, bg_b;
+	uchar bg2_r, bg2_g, bg2_b;
+
+	Fl::get_color(progdefaults.foreground, fg_r, fg_g, fg_b);
+	Fl::get_color(progdefaults.background, bg_r, bg_g, bg_b);
+	Fl::get_color(progdefaults.background2, bg2_r, bg2_g, bg2_b);
+
+	Fl::background2(bg2_r, bg2_g, bg2_b);
+	Fl::background(bg_r, bg_g, bg_b);
+	Fl::foreground(fg_r, fg_g, fg_b);
+
 	return 1;
 }
 

@@ -1639,6 +1639,26 @@ void cb_mnuSaveMacro(Fl_Menu_*, void*) {
 	restoreFocus(3);
 }
 
+void redraw_windows()
+{
+	Fl_Double_Window *w[] = {
+		fl_digi_main,
+		scopeview, dlgRecordLoader,
+		dxcluster_viewer, dxcc_window,
+		dlgViewer, dlgLogbook, lotw_review_dialog,  
+		wExport, wCabrillo, wUDPfields,
+		dlgConfig, notify_window,
+		picRxWin, picTxWin,
+		thorpicRxWin, thorpicTxWin,
+		fsqMonitor, fsqpicRxWin, fsqpicTxWin,
+		ifkppicRxWin, ifkppicTxWin,
+		MacroEditDialog,
+		test_signal_window,
+		rxaudio_dialog, wefax_pic_tx_win };
+	for (size_t n = 0; n < sizeof(w) / sizeof(*w); n++)
+		if (w[n]) w[n]->redraw();
+}
+
 void remove_windows()
 {
 	std::string titles[] = {
