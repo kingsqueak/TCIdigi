@@ -48,6 +48,9 @@
 #elif defined(__OpenBSD__)
 #  define DEFAULT_PTTDEV "/dev/tty00"
 #  define DEFAULT_CWFSKPORT "/dev/tty01"
+
+
+
 #  define DEFAULT_HAMRIGDEVICE "/dev/tty00"
 #elif defined(__WOE32__)
 #  define DEFAULT_PTTDEV "COM1"
@@ -71,18 +74,9 @@
 #endif
 
 #define CONFIG_LIST                                                                     \
-    ELEM_(bool, confirmExit, "CONFIRMEXIT",                                             \
+        ELEM_(bool, confirmExit, "CONFIRMEXIT",                                         \
           "Ensure user wants to leave flgidi",                                          \
           true)                                                                         \
-    ELEM_(Fl_Color, background, "BACKGROUND",                                           \
-          "background color",                                                           \
-          FL_BACKGROUND_COLOR)                                                          \
-    ELEM_(Fl_Color, background2, "BACKGROUND2",                                         \
-          "background2 color",                                                          \
-          FL_BACKGROUND2_COLOR)                                                         \
-    ELEM_(Fl_Color, foreground, "FOREGROUND",                                           \
-          "foreground color",                                                           \
-          FL_FOREGROUND_COLOR)                                                          \
         ELEM_(bool, show_tx_timer, "SHOW_TX_TIMER",                                     \
           "Show tx timer on menu bar",                                                  \
           true)                                                                         \
@@ -110,9 +104,6 @@
         ELEM_(bool, rsid, "RECEIVERSID",                                                \
               "Enable Reed Soloman ID decoding",                                        \
               false)                                                                    \
-        ELEM_(RGBI, rsidRGBI, "RSIDCOLORS",                                             \
-              "Color of RsID detection markers (RGBI)",                                 \
-              {255, 255, 255, 255})                                                     \
         ELEM_(bool, TransmitRSid, "TRANSMITRSID",                                       \
               "Send RSID at beginning and end of transmission",                         \
               false)                                                                    \
@@ -399,25 +390,6 @@
         ELEM_(double, ServerACQsn, "PSKSERVERACGSN",                                    \
               "Acquisition S/N (dB)",                                                   \
               9.0)                                                                      \
-        /* DIGI SCOPE */                                                                \
-        ELEM_(Fl_Color, digi_background, "digi_background",                             \
-              "Color for digi_scope background",                                        \
-              FL_BLACK)                                                                 \
-        ELEM_(Fl_Color, digi_axis_color, "digi_axis_color",                             \
-              "Color for digi_scope axis",                                              \
-              FL_WHITE)                                                                 \
-        ELEM_(Fl_Color, digi_color_1, "digi_color_1",                                   \
-              "Color for digi_scope color 1",                                           \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, digi_color_2, "digi_color_2",                                   \
-              "Color for digi_scope color 2",                                           \
-              FL_YELLOW)                                                                \
-        ELEM_(Fl_Color, digi_color_3, "digi_color_3",                                   \
-              "Color for digi_scope color 3",                                           \
-              FL_CYAN)                                                                  \
-        ELEM_(Fl_Color, digi_color_4, "digi_color_4",                                   \
-              "Color for digi_scope color 4",                                           \
-              FL_MAGENTA)                                                               \
         /* RTTY */                                                                      \
         ELEM_(int, kahn_demod, "KAHNDEMOD",                                             \
               "1 - use Kahn power demodulator\n"                                        \
@@ -944,15 +916,6 @@
         ELEM_(std::string, fsq_audit_log, "FSQ_AUDIT_LOG",                              \
               "FSQ audit log pathname",                                                 \
               "fsq_audit_log.txt")                                                      \
-        ELEM_(Fl_Color, fsq_xmt_color, "FSQXMTCOLOR",                                   \
-              "Color for FSQ xmt text",                                                 \
-              FL_RED)                                                                   \
-        ELEM_(Fl_Color, fsq_directed_color, "FSQDIRECTEDCOLOR",                         \
-              "Color for FSQ directed text",                                            \
-              FL_BLUE)                                                                  \
-        ELEM_(Fl_Color, fsq_undirected_color, "FSQUNDIRECTEDCOLOR",                     \
-              "Color for FSQ undirected text",                                          \
-              FL_DARK_GREEN)                                                            \
         ELEM_(bool, add_fsq_msg_dt, "ADDFSQMSGDT",                                      \
               "Add date-time stamp to each # type received message",                    \
               1)                                                                        \
@@ -1023,24 +986,6 @@
         ELEM_(bool, UseWideTracks, "USEWIDETRACKS",                                     \
               "Draw bandwidth marker with 3x vertical lines",                           \
               false)                                                                    \
-        ELEM_(RGBI, cursorLineRGBI, "CLCOLORS",                                         \
-              "Color of cursor lines (RGBI)",                                           \
-              {255, 255, 0, 255})                                                       \
-        ELEM_(RGBI, cursorCenterRGBI, "CCCOLORS",                                       \
-              "Color of cursor center line (RGBI)",                                     \
-              {255, 255, 255, 255})                                                     \
-        ELEM_(RGBI, bwTrackRGBI, "BWTCOLORS",                                           \
-              "Color of bandwidth marker (RGBI)",                                       \
-              {255, 0, 0, 255})                                                         \
-        ELEM_(RGBI, notchRGBI, "NOTCHCOLORS",                                           \
-              "Color of notch marker (RGBI)",                                           \
-              {255, 255, 255, 255})                                                     \
-        ELEM_(RGBI, rttymarkRGBI, "RTTYMARKRGBI",                                       \
-              "Color of RTTY MARK freq marker (RGBI)",                                  \
-              {255, 120, 0, 255})                                                       \
-        ELEM_(RGBI, monitorRGBI, "MONITORRGBI",                                         \
-              "Color of audio filter bandwidth (RGBI)",                                 \
-              {0, 255, 0, 255})                                                         \
         ELEM_(bool, UseWideMonitor, "USEWIDEMONITOR",                                   \
               "Draw bandwidth lines with 3x vertical lines",                            \
               false)                                                                    \
@@ -1838,12 +1783,6 @@
         ELEM_(bool, clear_fields, "CLEARFIELDS",                                        \
               "clear logging fields upon transfer of CALL from Rx panel",               \
               true)                                                                     \
-        ELEM_(RGB, bwsrSliderColor, "BWSRSLIDERCOLOR",                                  \
-              "Background color of signal browser detect level",                        \
-              {185, 211, 238})                                                          \
-        ELEM_(RGB, bwsrSldrSelColor,"BWSRSLDRSELCOLOR",                                 \
-              "Button highlight color, signal browser detect level",                    \
-              {54, 100, 139})                                                           \
         ELEM_(int, bwsrHiLight1, "BWSRHILIGHT1",                                        \
               "View Browser highlight color 1, default Dark Red",                       \
               FL_RED)                                                                   \
@@ -1859,12 +1798,6 @@
         ELEM_(int, bwsrSelect, "BWSRSELECT",                                            \
               "View Browser line select color",                                         \
               FL_BLUE)                                                                  \
-        ELEM_(RGB, dup_color, "dupcolor",                                               \
-              "Callsign background color when duplicate detected",                      \
-              {255, 110, 180})                                                          \
-        ELEM_(RGB, possible_dup_color, "duppossiblecolor",                              \
-              "Callsign background color when possible duplicate detected",             \
-              {255, 255, 150})                                                          \
         ELEM_(bool, EnableDupCheck, "ENABLEDUPCHECK",                                   \
               "Check for duplicates (contest)",                                         \
               true)                                                                     \
@@ -2013,18 +1946,6 @@
               "Fields separated by : character\n"                                       \
               "Lines separated by | character",                                         \
               "w3nr.ddns.net:7300::|dx.n8noe.us:7373::|w0mw.dynip.com:23::|")           \
-        ELEM_(RGB, DX_Color, "DX_COLOR",                                                \
-              "RX text font color (RGB)",                                               \
-              { 0, 0, 130 })                                                            \
-        ELEM_(Fl_Color, DXC_even_color, "DXC_EVEN_COLOR",                               \
-              "Even line background color in dxcluster dialog",                         \
-              7)                                                                        \
-        ELEM_(Fl_Color, DXC_odd_color, "DXC_ODD_COLOR",                                 \
-              "Odd line background color in dxcluster dialog",                          \
-              246)                                                                      \
-        ELEM_(Fl_Color, DXC_textcolor, "DXC_TEXTCOLOR",                                 \
-              "Text color in dxcluster dialog",                                         \
-              FL_YELLOW)                                                                \
         ELEM_(std::string, DXC_textname, "DXC_TEXTNAME",                                \
               "DX cluster browser font name",                                           \
               "")                                                                       \
@@ -2034,12 +1955,6 @@
         ELEM_(int, DXC_textsize, "DXC_TEXTSIZE",                                        \
               "DX cluster browsers font size",                                          \
               14)                                                                       \
-        ELEM_(Fl_Color, DXfontcolor, "DXFONTCOLOR",                                     \
-              "Text color in dxcluster stream",                                         \
-              FL_YELLOW)                                                                \
-        ELEM_(Fl_Color, DXalt_color, "DXALT_COLOR",                                     \
-              "Alternate text color in dxcluster stream",                               \
-              FL_DARK_RED)                                                              \
         ELEM_(std::string, DXfontname, "DXFONTNAME",                                    \
               "DX cluster stream font name",                                            \
               "")                                                                       \
@@ -2156,49 +2071,10 @@
         ELEM_(std::string, PaletteName, "PALETTENAME",                                  \
               "Waterfall color palette file name",                                      \
               "default.pal")                                                            \
-        ELEM_(RGB, cfgpal0, "PALETTE0",                                                 \
-              "Custom palette 0",                                                       \
-              { 0,0,0 })                                                                \
-        ELEM_(RGB, cfgpal1, "PALETTE1",                                                 \
-              "Custom palette 1",                                                       \
-              { 0,0,136 })                                                              \
-        ELEM_(RGB, cfgpal2, "PALETTE2",                                                 \
-              "Custom palette 2",                                                       \
-              { 0,19,198 })                                                             \
-        ELEM_(RGB, cfgpal3, "PALETTE3",                                                 \
-              "Custom palette 3",                                                       \
-              { 0,32,239 })                                                             \
-        ELEM_(RGB, cfgpal4, "PALETTE4",                                                 \
-              "Custom palette 4",                                                       \
-              { 172,167,105 })                                                          \
-        ELEM_(RGB, cfgpal5, "PALETTE5",                                                 \
-              "Custom palette 5",                                                       \
-              { 194,198,49 })                                                           \
-        ELEM_(RGB, cfgpal6, "PALETTE6",                                                 \
-              "Custom palette 6",                                                       \
-              { 225,228,107 })                                                          \
-        ELEM_(RGB, cfgpal7, "PALETTE7",                                                 \
-              "Custom palette 7",                                                       \
-              { 255,255,0 })                                                            \
-        ELEM_(RGB, cfgpal8, "PALETTE8",                                                 \
-              "Custom palette 8",                                                       \
-              { 251,51,0 })                                                             \
         /* Palettes for macro button groups */                                          \
         ELEM_(bool, useGroupColors, "USEGROUPCOLORS",                                   \
               "Use macro group colors",                                                 \
               true)                                                                     \
-        ELEM_(RGB, btnGroup1, "FKEYGROUP1",                                             \
-              "Macro group 1 color",                                                    \
-              { 80, 144, 144 })                                                         \
-        ELEM_(RGB, btnGroup2, "FKEYGROUP2",                                             \
-              "Macro group 2 color",                                                    \
-              { 144, 80, 80 })                                                          \
-        ELEM_(RGB, btnGroup3, "FKEYGROUP3",                                             \
-              "Macro group 3 color",                                                    \
-              { 80, 80, 144 })                                                          \
-        ELEM_(RGB, btnFkeyTextColor, "FKEYTEXTCOLOR",                                   \
-              "Macro button foreground ",                                               \
-              { 255, 255, 255 })                                                        \
         /* RX / TX / Waterfall text widgets */                                          \
         ELEM_(std::string, charset_name, "CHARSET_NAME",                                \
               "Default character set",                                                  \
@@ -2221,9 +2097,6 @@
         ELEM_(int, RxFontsize, "RXFONTSIZE",                                            \
               "RX text font size",                                                      \
               16)                                                                       \
-        ELEM_(Fl_Color, RxFontcolor, "RXFNTCOLOR",                                      \
-              "RX text font color",                                                     \
-              FL_BLACK)                                                                 \
         ELEM_(std::string, MacroBtnFontName, "MACROBTNFONTNAME",                        \
               "Macro Btn Font Name",                                                    \
               "")                                                                       \
@@ -2233,12 +2106,6 @@
         ELEM_(int, MacroBtnFontsize, "MACROBTNFONTSIZE",                                \
               "Macro btn font size",                                                    \
               12)                                                                       \
-        ELEM_(Fl_Color, MacroBtnFontcolor, "MACROBTNFONTCOLOR",                         \
-              "Macro btn font color",                                                   \
-              FL_WHITE)                                                                 \
-        ELEM_(Fl_Color, RxTxSelectcolor, "RXTXSELCOLOR",                                \
-              "RX/TX text select color",                                                \
-              FL_MAGENTA)                                                               \
         ELEM_(bool, TxFontWarn, "TXFONTWARN",                                           \
               "Enable TX font warnings",                                                \
               true)                                                                     \
@@ -2251,39 +2118,6 @@
         ELEM_(int, TxFontsize, "TXFONTSIZE",                                            \
               "TX text font size",                                                      \
               16)                                                                       \
-        ELEM_(Fl_Color, TxFontcolor, "TXFNTCOLOR",                                      \
-              "TX text font color",                                                     \
-              FL_BLACK)                                                                 \
-        ELEM_(RGB, RxColor, "RXFONTCOLOR",                                              \
-              "RX text font color (RGB)",                                               \
-              { 255, 242, 190 })                                                        \
-        ELEM_(RGB, TxColor, "TXFONTCOLOR",                                              \
-              "TX text font color (RGB)",                                               \
-              { 200, 235, 255 })                                                        \
-        ELEM_(Fl_Color, XMITcolor, "XMITCOLOR",                                         \
-              "Color for Transmit text style",                                          \
-              FL_RED)                                                                   \
-        ELEM_(Fl_Color, CTRLcolor, "CTRLCOLOR",                                         \
-              "Color for Control text style",                                           \
-              FL_DARK_GREEN)                                                            \
-        ELEM_(Fl_Color, SKIPcolor, "SKIPCOLOR",                                         \
-              "Color for Skipped text style",                                           \
-              FL_BLUE)                                                                  \
-        ELEM_(Fl_Color, ALTRcolor, "ALTRCOLOR",                                         \
-              "Color for Alternate text style",                                         \
-              FL_DARK_MAGENTA)                                                          \
-        ELEM_(Fl_Color, LowSignal, "LOWSIGNAL",                                         \
-              "Color for low signal level",                                             \
-              FL_BLACK)                                                                 \
-        ELEM_(Fl_Color, NormSignal, "NORMSIGNAL",                                       \
-              "Color for normal signal level",                                          \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, HighSignal, "HIGHSIGNAL",                                       \
-              "Color for high signal level",                                            \
-              FL_YELLOW)                                                                \
-        ELEM_(Fl_Color, OverSignal, "OVERSIGNAL",                                       \
-              "Color for over driven signal",                                           \
-              FL_RED)                                                                   \
         ELEM_(std::string, WaterfallFontName, "WATERFALLFONTNAME",                      \
               "Waterfall font name",                                                    \
               "")                                                                       \
@@ -2293,12 +2127,6 @@
         ELEM_(int, WaterfallFontsize, "WATERFALLFONTSIZE",                              \
               "Waterfall font size",                                                    \
               12)                                                                       \
-        ELEM_(Fl_Color, LOGGINGtextcolor, "LOGGINGTEXTCOLOR",                           \
-              "Text color in logging controls",                                         \
-              FL_BLACK)                                                                 \
-        ELEM_(Fl_Color, LOGGINGcolor, "LOGGINGCOLOR",                                   \
-              "Background color in logging controls",                                   \
-              FL_BACKGROUND2_COLOR)                                                     \
         ELEM_(std::string, LOGGINGfontname, "LOGGINGTEXTNAME",                          \
               "LOGGING text font name",                                                 \
               "")                                                                       \
@@ -2308,12 +2136,6 @@
         ELEM_(int, LOGGINGtextsize, "LOGGINGTEXTSIZE",                                  \
               "Logging Controls font size",                                             \
               12)                                                                       \
-        ELEM_(Fl_Color, LOGBOOKtextcolor, "LOGBOOKTEXTCOLOR",                           \
-              "Text color in logbook dialog",                                           \
-              FL_BLACK)                                                                 \
-        ELEM_(Fl_Color, LOGBOOKcolor, "LOGBOOKCOLOR",                                   \
-              "Background color in logbook dialog",                                     \
-              FL_BACKGROUND2_COLOR)                                                     \
         ELEM_(std::string, LOGBOOKtextname, "LOGBOOKTEXTNAME",                          \
               "Logbook text font name",                                                 \
               "")                                                                       \
@@ -2338,40 +2160,10 @@
         ELEM_(bool, wf_audioscale, "WFAUDIOSCALE",                                      \
               "Always show audio frequencies on waterfall",                             \
               true)                                                                     \
-        /* Freq Display colors */                                                       \
-        ELEM_(RGB, FDbackground, "FDBACKGROUND",                                        \
-              "Frequency display background color",                                     \
-              { 255, 253, 222 })                                                        \
-        ELEM_(RGB, FDforeground, "FDFOREGROUND",                                        \
-              "Frequency display foreground color",                                     \
-              { 0, 0, 0 })                                                              \
-        /* S-meter and Power-meter */                                                   \
-        ELEM_(RGB, Smeter_bg_color, "SMETERBG",                                         \
-              "S-meter background color",                                               \
-              { 255, 253, 222 })                                                        \
-        ELEM_(RGB, Smeter_scale_color, "SMETERSCALECOLOR",                              \
-              "S-meter scale color",                                                    \
-              { 0, 0, 0 })                                                              \
-        ELEM_(RGB, Smeter_meter_color, "SMETERMETERCOLOR",                              \
-              "S-meter meter color",                                                    \
-              { 0, 200, 0 })                                                            \
-        ELEM_(RGB, PWRmeter_bg_color, "PWRMETERBGD",                                    \
-              "Power meter background color",                                           \
-              { 255, 253, 222 })                                                        \
-        ELEM_(RGB, PWRmeter_scale_color, "PWRMETERSCALECOLOR",                          \
-              "Power meter scale color",                                                \
-              { 0, 0, 0 })                                                              \
-        ELEM_(RGB, PWRmeter_meter_color, "PWRMETERMETERCOLOR",                          \
-              "Power meter meter color",                                                \
-              { 200, 0, 0 })                                                            \
         ELEM_(int, PWRselect, "PWRSELECT",                                              \
               "Power meter type:\n"                                                     \
               " 0: 25 W, 1: 50 W, 2: 100 W, 3: 200 W, 4: AUTO",                         \
               4)                                                                        \
-        /* Tab selection color */                                                       \
-        ELEM_(Fl_Color, TabsColor, "TABSCOLOR",                                         \
-              "UI tabs color",                                                          \
-              FL_BACKGROUND2_COLOR)                                                     \
         /* Signal Viewer */                                                             \
         ELEM_(bool, VIEWERascend, "VIEWERASCEND",                                       \
               "Low frequency on bottom of viewer",                                      \
@@ -2410,49 +2202,6 @@
         ELEM_(int, ViewerFontsize, "VIEWERFONTSIZE",                                    \
               "Signal Viewer font size",                                                \
               FL_NORMAL_SIZE)                                                           \
-                                                                                        \
-        ELEM_(Fl_Color, Sql1Color, "SQL1COLOR",                                         \
-              "UI SQL button select color 1",                                           \
-              FL_YELLOW)                                                                \
-        ELEM_(Fl_Color, Sql2Color, "SQL2COLOR",                                         \
-              "UI SQL button select color 2",                                           \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, AfcColor, "AFCCOLOR",                                           \
-              "UI AFC button select color",                                             \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, LkColor, "LKCOLOR",                                             \
-              "UI Lk xmt frequ select color",                                           \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, RevColor, "REVCOLOR",                                           \
-              "UI Rev select color",                                                    \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, XmtColor, "XMTCOLOR",                                           \
-              "UI T/R select color",                                                    \
-              FL_RED)                                                                   \
-        ELEM_(Fl_Color, SpotColor, "SPOTCOLOR",                                         \
-              "UI Spot select color",                                                   \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, RxIDColor, "RXIDCOLOR",                                         \
-              "UI RxID select color",                                                   \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, RxIDwideColor, "RXIDWIDECOLOR",                                 \
-              "UI RxID WIDE search select color",                                       \
-              FL_DARK_RED)                                                              \
-        ELEM_(Fl_Color, TxIDColor, "TXIDCOLOR",                                         \
-              "UI TxID select color",                                                   \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, TuneColor, "TUNECOLOR",                                         \
-              "UI Tune select color",                                                   \
-              FL_RED)                                                                   \
-        ELEM_(Fl_Color, default_btn_color, "DEFAULTBTNCOLOR",                           \
-              "Default color of lighted buttons",                                       \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, default_check_btn_color, "DEFAULTCHECKBTNCOLOR",                \
-              "Default color of check buttons",                                         \
-              FL_YELLOW)                                                                \
-        ELEM_(Fl_Color, default_round_btn_color, "DEFAULTROUNDBTNCOLOR",                \
-              "Default color of round buttons",                                         \
-              FL_GREEN)                                                                 \
         /* XMLRPC LOGBOOK server */                                                     \
         ELEM_(bool, xml_logbook, "XML_LOGBOOK",                                         \
               "Try to open remote xml logbook",                                         \
@@ -2893,21 +2642,6 @@
         ELEM_(bool, FMT_dft_cull_on, "FMT_dft_cull_on",                                 \
              "Enable DFT culling",                                                      \
              false)                                                                     \
-        ELEM_(Fl_Color, FMT_background, "FMT_background",                               \
-              "Color for FMT plot background",                                          \
-              FL_BACKGROUND2_COLOR)                                                     \
-        ELEM_(Fl_Color, FMT_unk_color, "FMT_unk_color",                                 \
-              "Color for FMT unknown data plot",                                        \
-              FL_DARK_BLUE)                                                             \
-        ELEM_(Fl_Color, FMT_ref_color, "FMT_ref_color",                                 \
-              "Color for FMT reference data plot",                                      \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, FMT_legend_color, "FMT_legend_color",                           \
-              "Color for FMT legends",                                                  \
-              FL_BLACK)                                                                 \
-        ELEM_(Fl_Color, FMT_axis_color, "FMT_axis_color",                               \
-              "Color for FMT plot axis",                                                \
-              FL_BLACK)                                                                 \
         ELEM_(bool, FMT_use_tabs, "fmt_use_tabs",                                       \
              "Use TAB delimiters in exported csv file",                                 \
              false)                                                                     \

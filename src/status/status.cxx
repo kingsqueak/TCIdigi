@@ -81,6 +81,8 @@
 
 #include "spectrum_viewer.h"
 
+#include "ui_colors.h"
+
 #define STATUS_FILENAME "status"
 
 status progStatus = {
@@ -763,6 +765,8 @@ if (!bWF_only) {
 //----------------------------------------------------------------------
 	spref.set("vumeter_shown", vumeter_shown);
 
+	ui_colors.save("fldigi_UI_colors");
+
 	modeband.save_mode_state();
 }
 
@@ -1116,8 +1120,11 @@ void status::loadLastState()
 //----------------------------------------------------------------------
 
 	modeband.load_mode_state();
+
 	load_udp_prefs();
 	load_cloud_prefs();
+
+	ui_colors.load("fldigi_UI_colors");
 
 	set_debug_mask(debug_mask);
 }

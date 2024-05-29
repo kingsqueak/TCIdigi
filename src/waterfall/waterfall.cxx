@@ -61,6 +61,7 @@
 
 #include "fldigi-config.h"
 #include "configuration.h"
+#include "ui_colors.h"
 #include "status.h"
 #include "squelch_status.h"
 #include "Viewer.h"
@@ -160,10 +161,8 @@ WFdisp::WFdisp (int x0, int y0, int w0, int h0, char *lbl) :
 	bandwidth = 32;
 	RGBmarker = RGBred;
 	RGBcursor = RGByellow;
-	RGBInotch.I = progdefaults.notchRGBI.I;
-	RGBInotch.R = progdefaults.notchRGBI.R;
-	RGBInotch.G = progdefaults.notchRGBI.G;
-	RGBInotch.B = progdefaults.notchRGBI.B;
+	RGBInotch.I = 255;
+	Fl::get_color( RGBCOLOR( notch ), RGBInotch.R, RGBInotch.G, RGBInotch.B );
 	mode = WATERFALL;
 	centercarrier = false;
 	overload = false;
@@ -305,9 +304,8 @@ void WFdisp::make_fmt_marker ()
 
 	memset(markerimage + scale_width, 0, RGBwidth * (WFMARKER - 2));
 
-	Fl::get_color(progdefaults.FMT_unk_color, unk_trk_color.R, unk_trk_color.G, unk_trk_color.B);
-
-	Fl::get_color(progdefaults.FMT_ref_color, ref_trk_color.R, ref_trk_color.G, ref_trk_color.B);
+	Fl::get_color(RGBCOLOR( FMT_unk_color ), unk_trk_color.R, unk_trk_color.G, unk_trk_color.B);
+	Fl::get_color(RGBCOLOR( FMT_ref_color ), ref_trk_color.R, ref_trk_color.G, ref_trk_color.B);
 
 	int fmt_bw = progdefaults.FMT_filter;
 
@@ -354,9 +352,7 @@ void WFdisp::makeMarker()
 					progdefaults.rtty_custom_shift));
 		marker_width = (int)(marker_width / 2.0 + 1);
 
-		RGBmarker.R = progdefaults.bwTrackRGBI.R;
-		RGBmarker.G = progdefaults.bwTrackRGBI.G;
-		RGBmarker.B = progdefaults.bwTrackRGBI.B;
+		Fl::get_color( RGBCOLOR( bwTrack ), RGBmarker.R, RGBmarker.G, RGBmarker.B );
 
 		makeMarker_(marker_width, &RGBmarker, carrierfreq, clrMin, clrM, clrMax);
 
@@ -383,9 +379,7 @@ void WFdisp::makeMarker()
 	if (xp < bandwidth / 2.0 || xp > (progdefaults.HighFreqCutoff - bandwidth / 2.0))
 		return;
 	clrM = markerimage + scale_width + (int)(xp + 0.5);
-	RGBcursor.R = progdefaults.cursorLineRGBI.R;
-	RGBcursor.G = progdefaults.cursorLineRGBI.G;
-	RGBcursor.B = progdefaults.cursorLineRGBI.B;
+	Fl::get_color( RGBCOLOR( cursorLine ), RGBcursor.R, RGBcursor.G, RGBcursor.B );
 
 	int bw_lo = marker_width;
 	int bw_hi = marker_width;
@@ -1089,18 +1083,21 @@ case Step: for (int row = 0; row < image_height; row++) { \
 		int trk_high = progdefaults.RxFilt_high;
 		RGBI *pos1 = fft_img + trk_low / step;
 		RGBI *pos2 = fft_img + trk_high / step;
+		RGBI clr;
+		clr.I = 255;
+		Fl::get_color( RGBCOLOR( monitor ), clr.R, clr.G, clr.B );
 		if (likely(pos1 >= fft_img && pos2 < fft_img + disp_width)) {
 				if (progdefaults.mon_wide_tracks) {
 					for (int y = 0; y < image_height; y ++) {
-						*(pos1 + 1) = *pos1 = progdefaults.monitorRGBI;
-						*(pos2 - 1) = *pos2 = progdefaults.monitorRGBI;
+						*(pos1 + 1) = *pos1 = clr; //progdefaults.monitorRGBI;
+						*(pos2 - 1) = *pos2 = clr; //progdefaults.monitorRGBI;
 						pos1 += disp_width;
 						pos2 += disp_width;
 					}
 				} else {
 					for (int y = 0; y < image_height; y ++) {
-						*pos1 = progdefaults.monitorRGBI;
-						*pos2 = progdefaults.monitorRGBI;
+						*pos1 = clr; //progdefaults.monitorRGBI;
+						*pos2 = clr; //progdefaults.monitorRGBI;
 						pos1 += disp_width;
 						pos2 += disp_width;
 					}
@@ -1114,10 +1111,8 @@ case Step: for (int row = 0; row < image_height; row++) { \
 		( (carrierfreq - progdefaults.rsid_min_bw / 2) > 1) && 
 		( (carrierfreq + progdefaults.rsid_min_bw / 2) < (progdefaults.HighFreqCutoff - 1))) {
 		RGBI RGBIrsid;
-		RGBIrsid.I = progdefaults.rsidRGBI.I;
-		RGBIrsid.R = progdefaults.rsidRGBI.R;
-		RGBIrsid.G = progdefaults.rsidRGBI.G;
-		RGBIrsid.B = progdefaults.rsidRGBI.B;
+		RGBIrsid.I = 255;//progdefaults.rsidRGBI.I;
+		Fl::get_color( RGBCOLOR( rsid ), RGBIrsid.R, RGBIrsid.G, RGBIrsid.B );
 		RGBI  *pos1 = fft_img + (carrierfreq - offset - progdefaults.rsid_min_bw / 2) / step;
 		RGBI  *pos2 = fft_img + (carrierfreq - offset + progdefaults.rsid_min_bw / 2) / step;
 		int dash = 0;
@@ -1141,8 +1136,8 @@ case Step: for (int row = 0; row < image_height; row++) { \
 			RGBI  *pos2 = fft_img + (trk - offset + bw) / step;
 			RGBI unk_trk_color, ref_trk_color;
 
-			Fl::get_color(progdefaults.FMT_unk_color, unk_trk_color.R, unk_trk_color.G, unk_trk_color.B);
-			Fl::get_color(progdefaults.FMT_ref_color, ref_trk_color.R, ref_trk_color.G, ref_trk_color.B);
+			Fl::get_color(RGBCOLOR( FMT_unk_color ), unk_trk_color.R, unk_trk_color.G, unk_trk_color.B);
+			Fl::get_color(RGBCOLOR( FMT_ref_color ), ref_trk_color.R, ref_trk_color.G, ref_trk_color.B);
 
 			if (likely(pos1 >= fft_img && pos2 < fft_img + disp_width)) {
 				if (progdefaults.UseWideTracks) {
@@ -1203,15 +1198,21 @@ case Step: for (int row = 0; row < image_height; row++) { \
 
 				if (mode == MODE_RTTY && progdefaults.useMARKfreq) {
 					if (active_modem->get_reverse()) {
-						rgbi1 = progdefaults.rttymarkRGBI;
-						rgbi2 = progdefaults.bwTrackRGBI;
+//						rgbi1 = progdefaults.rttymarkRGBI;
+//						rgbi2 = progdefaults.bwTrackRGBI;
+						Fl::get_color( RGBCOLOR( rttymark ), rgbi1.R, rgbi1.G, rgbi1.B ); rgbi1.I = 255;
+						Fl::get_color( RGBCOLOR( bwTrack ), rgbi1.R, rgbi2.G, rgbi2.B ); rgbi2.I = 255;
 					} else {
-						rgbi1 = progdefaults.bwTrackRGBI;
-						rgbi2 = progdefaults.rttymarkRGBI;
+//						rgbi1 = progdefaults.bwTrackRGBI;
+//						rgbi2 = progdefaults.rttymarkRGBI;
+						Fl::get_color( RGBCOLOR( bwTrack ), rgbi1.R, rgbi1.G, rgbi1.B ); rgbi1.I = 255;
+						Fl::get_color( RGBCOLOR( rttymark ), rgbi2.R, rgbi2.G, rgbi2.B ); rgbi2.I = 255;
 					}
 				} else {
-					rgbi1 = progdefaults.bwTrackRGBI;
-					rgbi2 = progdefaults.bwTrackRGBI;
+//					rgbi1 = progdefaults.bwTrackRGBI;
+//					rgbi2 = progdefaults.bwTrackRGBI;
+					Fl::get_color( RGBCOLOR( bwTrack ), rgbi1.R, rgbi1.G, rgbi1.B ); rgbi1.I = 255;
+					rgbi2 = rgbi1;
 				}
 				if (progdefaults.UseWideTracks) {
 					for (int y = 0; y < image_height; y ++) {
@@ -1234,10 +1235,8 @@ case Step: for (int row = 0; row < image_height; row++) { \
 
 // draw notch
 	if ((notch_frequency > 1) && (notch_frequency < progdefaults.HighFreqCutoff - 1)) {
-		RGBInotch.I = progdefaults.notchRGBI.I;
-		RGBInotch.R = progdefaults.notchRGBI.R;
-		RGBInotch.G = progdefaults.notchRGBI.G;
-		RGBInotch.B = progdefaults.notchRGBI.B;
+		RGBInotch.I = 255;
+		Fl::get_color( RGBCOLOR( notch ), RGBInotch.R, RGBInotch.G, RGBInotch.B );
 		RGBI  *notch = fft_img + (notch_frequency - offset) / step;
 		int dash = 0;
 		for (int y = 0; y < image_height; y++) {
@@ -1274,15 +1273,18 @@ void WFdisp::drawcolorWF() {
 		RGBI  *pos0 = (fft_img + cursorpos);
 		RGBI  *pos1 = (fft_img + cursorpos - bw_lo/step);
 		RGBI  *pos2 = (fft_img + cursorpos + bw_hi/step);
+		RGBI  clr;
+		clr.I = 255;
+		Fl::get_color( RGBCOLOR( cursorCenter ), clr.R, clr.G, clr.B );
 		if (pos1 >= fft_img && pos2 < fft_img + disp_width) {
 			for (int y = 0; y < image_height; y ++) {
 				if (progdefaults.UseCursorLines) {
-					*pos1 = *pos2 = progdefaults.cursorLineRGBI;
+					*pos1 = *pos2 = clr;
 					if (progdefaults.UseWideCursor)
 						*(pos1 + 1) = *(pos2 - 1) = *pos1;
 				}
 				if (progdefaults.UseCursorCenterLine) {
-					*pos0 = progdefaults.cursorCenterRGBI;
+					*pos0 = clr;
 					if (progdefaults.UseWideCenter)
 						*(pos0 - 1) = *(pos0 + 1) = *pos0;
 				}
@@ -1664,7 +1666,7 @@ void xmtrcv_cb(Fl_Widget *w, void *vi)
 	} else {
 		if (progdefaults.show_psm_btn && progStatus.kpsql_enabled) {
 			psm_transmit_ended(PSM_ABORT);
-			xmtrcv_selection_color(progdefaults.XmtColor);
+			xmtrcv_selection_color(RGBCOLOR( XmtColor ));
 		}
 
 		if (btnTune->value()) {
@@ -2014,12 +2016,12 @@ waterfall::waterfall(int x0, int y0, int w0, int h0, char *lbl) :
 			w() - 2 * BEZEL,
 			wf_dim - 2 * BEZEL);
 		wfscope = new Digiscope (x() + w(), y(), wf_dim, wf_dim);
-		wfscope->bk_color(progdefaults.digi_background);
-		wfscope->axis_color(progdefaults.digi_axis_color);
-		wfscope->user_color_1(progdefaults.digi_color_1);
-		wfscope->user_color_2(progdefaults.digi_color_2);
-		wfscope->user_color_3(progdefaults.digi_color_3);
-		wfscope->user_color_4(progdefaults.digi_color_4);
+		wfscope->bk_color(RGBCOLOR( digi_background ));
+		wfscope->axis_color(RGBCOLOR( digi_axis_color ));
+		wfscope->user_color_1(RGBCOLOR( digi_color_1 ));
+		wfscope->user_color_2(RGBCOLOR( digi_color_2 ));
+		wfscope->user_color_3(RGBCOLOR( digi_color_3 ));
+		wfscope->user_color_4(RGBCOLOR( digi_color_4 ));
 		rs1->resizable(wfdisp);
 	rs1->end();
 	wfscope->hide();
@@ -2104,7 +2106,7 @@ waterfall::waterfall(int x0, int y0, int w0, int h0, char *lbl) :
 	xmtlock = new Fl_Light_Button(xpos, buttonrow, (int)(bwXmtLock*ratio), BTN_HEIGHT, "Lk");
 	xmtlock->callback(xmtlock_cb, 0);
 	xmtlock->value(0);
-	xmtlock->selection_color(progdefaults.LkColor);
+	xmtlock->selection_color(RGBCOLOR( LkColor ));
 	xmtlock->tooltip(_("Lock transmit frequency"));
 
 	/// We save this flag which is used by rtty decoding.
@@ -2113,13 +2115,13 @@ waterfall::waterfall(int x0, int y0, int w0, int h0, char *lbl) :
 	btnRev->callback(btnRev_cb, 0);
 	reverse = progdefaults.rtty_reverse;
 	btnRev->value(reverse);
-	btnRev->selection_color(progdefaults.RevColor);
+	btnRev->selection_color(RGBCOLOR( RevColor ));
 	btnRev->tooltip(_("Reverse"));
 
 	xpos = w() - (int)(bwXmtRcv*ratio) - wSpace;
 	xmtrcv = new Fl_Light_Button(xpos, buttonrow, (int)(bwXmtRcv*ratio) - BEZEL, BTN_HEIGHT, "T/R");
 	xmtrcv->callback(xmtrcv_cb, 0);
-	xmtrcv->selection_color(progdefaults.XmtColor);
+	xmtrcv->selection_color(RGBCOLOR( XmtColor ));
 	xmtrcv->value(0);
 	xmtrcv->tooltip(_("Transmit/Receive"));
 	end();

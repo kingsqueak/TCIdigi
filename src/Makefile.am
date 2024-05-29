@@ -668,6 +668,7 @@ fldigi_SOURCES += \
 	ssb/ssb.cxx \
 	status/squelch_status.cxx \
 	status/status.cxx \
+	status/ui_colors.cxx \
 	synop-src/synop.cxx \
 	thor/thor.cxx \
 	thor/thorvaricode.cxx \
@@ -904,6 +905,7 @@ EXTRA_fldigi_SOURCES += \
 	include/serial.h \
 	include/smeter.h \
 	include/squelch_status.h \
+	include/ui_colors.h \
 	include/vumeter.h \
 	include/socket.h \
 	include/soundconf.h \

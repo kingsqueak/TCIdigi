@@ -97,7 +97,7 @@ void create_fl_digi_main_primary() {
 			tx_timer->labelfont(lfont);
 
 			btnAutoSpot = new Fl_Light_Button(W - 250, 0, 50, Hmenu, "Spot");
-			btnAutoSpot->selection_color(progdefaults.SpotColor);
+			btnAutoSpot->selection_color( RGBCOLOR( SpotColor ) );
 			btnAutoSpot->callback(cbAutoSpot, 0);
 			btnAutoSpot->deactivate();
 			btnAutoSpot->labelsize(FL_NORMAL_SIZE - 1);
@@ -106,21 +106,21 @@ void create_fl_digi_main_primary() {
 			btnRSID = new Fl_Light_Button(W - 200, 0, 50, Hmenu, "RxID");
 			btnRSID->tooltip("Receive RSID");
 			btnRSID->selection_color(
-				progdefaults.rsidWideSearch ? progdefaults.RxIDwideColor : progdefaults.RxIDColor);
+				progdefaults.rsidWideSearch ? RGBCOLOR( RxIDwideColor ) : RGBCOLOR( RxIDColor ) );
 			btnRSID->value(progdefaults.rsid);
 			btnRSID->callback(cbRSID, 0);
 			btnRSID->labelsize(FL_NORMAL_SIZE - 1);
 			btnRSID->labelfont(lfont);
 
 			btnTxRSID = new Fl_Light_Button(W - 150, 0, 50, Hmenu, "TxID");
-			btnTxRSID->selection_color(progdefaults.TxIDColor);
+			btnTxRSID->selection_color( RGBCOLOR( TxIDColor ) );
 			btnTxRSID->tooltip("Transmit RSID");
 			btnTxRSID->callback(cbTxRSID, 0);
 			btnTxRSID->labelsize(FL_NORMAL_SIZE - 1);
 			btnTxRSID->labelfont(lfont);
 
 			btnTune = new Fl_Light_Button(W - 100, 0, 50, Hmenu, "TUNE");
-			btnTune->selection_color(progdefaults.TuneColor);
+			btnTune->selection_color( RGBCOLOR( TuneColor ) );
 			btnTune->callback(cbTune, 0);
 			btnTune->labelsize(FL_NORMAL_SIZE - 1);
 			btnTune->labelfont(lfont);
@@ -186,13 +186,7 @@ void create_fl_digi_main_primary() {
 			qsoFreqDisp1->align(FL_ALIGN_CENTER);
 			qsoFreqDisp1->when(FL_WHEN_RELEASE);
 			qsoFreqDisp1->callback(qso_movFreq);
-			qsoFreqDisp1->SetCOLORS(
-				fl_rgb_color(	progdefaults.FDforeground.R,
-								progdefaults.FDforeground.G,
-								progdefaults.FDforeground.B),
-				fl_rgb_color(	progdefaults.FDbackground.R,
-								progdefaults.FDbackground.G,
-								progdefaults.FDbackground.B));
+			qsoFreqDisp1->SetCOLORS( RGBCOLOR( FDforeground ), RGBCOLOR( FDbackground ) );
 			qsoFreqDisp1->value(0);
 			qsoFreqDisp1->end();
 
@@ -223,14 +217,7 @@ void create_fl_digi_main_primary() {
 				pwr_level->range(0, 100.0);
 				pwr_level->step(1);
 				pwr_level->callback( (Fl_Callback *) cb_set_pwr_level );
-				pwr_level->color( fl_rgb_color(
-						progdefaults.bwsrSliderColor.R,
-						progdefaults.bwsrSliderColor.G,
-						progdefaults.bwsrSliderColor.B));
-				pwr_level->selection_color( fl_rgb_color(
-						progdefaults.bwsrSldrSelColor.R,
-						progdefaults.bwsrSldrSelColor.G,
-						progdefaults.bwsrSldrSelColor.B));
+				pwr_level->color( RGBCOLOR( bwsrSliderColor ), RGBCOLOR( bwsrSldrSelColor ) );
 				pwr_level->tooltip(_("Adjust Power Level"));
 
 				set_pwr_level = new Fl_Button(
@@ -1188,13 +1175,7 @@ Logging_frame->resizable(NFtabs);
 			qsoFreqDisp2->when(FL_WHEN_RELEASE);
 			qsoFreqDisp2->callback(qso_movFreq);
 			qsoFreqDisp2->font(progdefaults.FreqControlFontnbr);
-			qsoFreqDisp2->SetCOLORS(
-				fl_rgb_color(	progdefaults.FDforeground.R,
-								progdefaults.FDforeground.G,
-								progdefaults.FDforeground.B),
-				fl_rgb_color(	progdefaults.FDbackground.R,
-								progdefaults.FDbackground.G,
-								progdefaults.FDbackground.B));
+			qsoFreqDisp2->SetCOLORS( RGBCOLOR( FDforeground ), RGBCOLOR( FDbackground ) );
 			qsoFreqDisp2->value(0);
 
 			qso_opPICK2 = new Fl_Button(
@@ -1323,13 +1304,7 @@ Logging_frame->resizable(NFtabs);
 			qsoFreqDisp3->when(FL_WHEN_RELEASE);
 			qsoFreqDisp3->callback(qso_movFreq);
 			qsoFreqDisp3->font(progdefaults.FreqControlFontnbr);
-			qsoFreqDisp3->SetCOLORS(
-				fl_rgb_color(	progdefaults.FDforeground.R,
-								progdefaults.FDforeground.G,
-								progdefaults.FDforeground.B),
-				fl_rgb_color(	progdefaults.FDbackground.R,
-								progdefaults.FDbackground.G,
-								progdefaults.FDbackground.B));
+			qsoFreqDisp3->SetCOLORS( RGBCOLOR( FDforeground ), RGBCOLOR( FDbackground ) );
 			qsoFreqDisp3->value(0);
 
 			qso_opPICK3 = new Fl_Button(
@@ -2449,14 +2424,8 @@ Logging_frame->resizable(NFtabs);
 						mvsquelch->range(-3.0, 6.0);
 						mvsquelch->value(progStatus.VIEWER_psksquelch);
 						mvsquelch->step(0.1);
-						mvsquelch->color( fl_rgb_color(
-							progdefaults.bwsrSliderColor.R,
-							progdefaults.bwsrSliderColor.G,
-							progdefaults.bwsrSliderColor.B));
-						mvsquelch->selection_color( fl_rgb_color(
-							progdefaults.bwsrSldrSelColor.R,
-							progdefaults.bwsrSldrSelColor.G,
-							progdefaults.bwsrSldrSelColor.B));
+						mvsquelch->color( RGBCOLOR( bwsrSliderColor ) );
+						mvsquelch->selection_color( RGBCOLOR( bwsrSldrSelColor ) );
 						mvsquelch->callback( (Fl_Callback *)cb_mvsquelch);
 						mvsquelch->tooltip(_("Set Viewer Squelch"));
 
@@ -2483,19 +2452,14 @@ Logging_frame->resizable(NFtabs);
 				ReceiveText = new FTextRX(
 								text_panel->x() + mvgroup->w(), text_panel->y(),
 								text_panel->w() - mvgroup->w(), rh, "" );
-					ReceiveText->color(
-						fl_rgb_color(
-							progdefaults.RxColor.R,
-							progdefaults.RxColor.G,
-							progdefaults.RxColor.B),
-							progdefaults.RxTxSelectcolor);
+					ReceiveText->color( RGBCOLOR( RxColor ), RGBCOLOR( RxTxSelectcolor ) );
 					ReceiveText->setFont(progdefaults.RxFontnbr);
 					ReceiveText->setFontSize(progdefaults.RxFontsize);
-					ReceiveText->setFontColor(progdefaults.RxFontcolor, FTextBase::RECV);
-					ReceiveText->setFontColor(progdefaults.XMITcolor, FTextBase::XMIT);
-					ReceiveText->setFontColor(progdefaults.CTRLcolor, FTextBase::CTRL);
-					ReceiveText->setFontColor(progdefaults.SKIPcolor, FTextBase::SKIP);
-					ReceiveText->setFontColor(progdefaults.ALTRcolor, FTextBase::ALTR);
+					ReceiveText->setFontColor( RGBCOLOR( RxFontcolor ), FTextBase::RECV );
+					ReceiveText->setFontColor( RGBCOLOR( XMITcolor ), FTextBase::XMIT );
+					ReceiveText->setFontColor( RGBCOLOR( CTRLcolor ), FTextBase::CTRL );
+					ReceiveText->setFontColor( RGBCOLOR( SKIPcolor ), FTextBase::SKIP );
+					ReceiveText->setFontColor( RGBCOLOR( ALTRcolor ), FTextBase::ALTR );
 
 				FHdisp = new Raster(
 						text_panel->x() + mvgroup->w(), text_panel->y(),
@@ -2509,19 +2473,14 @@ Logging_frame->resizable(NFtabs);
 				TransmitText = new FTextTX(
 						text_panel->x() + mvgroup->w(), text_panel->y() + ReceiveText->h(),
 						text_panel->w() - mvgroup->w(), text_panel->h() - ReceiveText->h() );
-					TransmitText->color(
-						fl_rgb_color(
-							progdefaults.TxColor.R,
-							progdefaults.TxColor.G,
-							progdefaults.TxColor.B),
-							progdefaults.RxTxSelectcolor);
+					TransmitText->color( RGBCOLOR( TxColor ), RGBCOLOR( RxTxSelectcolor ) );
 					TransmitText->setFont(progdefaults.TxFontnbr);
 					TransmitText->setFontSize(progdefaults.TxFontsize);
-					TransmitText->setFontColor(progdefaults.TxFontcolor, FTextBase::RECV);
-					TransmitText->setFontColor(progdefaults.XMITcolor, FTextBase::XMIT);
-					TransmitText->setFontColor(progdefaults.CTRLcolor, FTextBase::CTRL);
-					TransmitText->setFontColor(progdefaults.SKIPcolor, FTextBase::SKIP);
-					TransmitText->setFontColor(progdefaults.ALTRcolor, FTextBase::ALTR);
+					TransmitText->setFontColor( RGBCOLOR( TxFontcolor ), FTextBase::RECV );
+					TransmitText->setFontColor( RGBCOLOR( XMITcolor ), FTextBase::XMIT );
+					TransmitText->setFontColor( RGBCOLOR( CTRLcolor ), FTextBase::CTRL );
+					TransmitText->setFontColor( RGBCOLOR( SKIPcolor ), FTextBase::SKIP );
+					TransmitText->setFontColor( RGBCOLOR( ALTRcolor ), FTextBase::ALTR );
 					TransmitText->align(FL_ALIGN_CLIP);
 
 					minbox = new Fl_Box(
@@ -2558,39 +2517,29 @@ Logging_frame->resizable(NFtabs);
 					fsq_rx_text = new FTextRX(
 								0, Y,
 								fsq_left->w(), fsq_left->h() / 2);
-					fsq_rx_text->color(
-						fl_rgb_color(
-							progdefaults.RxColor.R,
-							progdefaults.RxColor.G,
-							progdefaults.RxColor.B),
-							progdefaults.RxTxSelectcolor);
+					fsq_rx_text->color( RGBCOLOR( RxColor ), RGBCOLOR( RxTxSelectcolor ) );
 					fsq_rx_text->setFont(progdefaults.RxFontnbr);
 					fsq_rx_text->setFontSize(progdefaults.RxFontsize);
-					fsq_rx_text->setFontColor(progdefaults.RxFontcolor, FTextBase::RECV);
-					fsq_rx_text->setFontColor(progdefaults.XMITcolor, FTextBase::XMIT);
-					fsq_rx_text->setFontColor(progdefaults.CTRLcolor, FTextBase::CTRL);
-					fsq_rx_text->setFontColor(progdefaults.SKIPcolor, FTextBase::SKIP);
-					fsq_rx_text->setFontColor(progdefaults.ALTRcolor, FTextBase::ALTR);
-					fsq_rx_text->setFontColor(progdefaults.fsq_xmt_color, FTextBase::FSQ_TX);
-					fsq_rx_text->setFontColor(progdefaults.fsq_directed_color, FTextBase::FSQ_DIR);
-					fsq_rx_text->setFontColor(progdefaults.fsq_undirected_color, FTextBase::FSQ_UND);
+					fsq_rx_text->setFontColor( RGBCOLOR( RxFontcolor ), FTextBase::RECV);
+					fsq_rx_text->setFontColor( RGBCOLOR( XMITcolor ), FTextBase::XMIT);
+					fsq_rx_text->setFontColor( RGBCOLOR( CTRLcolor ), FTextBase::CTRL);
+					fsq_rx_text->setFontColor( RGBCOLOR( SKIPcolor ), FTextBase::SKIP);
+					fsq_rx_text->setFontColor( RGBCOLOR( ALTRcolor ), FTextBase::ALTR);
+					fsq_rx_text->setFontColor( RGBCOLOR( fsq_xmt_color ), FTextBase::FSQ_TX);
+					fsq_rx_text->setFontColor( RGBCOLOR( fsq_directed_color ), FTextBase::FSQ_DIR);
+					fsq_rx_text->setFontColor( RGBCOLOR( fsq_undirected_color ), FTextBase::FSQ_UND);
 
 					fsq_tx_text = new FTextTX(
 									0, Y + fsq_rx_text->h(),
 									fsq_left->w(), fsq_left->h() - fsq_rx_text->h());
-					fsq_tx_text->color(
-						fl_rgb_color(
-							progdefaults.TxColor.R,
-							progdefaults.TxColor.G,
-							progdefaults.TxColor.B),
-							progdefaults.RxTxSelectcolor);
+					fsq_tx_text->color( RGBCOLOR( TxColor ), RGBCOLOR( RxTxSelectcolor ) );
 					fsq_tx_text->setFont(progdefaults.TxFontnbr);
 					fsq_tx_text->setFontSize(progdefaults.TxFontsize);
-					fsq_tx_text->setFontColor(progdefaults.TxFontcolor, FTextBase::RECV);
-					fsq_tx_text->setFontColor(progdefaults.XMITcolor, FTextBase::XMIT);
-					fsq_tx_text->setFontColor(progdefaults.CTRLcolor, FTextBase::CTRL);
-					fsq_tx_text->setFontColor(progdefaults.SKIPcolor, FTextBase::SKIP);
-					fsq_tx_text->setFontColor(progdefaults.ALTRcolor, FTextBase::ALTR);
+					fsq_tx_text->setFontColor( RGBCOLOR( TxFontcolor ), FTextBase::RECV);
+					fsq_tx_text->setFontColor( RGBCOLOR( XMITcolor ), FTextBase::XMIT);
+					fsq_tx_text->setFontColor( RGBCOLOR( CTRLcolor ), FTextBase::CTRL);
+					fsq_tx_text->setFontColor( RGBCOLOR( SKIPcolor ), FTextBase::SKIP);
+					fsq_tx_text->setFontColor( RGBCOLOR( ALTRcolor ), FTextBase::ALTR);
 					fsq_tx_text->align(FL_ALIGN_CLIP);
 
 					fsq_minbox = new Fl_Box(
@@ -2743,36 +2692,26 @@ Logging_frame->resizable(NFtabs);
 				ifkp_rx_text = new FTextRX(
 							0, Y,
 							ifkp_left->w(), ifkp_group->h() / 2);
-				ifkp_rx_text->color(
-					fl_rgb_color(
-						progdefaults.RxColor.R,
-						progdefaults.RxColor.G,
-						progdefaults.RxColor.B),
-						progdefaults.RxTxSelectcolor);
+				ifkp_rx_text->color( RGBCOLOR( RxColor ), RGBCOLOR( RxTxSelectcolor ) );
 				ifkp_rx_text->setFont(progdefaults.RxFontnbr);
 				ifkp_rx_text->setFontSize(progdefaults.RxFontsize);
-				ifkp_rx_text->setFontColor(progdefaults.RxFontcolor, FTextBase::RECV);
-				ifkp_rx_text->setFontColor(progdefaults.XMITcolor, FTextBase::XMIT);
-				ifkp_rx_text->setFontColor(progdefaults.CTRLcolor, FTextBase::CTRL);
-				ifkp_rx_text->setFontColor(progdefaults.SKIPcolor, FTextBase::SKIP);
-				ifkp_rx_text->setFontColor(progdefaults.ALTRcolor, FTextBase::ALTR);
+				ifkp_rx_text->setFontColor( RGBCOLOR( RxFontcolor ), FTextBase::RECV);
+				ifkp_rx_text->setFontColor( RGBCOLOR( XMITcolor ), FTextBase::XMIT);
+				ifkp_rx_text->setFontColor( RGBCOLOR( CTRLcolor ), FTextBase::CTRL);
+				ifkp_rx_text->setFontColor( RGBCOLOR( SKIPcolor ), FTextBase::SKIP);
+				ifkp_rx_text->setFontColor( RGBCOLOR( ALTRcolor ), FTextBase::ALTR);
 
 				ifkp_tx_text = new FTextTX(
 						0, Y + ifkp_rx_text->h(),
 						ifkp_rx_text->w(), ifkp_group->h() - ifkp_rx_text->h());
-				ifkp_tx_text->color(
-					fl_rgb_color(
-						progdefaults.TxColor.R,
-						progdefaults.TxColor.G,
-						progdefaults.TxColor.B),
-						progdefaults.RxTxSelectcolor);
+				ifkp_tx_text->color( RGBCOLOR( TxColor ), RGBCOLOR( RxTxSelectcolor ));
 				ifkp_tx_text->setFont(progdefaults.TxFontnbr);
 				ifkp_tx_text->setFontSize(progdefaults.TxFontsize);
-				ifkp_tx_text->setFontColor(progdefaults.TxFontcolor, FTextBase::RECV);
-				ifkp_tx_text->setFontColor(progdefaults.XMITcolor, FTextBase::XMIT);
-				ifkp_tx_text->setFontColor(progdefaults.CTRLcolor, FTextBase::CTRL);
-				ifkp_tx_text->setFontColor(progdefaults.SKIPcolor, FTextBase::SKIP);
-				ifkp_tx_text->setFontColor(progdefaults.ALTRcolor, FTextBase::ALTR);
+				ifkp_tx_text->setFontColor( RGBCOLOR( TxFontcolor ), FTextBase::RECV);
+				ifkp_tx_text->setFontColor( RGBCOLOR( XMITcolor ), FTextBase::XMIT);
+				ifkp_tx_text->setFontColor( RGBCOLOR( CTRLcolor ), FTextBase::CTRL);
+				ifkp_tx_text->setFontColor( RGBCOLOR( SKIPcolor ), FTextBase::SKIP);
+				ifkp_tx_text->setFontColor( RGBCOLOR( ALTRcolor ), FTextBase::ALTR);
 				ifkp_tx_text->align(FL_ALIGN_CLIP);
 
 				ifkp_minbox = new Fl_Box(
@@ -2895,12 +2834,12 @@ Logging_frame->resizable(NFtabs);
 		wf_group = new Fl_Group(0, Y, W, Hwfall);
 
 			wf = new waterfall(0, Y, Wwfall, Hwfall);
-			wf->wfscope->bk_color(progdefaults.digi_background);
-			wf->wfscope->axis_color(progdefaults.digi_axis_color);
-			wf->wfscope->user_color_1(progdefaults.digi_color_1);
-			wf->wfscope->user_color_2(progdefaults.digi_color_2);
-			wf->wfscope->user_color_3(progdefaults.digi_color_3);
-			wf->wfscope->user_color_4(progdefaults.digi_color_4);
+			wf->wfscope->bk_color( RGBCOLOR( digi_background ) );
+			wf->wfscope->axis_color( RGBCOLOR( digi_axis_color ) );
+			wf->wfscope->user_color_1( RGBCOLOR( digi_color_1 ) );
+			wf->wfscope->user_color_2( RGBCOLOR( digi_color_2 ) );
+			wf->wfscope->user_color_3( RGBCOLOR( digi_color_3 ) );
+			wf->wfscope->user_color_4( RGBCOLOR( digi_color_4 ) );
 
 			wf->end();
 
@@ -3053,7 +2992,7 @@ Logging_frame->resizable(NFtabs);
 				rightof(btnSQL), Y,
 				bwSqlOnOff, Hstatus, "PSM");
 
-			btnSQL->selection_color(progdefaults.Sql1Color);
+			btnSQL->selection_color( RGBCOLOR( Sql1Color ) );
 
 			btnAFC->callback(cbAFC, 0);
 			btnAFC->value(1);
@@ -3063,7 +3002,7 @@ Logging_frame->resizable(NFtabs);
 			btnSQL->value(1);
 			btnSQL->tooltip(_("Squelch"));
 
-			btnPSQL->selection_color(progdefaults.Sql1Color);
+			btnPSQL->selection_color( RGBCOLOR( Sql1Color ) );
 			btnPSQL->value(progdefaults.kpsql_enabled);
 			btnPSQL->callback(cbPwrSQL, 0);
 			btnPSQL->tooltip(_("Power Signal Monitor"));
@@ -3171,12 +3110,12 @@ Logging_frame->resizable(NFtabs);
 	scopeview = new Fl_Double_Window(0,0,140,140, _("Scope"));
 	scopeview->xclass(PACKAGE_NAME);
 	digiscope = new Digiscope (0, 0, 140, 140);
-	digiscope->bk_color(progdefaults.digi_background);
-	digiscope->axis_color(progdefaults.digi_axis_color);
-	digiscope->user_color_1(progdefaults.digi_color_1);
-	digiscope->user_color_2(progdefaults.digi_color_2);
-	digiscope->user_color_3(progdefaults.digi_color_3);
-	digiscope->user_color_4(progdefaults.digi_color_4);
+	digiscope->bk_color( RGBCOLOR( digi_background ) );
+	digiscope->axis_color( RGBCOLOR( digi_axis_color ) );
+	digiscope->user_color_1( RGBCOLOR( digi_color_1 ) );
+	digiscope->user_color_2( RGBCOLOR( digi_color_2 ) );
+	digiscope->user_color_3( RGBCOLOR( digi_color_3 ) );
+	digiscope->user_color_4( RGBCOLOR( digi_color_4 ) );
 	scopeview->resizable(digiscope);
 	scopeview->size_range(SCOPEWIN_MIN_WIDTH, SCOPEWIN_MIN_HEIGHT);
 	scopeview->end();

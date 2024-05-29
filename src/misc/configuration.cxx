@@ -29,6 +29,7 @@
 #include <config.h>
 
 #include "configuration.h"
+#include "ui_colors.h"
 #include "confdialog.h"
 #include "xmlreader.h"
 #include "soundconf.h"
@@ -444,15 +445,15 @@ void configuration::saveDefaults()
 {
 	ENSURE_THREAD(FLMAIN_TID);
 
-	memcpy(&cfgpal0, &palette[0], sizeof(cfgpal0));
-	memcpy(&cfgpal1, &palette[1], sizeof(cfgpal1));
-	memcpy(&cfgpal2, &palette[2], sizeof(cfgpal2));
-	memcpy(&cfgpal3, &palette[3], sizeof(cfgpal3));
-	memcpy(&cfgpal4, &palette[4], sizeof(cfgpal4));
-	memcpy(&cfgpal5, &palette[5], sizeof(cfgpal5));
-	memcpy(&cfgpal6, &palette[6], sizeof(cfgpal6));
-	memcpy(&cfgpal7, &palette[7], sizeof(cfgpal7));
-	memcpy(&cfgpal8, &palette[8], sizeof(cfgpal8));
+//	ui_colors.cfgpal0 = fl_rgb_color( palette[0].R, palette[0].G, palette[0].B);
+//	ui_colors.cfgpal1 = fl_rgb_color( palette[1].R, palette[1].G, palette[1].B);
+//	ui_colors.cfgpal2 = fl_rgb_color( palette[2].R, palette[2].G, palette[2].B);
+//	ui_colors.cfgpal3 = fl_rgb_color( palette[3].R, palette[3].G, palette[3].B);
+//	ui_colors.cfgpal4 = fl_rgb_color( palette[4].R, palette[4].G, palette[4].B);
+//	ui_colors.cfgpal5 = fl_rgb_color( palette[5].R, palette[5].G, palette[5].B);
+//	ui_colors.cfgpal6 = fl_rgb_color( palette[6].R, palette[6].G, palette[6].B);
+//	ui_colors.cfgpal7 = fl_rgb_color( palette[7].R, palette[7].G, palette[7].B);
+//	ui_colors.cfgpal8 = fl_rgb_color( palette[8].R, palette[8].G, palette[8].B);
 
 	RxFontName = Fl::get_font_name(RxFontnbr);
 	TxFontName = Fl::get_font_name(TxFontnbr);
@@ -598,12 +599,9 @@ int configuration::setDefaults()
 	cntServerOffset->value(ServerOffset);
 	cntACQsn->value(ACQsn);
 
-	btnCursorBWcolor->color(
-		fl_rgb_color(cursorLineRGBI.R, cursorLineRGBI.G, cursorLineRGBI.B) );
-	btnCursorCenterLineColor->color(
-		fl_rgb_color(cursorCenterRGBI.R, cursorCenterRGBI.G, cursorCenterRGBI.B) );
-	btnBwTracksColor->color(
-		fl_rgb_color(bwTrackRGBI.R, bwTrackRGBI.G, bwTrackRGBI.B) );
+	btnCursorBWcolor->color( RGBCOLOR( cursorLine ) );
+	btnCursorCenterLineColor->color( RGBCOLOR( cursorCenter ) );
+	btnBwTracksColor->color( RGBCOLOR( bwTrack ) );
 
 	sldrCWxmtWPM->value(CWspeed);
 	cntCWdefWPM->value(defCWspeed);
@@ -681,15 +679,15 @@ int configuration::setDefaults()
 	wf->setPrefilter(wfPreFilter);
 	btnWFaveraging->value(WFaveraging);
 
-	memcpy(&palette[0], &cfgpal0, sizeof(palette[0]));
-	memcpy(&palette[1], &cfgpal1, sizeof(palette[1]));
-	memcpy(&palette[2], &cfgpal2, sizeof(palette[2]));
-	memcpy(&palette[3], &cfgpal3, sizeof(palette[3]));
-	memcpy(&palette[4], &cfgpal4, sizeof(palette[4]));
-	memcpy(&palette[5], &cfgpal5, sizeof(palette[5]));
-	memcpy(&palette[6], &cfgpal6, sizeof(palette[6]));
-	memcpy(&palette[7], &cfgpal7, sizeof(palette[7]));
-	memcpy(&palette[8], &cfgpal8, sizeof(palette[8]));
+	Fl::get_color( RGBCOLOR( cfgpal0 ), palette[0].R, palette[0].G, palette[0].B);
+	Fl::get_color( RGBCOLOR( cfgpal1 ), palette[1].R, palette[1].G, palette[1].B);
+	Fl::get_color( RGBCOLOR( cfgpal2 ), palette[2].R, palette[2].G, palette[2].B);
+	Fl::get_color( RGBCOLOR( cfgpal3 ), palette[3].R, palette[3].G, palette[3].B);
+	Fl::get_color( RGBCOLOR( cfgpal4 ), palette[4].R, palette[4].G, palette[4].B);
+	Fl::get_color( RGBCOLOR( cfgpal5 ), palette[5].R, palette[5].G, palette[5].B);
+	Fl::get_color( RGBCOLOR( cfgpal6 ), palette[6].R, palette[6].G, palette[6].B);
+	Fl::get_color( RGBCOLOR( cfgpal7 ), palette[7].R, palette[7].G, palette[7].B);
+	Fl::get_color( RGBCOLOR( cfgpal8 ), palette[8].R, palette[8].G, palette[8].B);
 
 	wf->setcolors();
 	setColorButtons();
@@ -719,9 +717,9 @@ int configuration::setDefaults()
 	uchar bg_r, bg_g, bg_b;
 	uchar bg2_r, bg2_g, bg2_b;
 
-	Fl::get_color(progdefaults.foreground, fg_r, fg_g, fg_b);
-	Fl::get_color(progdefaults.background, bg_r, bg_g, bg_b);
-	Fl::get_color(progdefaults.background2, bg2_r, bg2_g, bg2_b);
+	Fl::get_color(RGBCOLOR( foreground ), fg_r, fg_g, fg_b);
+	Fl::get_color(RGBCOLOR( background ), bg_r, bg_g, bg_b);
+	Fl::get_color(RGBCOLOR( background2 ), bg2_r, bg2_g, bg2_b);
 
 	Fl::background2(bg2_r, bg2_g, bg2_b);
 	Fl::background(bg_r, bg_g, bg_b);

@@ -25,6 +25,7 @@
 #include <FL/Fl_Box.H>
 
 #include "configuration.h"
+#include "ui_colors.h"
 #include "confdialog.h"
 #include "gettext.h"
 #include "fmt_dialog.h"
@@ -243,11 +244,11 @@ Fl_Group* fmt_panel(int X, int Y, int W, int H) {
 		grp->w() - 4, grp->h() - 4- 2 * grp_height, "");
 
 		fmt_plot->reverse_x(progdefaults.FMT_reverse);
-		fmt_plot->bk_color (progdefaults.FMT_background);
-		fmt_plot->line_color_1 (progdefaults.FMT_unk_color);
-		fmt_plot->line_color_2 (progdefaults.FMT_ref_color);
-		fmt_plot->axis_color (progdefaults.FMT_axis_color);
-		fmt_plot->legend_color (progdefaults.FMT_legend_color);
+		fmt_plot->bk_color ( RGBCOLOR( FMT_background ) );
+		fmt_plot->line_color_1 ( RGBCOLOR( FMT_unk_color ) );
+		fmt_plot->line_color_2 ( RGBCOLOR( FMT_ref_color ) );
+		fmt_plot->axis_color ( RGBCOLOR( FMT_axis_color ) );
+		fmt_plot->legend_color ( RGBCOLOR( FMT_legend_color ) );
 		fmt_set_x_scale ();
 		fmt_set_y_scale ();
 		fmt_plot->show_1(false);
@@ -261,14 +262,14 @@ Fl_Group* fmt_panel(int X, int Y, int W, int H) {
 		btn_unk_enable = new Fl_Light_Button(
 			ref_group->x() + 2, ref_group->y() + 2,
 				50, 20, "Unk'");
-			btn_unk_enable->selection_color(progdefaults.default_btn_color);
+			btn_unk_enable->selection_color( RGBCOLOR( default_btn_color ) );
 			btn_unk_enable->callback((Fl_Callback *)cb_btn_unk_enable);
 
 		unk_color = new Fl_Box(
 			btn_unk_enable->x() + btn_unk_enable->w() + 2, btn_unk_enable->y() + 4,
 			12, 12, "");
 			unk_color->box(FL_DOWN_BOX);
-			unk_color->color(progdefaults.FMT_unk_color);
+			unk_color->color( RGBCOLOR( FMT_unk_color ));
 
 		btn_unk_dn = new Fl_Button(
 			unk_color->x() + unk_color->w() + 2, btn_unk_enable->y(),
@@ -358,14 +359,14 @@ Fl_Group* fmt_panel(int X, int Y, int W, int H) {
 		btn_ref_enable = new Fl_Light_Button(
 			unk_group->x() + 2, unk_group->y() + 2,
 				50, 20, "Ref'");
-			btn_ref_enable->selection_color(progdefaults.default_btn_color);
+			btn_ref_enable->selection_color( RGBCOLOR( default_btn_color ) );
 			btn_ref_enable->callback((Fl_Callback *)cb_btn_ref_enable);
 
 		ref_color = new Fl_Box(
 			btn_ref_enable->x() + btn_ref_enable->w() + 2, btn_ref_enable->y() + 4,
 			12, 12, "");
 			ref_color->box(FL_DOWN_BOX);
-			ref_color->color(progdefaults.FMT_ref_color);
+			ref_color->color( RGBCOLOR( FMT_ref_color ) );
 
 		btn_ref_dn = new Fl_Button(
 			unk_color->x() + unk_color->w() + 2, btn_ref_enable->y(),

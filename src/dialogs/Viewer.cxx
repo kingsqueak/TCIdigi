@@ -31,6 +31,7 @@
 #include "trx.h"
 #include "main.h"
 #include "configuration.h"
+#include "ui_colors.h"
 #include "confdialog.h"
 #include "status.h"
 #include "waterfall.h"
@@ -329,14 +330,8 @@ Fl_Double_Window* createViewer(void)
 	sldrViewerSquelch->step(0.1);
 	sldrViewerSquelch->value(progStatus.VIEWER_psksquelch);
 	sldrViewerSquelch->callback((Fl_Callback*)cb_Squelch);
-	sldrViewerSquelch->color( fl_rgb_color(
-		progdefaults.bwsrSliderColor.R, 
-		progdefaults.bwsrSliderColor.G,
-		progdefaults.bwsrSliderColor.B));
-	sldrViewerSquelch->selection_color( fl_rgb_color(
-		progdefaults.bwsrSldrSelColor.R, 
-		progdefaults.bwsrSldrSelColor.G,
-		progdefaults.bwsrSldrSelColor.B));
+	sldrViewerSquelch->color( RGBCOLOR( bwsrSliderColor ) );
+	sldrViewerSquelch->selection_color( RGBCOLOR( bwsrSldrSelColor ) );
 
 	g->resizable(sldrViewerSquelch);
 	g->end();

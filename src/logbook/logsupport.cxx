@@ -54,6 +54,7 @@
 #include "confdialog.h"
 #include "fileselect.h"
 #include "configuration.h"
+#include "ui_colors.h"
 #include "main.h"
 #include "locator.h"
 #include "icons.h"
@@ -1339,15 +1340,10 @@ void show_dup(void *dup)
 	if (dup == (void *)1) cdup = 1;
 	if (dup == (void *)2) cdup = 2;
 
-	Fl_Color call_clr = progdefaults.LOGGINGcolor;
-	Fl_Color dup_clr = fl_rgb_color(
-				progdefaults.dup_color.R,
-				progdefaults.dup_color.G,
-				progdefaults.dup_color.B);
-	Fl_Color pdup_clr = fl_rgb_color(
-				progdefaults.possible_dup_color.R,
-				progdefaults.possible_dup_color.G,
-				progdefaults.possible_dup_color.B);
+	Fl_Color call_clr = RGBCOLOR( LOGGINGcolor );
+	Fl_Color dup_clr = RGBCOLOR( dup_color );
+	Fl_Color pdup_clr = RGBCOLOR( possible_dup_color );
+
 	inpCall1->color(cdup == 1 ? dup_clr : cdup == 2 ? pdup_clr : call_clr);
 	inpCall2->color(cdup == 1 ? dup_clr : cdup == 2 ? pdup_clr : call_clr);
 	inpCall3->color(cdup == 1 ? dup_clr : cdup == 2 ? pdup_clr : call_clr);

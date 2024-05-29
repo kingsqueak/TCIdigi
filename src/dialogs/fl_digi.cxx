@@ -120,6 +120,7 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include "confdialog.h"
 #include "configuration.h"
 #include "status.h"
+#include "ui_colors.h"
 
 #include "macros.h"
 #include "macroedit.h"
@@ -2263,26 +2264,13 @@ void colorize_48macros(int i)
 	if (progdefaults.useGroupColors == true) {
 		int k = i / 4;
 		if (k == 0 || k == 3 || k == 6 || k == 9)
-			btnDockMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup1.R,
-				progdefaults.btnGroup1.G,
-				progdefaults.btnGroup1.B));
+			btnDockMacro[i]->color( RGBCOLOR(btnGroup1) );
 		else if (k == 1 || k == 4 || k == 7 || k == 10)
-			btnDockMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup2.R,
-				progdefaults.btnGroup2.G,
-				progdefaults.btnGroup2.B));
+			btnDockMacro[i]->color( RGBCOLOR(btnGroup2 ) );
 		else
-			btnDockMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup3.R,
-				progdefaults.btnGroup3.G,
-				progdefaults.btnGroup3.B));
-		btnDockMacro[i]->labelcolor(
-			fl_rgb_color(
-				progdefaults.btnFkeyTextColor.R,
-				progdefaults.btnFkeyTextColor.G,
-				progdefaults.btnFkeyTextColor.B ));
-		btnDockMacro[i]->labelcolor(progdefaults.MacroBtnFontcolor);
+			btnDockMacro[i]->color( RGBCOLOR(btnGroup3) );
+		btnDockMacro[i]->labelcolor( RGBCOLOR(btnFkeyTextColor) );
+		btnDockMacro[i]->labelcolor(RGBCOLOR(MacroBtnFontcolor));
 		btnDockMacro[i]->labelfont(progdefaults.MacroBtnFontnbr);
 		btnDockMacro[i]->labelsize(progdefaults.MacroBtnFontsize);
 	} else {
@@ -2298,27 +2286,14 @@ void colorize_macro(int i)
 	int j = i % NUMMACKEYS;
 	if (progdefaults.useGroupColors == true) {
 		if (j < 4) {
-			btnMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup1.R,
-				progdefaults.btnGroup1.G,
-				progdefaults.btnGroup1.B));
+			btnMacro[i]->color( RGBCOLOR(btnGroup1 ) );
 		} else if (j < 8) {
-			btnMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup2.R,
-				progdefaults.btnGroup2.G,
-				progdefaults.btnGroup2.B));
+			btnMacro[i]->color( RGBCOLOR(btnGroup2  ));
 		} else {
-			btnMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup3.R,
-				progdefaults.btnGroup3.G,
-				progdefaults.btnGroup3.B));
+			btnMacro[i]->color( RGBCOLOR(btnGroup3  ));
 		}
-		btnMacro[i]->labelcolor(
-			fl_rgb_color(
-				progdefaults.btnFkeyTextColor.R,
-				progdefaults.btnFkeyTextColor.G,
-				progdefaults.btnFkeyTextColor.B ));
-		btnMacro[i]->labelcolor(progdefaults.MacroBtnFontcolor);
+		btnMacro[i]->labelcolor( RGBCOLOR(btnFkeyTextColor) );
+		btnMacro[i]->labelcolor(RGBCOLOR(MacroBtnFontcolor));
 		btnMacro[i]->labelfont(progdefaults.MacroBtnFontnbr);
 		btnMacro[i]->labelsize(progdefaults.MacroBtnFontsize);
 	} else {
@@ -3058,7 +3033,7 @@ void cbRSID(Fl_Widget *w, void *)
 		break;
 	}
 
-	Fl_Color clr = progdefaults.rsidWideSearch ? progdefaults.RxIDwideColor : progdefaults.RxIDColor;
+	Fl_Color clr = progdefaults.rsidWideSearch ? RGBCOLOR(RxIDwideColor) : RGBCOLOR(RxIDColor);
 	btnRSID->selection_color(clr);
 	btnRSID->redraw();
 	restoreFocus(11);
@@ -3353,8 +3328,8 @@ Fl_Input2* qso_fields[] = {
 		for (size_t i = 0; i < num_fields; i++) {
 			qso_fields[i]->textsize(progdefaults.LOGGINGtextsize);
 			qso_fields[i]->textfont(progdefaults.LOGGINGtextfont);
-			qso_fields[i]->textcolor(progdefaults.LOGGINGtextcolor);
-			qso_fields[i]->color(progdefaults.LOGGINGcolor);
+			qso_fields[i]->textcolor(RGBCOLOR(LOGGINGtextcolor));
+			qso_fields[i]->color(RGBCOLOR(LOGGINGcolor));
 			qso_fields[i]->labelfont(progdefaults.LOGGINGtextfont);
 			qso_fields[i]->redraw_label();
 		}
@@ -3406,8 +3381,8 @@ Fl_Input2* log_fields[] = {
 		log_fields[i]->value("");
 		log_fields[i]->textsize(progdefaults.LOGGINGtextsize);
 		log_fields[i]->textfont(progdefaults.LOGGINGtextfont);
-		log_fields[i]->textcolor(progdefaults.LOGGINGtextcolor);
-		log_fields[i]->color(progdefaults.LOGGINGcolor);
+		log_fields[i]->textcolor(RGBCOLOR(LOGGINGtextcolor));
+		log_fields[i]->color(RGBCOLOR(LOGGINGcolor));
 		log_fields[i]->labelfont(progdefaults.LOGGINGtextfont);
 		log_fields[i]->show();
 		log_fields[i]->redraw_label();
@@ -3484,8 +3459,8 @@ Fl_Input2* log_fields[] = {
 		log_fields[i]->value("");
 		log_fields[i]->textsize(progdefaults.LOGGINGtextsize);
 		log_fields[i]->textfont(progdefaults.LOGGINGtextfont);
-		log_fields[i]->textcolor(progdefaults.LOGGINGtextcolor);
-		log_fields[i]->color(progdefaults.LOGGINGcolor);
+		log_fields[i]->textcolor(RGBCOLOR(LOGGINGtextcolor));
+		log_fields[i]->color(RGBCOLOR(LOGGINGcolor));
 		log_fields[i]->labelfont(progdefaults.LOGGINGtextfont);
 		log_fields[i]->show();
 		log_fields[i]->redraw_label();
@@ -3560,8 +3535,8 @@ if (bWF_only) return;
 		call_fields[i]->value("");
 		call_fields[i]->textsize(progdefaults.LOGGINGtextsize);
 		call_fields[i]->textfont(progdefaults.LOGGINGtextfont);
-		call_fields[i]->textcolor(progdefaults.LOGGINGtextcolor);
-		call_fields[i]->color(progdefaults.LOGGINGcolor);
+		call_fields[i]->textcolor(RGBCOLOR(LOGGINGtextcolor));
+		call_fields[i]->color(RGBCOLOR(LOGGINGcolor));
 		call_fields[i]->labelfont(progdefaults.LOGGINGtextfont);
 		call_fields[i]->show();
 		call_fields[i]->redraw_label();
@@ -6879,7 +6854,7 @@ void setTabColors()
 	if (dlgConfig->visible()) dlgConfig->redraw();
 
 	if (dxcluster_viewer) {
-		cluster_tabs->selection_color(progdefaults.TabsColor);
+		cluster_tabs->selection_color(RGBCOLOR(TabsColor));
 		if (dxcluster_viewer->visible()) dxcluster_viewer->redraw();
 	}
 }
@@ -6997,8 +6972,8 @@ void widget_color_font(Fl_Widget *widget)
 {
 	widget->labelsize(progdefaults.LOGGINGtextsize);
 	widget->labelfont(progdefaults.LOGGINGtextfont);
-	widget->labelcolor(progdefaults.LOGGINGtextcolor);
-	widget->color(progdefaults.LOGGINGcolor);
+	widget->labelcolor(RGBCOLOR(LOGGINGtextcolor));
+	widget->color(RGBCOLOR(LOGGINGcolor));
 	widget->redraw_label();
 	widget->redraw();
 }
@@ -7007,8 +6982,8 @@ void input_color_font(Fl_Input *input)
 {
 	input->textsize(progdefaults.LOGGINGtextsize);
 	input->textfont(progdefaults.LOGGINGtextfont);
-	input->textcolor(progdefaults.LOGGINGtextcolor);
-	input->color(progdefaults.LOGGINGcolor);
+	input->textcolor(RGBCOLOR(LOGGINGtextcolor));
+	input->color(RGBCOLOR(LOGGINGcolor));
 	input->redraw();
 }
 
@@ -7016,18 +6991,18 @@ void counter_color_font(Fl_Counter2 * cntr)
 {
 	cntr->textsize(progdefaults.LOGGINGtextsize);
 	cntr->textfont(progdefaults.LOGGINGtextfont);
-	cntr->textcolor(progdefaults.LOGGINGtextcolor);
-	cntr->textbkcolor(progdefaults.LOGGINGcolor);
+	cntr->textcolor(RGBCOLOR(LOGGINGtextcolor));
+	cntr->textbkcolor(RGBCOLOR(LOGGINGcolor));
 	cntr->redraw();
 }
 
 void combo_color_font(Fl_ComboBox *cbo)
 {
-	cbo->color(progdefaults.LOGGINGcolor);
-	cbo->selection_color(progdefaults.LOGGINGcolor);
+	cbo->color(RGBCOLOR(LOGGINGcolor));
+	cbo->selection_color(RGBCOLOR(LOGGINGcolor));
 	cbo->textfont(progdefaults.LOGGINGtextfont);
 	cbo->textsize(progdefaults.LOGGINGtextsize);
-	cbo->textcolor(progdefaults.LOGGINGtextcolor);
+	cbo->textcolor(RGBCOLOR(LOGGINGtextcolor));
 	cbo->redraw();
 	cbo->redraw_label();
 }
@@ -7124,8 +7099,8 @@ inline void inp_font_pos(Fl_Input2* inp, int x, int y, int w, int h)
 {
 	inp->textsize(progdefaults.LOGBOOKtextsize);
 	inp->textfont(progdefaults.LOGBOOKtextfont);
-	inp->textcolor(progdefaults.LOGBOOKtextcolor);
-	inp->color(progdefaults.LOGBOOKcolor);
+	inp->textcolor(RGBCOLOR(LOGBOOKtextcolor));
+	inp->color(RGBCOLOR(LOGBOOKcolor));
 	inp->labelfont(progdefaults.LOGBOOKtextfont);
 	int ls = progdefaults.LOGBOOKtextsize - 1;
 	ls = ls < 12 ? 12 : (ls > 14 ? 14 : ls);
@@ -7139,8 +7114,8 @@ inline void date_font_pos(Fl_DateInput* inp, int x, int y, int w, int h)
 {
 	inp->textsize(progdefaults.LOGBOOKtextsize);
 	inp->textfont(progdefaults.LOGBOOKtextfont);
-	inp->textcolor(progdefaults.LOGBOOKtextcolor);
-	inp->color(progdefaults.LOGBOOKcolor);
+	inp->textcolor(RGBCOLOR(LOGBOOKtextcolor));
+	inp->color(RGBCOLOR(LOGBOOKcolor));
 	inp->labelfont(progdefaults.LOGBOOKtextfont);
 	int ls = progdefaults.LOGBOOKtextsize - 1;
 	ls = ls < 10 ? 10 : (ls > 14 ? 14 : ls);
@@ -7297,7 +7272,7 @@ void LOGBOOK_colors_font()
 	int tab_h = wh * 14 / progdefaults.LOGBOOKtextsize;
 	int tab_grp_h = 4 * wh + 4;
 //	Tabs->resize(2, ypos, dlg_width - 6 - inpSearchString->w(), tab_grp_h + tab_h);
-	Tabs->selection_color(progdefaults.TabsColor);
+	Tabs->selection_color(RGBCOLOR(TabsColor));
 
 	tab_font_pos(tab_log_qsl, 2, ypos + tab_h, Tabs->w(), tab_grp_h, 14);
 	tab_font_pos(tab_log_contest, 2, ypos + tab_h, Tabs->w(), tab_grp_h, 14);
@@ -7343,14 +7318,14 @@ void LOGBOOK_colors_font()
 
 	txtLogFile->textsize(ls);
 	txtLogFile->textfont(progdefaults.LOGBOOKtextfont);
-	txtLogFile->textcolor(progdefaults.LOGBOOKtextcolor);
-	txtLogFile->color(progdefaults.LOGBOOKcolor);
+	txtLogFile->textcolor(RGBCOLOR(LOGBOOKtextcolor));
+	txtLogFile->color(RGBCOLOR(LOGBOOKcolor));
 
 	ypos += grpFileButtons->h() + 2;
 
 	wBrowser->font(progdefaults.LOGBOOKtextfont);
 	wBrowser->fontsize(progdefaults.LOGBOOKtextsize);
-	wBrowser->color(progdefaults.LOGBOOKcolor);
+	wBrowser->color(RGBCOLOR(LOGBOOKcolor));
 	wBrowser->selection_color(FL_SELECTION_COLOR);
 
 	int datewidth = wBrowser->columnWidth(0);
@@ -7390,46 +7365,15 @@ void LOGBOOK_colors_font()
 
 void set_smeter_colors()
 {
-	Fl_Color clr = fl_rgb_color(
-					progdefaults.Smeter_bg_color.R,
-					progdefaults.Smeter_bg_color.G,
-					progdefaults.Smeter_bg_color.B);
-	smeter->set_background(clr);
-
-	clr = fl_rgb_color(
-			progdefaults.Smeter_meter_color.R,
-			progdefaults.Smeter_meter_color.G,
-			progdefaults.Smeter_meter_color.B);
-	smeter->set_metercolor(clr);
-
-	clr = fl_rgb_color(
-			progdefaults.Smeter_scale_color.R,
-			progdefaults.Smeter_scale_color.G,
-			progdefaults.Smeter_scale_color.B);
-	smeter->set_scalecolor(clr);
-
+	smeter->set_background(RGBCOLOR(Smeter_bg_color));
+	smeter->set_metercolor(RGBCOLOR(Smeter_meter_color));
+	smeter->set_scalecolor(RGBCOLOR(Smeter_scale_color));
 	smeter->redraw();
 
-	clr = fl_rgb_color(
-			progdefaults.PWRmeter_bg_color.R,
-			progdefaults.PWRmeter_bg_color.G,
-			progdefaults.PWRmeter_bg_color.B);
-	pwrmeter->set_background(clr);
-
-	clr = fl_rgb_color(
-			progdefaults.PWRmeter_meter_color.R,
-			progdefaults.PWRmeter_meter_color.G,
-			progdefaults.PWRmeter_meter_color.B);
-	pwrmeter->set_metercolor(clr);
-
-	clr = fl_rgb_color(
-			progdefaults.PWRmeter_scale_color.R,
-			progdefaults.PWRmeter_scale_color.G,
-			progdefaults.PWRmeter_scale_color.B);
-	pwrmeter->set_scalecolor(clr);
-
+	pwrmeter->set_background(RGBCOLOR(PWRmeter_bg_color));
+	pwrmeter->set_metercolor(RGBCOLOR(PWRmeter_meter_color));
+	pwrmeter->set_scalecolor(RGBCOLOR(PWRmeter_scale_color));
 	pwrmeter->select(progdefaults.PWRselect);
-
 	pwrmeter->redraw();
 }
 
@@ -8163,12 +8107,12 @@ void make_scopeviewer()
 	scopeview = new Fl_Double_Window(0,0,140,140, _("Scope"));
 	scopeview->xclass(PACKAGE_NAME);
 	digiscope = new Digiscope (0, 0, 140, 140);
-	digiscope->bk_color(progdefaults.digi_background);
-	digiscope->axis_color(progdefaults.digi_axis_color);
-	digiscope->user_color_1(progdefaults.digi_color_1);
-	digiscope->user_color_2(progdefaults.digi_color_2);
-	digiscope->user_color_3(progdefaults.digi_color_3);
-	digiscope->user_color_4(progdefaults.digi_color_4);
+	digiscope->bk_color(RGBCOLOR(digi_background));
+	digiscope->axis_color(RGBCOLOR(digi_axis_color));
+	digiscope->user_color_1(RGBCOLOR(digi_color_1));
+	digiscope->user_color_2(RGBCOLOR(digi_color_2));
+	digiscope->user_color_3(RGBCOLOR(digi_color_3));
+	digiscope->user_color_4(RGBCOLOR(digi_color_4));
 	scopeview->resizable(digiscope);
 	scopeview->size_range(SCOPEWIN_MIN_WIDTH, SCOPEWIN_MIN_HEIGHT);
 	scopeview->end();
@@ -8217,7 +8161,7 @@ void create_fl_digi_main_WF_only() {
 			tx_timer->labelcolor(FL_BACKGROUND_COLOR);
 
 			btnAutoSpot = new Fl_Light_Button(W - 200 - pad, 0, 50, Hmenu, "Spot");
-			btnAutoSpot->selection_color(progdefaults.SpotColor);
+			btnAutoSpot->selection_color(RGBCOLOR(SpotColor));
 			btnAutoSpot->callback(cbAutoSpot, 0);
 			btnAutoSpot->deactivate();
 
@@ -8227,12 +8171,12 @@ void create_fl_digi_main_WF_only() {
 			btnRSID->callback(cbRSID, 0);
 
 			btnTxRSID = new Fl_Light_Button(W - 100 - pad, 0, 50, Hmenu, "TxID");
-			btnTxRSID->selection_color(progdefaults.TxIDColor);
+			btnTxRSID->selection_color(RGBCOLOR(TxIDColor));
 			btnTxRSID->tooltip("Transmit RSID");
 			btnTxRSID->callback(cbTxRSID, 0);
 
 			btnTune = new Fl_Light_Button(W - 50 - pad, 0, 50, Hmenu, "TUNE");
-			btnTune->selection_color(progdefaults.TuneColor);
+			btnTune->selection_color(RGBCOLOR(TuneColor));
 			btnTune->callback(cbTune, 0);
 
 		mnuFrame->resizable(mnu);
@@ -8358,7 +8302,7 @@ void create_fl_digi_main_WF_only() {
 			btnAFC = new Fl_Light_Button(
 				rightof(WARNstatus), Y,
 				bwAfcOnOff, Hstatus, "AFC");
-			btnAFC->selection_color(progdefaults.AfcColor);
+			btnAFC->selection_color(RGBCOLOR(AfcColor));
 
 			btnSQL = new Fl_Light_Button(
 				rightof(btnAFC), Y,
@@ -8376,11 +8320,11 @@ void create_fl_digi_main_WF_only() {
 			btnAFC->tooltip(_("Automatic Frequency Control"));
 
 			btnSQL->callback(cbSQL, 0);
-			btnSQL->selection_color(progdefaults.Sql1Color);
+			btnSQL->selection_color(RGBCOLOR(Sql1Color));
 			btnSQL->value(1);
 			btnSQL->tooltip(_("Squelch"));
 
-			btnPSQL->selection_color(progdefaults.Sql1Color);
+			btnPSQL->selection_color(RGBCOLOR(Sql1Color));
 			btnPSQL->callback(cbPwrSQL, 0);
 			btnPSQL->value(progdefaults.kpsql_enabled);
 			btnPSQL->tooltip(_("Power Signal Monitor"));
@@ -8494,17 +8438,17 @@ void callback_set_metric(double metric)
 
 	if (progdefaults.show_psm_btn && progStatus.kpsql_enabled) {
 		if ((metric >= progStatus.sldrPwrSquelchValue) || inhibit_tx_seconds)
-			btnPSQL->selection_color(progdefaults.Sql2Color);
+			btnPSQL->selection_color(RGBCOLOR(Sql2Color));
 		else
-			btnPSQL->selection_color(progdefaults.Sql1Color);
+			btnPSQL->selection_color(RGBCOLOR(Sql1Color));
 
 		btnPSQL->redraw_label();
 
 	} else if(progStatus.sqlonoff) {
 		if (metric < progStatus.sldrSquelchValue)
-			btnSQL->selection_color(progdefaults.Sql1Color);
+			btnSQL->selection_color(RGBCOLOR(Sql1Color));
 		else
-			btnSQL->selection_color(progdefaults.Sql2Color);
+			btnSQL->selection_color(RGBCOLOR(Sql2Color));
 		btnSQL->redraw_label();
 	}
 }
@@ -8595,21 +8539,21 @@ void set_scope_yaxis_2(double x2)
 void set_scope_colors()
 {
 	if (digiscope) {
-		digiscope->bk_color(progdefaults.digi_background);
-		digiscope->axis_color(progdefaults.digi_axis_color);
-		digiscope->user_color_1(progdefaults.digi_color_1);
-		digiscope->user_color_2(progdefaults.digi_color_2);
-		digiscope->user_color_3(progdefaults.digi_color_3);
-		digiscope->user_color_4(progdefaults.digi_color_4);
+		digiscope->bk_color(RGBCOLOR(digi_background));
+		digiscope->axis_color(RGBCOLOR(digi_axis_color));
+		digiscope->user_color_1(RGBCOLOR(digi_color_1));
+		digiscope->user_color_2(RGBCOLOR(digi_color_2));
+		digiscope->user_color_3(RGBCOLOR(digi_color_3));
+		digiscope->user_color_4(RGBCOLOR(digi_color_4));
 		digiscope->redraw();
 	}
 
-	wf->wfscope->bk_color(progdefaults.digi_background);
-	wf->wfscope->axis_color(progdefaults.digi_axis_color);
-	wf->wfscope->user_color_1(progdefaults.digi_color_1);
-	wf->wfscope->user_color_2(progdefaults.digi_color_2);
-	wf->wfscope->user_color_3(progdefaults.digi_color_3);
-	wf->wfscope->user_color_4(progdefaults.digi_color_4);
+	wf->wfscope->bk_color(RGBCOLOR(digi_background));
+	wf->wfscope->axis_color(RGBCOLOR(digi_axis_color));
+	wf->wfscope->user_color_1(RGBCOLOR(digi_color_1));
+	wf->wfscope->user_color_2(RGBCOLOR(digi_color_2));
+	wf->wfscope->user_color_3(RGBCOLOR(digi_color_3));
+	wf->wfscope->user_color_4(RGBCOLOR(digi_color_4));
 	wf->wfscope->redraw();
 
 }
@@ -9003,12 +8947,12 @@ void put_WARNstatus(double v)
 {
 	double val = 20 * log10(v == 0 ? 1e-9 : v);
 	if (val < progdefaults.normal_signal_level)
-		WARNstatus->color(progdefaults.LowSignal);
+		WARNstatus->color(RGBCOLOR(LowSignal));
 	else if (val < progdefaults.high_signal_level )
-		WARNstatus->color(progdefaults.NormSignal);
+		WARNstatus->color(RGBCOLOR(NormSignal));
 	else if (val < progdefaults.over_signal_level)
-		WARNstatus->color(progdefaults.HighSignal);
-	else WARNstatus->color(progdefaults.OverSignal);
+		WARNstatus->color(RGBCOLOR(HighSignal));
+	else WARNstatus->color(RGBCOLOR(OverSignal));
 	WARNstatus->redraw();
 }
 
@@ -9621,7 +9565,7 @@ void * set_xmtrcv_button_false(void)
 // To be called from the main thread.
 void * set_xmtrcv_selection_color_transmitting(void)
 {
-	wf->xmtrcv_selection_color(progdefaults.XmtColor);
+	wf->xmtrcv_selection_color(RGBCOLOR(XmtColor));
 	return (void *)0;
 }
 
@@ -9639,30 +9583,30 @@ void xmtrcv_selection_color(Fl_Color clr)
 
 void xmtrcv_selection_color()
 {
-	wf->xmtrcv_selection_color(progdefaults.XmtColor);
+	wf->xmtrcv_selection_color(RGBCOLOR(XmtColor));
 }
 
 void rev_selection_color()
 {
-	wf->reverse_selection_color(progdefaults.RevColor);
+	wf->reverse_selection_color(RGBCOLOR(RevColor));
 }
 
 void xmtlock_selection_color()
 {
-	wf->xmtlock_selection_color(progdefaults.LkColor);
+	wf->xmtlock_selection_color(RGBCOLOR(LkColor));
 }
 
 void sql_selection_color()
 {
 	if (!btnSQL) return;
-	btnSQL->selection_color(progdefaults.Sql1Color);
+	btnSQL->selection_color(RGBCOLOR(Sql1Color));
 	btnSQL->redraw();
 }
 
 void afc_selection_color()
 {
 	if (!btnAFC) return;
-	btnAFC->selection_color(progdefaults.AfcColor);
+	btnAFC->selection_color(RGBCOLOR(AfcColor));
 	btnAFC->redraw();
 }
 
@@ -9674,21 +9618,21 @@ void rxid_selection_color()
 void txid_selection_color()
 {
 	if (!btnTxRSID) return;
-	btnTxRSID->selection_color(progdefaults.TxIDColor);
+	btnTxRSID->selection_color(RGBCOLOR(TxIDColor));
 	btnTxRSID->redraw();
 }
 
 void tune_selection_color()
 {
 	if (!btnTune) return;
-	btnTune->selection_color(progdefaults.TuneColor);
+	btnTune->selection_color(RGBCOLOR(TuneColor));
 	btnTune->redraw();
 }
 
 void spot_selection_color()
 {
 	if (!btnAutoSpot) return;
-	btnAutoSpot->selection_color(progdefaults.SpotColor);
+	btnAutoSpot->selection_color(RGBCOLOR(SpotColor));
 	btnAutoSpot->redraw();
 }
 
@@ -9721,7 +9665,7 @@ void set_default_btn_color()
 
 	for (size_t i = 0; i < nbtns; i++) {
 		if (buttons[i] != NULL) {
-			buttons[i]->selection_color(progdefaults.default_btn_color);
+			buttons[i]->selection_color(RGBCOLOR(default_btn_color));
 			buttons[i]->redraw();
 		}
 	}
@@ -10165,7 +10109,7 @@ void set_default_btn_color()
 
 	for (size_t i = 0; i < ncheck_btns; i++) {
 		if (check_buttons[i] != NULL) {
-			check_buttons[i]->color(progdefaults.default_check_btn_color);
+			check_buttons[i]->color( RGBCOLOR( default_check_btn_color ));
 			check_buttons[i]->redraw();
 		}
 	}
@@ -10198,16 +10142,16 @@ void set_default_btn_color()
 
 	for (size_t i = 0; i < nround_btns; i++) {
 		if (round_buttons[i] != NULL) {
-			round_buttons[i]->selection_color(progdefaults.default_round_btn_color);
+			round_buttons[i]->selection_color( RGBCOLOR( default_round_btn_color ) );
 			round_buttons[i]->redraw();
 		}
 	}
 
 	trx_mode md = active_modem->get_mode();
 	if ((md > MODE_WEFAX_FIRST) && (md <= MODE_WEFAX_LAST)) {
-		wefax_round_rx_noise_removal->selection_color(progdefaults.default_btn_color);
-		wefax_round_rx_binary->selection_color(progdefaults.default_btn_color);
-		wefax_round_rx_non_stop->selection_color(progdefaults.default_btn_color);
+		wefax_round_rx_noise_removal->selection_color( RGBCOLOR( default_btn_color ) );
+		wefax_round_rx_binary->selection_color( RGBCOLOR( default_btn_color ) );
+		wefax_round_rx_non_stop->selection_color( RGBCOLOR( default_btn_color ) );
 	}
 
 }
