@@ -838,19 +838,13 @@ void status::loadLastState()
 	noCATwidth = strbuff;
 
 	spref.get("main_x", mainX, mainX);
-	if (mainX > Fl::w())
-		mainX = 0;
-
 	spref.get("main_y", mainY, mainY);
-	if (mainY > Fl::h())
-		mainY = 0;
 
 	spref.get("main_w", mainW, mainW);
 	if (mainW < WMIN) mainW = WMIN;
 	if (mainW > Fl::w()) mainW = Fl::w();
 
 	spref.get("main_h", mainH, mainH);
-//	if (mainH < HMIN) mainH = HMIN;
 	if (mainH > Fl::w()) mainH = Fl::h();
 
 	spref.get("wf_ui", i, WF_UI); WF_UI = i;
