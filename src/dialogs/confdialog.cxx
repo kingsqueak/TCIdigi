@@ -4504,13 +4504,6 @@ btn_fsqbaud[3]->value(0);
 progdefaults.changed = true;
 }
 
-Fl_Choice *sel_fsq_frequency=(Fl_Choice *)0;
-
-static void cb_sel_fsq_frequency(Fl_Choice* o, void*) {
-  progdefaults.fsq_frequency=o->value();
-progdefaults.changed = true;
-}
-
 Fl_Choice *sel_fsq_sounder=(Fl_Choice *)0;
 
 static void cb_sel_fsq_sounder(Fl_Choice* o, void*) {
@@ -14164,12 +14157,6 @@ ver a +/- 10 WPM range.  Calibration/Test is 1 minute of\n\'PARIS \'."));
           btn_fsqbaud[4]->callback((Fl_Callback*)cb_btn_fsqbaud4);
           o->value(progdefaults.fsqbaud == 6);
         } // Fl_Round_Button* btn_fsqbaud[4]
-        { Fl_Choice* o = sel_fsq_frequency = new Fl_Choice(638, 110, 102, 22, _("Center freq"));
-          sel_fsq_frequency->down_box(FL_BORDER_BOX);
-          sel_fsq_frequency->callback((Fl_Callback*)cb_sel_fsq_frequency);
-          o->add("1150"); o->add("1500"); o->add("Variable");
-          o->value(progdefaults.fsq_frequency);
-        } // Fl_Choice* sel_fsq_frequency
         { Fl_Choice* o = sel_fsq_sounder = new Fl_Choice(283, 110, 100, 22, _("Sounder"));
           sel_fsq_sounder->tooltip(_("Send beacon every ..."));
           sel_fsq_sounder->down_box(FL_BORDER_BOX);

@@ -856,9 +856,6 @@
               "Always transmit centered at 1500 Hz (SHARES requirement)",               \
               false)                                                                    \
         /* FSQ */                                                                       \
-        ELEM_(int, fsq_frequency, "FSQFREQUENCY",                                       \
-              "0 - 1150 Hz, 1 - 1500 Hz, 2 - Variable",                                 \
-              1)                                                                        \
         ELEM_(int, fsq_movavg, "FSQMOVAVG",                                             \
               "size of moving average filter for bin filtering\n"                       \
               "value 2 to 8",                                                           \

@@ -763,19 +763,16 @@ progdefaults.changed = true;}
         tooltip {Reload cty.dat} xywh {425 101 75 24}
       }
     }
-
     Fl_Group {} {
-      label {Colors-Fonts/Buttons-Menus} open selected
+      label {Colors-Fonts/Buttons-Menus} open
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons-Menus"));}
       code1 {config_pages.push_back(p);}
       code2 {tab_tree->add(_("Colors-Fonts/Buttons-Menus"));}
     } {
-
       Fl_Button btnSpotColor {
         label Spot
-        callback {
-TRIAD clr = ui_colors.SpotColor;
+        callback {TRIAD clr = ui_colors.SpotColor;
 if (fl_color_chooser("Spot color", clr.r, clr.g, clr.b )) {
   ui_colors.SpotColor = clr;
   spotcolor->color( RGBCOLOR( SpotColor ));
@@ -784,11 +781,9 @@ if (fl_color_chooser("Spot color", clr.r, clr.g, clr.b )) {
   progdefaults.changed = true;}}
         xywh {284 66 110 21}
       }
-
       Fl_Button btnRevColor {
         label Rev
-        callback {
-TRIAD clr = ui_colors.RevColor;
+        callback {TRIAD clr = ui_colors.RevColor;
 if (fl_color_chooser("Rev color", clr.r, clr.g, clr.b )) {
   ui_colors.RevColor = clr;
   revcolor->color( RGBCOLOR( RevColor ) );
@@ -797,11 +792,9 @@ if (fl_color_chooser("Rev color", clr.r, clr.g, clr.b )) {
   progdefaults.changed = true;}}
         xywh {284 103 110 21}
       }
-
       Fl_Button btnTuneColor {
         label Tune
-        callback {
-TRIAD clr = ui_colors.TuneColor;
+        callback {TRIAD clr = ui_colors.TuneColor;
 if (fl_color_chooser("Tune color", clr.r, clr.g, clr.b )) {
   ui_colors.TuneColor = clr;
   tunecolor->color( RGBCOLOR( TuneColor ));
@@ -810,11 +803,9 @@ if (fl_color_chooser("Tune color", clr.r, clr.g, clr.b )) {
   progdefaults.changed = true;}}
         xywh {284 141 110 21}
       }
-
       Fl_Button btnRxIDColor {
         label {RxID nar}
-        callback {
-TRIAD clr = ui_colors.RxIDColor;
+        callback {TRIAD clr = ui_colors.RxIDColor;
 if (fl_color_chooser("RxID color", clr.r, clr.g, clr.b )) {
   ui_colors.RxIDColor = clr;
   rxidcolor->color( RGBCOLOR( RxIDColor ));
@@ -827,11 +818,9 @@ if (fl_color_chooser("RxID color", clr.r, clr.g, clr.b )) {
   btnRSID->redraw();}}
         xywh {284 179 110 21}
       }
-
       Fl_Button btnLkColor {
         label Lk
-        callback {
-TRIAD clr = ui_colors.LkColor;
+        callback {TRIAD clr = ui_colors.LkColor;
 if (fl_color_chooser("Lock color", clr.r, clr.g, clr.b )) {
   ui_colors.LkColor = clr;
 lockcolor->color( RGBCOLOR( LkColor ) );
@@ -840,11 +829,9 @@ xmtlock_selection_color();
 progdefaults.changed = true;}}
         xywh {473 66 110 21}
       }
-
       Fl_Button btnSql1Color {
         label {SQL-1}
-        callback {
-TRIAD clr = ui_colors.Sql1Color;
+        callback {TRIAD clr = ui_colors.Sql1Color;
 if (fl_color_chooser("SQL1 color", clr.r, clr.g, clr.b )) {
   ui_colors.Sql1Color = clr;
   sql1color->color( RGBCOLOR( Sql1Color ));
@@ -853,11 +840,9 @@ if (fl_color_chooser("SQL1 color", clr.r, clr.g, clr.b )) {
   progdefaults.changed = true;}}
         xywh {473 103 110 21}
       }
-
       Fl_Button btnXmtColor {
         label {T/R}
-        callback {
-TRIAD clr = ui_colors.XmtColor;
+        callback {TRIAD clr = ui_colors.XmtColor;
 if (fl_color_chooser("XMT color", clr.r, clr.g, clr.b )) {
   ui_colors.XmtColor = clr;
   xmtcolor->color( RGBCOLOR( XmtColor ));
@@ -866,11 +851,9 @@ if (fl_color_chooser("XMT color", clr.r, clr.g, clr.b )) {
   progdefaults.changed = true;}}
         xywh {473 141 110 20}
       }
-
       Fl_Button btnRxIDwideColor {
         label {RxID wide}
-        callback {
-TRIAD clr = ui_colors.RxIDwideColor;
+        callback {TRIAD clr = ui_colors.RxIDwideColor;
 if (fl_color_chooser("RxID wide", clr.r, clr.g, clr.b )) {
   ui_colors.RxIDwideColor = clr;
   rxidcolorwide->color(RGBCOLOR( RxIDwideColor ));
@@ -883,11 +866,9 @@ if (fl_color_chooser("RxID wide", clr.r, clr.g, clr.b )) {
   btnRSID->redraw();}}
         xywh {473 179 110 21}
       }
-
       Fl_Button btnAfcColor {
         label AFC
-        callback {
-TRIAD clr = ui_colors.AfcColor;
+        callback {TRIAD clr = ui_colors.AfcColor;
 if (fl_color_chooser("AFC color", clr.r, clr.g, clr.b )) {
   ui_colors.AfcColor = clr;
   afccolor->color( RGBCOLOR( AfcColor ) );
@@ -896,11 +877,9 @@ if (fl_color_chooser("AFC color", clr.r, clr.g, clr.b )) {
   progdefaults.changed = true;}}
         xywh {663 66 110 21}
       }
-
       Fl_Button btnSql2Color {
         label {SQL-2}
-        callback {
-TRIAD clr = ui_colors.Sql2Color;
+        callback {TRIAD clr = ui_colors.Sql2Color;
 if (fl_color_chooser("SQL2 color", clr.r, clr.g, clr.b )) {
   ui_colors.Sql2Color = clr;
   sql2color->color(RGBCOLOR( Sql2Color ) );
@@ -909,11 +888,9 @@ if (fl_color_chooser("SQL2 color", clr.r, clr.g, clr.b )) {
   progdefaults.changed = true;}}
         xywh {663 103 110 20}
       }
-
       Fl_Button btnTxIDColor {
         label TxID
-        callback {
-TRIAD clr = ui_colors.TxIDColor;
+        callback {TRIAD clr = ui_colors.TxIDColor;
 if (fl_color_chooser("TxID color", clr.r, clr.g, clr.b )) {
   ui_colors.TxIDColor = clr;
   txidcolor->color( RGBCOLOR( TxIDColor ) );
@@ -925,7 +902,6 @@ if (fl_color_chooser("TxID color", clr.r, clr.g, clr.b )) {
   btnTxRSID->redraw();}}
         xywh {662 179 110 20}
       }
-
       Fl_Box spotcolor {
         xywh {254 67 18 19} box THIN_DOWN_BOX color 3
         code0 {o->color( RGBCOLOR( SpotColor ) );}
@@ -972,8 +948,7 @@ if (fl_color_chooser("TxID color", clr.r, clr.g, clr.b )) {
       }
       Fl_Button btn_default_btn_color {
         label {Lighted Btns}
-        callback {
-TRIAD clr = ui_colors.default_btn_color;
+        callback {TRIAD clr = ui_colors.default_btn_color;
 if (fl_color_chooser("Button color", clr.r, clr.g, clr.b )) {
   ui_colors.default_btn_color = clr;
   default_btn_color->color( RGBCOLOR( default_btn_color ) );
@@ -988,8 +963,7 @@ if (fl_color_chooser("Button color", clr.r, clr.g, clr.b )) {
       }
       Fl_Button btn_check_btn_color {
         label {Check Btns}
-        callback {
-TRIAD clr = ui_colors.default_check_btn_color;
+        callback {TRIAD clr = ui_colors.default_check_btn_color;
 if (fl_color_chooser("Check button", clr.r, clr.g, clr.b )) {
   ui_colors.default_check_btn_color = clr;
   default_check_btn_color->color( RGBCOLOR( default_check_btn_color ) );
@@ -1004,8 +978,7 @@ if (fl_color_chooser("Check button", clr.r, clr.g, clr.b )) {
       }
       Fl_Button btn_default_round_btn_color {
         label {Round Btns}
-        callback {
-TRIAD clr = ui_colors.default_round_btn_color;
+        callback {TRIAD clr = ui_colors.default_round_btn_color;
 if (fl_color_chooser("Round button", clr.r, clr.g, clr.b )) {
   ui_colors.default_round_btn_color = clr;
   default_round_btn_color->color( RGBCOLOR( default_round_btn_color ));
@@ -1042,8 +1015,7 @@ progdefaults.changed = true;} open
       } {}
       Fl_Button btn_background_color {
         label Background
-        callback {
-TRIAD clr = ui_colors.background;
+        callback {TRIAD clr = ui_colors.background;
 
  if (!fl_color_chooser("Background", clr.r, clr.g, clr.b))
    return;
@@ -1070,8 +1042,7 @@ TRIAD clr = ui_colors.background;
       }
       Fl_Button btn_background2_color {
         label Background2
-        callback {
-TRIAD clr = ui_colors.background2;
+        callback {TRIAD clr = ui_colors.background2;
 
  if (!fl_color_chooser("Background2", clr.r, clr.g, clr.b))
    return;
@@ -1098,8 +1069,7 @@ TRIAD clr = ui_colors.background2;
       }
       Fl_Button btn_foreground_color {
         label Foreground
-        callback {
-TRIAD clr = ui_colors.foreground;
+        callback {TRIAD clr = ui_colors.foreground;
 
  if (!fl_color_chooser("Foreground", clr.r, clr.g, clr.b))
    return;
@@ -1157,8 +1127,7 @@ font_browser->show();}
         }
         Fl_Button btnBackgroundColor {
           label {Bg Color}
-          callback {
-TRIAD clr = ui_colors.FDbackground;
+          callback {TRIAD clr = ui_colors.FDbackground;
 
     if (!fl_color_chooser("Background", clr.r, clr.g, clr.b))
         return;
@@ -1176,8 +1145,7 @@ TRIAD clr = ui_colors.FDbackground;
         }
         Fl_Button btnForegroundColor {
           label {Digit Color}
-          callback {
-TRIAD clr = ui_colors.FDforeground;
+          callback {TRIAD clr = ui_colors.FDforeground;
 
   if (!fl_color_chooser("Foreground", clr.r, clr.g, clr.b))
     return;
@@ -1197,8 +1165,7 @@ TRIAD clr = ui_colors.FDforeground;
         }
         Fl_Button btnFD_SystemColor {
           label {Sys Colors}
-          callback {
-TRIAD clr;
+          callback {TRIAD clr;
   Fl::get_color( FL_BACKGROUND2_COLOR, clr.r, clr.g, clr.b);
     ui_colors.FDbackground = clr;
     FDdisplay->color( RGBCOLOR( FDbackground ) );
@@ -1223,8 +1190,7 @@ TRIAD clr;
       } {
         Fl_Button btnSmeter_bg_color {
           label {Bg Color}
-          callback {
-TRIAD clr = ui_colors.Smeter_bg_color;
+          callback {TRIAD clr = ui_colors.Smeter_bg_color;
 
     if (!fl_color_chooser("Background", clr.r, clr.g, clr.b))
         return;
@@ -1237,8 +1203,7 @@ TRIAD clr = ui_colors.Smeter_bg_color;
         }
         Fl_Button btnSmeter_scale_color {
           label {Scale Color}
-          callback {
-TRIAD clr = ui_colors.Smeter_scale_color;
+          callback {TRIAD clr = ui_colors.Smeter_scale_color;
 
     if (!fl_color_chooser("Scale", clr.r, clr.g, clr.b))
         return;
@@ -1252,8 +1217,7 @@ TRIAD clr = ui_colors.Smeter_scale_color;
         }
         Fl_Button btnSmeter_meter_color {
           label {Meter Color}
-          callback {
-TRIAD clr = ui_colors.Smeter_meter_color;
+          callback {TRIAD clr = ui_colors.Smeter_meter_color;
 
     if (!fl_color_chooser("Meter", clr.r, clr.g, clr.b))
         return;
@@ -1272,8 +1236,7 @@ TRIAD clr = ui_colors.Smeter_meter_color;
       } {
         Fl_Button btnPWR_bg_color {
           label {Bg Color}
-          callback {
-TRIAD clr = ui_colors.PWRmeter_bg_color;
+          callback {TRIAD clr = ui_colors.PWRmeter_bg_color;
 
     if (!fl_color_chooser("Background", clr.r, clr.g, clr.b))
         return;
@@ -1287,8 +1250,7 @@ TRIAD clr = ui_colors.PWRmeter_bg_color;
         }
         Fl_Button btnPWR_scale_color {
           label {Scale Color}
-          callback {
-TRIAD clr = ui_colors.PWRmeter_scale_color;
+          callback {TRIAD clr = ui_colors.PWRmeter_scale_color;
 
   if (!fl_color_chooser("Scale", clr.r, clr.g, clr.b))
         return;
@@ -1302,8 +1264,7 @@ TRIAD clr = ui_colors.PWRmeter_scale_color;
         }
         Fl_Button btnPWR_meter_Color {
           label {Meter Color}
-          callback {
-TRIAD clr = ui_colors.PWRmeter_meter_color;
+          callback {TRIAD clr = ui_colors.PWRmeter_meter_color;
 
   if (!fl_color_chooser("Meter", clr.r, clr.g, clr.b))
         return;
@@ -1342,8 +1303,7 @@ progdefaults.changed = true;} open
       }
       Fl_Button btnGroup1 {
         label {Group 1}
-        callback {
-TRIAD clr = ui_colors.btnGroup1;
+        callback {TRIAD clr = ui_colors.btnGroup1;
 
   if (fl_color_chooser("Group 1", clr.r, clr.g, clr.b) == 0)
         return;
@@ -1357,8 +1317,7 @@ TRIAD clr = ui_colors.btnGroup1;
       }
       Fl_Button btnGroup2 {
         label {Group 2}
-        callback {
-TRIAD clr = ui_colors.btnGroup2;
+        callback {TRIAD clr = ui_colors.btnGroup2;
 
   if (fl_color_chooser("Group 2", clr.r, clr.g, clr.b) == 0)
         return;
@@ -1373,8 +1332,7 @@ TRIAD clr = ui_colors.btnGroup2;
       }
       Fl_Button btnGroup3 {
         label {Group 3}
-        callback {
-TRIAD clr = ui_colors.btnGroup3;
+        callback {TRIAD clr = ui_colors.btnGroup3;
 
   if (fl_color_chooser("Group 3", clr.r, clr.g, clr.b) == 0)
         return;
@@ -1389,8 +1347,7 @@ TRIAD clr = ui_colors.btnGroup3;
       }
       Fl_Button btnFkeyDEfaults {
         label Defaults
-        callback {
-    TRIAD clr;
+        callback {TRIAD clr;
 
     clr.r = 80; clr.g = 144; clr.b = 144;
     btnGroup1->color( fl_rgb_color( clr.r, clr.g, clr.b ) );
@@ -1430,8 +1387,7 @@ progdefaults.changed = true;}
       }
       Fl_Button btnMacroBtnFont {
         label {Font/Color}
-        callback {
-font_browser->fontNumber(progdefaults.MacroBtnFontnbr);
+        callback {font_browser->fontNumber(progdefaults.MacroBtnFontnbr);
 font_browser->fontSize(progdefaults.MacroBtnFontsize);
 font_browser->fontColor( RGBCOLOR( MacroBtnFontcolor ) );
 if (font_browser->fixed_width(progdefaults.MacroBtnFontnbr))
@@ -1463,8 +1419,7 @@ font_browser->show();}
         }
         Fl_Button btnLOGGING_color {
           label {Bg Color}
-          callback {
-TRIAD clr = ui_colors.LOGGINGcolor;
+          callback {TRIAD clr = ui_colors.LOGGINGcolor;
   if (!fl_color_chooser("Background", clr.r, clr.g, clr.b))
         return;
     ui_colors.LOGGINGcolor = clr;
@@ -1489,8 +1444,7 @@ font_browser->show();}
         }
         Fl_Button btnLOGGINGdefault_colors_font {
           label Default
-          callback {
-TRIAD clr;
+          callback {TRIAD clr;
   Fl::get_color( FL_BACKGROUND2_COLOR, clr.r, clr.g, clr.b );
   ui_colors.LOGGINGcolor = clr;
   progdefaults.LOGGINGtextfont = (Fl_Font)0;
@@ -1524,8 +1478,7 @@ TRIAD clr;
         }
         Fl_Button btnLOGBOOK_color {
           label {Bg Color}
-          callback {
-TRIAD clr = ui_colors.LOGBOOKcolor;
+          callback {TRIAD clr = ui_colors.LOGBOOKcolor;
 
   if ( !fl_color_chooser("Background", clr.r, clr.g, clr.b ) )
     return;
@@ -1555,8 +1508,7 @@ font_browser->show();}
         }
         Fl_Button btnLOGBOOKdefault_colors_font {
           label Default
-          callback {
-TRIAD clr;
+          callback {TRIAD clr;
 Fl::get_color( FL_BACKGROUND2_COLOR, clr.r, clr.g, clr.b );
 ui_colors.LOGBOOKcolor = clr;
 progdefaults.LOGBOOKtextfont = (Fl_Font)0;
@@ -1603,8 +1555,7 @@ font_browser->show();}
         }
         Fl_Button btnDXCdefault_colors_font {
           label Default
-          callback {
-TRIAD clr;
+          callback {TRIAD clr;
 progdefaults.DXC_textfont = FL_COURIER;
 progdefaults.DXC_textsize = 14;
 
@@ -1626,8 +1577,7 @@ DXC_display->redraw();}
         }
         Fl_Button btn_DXC_even_lines {
           label {Even Lines}
-          callback {
-TRIAD clr = ui_colors.LOGBOOKcolor;
+          callback {TRIAD clr = ui_colors.LOGBOOKcolor;
 if (fl_color_chooser("Logbook color", clr.r, clr.g, clr.b )) {
   ui_colors.LOGBOOKcolor = clr;
   o->color( RGBCOLOR( LOGBOOKcolor ) );
@@ -1639,8 +1589,7 @@ if (fl_color_chooser("Logbook color", clr.r, clr.g, clr.b )) {
         }
         Fl_Button btn_DXC_odd_lines {
           label {Odd Lines}
-          callback {
-TRIAD clr = ui_colors.DXC_odd_color;
+          callback {TRIAD clr = ui_colors.DXC_odd_color;
 if (fl_color_chooser(" XXXX ", clr.r, clr.g, clr.b )) {
   ui_colors.DXC_odd_color = clr;
   o->color( RGBCOLOR( DXC_odd_color ) );
@@ -1659,8 +1608,7 @@ if (fl_color_chooser(" XXXX ", clr.r, clr.g, clr.b )) {
         }
         Fl_Button btnDXcolor {
           label {Bg color}
-          callback {
-TRIAD clr = ui_colors.DX_Color;
+          callback {TRIAD clr = ui_colors.DX_Color;
 if (!fl_color_chooser("DX Color", clr.r, clr.g, clr.b))
     return;
 
@@ -1707,8 +1655,7 @@ font_browser->show();}
         }
         Fl_Button btnDXalt_color {
           label {Alt Color}
-          callback {
-TRIAD clr = ui_colors.DXalt_color;
+          callback {TRIAD clr = ui_colors.DXalt_color;
 if (fl_color_chooser("DX alt color", clr.r, clr.g, clr.b )) {
   ui_colors.DXalt_color = clr;
   o->labelcolor( RGBCOLOR( DXalt_color ));
@@ -1721,8 +1668,7 @@ if (fl_color_chooser("DX alt color", clr.r, clr.g, clr.b )) {
         }
         Fl_Button btnDXdefault_colors_font {
           label Default
-          callback {
-TRIAD clr;
+          callback {TRIAD clr;
 Fl::get_color( FL_WHITE, clr.r, clr.g, clr.b );
 
 ui_colors.DX_Color = clr;
@@ -1793,8 +1739,7 @@ progdefaults.changed = true;}
       }
       Fl_Button btnRxColor {
         label {Rx bkgnd}
-        callback {
-TRIAD clr = ui_colors.RxColor;
+        callback {TRIAD clr = ui_colors.RxColor;
   if (!fl_color_chooser("Rx Color", clr.r, clr.g, clr.b))
         return;
   ui_colors.RxColor = clr;
@@ -1807,8 +1752,7 @@ TRIAD clr = ui_colors.RxColor;
       }
       Fl_Button btnTxColor {
         label {Tx bkgnd}
-        callback {
-TRIAD clr = ui_colors.TxColor;
+        callback {TRIAD clr = ui_colors.TxColor;
   if (!fl_color_chooser("Tx Color", clr.r, clr.g, clr.b))
      return;
   ui_colors.TxColor = clr;
@@ -1877,8 +1821,7 @@ font_browser->show();}
       } {
         Fl_Button btnXMIT {
           label XMIT
-          callback {
-TRIAD clr = ui_colors.XMITcolor;
+          callback {TRIAD clr = ui_colors.XMITcolor;
 if (fl_color_chooser("XMIT color", clr.r, clr.g, clr.b )) {
     btnXMIT->color( RGBCOLOR( XMITcolor ) );
     btnXMIT->redraw();
@@ -1891,8 +1834,7 @@ if (fl_color_chooser("XMIT color", clr.r, clr.g, clr.b )) {
         }
         Fl_Button btnCTRL {
           label CTRL
-          callback {
-TRIAD clr = ui_colors.CTRLcolor;
+          callback {TRIAD clr = ui_colors.CTRLcolor;
 if (fl_color_chooser("CTRL color", clr.r, clr.g, clr.g )) {
   ui_colors.CTRLcolor = clr;
   btnCTRL->color( RGBCOLOR( CTRLcolor ) );
@@ -1905,8 +1847,7 @@ if (fl_color_chooser("CTRL color", clr.r, clr.g, clr.g )) {
         }
         Fl_Button btnSKIP {
           label SKIP
-          callback {
-TRIAD clr = ui_colors.SKIPcolor;
+          callback {TRIAD clr = ui_colors.SKIPcolor;
 if (fl_color_chooser("SKIP color", clr.r, clr.g, clr.b )) {
   ui_colors.SKIPcolor = clr;
   btnSKIP->color(  RGBCOLOR( SKIPcolor ) );
@@ -1920,8 +1861,7 @@ if (fl_color_chooser("SKIP color", clr.r, clr.g, clr.b )) {
         }
         Fl_Button btnALTR {
           label ALTR
-          callback {
-TRIAD clr = ui_colors.ALTRcolor;
+          callback {TRIAD clr = ui_colors.ALTRcolor;
 if (fl_color_chooser("ALTR color", clr.r, clr.g, clr.b )) {
   ui_colors.ALTRcolor = clr;
   btnALTR->color( RGBCOLOR( ALTRcolor ) );
@@ -1934,8 +1874,7 @@ if (fl_color_chooser("ALTR color", clr.r, clr.g, clr.b )) {
         }
         Fl_Button btnSEL {
           label SEL
-          callback {
-TRIAD clr = ui_colors.RxTxSelectcolor;
+          callback {TRIAD clr = ui_colors.RxTxSelectcolor;
 if (fl_color_chooser("Select color", clr.r, clr.g, clr.b )) {
   ui_colors.RxTxSelectcolor = clr;
   btnSEL->color( RGBCOLOR( RxTxSelectcolor ) );
@@ -1948,8 +1887,7 @@ progdefaults.changed = true;}}
         }
         Fl_Button btnNoTextColor {
           label System
-          callback {
-TRIAD clr;
+          callback {TRIAD clr;
 
   Fl::get_color( FL_BLACK, clr.r, clr.g, clr.b);
     ui_colors.TxFontcolor = clr;
@@ -2007,8 +1945,7 @@ TRIAD clr;
         }
         Fl_Button btnTextDefaults {
           label Defaults
-          callback {
-TRIAD clr;
+          callback {TRIAD clr;
 //          uchar r, g, b;
 //    Fl_Color clr;
   Fl::get_color( FL_BLACK, clr.r, clr.g, clr.b );
@@ -2083,8 +2020,7 @@ progdefaults.changed = true;}
     } {
       Fl_Button btnTabColor {
         label {Tab Color}
-        callback {
-TRIAD clr = ui_colors.TabsColor;
+        callback {TRIAD clr = ui_colors.TabsColor;
 if (fl_color_chooser("Tab Color", clr.r, clr.g, clr.b )) {
   ui_colors.TabsColor = clr;
   setTabColors();
@@ -2094,8 +2030,7 @@ if (fl_color_chooser("Tab Color", clr.r, clr.g, clr.b )) {
       }
       Fl_Button btnTabDefaultColor {
         label System
-        callback {
-TRIAD clr;
+        callback {TRIAD clr;
 Fl::get_color( FL_BACKGROUND2_COLOR, clr.r, clr.g, clr.b);
 ui_colors.TabsColor = clr;
 setTabColors();
@@ -2122,8 +2057,7 @@ progdefaults.changed = true;}
       }
       Fl_Button btnLowSignal {
         label Low
-        callback {
-TRIAD clr = ui_colors.LowSignal;
+        callback {TRIAD clr = ui_colors.LowSignal;
 if (fl_color_chooser("Low", clr.r, clr.g, clr.b )) {
   ui_colors.LowSignal = clr;
   lowcolor->color(RGBCOLOR(LowSignal));
@@ -2158,8 +2092,7 @@ cnt_over_signal_level->value(progdefaults.over_signal_level);}
       }
       Fl_Button btnNormalSignal {
         label Normal
-        callback {
-TRIAD clr = ui_colors.NormSignal;
+        callback {TRIAD clr = ui_colors.NormSignal;
 if (fl_color_chooser(" XXXX ", clr.r, clr.g, clr.b )) {
   ui_colors.NormSignal = clr;
   normalcolor->color(RGBCOLOR(NormSignal));
@@ -2192,8 +2125,7 @@ cnt_over_signal_level->value(progdefaults.over_signal_level);}
       }
       Fl_Button btnHighSignal {
         label High
-        callback {
-TRIAD clr = ui_colors.HighSignal;
+        callback {TRIAD clr = ui_colors.HighSignal;
 if (fl_color_chooser("High", clr.r, clr.g, clr.b )) {
   ui_colors.HighSignal = clr;
   highcolor->color(RGBCOLOR(HighSignal));
@@ -2226,8 +2158,7 @@ cnt_over_signal_level->value(progdefaults.over_signal_level);}
       }
       Fl_Button btnOverSignal {
         label Over
-        callback {
-TRIAD clr = ui_colors.OverSignal;
+        callback {TRIAD clr = ui_colors.OverSignal;
 if (fl_color_chooser("Over", clr.r, clr.g, clr.b )) {
   ui_colors.OverSignal = clr;
   overcolor->color( RGBCOLOR(OverSignal) );
@@ -2286,8 +2217,7 @@ enable to emulate wsjtx scale} xywh {332 315 70 18} down_box DOWN_BOX
       }
       Fl_Button btnScopeBackground {
         label Background
-        callback {
-TRIAD clr = ui_colors.digi_background;
+        callback {TRIAD clr = ui_colors.digi_background;
 if (fl_color_chooser("Digi background", clr.r, clr.g, clr.b )) {
   ui_colors.digi_background = clr;
   scope_background->color( RGBCOLOR( digi_background ) );
@@ -2302,8 +2232,7 @@ if (fl_color_chooser("Digi background", clr.r, clr.g, clr.b )) {
       }
       Fl_Button btnScopeAxis {
         label Axis
-        callback {
-TRIAD clr = ui_colors.digi_axis_color;
+        callback {TRIAD clr = ui_colors.digi_axis_color;
 if (fl_color_chooser("Digi axis", clr.r, clr.g, clr.b )) {
   ui_colors.digi_axis_color = clr;
   scope_axis->color(RGBCOLOR(digi_axis_color));
@@ -2316,11 +2245,9 @@ if (fl_color_chooser("Digi axis", clr.r, clr.g, clr.b )) {
         xywh {365 163 21 21} box DOWN_BOX color 3
         code0 {o->color( RGBCOLOR( digi_color_1 ) );}
       }
- 
       Fl_Button btnScopeColor_1 {
         label {Color 1}
-        callback {
-TRIAD clr = ui_colors.digi_color_1;
+        callback {TRIAD clr = ui_colors.digi_color_1;
 if (fl_color_chooser("Digi color 1", clr.r, clr.g, clr.b )) {
   ui_colors.digi_color_1 = clr;
   scope_color_1->color( RGBCOLOR( digi_color_1 ) );
@@ -2335,8 +2262,7 @@ if (fl_color_chooser("Digi color 1", clr.r, clr.g, clr.b )) {
       }
       Fl_Button btnScopeColor_2 {
         label {Color 2}
-        callback {
-TRIAD clr = ui_colors.digi_color_2;
+        callback {TRIAD clr = ui_colors.digi_color_2;
 if (fl_color_chooser("Digi color 2", clr.r, clr.g, clr.b )) {
   ui_colors.digi_color_2 = clr;
   scope_color_2->color(RGBCOLOR(digi_color_2));
@@ -2351,8 +2277,7 @@ if (fl_color_chooser("Digi color 2", clr.r, clr.g, clr.b )) {
       }
       Fl_Button btn_default_scope_colors {
         label Default
-        callback {
-TRIAD clr;
+        callback {TRIAD clr;
 Fl::get_color( FL_BLACK, clr.r, clr.g, clr.b);
 ui_colors.digi_background = clr;
 Fl::get_color( FL_WHITE, clr.r, clr.g, clr.b);
@@ -2387,8 +2312,7 @@ progdefaults.changed = true;}
       }
       Fl_Button btnScopeColor_3 {
         label {Color 3}
-        callback {
-TRIAD clr = ui_colors.digi_color_3;
+        callback {TRIAD clr = ui_colors.digi_color_3;
 if (fl_color_chooser("Digi Color 3", clr.r, clr.g, clr.b )) {
   ui_colors.digi_color_3 = clr;
   scope_color_3->color(RGBCOLOR(digi_color_3));
@@ -2403,8 +2327,7 @@ if (fl_color_chooser("Digi Color 3", clr.r, clr.g, clr.b )) {
       }
       Fl_Button btnScopeColor_4 {
         label {Color 4}
-        callback {
-TRIAD clr = ui_colors.digi_color_4;
+        callback {TRIAD clr = ui_colors.digi_color_4;
 if (fl_color_chooser("Digi Color 4", clr.r, clr.g, clr.b )) {
 ui_colors.digi_color_4 = clr;
 scope_color_4->color(RGBCOLOR(digi_color_4));
@@ -2504,8 +2427,7 @@ progdefaults.changed = true;}
         }
         Fl_Button btnDupColor {
           label {Dup Color}
-          callback {
-TRIAD clr = ui_colors.dup_color;
+          callback {TRIAD clr = ui_colors.dup_color;
   fl_color_chooser("Dup Check", clr.r, clr.g, clr.b);
   ui_colors.dup_color = clr;
 o->color(RGBCOLOR(dup_color));
@@ -2517,8 +2439,7 @@ progdefaults.changed = true;}
         }
         Fl_Button btnPossibleDupColor {
           label {? Dup Color}
-          callback {
-TRIAD clr = ui_colors.possible_dup_color;
+          callback {TRIAD clr = ui_colors.possible_dup_color;
 if (fl_color_chooser("Possible_Dup Check", clr.r, clr.g, clr.b)) {
   ui_colors.possible_dup_color = clr;
   o->color(RGBCOLOR(possible_dup_color));
@@ -5414,8 +5335,7 @@ progdefaults.changed = true;}
       } {
         Fl_Button btnFMT_plot_background {
           label Bgnd
-          callback {
-TRIAD clr = ui_colors.FMT_background;
+          callback {TRIAD clr = ui_colors.FMT_background;
 if (!fl_color_chooser("FMT Background", clr.r, clr.g, clr.b))
   return;
 ui_colors.FMT_background = clr;
@@ -5427,8 +5347,7 @@ progdefaults.changed = true;}
         }
         Fl_Button btnFMT_unk_color {
           label Unkn
-          callback {
-TRIAD clr = ui_colors.FMT_unk_color;
+          callback {TRIAD clr = ui_colors.FMT_unk_color;
 if (!fl_color_chooser("FMT Background", clr.r, clr.g, clr.b))
   return;
 ui_colors.FMT_unk_color = clr;
@@ -5441,8 +5360,7 @@ progdefaults.changed = true;}
         }
         Fl_Button btnFMT_plot_ref_color {
           label Ref
-          callback {
-TRIAD clr = ui_colors.FMT_ref_color;
+          callback {TRIAD clr = ui_colors.FMT_ref_color;
 if (!fl_color_chooser("FMT Background", clr.r, clr.g, clr.b))
     return;
 ui_colors.FMT_ref_color = clr;
@@ -5455,8 +5373,7 @@ progdefaults.changed = true;}
         }
         Fl_Button btnFMT_plot_axis {
           label Axis
-          callback {
-TRIAD clr = ui_colors.FMT_axis_color;
+          callback {TRIAD clr = ui_colors.FMT_axis_color;
 if (!fl_color_chooser("FMT Axis Color", clr.r, clr.g, clr.b))
     return;
 ui_colors.FMT_axis_color = clr;
@@ -5467,8 +5384,7 @@ progdefaults.changed = true;}
         }
         Fl_Button btnFMT_legend_color {
           label Lgnd
-          callback {
-TRIAD clr = ui_colors.FMT_legend_color;
+          callback {TRIAD clr = ui_colors.FMT_legend_color;
 if (!fl_color_chooser("FMT Legend Color", clr.r, clr.g, clr.b))
     return;
 ui_colors.FMT_legend_color = clr;
@@ -5683,7 +5599,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/FSQ}
+      label {Modem/FSQ} selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/FSQ"));}
       code1 {config_pages.push_back(p);}
@@ -5794,14 +5710,6 @@ progdefaults.changed = true;}
           xywh {700 90 55 15} down_box ROUND_DOWN_BOX
           code0 {o->value(progdefaults.fsqbaud == 6);}
         }
-        Fl_Choice sel_fsq_frequency {
-          label {Center freq}
-          callback {progdefaults.fsq_frequency=o->value();
-progdefaults.changed = true;} open
-          xywh {638 110 102 22} down_box BORDER_BOX
-          code0 {o->add("1150"); o->add("1500"); o->add("Variable");}
-          code1 {o->value(progdefaults.fsq_frequency);}
-        } {}
         Fl_Choice sel_fsq_sounder {
           label Sounder
           callback {progdefaults.fsq_sounder=o->value();
@@ -5927,8 +5835,7 @@ progdefaults.changed = true;}
       } {
         Fl_Button btn_fsq_xmt_color {
           label XMIT
-          callback {
-TRIAD clr = ui_colors.fsq_xmt_color;
+          callback {TRIAD clr = ui_colors.fsq_xmt_color;
 if (fl_color_chooser("FSQ xmt color", clr.r, clr.g, clr.b )) {
   ui_colors.fsq_xmt_color = clr;
   btn_fsq_xmt_color->color( RGBCOLOR(fsq_xmt_color) );
@@ -5940,8 +5847,7 @@ if (fl_color_chooser("FSQ xmt color", clr.r, clr.g, clr.b )) {
         }
         Fl_Button btn_fsq_directed_color {
           label DIRECTED
-          callback {
-TRIAD clr = ui_colors.fsq_directed_color;
+          callback {TRIAD clr = ui_colors.fsq_directed_color;
 if (fl_color_chooser("FSQ directed color", clr.r, clr.g, clr.b )) {
   ui_colors.fsq_directed_color = clr;
   btn_fsq_directed_color->color( RGBCOLOR(fsq_directed_color) );
@@ -5953,8 +5859,7 @@ if (fl_color_chooser("FSQ directed color", clr.r, clr.g, clr.b )) {
         }
         Fl_Button btn_fsq_undirected_color {
           label UNDIRECTED
-          callback {
-TRIAD clr = ui_colors.fsq_undirected_color;
+          callback {TRIAD clr = ui_colors.fsq_undirected_color;
 if (fl_color_chooser("FSQ undirected color", clr.r, clr.g, clr.b )) {
   ui_colors.fsq_undirected_color = clr;
   btn_fsq_undirected_color->color( RGBCOLOR(fsq_undirected_color));
@@ -5966,8 +5871,7 @@ if (fl_color_chooser("FSQ undirected color", clr.r, clr.g, clr.b )) {
         }
         Fl_Button btn_fsq_color_defaults {
           label Defaults
-          callback {
-TRIAD nuclr;
+          callback {TRIAD nuclr;
 
 Fl::get_color( FL_RED, nuclr.r, nuclr.g, nuclr.b );
 ui_colors.fsq_xmt_color = nuclr;
@@ -6580,8 +6484,7 @@ Disabled - log QSO using center frequency} xywh {308 208 161 17} down_box DOWN_B
         }
         Fl_Button btnRTTY_mark_color {
           label {track color}
-          callback {
-TRIAD clr = ui_colors.rttymark;
+          callback {TRIAD clr = ui_colors.rttymark;
 if (fl_color_chooser("MARK freq track", clr.r, clr.g, clr.b )) {
   ui_colors.rttymark = clr;
   o->color(RGBCOLOR(rttymark));
@@ -10978,8 +10881,7 @@ progdefaults.changed = true;}
       }
       Fl_Button btnLowSignal2 {
         label Low
-        callback {
-TRIAD clr = ui_colors.LowSignal;
+        callback {TRIAD clr = ui_colors.LowSignal;
 if (fl_color_chooser("Low Signal", clr.r, clr.g, clr.b )) {
 ui_colors.LowSignal = clr;
 lowcolor->color(RGBCOLOR(LowSignal));
@@ -11020,8 +10922,7 @@ cnt_over_signal_level2->value(progdefaults.over_signal_level);}
       }
       Fl_Button btnNormalSignal2 {
         label Normal
-        callback {
-TRIAD clr = ui_colors.NormSignal;
+        callback {TRIAD clr = ui_colors.NormSignal;
 if (fl_color_chooser("Normal Signal", clr.r, clr.g, clr.b )) {
   ui_colors.NormSignal = clr;
   normalcolor->color( RGBCOLOR( NormSignal ) );
@@ -11062,8 +10963,7 @@ cnt_over_signal_level2->value(progdefaults.over_signal_level);}
       }
       Fl_Button btnHighSignal2 {
         label High
-        callback {
-TRIAD clr = ui_colors.HighSignal;
+        callback {TRIAD clr = ui_colors.HighSignal;
 if (fl_color_chooser("High Signal", clr.r, clr.g, clr.b )) {
   ui_colors.HighSignal = clr;
   highcolor->color(RGBCOLOR(HighSignal));
@@ -11104,8 +11004,7 @@ cnt_over_signal_level2->value(progdefaults.over_signal_level);}
       }
       Fl_Button btnOverSignal2 {
         label Over
-        callback {
-TRIAD clr = ui_colors.OverSignal;
+        callback {TRIAD clr = ui_colors.OverSignal;
 if (fl_color_chooser("Notch Indicator", clr.r, clr.g, clr.b )) {
   ui_colors.OverSignal = clr;
   overcolor->color(RGBCOLOR(OverSignal));
@@ -11328,8 +11227,7 @@ progdefaults.changed = true;}
     } {
       Fl_Button bwsrSliderColor {
         label Backgnd
-        callback {
-TRIAD clr = ui_colors.bwsrSliderColor;
+        callback {TRIAD clr = ui_colors.bwsrSliderColor;
 if (fl_color_chooser("Slider Color", clr.r, clr.g, clr.b) == 0)
         return;
 ui_colors.bwsrSliderColor = clr;
@@ -11346,8 +11244,7 @@ mvsquelch->redraw();
       }
       Fl_Button bwsrSldrSelColor {
         label Button
-        callback {
-TRIAD clr = ui_colors.bwsrSldrSelColor;
+        callback {TRIAD clr = ui_colors.bwsrSldrSelColor;
 if (fl_color_chooser("Button Color", clr.r, clr.g, clr.b) == 0)
         return;
  ui_colors.bwsrSldrSelColor = clr;
@@ -12014,8 +11911,7 @@ progdefaults.changed = true;}
           }
           Fl_Button btnCursorBWcolor {
             label Color
-            callback {
-TRIAD clr = ui_colors.cursorLine;
+            callback {TRIAD clr = ui_colors.cursorLine;
 if (fl_color_chooser("Cursor BW Lines", clr.r, clr.g, clr.b ) ) {
 ui_colors.cursorLine = clr;
 o->color(RGBCOLOR(cursorLine));
@@ -12047,8 +11943,7 @@ progdefaults.changed = true;}
           }
           Fl_Button btnCursorCenterLineColor {
             label Color
-            callback {
-TRIAD clr = ui_colors.cursorCenter;
+            callback {TRIAD clr = ui_colors.cursorCenter;
 if (fl_color_chooser("Cursor Center Line", clr.r, clr.g, clr.b) ) {
 ui_colors.cursorCenter = clr;
 o->color(RGBCOLOR(cursorCenter));
@@ -12079,8 +11974,7 @@ progdefaults.changed = true;}
           }
           Fl_Button btnBwTracksColor {
             label Color
-            callback {
-TRIAD clr;
+            callback {TRIAD clr;
 clr = ui_colors.bwTrack;
 if (fl_color_chooser("Track Lines", clr.r, clr.g, clr.b ) ) {
   ui_colors.bwTrack = clr;
@@ -12106,8 +12000,7 @@ progdefaults.changed = true;}
         } {
           Fl_Button btnNotchColor {
             label Color
-            callback {
-TRIAD clr;
+            callback {TRIAD clr;
 clr = ui_colors.notch;
 if (fl_color_chooser("Notch Indicator", clr.r, clr.g, clr.b ) ) {
 ui_colors.notch = clr;
@@ -12126,8 +12019,7 @@ progdefaults.changed = true;
         } {
           Fl_Button btnRsIDZoneColor {
             label Color
-            callback {
-TRIAD clr;
+            callback {TRIAD clr;
 clr = ui_colors.rsid;
 if (fl_color_chooser("RsID Zone Lines", clr.r, clr.g, clr.b ) ) {
 ui_colors.rsid = clr;
@@ -12146,8 +12038,7 @@ progdefaults.changed = true;
         } {
           Fl_Button btnMonitorColor {
             label Color
-            callback {
-TRIAD clr = ui_colors.monitor;
+            callback {TRIAD clr = ui_colors.monitor;
 if (fl_color_chooser("Notch Indicator", clr.r, clr.g, clr.b )) {
   o->color(fl_rgb_color( clr.r, clr.g, clr.b) );
   ui_colors.monitor = clr;
