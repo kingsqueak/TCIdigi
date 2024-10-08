@@ -1102,9 +1102,13 @@ int mfsk::tx_process()
 		case TX_STATE_PREAMBLE:
 			clearbits();
 			sig_start = true;
-			if (mode != MODE_MFSK64L && mode != MODE_MFSK128L )
-				for (int i = 0; i < preamble / 3; i++)
-					sendbit(0);
+//
+// disable silent period
+// QRP Labs qmx series transceiver drops carrier during silent period!
+//
+//			if (mode != MODE_MFSK64L && mode != MODE_MFSK128L )
+//				for (int i = 0; i < preamble / 3; i++)
+//					sendbit(0);
 
 			txstate = TX_STATE_START;
 			break;
