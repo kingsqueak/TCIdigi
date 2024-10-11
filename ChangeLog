@@ -1,6 +1,26 @@
-2024-04-23  dave-w1hkj  <w1hkj@bellsouth.net>
+2024-10-11  dave-w1hkj  <w1hkj@bellsouth.net>
 
-	b4256bd6a: Version 4.2.05
+	5a0388d15: Version 4.2.06
+	41e9ff797: mfsk for QRP Labs qmx/qmxp
+	9aa594062: ADIF correction
+	84488a2f8: FSQ rx/tx freq
+	c012178f8: Main dialog position
+	2037a0418: Micro modems
+	9bd273df3: color prefs
+	28a229b71: colors and scheme
+
+2024-05-18  Gabor Molnar HA3MGA  <gabor.molnar21@gmail.com>
+
+	f2eb13145: @QSY+ macro tag
+
+2024-05-16  dave-w1hkj  <w1hkj@bellsouth.net>
+
+	885926ca2: autotools
+	0858be91c: fw / ww
+	37f386474: Wordsworth keying
+	af361f7d6: UDP/CLOUD log record
+	6d87dd4dd: FMT thread
+	03b6d3d97: Version 4.2.05
 
 2024-04-23  kk5vd  <kk5vd@yahoo.com>
 
