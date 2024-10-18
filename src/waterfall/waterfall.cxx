@@ -431,12 +431,13 @@ void WFdisp::makeScale() {
 
 void WFdisp::setcolors() {
 	double di;
-	int r, g, b;
+	int r, g, b, n;
 	for (int i = 0; i < 256; i++) {
 		di = sqrt((double)i / 256.0);
 		mag2RGBI[i].I = (uchar)(200*di);
 	}
-	for (int n = 0; n < 8; n++) {
+
+	for (n = 0; n < 8; n++) {
 		for (int i = 0; i < 32; i++) {
 			r = palette[n].R + (int)(1.0 * i * (palette[n+1].R - palette[n].R) / 32.0);
 			g = palette[n].G + (int)(1.0 * i * (palette[n+1].G - palette[n].G) / 32.0);
@@ -461,7 +462,8 @@ void WFdisp::initmaps() {
 	memset (mag2RGBI, 0, sizeof(mag2RGBI));
 	initMarkers();
 	makeScale();
-	setcolors();
+//std::cout << "WFdisp::initmaps()\n";
+//	setcolors();
 }
 
 int WFdisp::peakFreq(int f0, int delta)

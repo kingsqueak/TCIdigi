@@ -69,6 +69,7 @@ void selectColor(int n)
 	
 	btnColor[n]->color( fl_rgb_color( palette[n].R, palette[n].G, palette[n].B ) );
 	btnColor[n]->redraw();
+
 	wf->setcolors();
 	WF_Palette->redraw();
 }
@@ -101,7 +102,8 @@ void loadPalette()
 			palette[i].G = g;
 			palette[i].B = b;
 		}
-   		fclose(clrfile);
+		fclose(clrfile);
+
 		wf->setcolors();
    		setColorButtons();
 		palfilename = p;

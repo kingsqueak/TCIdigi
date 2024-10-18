@@ -74,7 +74,7 @@ Fl_Double_Window* create_fsqMonitor(void)
 		fsq_monitor = new FTextRX(
 				monitor_panel->x(), monitor_panel->y(),
 				monitor_panel->w(), 7*monitor_panel->h()/8);
-			fsq_monitor->color( 0.98 * RGBCOLOR( RxColor ), RGBCOLOR( RxTxSelectcolor ) );
+			fsq_monitor->color( RGBCOLOR( RxColor ), RGBCOLOR( RxTxSelectcolor ) );
 			fsq_monitor->setFont(progdefaults.RxFontnbr);
 			fsq_monitor->setFontSize(progdefaults.RxFontsize);
 			fsq_monitor->setFontColor( RGBCOLOR( RxFontcolor ), FTextBase::RECV);
@@ -82,7 +82,7 @@ Fl_Double_Window* create_fsqMonitor(void)
 		fsq_que = new FTextRX(
 				fsq_monitor->x(), fsq_monitor->y() + fsq_monitor->h(),
 				fsq_monitor->w(), monitor_panel->h() - fsq_monitor->h());
-			fsq_que->color( 0.98 * RGBCOLOR( RxColor ), RGBCOLOR( RxTxSelectcolor ) );
+			fsq_que->color( RGBCOLOR( RxColor ), RGBCOLOR( RxTxSelectcolor ) );
 			fsq_que->setFont(progdefaults.RxFontnbr);
 			fsq_que->setFontSize(progdefaults.RxFontsize);
 			fsq_que->setFontColor(RGBCOLOR( RxFontcolor ), FTextBase::RECV);

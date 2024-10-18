@@ -153,7 +153,6 @@ void UI_COLORS::load(std::string fname)
 			while (!ptr->var.empty()) {
 				if (ptr->var == chvar) {
 					ptr->r = triad.r; ptr->g = triad.g, ptr->b = triad.b;
-//			std::cout << "FOUND: " << chvar << ", " << (uint)triad.r << ", " << (uint)triad.g << ", " << (uint)triad.b << std::endl;
 					break;
 				}
 				ptr++;

@@ -1240,6 +1240,9 @@ int main (int argc, char *argv[])
 		KmlServer::GetInstance()->Reset();
 	}
 
+	wf->setcolors();
+	setColorButtons();
+
 // OS X will prevent the main window from being resized if we change its
 // size *after* it has been shown. With some X11 window managers, OTOH,
 // the main window will not be restored at its exact saved position if
