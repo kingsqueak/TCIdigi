@@ -205,6 +205,7 @@ size_t levenshtein(const std::string & source, const std::string & target) {
 /// Converts a string to ucasestr.
 std::string ucasestr( std::string str )
 {
+	if (str.empty()) return "";
 	std::string resu ;
 	for( size_t i = 0 ; i < str.size(); ++i )
 	{
@@ -215,6 +216,7 @@ std::string ucasestr( std::string str )
 
 std::string ucasestr(const char *str)
 {
+	if (str == 0 || str[0] == 0) return "";
 	std::string resu ;
 	for( size_t i = 0 ; i < strlen(str); ++i )
 	{

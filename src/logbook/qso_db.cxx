@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <fstream>
+#include <string>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -31,6 +32,7 @@
 #include "field_def.h"
 #include "globals.h"
 #include "timeops.h"
+#include "strutil.h"
 
 #include "debug.h"
 #include "pthread.h"
@@ -566,6 +568,8 @@ unsigned long cQsoDb::epoch_dt (const char *szdate, const char *sztime)
   return doe*60*60*24 + secs;
 }
 
+static std::string hmodes = "HELL FSKH245 FSKH105 HELL80 ";
+
 int cQsoDb::duplicate(
 		const char *callsign,
 		const char *szdate, const char *sztime, unsigned int interval, bool chkdatetime,
@@ -586,6 +590,9 @@ int cQsoDb::duplicate(
 	if (freq) f1 = (int)(atof(freq)/1000.0);
 	if (chkdatetime) datetime = epoch_dt(szdate, sztime);
 
+	std::string ucasemode = ucasestr(mode);
+	strtrim(ucasemode);
+
 	for (int i = 0; i < nbrrecs; i++) {
 		if (strcasecmp(qsorec[i].getField(CALL), callsign) == 0) {
 // found callsign duplicate
@@ -594,6 +601,9 @@ int cQsoDb::duplicate(
 				isdup = 2;
 			if (szdate == NULL)
 				return isdup;
+
+			std::string ucaserec = ucasestr(qsorec[i].getField(ADIF_MODE));
+			strtrim(ucaserec);
 
 			b_freqDUP =
 			b_stateDUP =
@@ -605,15 +615,21 @@ int cQsoDb::duplicate(
 				f2 = (int)atof(qsorec[i].getField(FREQ));
 				b_freqDUP = (f1 == f2);
 			}
-			if (chkstate)
+			if (chkstate) {
 				b_stateDUP = (qsorec[i].getField(STATE)[0] == 0 && state[0] == 0) ||
 							 (strcasestr(qsorec[i].getField(STATE), state) != 0);
-			if (chkmode)
-				b_modeDUP  = (qsorec[i].getField(ADIF_MODE)[0] == 0 && mode[0] == 0) ||
-							 (strcasestr(qsorec[i].getField(ADIF_MODE), mode) != 0);
-			if (chkxchg1)
+			}
+			if (chkmode) {
+				b_modeDUP  = ((qsorec[i].getField(ADIF_MODE)[0] == 0 && mode[0] == 0) ||
+							 (strcasestr(qsorec[i].getField(ADIF_MODE), mode) != 0));
+				if ( (hmodes.find(ucaserec) != std::string::npos) &&
+					 (hmodes.find(ucasemode) != std::string::npos) )
+					b_modeDUP = true;
+			}
+			if (chkxchg1) {
 				b_xchg1DUP = (qsorec[i].getField(XCHG1)[0] == 0 && xchg1[0] == 0) ||
 							 (strcasestr(qsorec[i].getField(XCHG1), xchg1) != 0);
+			}
 
 			if (chkdatetime) {
 				qsodatetime = epoch_dt (

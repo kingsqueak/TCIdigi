@@ -92,7 +92,7 @@ const struct mode_info_t mode_info[NUM_MODES] = {
 
 {MODE_FELDHELL, &feld_modem,     "FELDHELL", "Feld Hell",    "", "HELL", "HELL", "",         "HELL",  DISABLED_IO },
 {MODE_SLOWHELL, &feld_slowmodem, "SLOWHELL", "Slow Hell",    "", "HELL", "HELL", "SLOWHELL", "SHLL",  DISABLED_IO },
-{MODE_HELLX5,   &feld_x5modem,   "HELLX5",   "Feld Hell X5", "", "HELL", "HELL", "HELLX5 ",  "HLX5",  DISABLED_IO },
+{MODE_HELLX5,   &feld_x5modem,   "HELLX5",   "Feld Hell X5", "", "HELL", "HELL", "HELLX5",   "HLX5",  DISABLED_IO },
 {MODE_HELLX9,   &feld_x9modem,   "HELLX9",   "Feld Hell X9", "", "HELL", "HELL", "HELLX9",   "HLX9",  DISABLED_IO },
 {MODE_FSKH245,  &feld_FMmodem,   "FSKH245",  "FSK Hell-245", "", "HELL", "HELL", "FSKH245",  "FSKHL", DISABLED_IO },
 {MODE_FSKH105,  &feld_FM105modem,"FSKH105",  "FSK Hell-105", "", "HELL", "HELL", "FSKH105",  "H105",  DISABLED_IO },
