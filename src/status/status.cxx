@@ -494,8 +494,15 @@ void status::saveLastState()
 	squelch_value = 0;
 	int_squelch_value = 0;
 
+#if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", PACKAGE_TARNAME);
-
+#else
+	Fl_Preferences spref(
+		std::string(HomeDir).c_str(),
+		"w1hkj.com",
+		PACKAGE_TARNAME,
+		Fl_Preferences::C_LOCALE);
+#endif
 	spref.set("version", PACKAGE_VERSION);
 	spref.set("dual_channels", "YES");
 
@@ -772,7 +779,15 @@ if (!bWF_only) {
 
 void status::loadLastState()
 {
+#if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", PACKAGE_TARNAME);
+#else
+	Fl_Preferences spref(
+		std::string(HomeDir).c_str(),
+		"w1hkj.com",
+		PACKAGE_TARNAME,
+		Fl_Preferences::C_LOCALE);
+#endif
 
 	int i;
 	char strbuff[1000];

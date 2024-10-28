@@ -1601,7 +1601,13 @@ static void notify_save(void)
 	notify_set_qsodb_cache();
 
 	remove(std::string(HomeDir).append("/").append("notify.prefs").c_str());
+
+#if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences ndata(HomeDir.c_str(), PACKAGE_TARNAME, "notify");
+#else
+	Fl_Preferences ndata(std::string(HomeDir).append("fldigi.prefs").c_str(), PACKAGE_TARNAME, "notify", (Fl_Preferences::Root)0);
+#endif
+
 	ndata.set("items", static_cast<int>(notify_list.size()));
 
 	size_t num = 0;
@@ -1649,7 +1655,12 @@ static void notify_load(void)
 	char s[512];
 	s[sizeof(s)-1] = '\0';
 
+#if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences ndata(HomeDir.c_str(), PACKAGE_TARNAME, "notify");
+#else
+	Fl_Preferences ndata(std::string(HomeDir).append("fldigi.prefs").c_str(), PACKAGE_TARNAME, "notify", (Fl_Preferences::Root)0);
+#endif
+
 	if (!ndata.get("items", x, 0) || x <= 0)
 		return;
 	size_t n = static_cast<size_t>(x);
