@@ -1084,10 +1084,11 @@ void cRsId::send(bool preRSID)
 		}
 	}
 
+	memset(outbuf, 0, symlen * sizeof(*outbuf));
+
 	// 5 symbol periods of silence at end of transmission
 	// and between RsID and the data signal
 	int nperiods = 5;
-	memset(outbuf, 0, symlen * sizeof(*outbuf));
 	for (int i = 0; i < nperiods; i++)
 		active_modem->ModulateXmtr(outbuf, symlen);
 

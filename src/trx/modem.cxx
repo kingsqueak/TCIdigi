@@ -598,14 +598,13 @@ void modem::ModulateXmtr(double *buffer, int len)
 		audio_alert->monitor(buffer, len, samplerate, progdefaults.mon_tx_vol / 100.0 );
 	}
 
+	int num = len / 16;
 	if (sig_start) {
-		int num = len / 2;
 		for (int i = 0; i < num; i++)
 			buffer[i] *= (0.5 * (1.0 - cos (M_PI * i / num)));
 		sig_start = false;
 	}
 	if (sig_stop) {
-		int num = len / 2;
 		for (int i = 0; i < num; i++)
 			buffer[len - i - 1] *= (0.5 * (1.0 - cos (M_PI * i / num)));
 		sig_stop = false;
