@@ -524,6 +524,9 @@ fldigi_SOURCES += \
 	rtty/fsk.cxx \
 	rtty/rtty.cxx \
 	rtty/view_rtty.cxx \
+	scamp/scamp.cxx \
+	scamp/scamp_protocol.cxx \
+	scamp/view_scamp.cxx \
 	debug/debug.cxx \
 	debug/debug_dialog.cxx \
 	dialogs/confdialog.cxx \
@@ -900,6 +903,8 @@ EXTRA_fldigi_SOURCES += \
 	include/ringbuffer.h \
 	include/rsid.h \
 	include/rtty.h \
+	include/scamp.h \
+	include/scamp_protocol.h \
 	include/rx_extract.h \
 	include/rxmon.h \
 	include/serial.h \
@@ -938,6 +943,7 @@ EXTRA_fldigi_SOURCES += \
 	include/Viewer.h \
 	include/viewpsk.h \
 	include/view_rtty.h \
+	include/view_scamp.h \
 	include/viterbi.h \
 	include/waterfall.h \
 	include/weather.h \

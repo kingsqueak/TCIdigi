@@ -764,7 +764,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Colors-Fonts/Buttons-Menus} open
+      label {Colors-Fonts/Buttons-Menus}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons-Menus"));}
       code1 {config_pages.push_back(p);}
@@ -3311,7 +3311,7 @@ o->label((inpLOTW_pwd->type() & FL_SECRET_INPUT) ? _("Show") : _("Hide"));}
       }
     }
     Fl_Group {} {
-      label {Logging/Cloud-UDP} open
+      label {Logging/Cloud-UDP}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Logging/Cloud-UDP"));}
       code1 {config_pages.push_back(p);}
@@ -5095,11 +5095,11 @@ e.g. TS-480} xywh {273 240 70 15} down_box DOWN_BOX
       }
     }
     Fl_Group {} {
-      label {CW CAT & WinKeyer Compensation}
+      label {Modem/CW/Compensation}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
-      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/CW/CAT comp'"));}
+      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/CW/Compensation"));}
       code1 {config_pages.push_back(p);}
-      code2 {tab_tree->add(_("Modem/CW/CAT comp'"));}
+      code2 {tab_tree->add(_("Modem/CW/Compensation"));}
     } {
       Fl_Box {} {
         label {Compute timing compensation for CAT CW and WinKeyer CW.  Computation at current
@@ -5599,7 +5599,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/FSQ} selected
+      label {Modem/FSQ}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/FSQ"));}
       code1 {config_pages.push_back(p);}
@@ -6373,6 +6373,28 @@ progdefaults.changed = true;}
           tooltip {Enable short preamble for 8PSK transmission} xywh {610 286 113 20} down_box DOWN_BOX
           code0 {o->value(progStatus.psk8DCDShortFlag);}
         }
+      }
+    }
+    Fl_Group {} {
+      label {Modem/Scamp} selected
+      xywh {200 0 600 350} box FLAT_BOX hide
+      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/SCAMP"));}
+      code1 {config_pages.push_back(p);}
+      code2 {tab_tree->add(_("Modem/SCAMP"));}
+    } {
+      Fl_Counter ScampResync {
+        label {Scamp Resync Frames}
+        callback {progdefaults.ScampResync = o->value(); progdefaults.changed = true;}
+        tooltip {Number of Frames to Resync 0 to 9} xywh {399 152 75 22} align 5 minimum 0 maximum 9 step 1
+        code0 {o->value(progdefaults.ScampResync);}
+        code1 {o->labelsize(FL_NORMAL_SIZE);}
+      }
+      Fl_Counter ScampRepeat {
+        label {Scamp Repeat Frames}
+        callback {progdefaults.ScampRepeat = o->value(); progdefaults.changed = true;}
+        tooltip {Number of times to repeat frames 1 to 9} xywh {399 203 75 22} align 5 minimum 1 maximum 9 step 1 value 1
+        code0 {o->value(progdefaults.ScampRepeat);}
+        code1 {o->labelsize(FL_NORMAL_SIZE);}
       }
     }
     Fl_Group {} {

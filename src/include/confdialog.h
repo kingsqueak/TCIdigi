@@ -571,6 +571,8 @@ extern Fl_Check_Button *btnEnablePSKbrowsing;
 extern Fl_Check_Button *btnPSKpilot;
 extern Fl_Counter2 *cnt_pilot_power;
 extern Fl_Check_Button *btnPSK8Preamble;
+extern Fl_Counter *ScampResync;
+extern Fl_Counter *ScampRepeat;
 extern Fl_ListBox *i_listbox_rtty_afc_speed;
 extern Fl_Check_Button *chkUOSrx;
 extern Fl_Value_Input *rtty_rx_shape;
