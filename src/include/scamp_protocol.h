@@ -44,16 +44,23 @@ freely, subject to the following restrictions:
 #define PROTOCOL_SCAMP_LAST_MODE 8
 #endif
 
-#define SCAMP_RES_CODE_END_TRANSMISSION 0b000000111100
+// Note that binary constants are not supported on earlier MacOS compiler
+
+#define SCAMP_RES_CODE_END_TRANSMISSION 0x03c 
+//                                      0b 0000 0011 1100
 #define SCAMP_RES_CODE_END_TRANSMISSION_FRAME 0x1B75426C
+//                                      0b 0001 1011 0111 0101 0100 0010 0110 1100 ul
 
 #define SCAMP_VERY_SLOW_MODES
 
-#define SCAMP_SOLID_CODEWORD  0b111111111111111111111111111111ul
-#define SCAMP_DOTTED_CODEWORD 0b101010101010101010101010101010ul
-#define SCAMP_INIT_CODEWORD   0b111111111111111111111111010101ul
-#define SCAMP_SYNC_CODEWORD   0b111110110100011001110100011110ul
-                              /* 0x3ED19D1E */
+#define SCAMP_SOLID_CODEWORD  0x3fffffff
+//                            0b 11 1111 1111 1111 1111 1111 1111 1111 ul
+#define SCAMP_DOTTED_CODEWORD 0x2aaaaaaa
+//                            0b 10 1010 1010 1010 1010 1010 1010 1010 ul
+#define SCAMP_INIT_CODEWORD   0x3fffffd5
+//                            0b 11 1111 1111 1111 1111 1111 1101 0101 ul
+#define SCAMP_SYNC_CODEWORD   0x3ed19d1e
+//                            0b 11 1110 1101 0001 1001 1101 0001 1110 ul
 
 #define SCAMP_THRESHOLD_COUNTER_MAX 2000
 

@@ -27,20 +27,22 @@ freely, subject to the following restrictions:
 
 #include "scamp_protocol.h"
 
+// Note that binary constants are not supported on earlier MacOS compiler
+
 static const uint16_t golay_matrix[12] =
 {
-    0b110111000101,
-    0b101110001011,
-    0b011100010111,
-    0b111000101101,
-    0b110001011011,
-    0b100010110111,
-    0b000101101111,
-    0b001011011101,
-    0b010110111001,
-    0b101101110001,
-    0b011011100011,
-    0b111111111110
+    0xdc5, // 0b 1101 1100 0101,
+    0xb8b, // 0b 1011 1000 1011,
+    0x717, // 0b 0111 0001 0111,
+    0xe2d, // 0b 1110 0010 1101,
+    0xc5b, // 0b 1100 0101 1011,
+    0x8b7, // 0b 1000 1011 0111,
+    0x16f, // 0b 0001 0110 1111,
+    0x2dd, // 0b 0010 1101 1101,
+    0x5d9, // 0b 0101 1011 1001,
+    0xb71, // 0b 1011 0111 0001,
+    0x6e3, // 0b 0110 1110 0011,
+    0xffe  // 0b 1111 1111 1110
 };
 
 static const uint8_t scamp_6bit_codesymbols[60] = 

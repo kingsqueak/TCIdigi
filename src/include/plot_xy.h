@@ -35,7 +35,7 @@ public:
 
 #define PLOT_XY_DEFAULT_WIDTH	100
 #define PLOT_XY_DEFAULT_HEIGHT	100
-#define	PLOT_XY_MAX_LEN			8192
+#define	PLOT_XY_MAX_LEN			172800 //8192
 #define PLOT_XY_NUM_GRIDS		100
 
 private:

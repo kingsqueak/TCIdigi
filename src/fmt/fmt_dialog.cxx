@@ -91,8 +91,13 @@ static const char *legend_15  = " |14|13|12|11|10|9|8|7|6|5|4|3|2|1| |";
 static const char *legend_30  = " |28|26|24|22|20|18|16|14|12|10|8|6|4|2| |";
 static const char *legend_60  = " |55|50|45|40|35|30|25|20|15|10|5| |";
 static const char *legend_120 = " |110|100|90|80|70|60|50|40|30|20|10| |";
+static const char *legend_4h  = " |3.5|3.0|2.5|2.0|1.5|1.0|0.5| |";
+static const char *legend_8h  = " |7.5|7.0|6.5|6.0|5.5|5.0|4.5|4.0|3.5|3.0|2.5|2.0|1.5|1.0|0.5| |";
+static const char *legend_16h = " |15|14|13|12|11|10|9|8|7|6|5|4|3|2|1| |";
+static const char *legend_24h = " |23|22|21|20|19|18|17|16|15|14|13|12|11|10|9|8|7|6|5|4|3|2|1| |";
+static const char *legend_48h = " |46|44|42|40|38|36|34|32|30|28|26|24|22|20|18|16|14|12|10|8|6|4|2| |";
 
-static int seconds[5] = {300, 900, 1800, 3600, 7200};
+static int seconds[] = {300, 900, 1800, 3600, 7200, 14400, 28800, 57600, 86400, 172800};
 
 void cb_unk_up(void *)
 {
@@ -155,6 +160,11 @@ void fmt_set_x_scale()
 	const char *legend = NULL;
 
 	switch (progStatus.FMT_minutes) {
+		case 9: minutes = 2880; markers = 24; legend = legend_48h; break;
+		case 8: minutes = 1440; markers = 24; legend = legend_24h; break;
+		case 7: minutes = 960; markers = 16; legend = legend_16h; break;
+		case 6: minutes = 480; markers = 16; legend = legend_8h; break;
+		case 5: minutes = 240; markers = 8; legend = legend_4h; break;
 		case 4: minutes = 120; markers = 12; legend = legend_120; break;
 		case 3: minutes = 60; markers = 12; legend = legend_60;  break;
 		case 2: minutes = 30; markers = 15; legend = legend_30;  break;
@@ -226,12 +236,14 @@ void fmt_scale_cb(void *)
 {
 	progStatus.FMT_trk_scale = fmt_scale->index();
 	fmt_set_y_scale();
+	fmt_plot->redraw();
 }
 
 void fmt_cntr_minutes_cb(void *)
 {
 	progStatus.FMT_minutes = fmt_cntr_minutes->index();
 	fmt_set_x_scale();
+	fmt_plot->redraw();
 }
 
 Fl_Group* fmt_panel(int X, int Y, int W, int H) {
@@ -445,6 +457,11 @@ Fl_Group* fmt_panel(int X, int Y, int W, int H) {
 			fmt_cntr_minutes->add("30  min");
 			fmt_cntr_minutes->add("60  min");
 			fmt_cntr_minutes->add("120 min");
+			fmt_cntr_minutes->add("4 hr");
+			fmt_cntr_minutes->add("8 hr");
+			fmt_cntr_minutes->add("16 hr");
+			fmt_cntr_minutes->add("24 hr");
+			fmt_cntr_minutes->add("48 hr");
 			fmt_cntr_minutes->color(FL_WHITE);
 			fmt_cntr_minutes->index(progStatus.FMT_minutes);
 			fmt_cntr_minutes->callback((Fl_Callback *)fmt_cntr_minutes_cb);
