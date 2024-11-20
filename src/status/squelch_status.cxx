@@ -105,9 +105,9 @@ const char * ModeBand::bands[NUMBANDS] = {
 	"17", "15", "12", "10", "6", "2", "220", "440", "hi"
 };
 
-bool ModeBand::band_changed() {
+int ModeBand::get_band_in_use()
+{
 	int band = -1;
-
 	if (wf->rfcarrier() < SS_160) band = BND_LO;
 	else if (wf->rfcarrier() < SS_80) band = BND_160;
 	else if (wf->rfcarrier() < SS_75) band = BND_80;
@@ -124,7 +124,11 @@ bool ModeBand::band_changed() {
 	else if (wf->rfcarrier() < SS_440) band = BND_220;
 	else if (wf->rfcarrier() < SS_HI) band = BND_440;
 	else band = BND_HI;
+	return band;
+}
 
+bool ModeBand::band_changed() {
+	int band = get_band_in_use();
 	if (band_in_use != band) {
 		band_in_use = band;
 		return true;
@@ -142,21 +146,16 @@ bool ModeBand::mode_changed() {
 }
 
 void ModeBand::band_mode_change() {
-	if (!active_modem) {
-		std::cout << "oh shit!!" << std::endl;
-		return;
-	}
-	bool bc = band_changed();
-	bool mc = mode_changed();
-	if (bc || mc ) {
+	if (!active_modem) return;
+
+	if (band_changed() || mode_changed() )
 		REQ(show_band_mode_change);
-	}
 }
 
 void ModeBand::init() {
 	for (size_t m = 0; m < NUM_MODES; m++) {
 		for (size_t b = 0; b < NUMBANDS; b++) {
-			mode_bands[m][b].txlevel = -120;
+			mode_bands[m][b].txlevel = -30;
 			mode_bands[m][b].rev = false;
 			mode_bands[m][b].afc = true;
 			mode_bands[m][b].sqstate = true;
@@ -238,11 +237,14 @@ void ModeBand::load_mode_state() {
 
 		}
 	}
+	loaded = true;
 }
 
 void ModeBand::set_mode_squelch(double val)
 {
 	size_t mode = (size_t)active_modem->get_mode();
+
+	band_in_use = get_band_in_use();
 
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return;
@@ -254,6 +256,8 @@ double ModeBand::get_mode_squelch()
 {
 	size_t mode = (size_t)active_modem->get_mode();
 
+	band_in_use = get_band_in_use();
+
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return 0;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return 0;
 
@@ -263,6 +267,8 @@ double ModeBand::get_mode_squelch()
 void ModeBand::set_mode_squelch_onoff(int val)
 {
 	size_t mode = (size_t)active_modem->get_mode();
+
+	band_in_use = get_band_in_use();
 
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return;
@@ -274,6 +280,8 @@ int ModeBand::get_mode_squelch_onoff()
 {
 	size_t mode = (size_t)active_modem->get_mode();
 
+	band_in_use = get_band_in_use();
+
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return 0;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return 0;
 
@@ -283,6 +291,8 @@ int ModeBand::get_mode_squelch_onoff()
 void ModeBand::set_mode_txlevel(double val)
 {
 	size_t mode = (size_t)active_modem->get_mode();
+
+	band_in_use = get_band_in_use();
 
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return;
@@ -294,15 +304,19 @@ double ModeBand::get_mode_txlevel()
 {
 	size_t mode = (size_t)active_modem->get_mode();
 
+	band_in_use = get_band_in_use();
+
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return 0;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return 0;
 
-	return mode_bands[mode][band_in_use].txlevel / 10;
+	return mode_bands[mode][band_in_use].txlevel / 10.0;
 }
 
 void ModeBand::set_mode_afc(int val)
 {
 	size_t mode = (size_t)active_modem->get_mode();
+
+	band_in_use = get_band_in_use();
 
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return;
@@ -312,6 +326,8 @@ void ModeBand::set_mode_afc(int val)
 
 int ModeBand::get_mode_afc() { 
 	size_t mode = (size_t)active_modem->get_mode();
+
+	band_in_use = get_band_in_use();
 
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return 0;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return 0;
@@ -323,6 +339,8 @@ void ModeBand::set_mode_reverse(int val )
 {
 	size_t mode = (size_t)active_modem->get_mode();
 
+	band_in_use = get_band_in_use();
+
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return;
 
@@ -332,6 +350,8 @@ void ModeBand::set_mode_reverse(int val )
 int ModeBand::get_mode_reverse()
 {
 	size_t mode = (size_t)active_modem->get_mode();
+
+	band_in_use = get_band_in_use();
 
 	if (mode < MODE_NULL || mode > NUM_RXTX_MODES) return 0;
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return 0;

@@ -1434,4 +1434,5 @@ void status::initLastState()
 	btn_WK_paddledog->value((WK_mode_register & 0x80) == 0x80);
 
 	select_WK_CommPort->value(WK_serial_port_name.c_str());
+
 }

@@ -684,6 +684,13 @@ void *trx_loop(void *args)
 }
 
 //=============================================================================
+static void update_displays()
+{
+	wf->opmode();
+	set599();
+//	modeband.band_mode_change();
+}
+
 static modem* new_modem;
 static int new_freq;
 
@@ -720,10 +727,9 @@ void trx_start_modem_loop()
 //			 || active_modem->get_mode() == MODE_OFDM_2000))
 		active_modem->set_freq(new_freq); // OFDM modes use RSID as AFC mechanism. Always allow QSY of Rx Frequency.
 	trx_state = STATE_RX;
-	REQ(&waterfall::opmode, wf);
-	REQ(set599);
-
-	modeband.band_mode_change();
+//	REQ(&waterfall::opmode, wf);
+//	REQ(set599);
+	REQ(update_displays);
 
 	if (old_modem) {
 		*mode_info[old_modem->get_mode()].modem = 0;

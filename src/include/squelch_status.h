@@ -78,16 +78,23 @@ private:
 
 	void init();
 
+	bool loaded;
+
 public:
 	ModeBand() {
 		mode_in_use = -1;
 		band_in_use = -1;
+		loaded = false;
 		init();
 		load_mode_state();
 	}
 	~ModeBand() {
 		save_mode_state();
 	}
+
+	bool is_loaded() { return loaded; }
+
+	int get_band_in_use();
 
 	void set_mode_squelch( double sqlch);
 	double get_mode_squelch();

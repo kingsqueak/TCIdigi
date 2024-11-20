@@ -1957,6 +1957,7 @@ void waterfall::Carrier(int f)
 
 void waterfall::rfcarrier(unsigned long long cf) {
 	wfdisp->rfcarrier(cf);
+	modeband.band_mode_change(); 
 }
 
 unsigned long long waterfall::rfcarrier() {

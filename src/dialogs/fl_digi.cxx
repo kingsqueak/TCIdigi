@@ -1625,7 +1625,6 @@ void startup_modem(modem* m, int f)
 		wf->btnRev->value(0);
 		wf->btnRev->deactivate();
 	}
-	
 
 }
 
@@ -2150,6 +2149,7 @@ void init_modem_sync(trx_mode m, int f)
 	ENSURE_THREAD(FLMAIN_TID);
 
 	int count = 2000;
+
 	if (trx_state != STATE_RX) {
 		LOG_INFO("Waiting for %s", mode_info[active_modem->get_mode()].name);
 		abort_tx();
@@ -8327,9 +8327,10 @@ void create_fl_digi_main_WF_only() {
 				bwTxLevel, Hstatus, "");
 			cntTxLevel->minimum(-30);
 			cntTxLevel->maximum(0);
-			cntTxLevel->value(-6);
+			cntTxLevel->value(0);
 			cntTxLevel->callback((Fl_Callback*)cb_cntTxLevel);
 			cntTxLevel->value(progStatus.txlevel);
+			cntTxLevel->step(0.1);
 			cntTxLevel->lstep(1.0);
 			cntTxLevel->tooltip(_("Tx level attenuator (dB)"));
 

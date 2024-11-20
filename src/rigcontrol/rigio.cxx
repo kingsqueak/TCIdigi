@@ -2384,10 +2384,8 @@ static void *rigCAT_loop(void *args)
 			freq = rigCAT_getfreq(progdefaults.RigCatRetries, failed);
 			if (rigCAT_exit) continue;
 
-			if ((freq > 0) && (freq != qsoFreqDisp->value())) {
-				show_frequency(freq);
-				wf->rfcarrier(freq);
-			}
+			show_frequency(freq);
+			wf->rfcarrier(freq);
 
 			sWidth = rigCAT_getwidth();
 			if (rigCAT_exit) continue;

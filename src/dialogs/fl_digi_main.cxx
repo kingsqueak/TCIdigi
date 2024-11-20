@@ -2963,9 +2963,10 @@ Logging_frame->resizable(NFtabs);
 				bwTxLevel, Hstatus, "");
 			cntTxLevel->minimum(-30);
 			cntTxLevel->maximum(0);
-			cntTxLevel->value(-6);
+			cntTxLevel->value(0);
 			cntTxLevel->callback((Fl_Callback*)cb_cntTxLevel);
 			cntTxLevel->value(progStatus.txlevel);
+			cntTxLevel->step(0.1);
 			cntTxLevel->lstep(1.0);
 			cntTxLevel->tooltip(_("Tx level attenuator (dB)"));
 
