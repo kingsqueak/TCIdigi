@@ -2402,6 +2402,12 @@
        ELEM_(int, wefax_align_rows, "WEFAX_align_rows",                                 \
              "Enable autoalign every NN rows",                                          \
              10 )                                                                       \
+       ELEM_(int, wefax_lpm_288, "WEFAX_lpm_288",                                       \
+             "default lines per minute, 3 = 60, 2 = 90, 1 = 120, 0 = 240",              \
+             3 )                                                                        \
+       ELEM_(int, wefax_lpm_576, "WEFAX_lpm_576",                                       \
+             "default lines per minute, 3 = 60, 2 = 90, 1 = 120, 0 = 240",              \
+             1 )                                                                        \
        /* NAVTEX configuration items */                                                 \
        ELEM_(bool, NVTX_AdifLog, "NAVTEXADIFLOG",                                       \
              "Logs Navtex messages in Adig log file",                                   \

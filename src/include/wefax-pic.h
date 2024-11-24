@@ -72,4 +72,11 @@ extern Fl_Group * create_wefax_rx_viewer(int wid_x, int wid_y,int wid_win, int h
 
 extern void create_wefax_tx_viewer(int wid_x, int wid_y,int wid_win, int hei_win);
 
+struct LPM_VALUES {
+	int          m_value ;
+	const char * m_label ;
+};
+
+extern struct LPM_VALUES all_lpm_values[];
+
 #endif // _WEFAX_PIC_H

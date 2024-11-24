@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0309
+version 1.0310
 i18n_type 1
 i18n_include "gettext.h"
 i18n_function _
@@ -21,6 +21,9 @@ decl {\#include <FL/Fl_File_Chooser.H>} {private local
 }
 
 decl {\#include <FL/fl_show_colormap.H>} {private local
+}
+
+decl {\#include <vector>} {private local
 }
 
 decl {\#include "main.h"} {private local
@@ -128,7 +131,7 @@ decl {\#include "network.h"} {private local
 decl {\#include "ui_colors.h"} {private local
 }
 
-decl {\#include <vector>} {private local
+decl {\#include "wefax.h"} {private local
 }
 
 decl {\#if USE_HAMLIB
@@ -6376,7 +6379,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/Scamp} selected
+      label {Modem/Scamp}
       xywh {200 0 600 350} box FLAT_BOX hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/SCAMP"));}
       code1 {config_pages.push_back(p);}
@@ -7433,7 +7436,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/Wefax}
+      label {Modem/Wefax} selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/Wefax"));}
       code1 {config_pages.push_back(p);}
@@ -7444,7 +7447,7 @@ progdefaults.changed = true;}
         callback {progdefaults.WEFAX_Shift=o->value();
 progdefaults.changed = true;}
         tooltip {Frequency shift of WEFAX signal
-Nominal 800 Hz} xywh {262 50 150 24} align 1 minimum 750 maximum 900 step 10 value 800
+Nominal 800 Hz} xywh {262 50 150 24} align 1 minimum 700 maximum 1000 step 10 value 800
         code0 {o->value(progdefaults.WEFAX_Shift);}
         code1 {o->lstep(100.0);}
       }
@@ -7489,7 +7492,7 @@ progdefaults.changed = true;}
       Fl_Choice wefax_choice_rx_filter {
         label Filter
         callback {progdefaults.wefax_filter=o->value();} open
-        xywh {302 137 110 24} down_box BORDER_BOX
+        xywh {302 147 110 24} down_box BORDER_BOX
         code0 {o->add("Narrow|Medium|Wide");}
         code1 {o->value(progdefaults.wefax_filter < 3 ? progdefaults.wefax_filter : 0);}
       } {}
@@ -7497,7 +7500,7 @@ progdefaults.changed = true;}
         label {Enable Auto-align after}
         callback {progdefaults.wefax_auto_after = o->value();
 progdefaults.changed = true;}
-        xywh {588 81 150 24} align 4 minimum 5 maximum 100 step 5 value 50
+        xywh {588 82 150 24} align 4 minimum 5 maximum 100 step 5 value 50
         code0 {o->value(progdefaults.wefax_auto_after);}
         code1 {o->lstep(50);}
       }
@@ -7505,7 +7508,7 @@ progdefaults.changed = true;}
         label {Stop Auto-align after}
         callback {progdefaults.wefax_align_stop = o->value();
 progdefaults.changed = true;}
-        xywh {588 113 150 24} align 4 minimum 50 maximum 500 step 5 value 500
+        xywh {588 115 150 24} align 4 minimum 50 maximum 500 step 5 value 500
         code0 {o->value(progdefaults.wefax_align_stop);}
         code1 {o->lstep(50);}
       }
@@ -7517,7 +7520,7 @@ if (auto_after_nrows->minimum() < progdefaults.wefax_align_rows) {
   auto_after_nrows->value(progdefaults.wefax_align_rows);
 }
 progdefaults.changed = true;}
-        xywh {624 145 80 24} type Simple align 4 minimum 5 maximum 100 step 5 value 25
+        xywh {624 147 80 24} type Simple align 4 minimum 5 maximum 100 step 5 value 25
         code0 {o->value(progdefaults.wefax_align_rows);}
       }
       Fl_Box {} {
@@ -7538,7 +7541,7 @@ progdefaults.changed = true;}
 progdefaults.changed = true;}
         tooltip {Row-to-row correlation
 Used to detect presence of WEFAX signal
-Lower: more false detections} xywh {589 179 150 24} align 4 minimum 0.01 maximum 0.1 step 0.001 value 0.05
+Lower: more false detections} xywh {589 180 150 24} align 4 minimum 0.01 maximum 0.1 step 0.001 value 0.05
         code0 {o->value(progdefaults.wefax_correlation);}
         code1 {o->lstep (0.01);}
       }
@@ -7549,6 +7552,28 @@ progdefaults.changed = true;}
         tooltip {Compute correlation factor over this \# rows} xywh {624 213 80 24} type Simple align 4 minimum 2 maximum 50 step 1 value 10
         code0 {o->value(progdefaults.wefax_correlation_rows);}
       }
+      Fl_Choice choice_lpm_288 {
+        label {LPM-288}
+        callback {int idx_lpm = o->value();
+progdefaults.wefax_lpm_288 = idx_lpm;
+return;} open
+        tooltip {Set the 288 LPM value} xywh {302 180 110 24} down_box BORDER_BOX
+        code0 {o->add("240");o->add("120");o->add("90");o->add("60");}
+        code1 {extern int m_dflt_lpm;}
+        code2 {extern void set_lpm(int);}
+        code3 {o->value(progdefaults.wefax_lpm_288);}
+      } {}
+      Fl_Choice choice_lpm_576 {
+        label {LPM-576}
+        callback {int idx_lpm = o->value();
+progdefaults.wefax_lpm_576 = idx_lpm;
+return;} open
+        tooltip {Set the 576 LPM value} xywh {302 213 110 24} down_box BORDER_BOX
+        code0 {o->add("240");o->add("120");o->add("90");o->add("60");}
+        code1 {extern int m_dflt_lpm;}
+        code2 {extern void set_lpm(int);}
+        code3 {o->value(progdefaults.wefax_lpm_576);}
+      } {}
     }
     Fl_Group {} {
       label {Misc/Autostart}

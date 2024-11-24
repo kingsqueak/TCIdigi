@@ -342,6 +342,7 @@ class fax_implementation {
 		int m_hist[m_sz];
 		mutable double m_avg ;
 		mutable double m_dev ;
+
 	public:
 		void add_bw(int pix_val) {
 			pix_val = pix_val < 0 ? 0 : pix_val > 255 ? 255 : pix_val ;
@@ -414,6 +415,9 @@ class fax_implementation {
 	}
 
 public:
+
+	trx_mode wefax_mode;
+
 	fax_implementation(int fax_mode, wefax * ptr_wefax);
 	void init_rx(int the_smpl_rate);
 	void skip_apt_rx(void);
@@ -461,10 +465,22 @@ public:
 		return m_sample_rate * 60.0 / the_lpm ;
 	}
 
+	void set_mode( trx_mode m) { wefax_mode = m; }
+
 	/// Called by the GUI.
-	void lpm_set(int the_lpm) {
-		m_lpm_img = the_lpm ;
+	void lpm_set() {
+		int index = 0;
+		switch(wefax_mode) {
+			case MODE_WEFAX_576:
+				index = progdefaults.wefax_lpm_576;
+				break;
+			case MODE_WEFAX_288:
+				index = progdefaults.wefax_lpm_288;
+				break;
+		}
+		m_lpm_img = all_lpm_values[index].m_value;;
 		m_smpl_per_lin = lpm_to_samples(m_lpm_img);
+//std::cout << (wefax_mode == MODE_WEFAX_576 ? "wefax 576" : "wefax 288") << ", LPM: " << m_lpm_img << ", index: " << index << std::endl;
 	}
 
 	/// This generates a filename based on the frequency, current time, internal state etc...
@@ -1255,17 +1271,18 @@ fax_implementation::fax_implementation(int fax_mode, wefax * ptr_wefax )
 
 	int index_of_correlation ;
 	/// http://en.wikipedia.org/wiki/Radiofax
+
 	switch(fax_mode) {
 		default:
 		case MODE_WEFAX_576:
 			m_apt_start_freq     = 300 ;
 			index_of_correlation = IOC_576 ;
-			m_default_lpm        = 120 ;
+			m_default_lpm        = all_lpm_values[progdefaults.wefax_lpm_576].m_value;
 			break;
 		case MODE_WEFAX_288:
 			m_apt_start_freq     = 675 ;
 			index_of_correlation = IOC_288 ;
-			m_default_lpm        = 60 ;
+			m_default_lpm        = all_lpm_values[progdefaults.wefax_lpm_288].m_value;
 			break;
 	}
 
@@ -1300,6 +1317,8 @@ void fax_implementation::init_rx(int the_smpl_rat)
 	m_corr_calls_nb = 0;
 
 	deviation_ratio = (m_sample_rate / progdefaults.WEFAX_Shift) / TWOPI;
+
+	lpm_set();
 }
 
 /// Values are between zero and 255
@@ -1311,6 +1330,8 @@ void fax_implementation::decode(const int* buf, int nb_samples)
 	}
 	fax_signal my_signal(this);
 	process_afc();
+	lpm_set();
+
 	for(int i = 0; i<nb_samples; i++) {
 		int crr_val = buf[i];
 		my_signal.refresh();
@@ -1722,7 +1743,7 @@ void fax_implementation::decode_phasing(int x, const fax_signal & the_signal)
 				/// The precision cannot really increase because there cannot
 				// be more than a couple of loops. This is used for guessing
 				// whether the LPM is around 120 or 60.
-				lpm_set(m_lpm_sum_rx / m_phase_lines);
+				lpm_set();
 				std::string comment = strformat(
 "m_phase_lines = %d, m_num_phase_lines = %d, LPM = %f State = %s, \
  m_img_sample = %d, m_last_col = %d, m_lpm_img = %f, m_smpl_per_lin = %f",
@@ -1855,7 +1876,7 @@ void fax_implementation::skip_apt_rx(void)
 	if (m_rx_state!= RXAPTSTART) {
 		LOG_ERROR(_("Should be in APT state. State = %s. Manual = %d"), state_rx_str(), m_manual_mode);
 	}
-	lpm_set(0);
+	lpm_set();
 	m_rx_state = RXPHASING;
 	rx_state_changed = true;
 	reset_phasing_counters();
@@ -1896,22 +1917,7 @@ void fax_implementation::skip_phasing_to_image(bool auto_center)
 	m_rx_state = RXIMAGE;
 	rx_state_changed = true;
 
-// For monochrome, LPM = 60, 90, 100, 120, 180, 240. For colour, LPM  = 120, 240
-//	/// So we round to the nearest integer to avoid slanting.
-//	int lpm_integer = wefax_pic::normalize_lpm(m_lpm_img);
-//	if (m_lpm_img != lpm_integer) {
-//		/// If we could not find a valid LPM, then set the default one for this mode (576/288).
-//		lpm_integer = wefax_pic::normalize_lpm(m_default_lpm);
-//		LOG_VERBOSE(_("LPM rounded from %f to %d. Manual = %d State = %s"),
-//				m_lpm_img, lpm_integer, m_manual_mode, state_rx_str());
-//	}
-
-//	/// From now on, m_lpm_img will never change and has a normalized value.
-//	REQ(wefax_pic::update_rx_lpm, lpm_integer);
-//	PUT_STATUS(state_rx_str() << ". " << _("Decoding phasing line LPM = ") << lpm_integer);
-//	lpm_set(lpm_integer);
-
-	lpm_set(m_default_lpm);
+	lpm_set();
 }
 
 /// Called by the user when clicking button. Never called automatically.
@@ -1922,11 +1928,6 @@ void fax_implementation::skip_phasing_rx(bool auto_center)
 	}
 	skip_phasing_to_image(auto_center);
 
-	/// We force these two values because these could not be detected automatically.
-//	if (m_lpm_img != m_default_lpm) {
-//		lpm_set(m_default_lpm);
-//		LOG_VERBOSE(_("Forcing m_lpm_img = %f. Manual = %d"), m_lpm_img, m_manual_mode);
-//	}
 	m_img_sample = 0; /// The image start may not be what the phasing would have told.
 }
 
@@ -2172,7 +2173,7 @@ void fax_implementation::tx_params_set(
 	m_img_tx_rows = img_h;
 	m_img_tx_cols = img_w;
 	m_img_color = is_color ;
-	lpm_set(the_lpm);
+	lpm_set();
 	m_xmt_pic_buf = xmtpic_buffer ;
 
 	PUT_STATUS(_("Sending wefax_map.")
@@ -2263,6 +2264,8 @@ wefax::wefax(trx_mode wefax_mode) : modem()
 	modem::samplerate = 11025;
 
 	m_impl = new fax_implementation(wefax_mode, this);
+
+	m_impl->set_mode(wefax_mode);
 
 	/// Now this object is usable by wefax_pic.
 	wefax_pic::setwefax_map_link(this);
@@ -2490,9 +2493,9 @@ void wefax::set_rx_manual_mode(bool manual_flag)
 	update_rx_label();
 }
 
-void wefax::set_lpm(int the_lpm)
+void wefax::set_lpm()
 {
-	return m_impl->lpm_set(the_lpm);
+	return m_impl->lpm_set();
 }
 
 /// Transmission time in seconds. Factor 3 if b/w image.

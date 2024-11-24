@@ -205,10 +205,7 @@ static void wefax_cb_pic_tx_close( Fl_Widget *, void *)
 }
 
 /// Usual LPM values.
-static const struct {
-	int          m_value ;
-	const char * m_label ;
-} all_lpm_values[] = {
+LPM_VALUES all_lpm_values[4] = {
 	{ 240, "240" },
 	{ 120, "120" },
 	{  90,  "90" },
