@@ -957,6 +957,9 @@
         ELEM_(std::string, ifkp_avatar_image_file, "IFKP_AVATAR_IMAGE_FILE",            \
               "IFKP avatar image to transmit",                                          \
               "")                                                                       \
+        ELEM_(int, mfsk_avg, "MFSK_avg",                                                \
+              "MFSK modem afc low pass filter time constant",                           \
+              32)                                                                       \
        /* Waterfall & UI */                                                             \
         ELEM_(uchar, red, "", "",  0)                                                   \
         ELEM_(uchar, green, "", "",  255)                                               \

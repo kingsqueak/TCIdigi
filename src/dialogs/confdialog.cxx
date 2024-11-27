@@ -4766,6 +4766,13 @@ progdefaults.changed = true;
 
 Fl_Group *ifkp_image_box=(Fl_Group *)0;
 
+Fl_Counter *MFSK_afc_avg=(Fl_Counter *)0;
+
+static void cb_MFSK_afc_avg(Fl_Counter* o, void*) {
+  progdefaults.mfsk_avg = o->value();
+progdefaults.changed = true;
+}
+
 Fl_Check_Button *btnMT63_8bit=(Fl_Check_Button *)0;
 
 static void cb_btnMT63_8bit(Fl_Check_Button* o, void*) {
@@ -14407,6 +14414,25 @@ ver a +/- 10 WPM range.  Calibration/Test is 1 minute of\n\'PARIS \'."));
       tab_tree->add(_("Modem/IFKP"));
       o->end();
     } // Fl_Group* o
+    { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Modem/MFSK"));
+      o->box(FL_FLAT_BOX);
+      o->hide();
+      { Fl_Counter* o = MFSK_afc_avg = new Fl_Counter(360, 160, 100, 22, _("AFC low pass filter"));
+        MFSK_afc_avg->tooltip(_("Higher values result in slower AFC response\nand greater noise immunity"));
+        MFSK_afc_avg->minimum(2);
+        MFSK_afc_avg->maximum(200);
+        MFSK_afc_avg->step(1);
+        MFSK_afc_avg->value(32);
+        MFSK_afc_avg->callback((Fl_Callback*)cb_MFSK_afc_avg);
+        MFSK_afc_avg->align(Fl_Align(FL_ALIGN_RIGHT));
+        o->value(progdefaults.mfsk_avg);
+        o->labelsize(FL_NORMAL_SIZE);
+      } // Fl_Counter* MFSK_afc_avg
+      CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/MFSK"));
+      config_pages.push_back(p);
+      tab_tree->add(_("Modem/MFSK"));
+      o->end();
+    } // Fl_Group* o
     { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Modem/MT-63"));
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
@@ -14837,7 +14863,7 @@ ver a +/- 10 WPM range.  Calibration/Test is 1 minute of\n\'PARIS \'."));
       tab_tree->add(_("Modem/Psk"));
       o->end();
     } // Fl_Group* o
-    { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Modem/Scamp"));
+    { Fl_Group* o = new Fl_Group(200, 0, 600, 350, _("Modem/SCAMP"));
       o->box(FL_FLAT_BOX);
       o->hide();
       { Fl_Counter* o = ScampResync = new Fl_Counter(399, 152, 75, 22, _("Scamp Resync Frames"));

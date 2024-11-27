@@ -6032,6 +6032,23 @@ Operator avatar}
       }
     }
     Fl_Group {} {
+      label {Modem/MFSK} open selected
+      xywh {200 0 600 350} box FLAT_BOX hide
+      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/MFSK"));}
+      code1 {config_pages.push_back(p);}
+      code2 {tab_tree->add(_("Modem/MFSK"));}
+    } {
+      Fl_Counter MFSK_afc_avg {
+        label {AFC low pass filter}
+        callback {progdefaults.mfsk_avg = o->value();
+progdefaults.changed = true;}
+        tooltip {Higher values result in slower AFC response
+and greater noise immunity} xywh {360 160 100 22} align 8 minimum 2 maximum 200 step 1 value 32
+        code0 {o->value(progdefaults.mfsk_avg);}
+        code1 {o->labelsize(FL_NORMAL_SIZE);}
+      }
+    }
+    Fl_Group {} {
       label {Modem/MT-63}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/MT-63"));}
@@ -6379,7 +6396,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/Scamp}
+      label {Modem/SCAMP} open
       xywh {200 0 600 350} box FLAT_BOX hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/SCAMP"));}
       code1 {config_pages.push_back(p);}
@@ -7436,7 +7453,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/Wefax} selected
+      label {Modem/Wefax}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/Wefax"));}
       code1 {config_pages.push_back(p);}

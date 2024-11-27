@@ -543,6 +543,7 @@ extern Fl_Output *txt_ifkp_heard_log;
 extern Fl_Light_Button *btn_enable_ifkp_heard_log;
 extern Fl_Button *btn_select_ifkp_heard_log;
 extern Fl_Group *ifkp_image_box;
+extern Fl_Counter *MFSK_afc_avg;
 extern Fl_Check_Button *btnMT63_8bit;
 extern Fl_Check_Button *btnMT63_rx_integration;
 extern Fl_Check_Button *btnMT63_usetones;

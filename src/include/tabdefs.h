@@ -31,6 +31,7 @@
 #define TAB_IFKP			_("Modem/IFKP")
 #define TAB_FMT				_("Modem/FMT")
 #define TAB_FSQ				_("Modem/FSQ")
+#define TAB_MFSK			_("Modem/MFSK")
 #define TAB_SCAMP			_("Modem/SCAMP")
 #define TAB_THOR			_("Modem/Thor")
 #define TAB_PSK				_("Modem/Psk")

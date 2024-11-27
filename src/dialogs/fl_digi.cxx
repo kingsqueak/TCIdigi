@@ -2406,6 +2406,19 @@ void cb_mnuConfigModems(Fl_Menu_*, void*) {
 		case MODE_NAVTEX: case MODE_SITORB:
 			open_config(TAB_NAVTEX);
 			break;
+		case MODE_MFSK4:
+		case MODE_MFSK11:
+		case MODE_MFSK22:
+		case MODE_MFSK31:
+		case MODE_MFSK64:
+		case MODE_MFSK8:
+		case MODE_MFSK16:
+		case MODE_MFSK32:
+		case MODE_MFSK128:
+		case MODE_MFSK64L:
+		case MODE_MFSK128L:
+			open_config(TAB_MFSK);
+			break;
 		case MODE_MT63_500S: case MODE_MT63_1000S: case MODE_MT63_2000S :
 		case MODE_MT63_500L: case MODE_MT63_1000L: case MODE_MT63_2000L :
 			quick_change = quick_change_mt63;
@@ -4225,6 +4238,7 @@ void status_cb(Fl_Widget *b, void *arg)
 		else if (md == MODE_CW) open_config(TAB_CW);
 		else if (md == MODE_IFKP) open_config(TAB_IFKP);
 		else if (md == MODE_FSQ) open_config(TAB_FSQ);
+		else if (md >= MODE_MFSK_FIRST && md <= MODE_MFSK_LAST) open_config(TAB_MFSK);
 		else if (md == MODE_RTTY) open_config(TAB_RTTY);
 		else if (md >= MODE_SCAMP_FIRST && md <= MODE_SCAMP_LAST) open_config(TAB_SCAMP);
 		else if (md >= MODE_THOR_FIRST && md <= MODE_THOR_LAST) open_config(TAB_THOR);

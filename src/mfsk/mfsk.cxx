@@ -801,13 +801,16 @@ void mfsk::afc()
 		sigsearch = 0;
 	}
 
-	if (staticburst || !progStatus.afconoff)
-		return;
-	if (metric < progStatus.sldrSquelchValue)
-		return;
 	if (afcmetric < 3.0)
 		return;
+
+	if (metric < progStatus.sldrSquelchValue)
+		return;
+
 	if (currsymbol != prev1symbol)
+		return;
+
+	if (staticburst || !progStatus.afconoff)
 		return;
 
 	if (pipeptr == 0)
@@ -821,7 +824,7 @@ void mfsk::afc()
 	f1 = tonespacing * (basetone + currsymbol);
 
 	if ( fabs(f1 - f) < ts) {
-		freqerr = decayavg(freqerr, (f1 - f), 32);
+		freqerr = decayavg(freqerr, (f1 - f), progdefaults.mfsk_avg);
 		set_freq(frequency - freqerr);
 	}
 
