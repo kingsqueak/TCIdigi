@@ -14532,7 +14532,7 @@ ver a +/- 10 WPM range.  Calibration/Test is 1 minute of\n\'PARIS \'."));
       { Fl_Counter* o = MFSK_afc_avg = new Fl_Counter(360, 160, 100, 22, _("AFC low pass filter"));
         MFSK_afc_avg->tooltip(_("Higher values result in slower AFC response\nand greater noise immunity"));
         MFSK_afc_avg->minimum(2);
-        MFSK_afc_avg->maximum(200);
+        MFSK_afc_avg->maximum(500);
         MFSK_afc_avg->step(1);
         MFSK_afc_avg->value(32);
         MFSK_afc_avg->callback((Fl_Callback*)cb_MFSK_afc_avg);
