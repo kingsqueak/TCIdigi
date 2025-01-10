@@ -626,7 +626,21 @@ void cRsId::apply(int iBin, int iSymbol, int extended)
 		LOG_VERBOSE("%s", msg);
 		return;
 	}
-
+/*
+std::cout <<
+  "\n---------------------------------\nRsID configuration:" <<
+  "\ncurrfreq: " << currfreq <<
+  "\nrsidfreq: " << rsidfreq <<
+  "\nretain tx frequency: " << progdefaults.retain_freq_lock <<
+  "\ndisable_freq_change: " << progdefaults.disable_rsid_freq_change <<
+  "\nrsid_mark: " << progdefaults.rsid_mark <<
+  "\nrsid_squelch: " << progdefaults.rsid_squelch <<
+  "\nrsid_notify_only: " << progdefaults.rsid_notify_only <<
+  "\ndisable_warning_dialog_box: " << progdefaults.disable_rsid_warning_dialog_box <<
+  "\nenable_rsid_match: " << progdefaults.ENABLE_RSID_MATCH <<
+  "\nrsid_auto_disable: " << progdefaults.rsid_auto_disable <<
+  "\nrsid_eot_squelch: " << progdefaults.rsid_eot_squelch << std::endl;
+*/
 	if (progdefaults.rsid_rx_modes.test(mbin)) {
 		char msg[50];
 		snprintf(msg, sizeof(msg), "RSID: %s @ %0.1f Hz", p_rsid[n].name, rsidfreq);
@@ -753,7 +767,7 @@ bool cRsId::assigned(trx_mode mode) {
 	switch (mode) {
 	case MODE_EOT : 
 		rmode = RSID_EOT;
-std::cout << "send RSID_EOT" << std::endl;
+//std::cout << "send RSID_EOT" << std::endl;
 		return true;
 	case MODE_RTTY :
 		if (progdefaults.rtty_baud == 5 && progdefaults.rtty_bits == 1 && progdefaults.rtty_shift == 9)

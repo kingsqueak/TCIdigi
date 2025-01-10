@@ -696,15 +696,10 @@ static int new_freq;
 
 void trx_start_modem_loop()
 {
+	double save_freq = active_modem->frequency;
 	if (new_modem == active_modem) {
-		if (new_freq > 0 && !progdefaults.retain_freq_lock)
-			active_modem->set_freq(new_freq);
-		else if (new_freq > 0 && 
-				 (active_modem->get_mode() == MODE_OFDM_500F 
-				  || active_modem->get_mode() == MODE_OFDM_750F))
-//				  || active_modem->get_mode() == MODE_OFDM_2000F 
-//				  || active_modem->get_mode() == MODE_OFDM_2000))
-			active_modem->set_freq(new_freq); // OFDM modes use RSID as AFC mechanism. Always allow QSY of Rx Frequency.
+		if (new_freq) active_modem->set_freq(new_freq);
+		if (progdefaults.retain_freq_lock) active_modem->tx_frequency = save_freq;
 		active_modem->restart();
 		trx_state = STATE_RX;
 		if (progdefaults.show_psm_btn &&
@@ -718,17 +713,9 @@ void trx_start_modem_loop()
 
 	new_modem->init();
 	active_modem = new_modem;
-	if (new_freq > 0 && !progdefaults.retain_freq_lock)
-		active_modem->set_freq(new_freq);
-	else if (new_freq > 0 && 
-			 (active_modem->get_mode() == MODE_OFDM_500F 
-			 || active_modem->get_mode() == MODE_OFDM_750F))
-//			 || active_modem->get_mode() == MODE_OFDM_2000F 
-//			 || active_modem->get_mode() == MODE_OFDM_2000))
-		active_modem->set_freq(new_freq); // OFDM modes use RSID as AFC mechanism. Always allow QSY of Rx Frequency.
+	if (new_freq) active_modem->set_freq(new_freq);
+	if (progdefaults.retain_freq_lock) active_modem->tx_frequency = save_freq;
 	trx_state = STATE_RX;
-//	REQ(&waterfall::opmode, wf);
-//	REQ(set599);
 	REQ(update_displays);
 
 	if (old_modem) {
