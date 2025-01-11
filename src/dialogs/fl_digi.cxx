@@ -990,6 +990,7 @@ static Fl_Menu_Item quick_change_thor[] = {
 	{ mode_info[MODE_THOR16].name, 0, cb_init_mode, (void *)MODE_THOR16 },
 	{ mode_info[MODE_THOR22].name, 0, cb_init_mode, (void *)MODE_THOR22 },
 
+	{ mode_info[MODE_THOR25].name, 0, cb_init_mode, (void *)MODE_THOR25 },
 	{ mode_info[MODE_THOR32].name, 0, cb_init_mode, (void *)MODE_THOR32 },
 	{ mode_info[MODE_THOR44].name, 0, cb_init_mode, (void *)MODE_THOR44 },
 	{ mode_info[MODE_THOR56].name, 0, cb_init_mode, (void *)MODE_THOR56 },
@@ -1852,7 +1853,7 @@ void init_modem(trx_mode mode, int freq)
         
 	case MODE_THORMICRO: case MODE_THOR4: case MODE_THOR5: case MODE_THOR8:
 	case MODE_THOR11:case MODE_THOR16: case MODE_THOR22:
-	case MODE_THOR32: case MODE_THOR44: case MODE_THOR56:
+	case MODE_THOR25: case MODE_THOR32: case MODE_THOR44: case MODE_THOR56:
 	case MODE_THOR25x4: case MODE_THOR50x1: case MODE_THOR50x2: case MODE_THOR100:
 		startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
 				  *mode_info[mode].modem = new thor(mode), freq);
@@ -2387,7 +2388,7 @@ void cb_mnuConfigModems(Fl_Menu_*, void*) {
 			break;
 		case MODE_THORMICRO: case MODE_THOR4: case MODE_THOR5: case MODE_THOR8:
 		case MODE_THOR11: case MODE_THOR16: case MODE_THOR22:
-		case MODE_THOR32: case MODE_THOR44: case MODE_THOR56:
+		case MODE_THOR25: case MODE_THOR32: case MODE_THOR44: case MODE_THOR56:
 		case MODE_THOR25x4: case MODE_THOR50x1: case MODE_THOR50x2: case MODE_THOR100:
 			open_config(TAB_THOR);
 			break;
@@ -6188,6 +6189,7 @@ Fl_Menu_Item menu_[] = {
 { mode_info[MODE_THOR16].name, 0, cb_init_mode, (void *)MODE_THOR16, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR22].name, 0, cb_init_mode, (void *)MODE_THOR22, 0, FL_NORMAL_LABEL, 0, 14, 0},
 
+{ mode_info[MODE_THOR25].name, 0, cb_init_mode, (void *)MODE_THOR25, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR32].name, 0, cb_init_mode, (void *)MODE_THOR32, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR44].name, 0, cb_init_mode, (void *)MODE_THOR44, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR56].name, 0, cb_init_mode, (void *)MODE_THOR56, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -7825,6 +7827,7 @@ static Fl_Menu_Item alt_menu_[] = {
 { mode_info[MODE_THOR16].name, 0, cb_init_mode, (void *)MODE_THOR16, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR22].name, 0, cb_init_mode, (void *)MODE_THOR22, 0, FL_NORMAL_LABEL, 0, 14, 0},
 
+{ mode_info[MODE_THOR25].name, 0, cb_init_mode, (void *)MODE_THOR25, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR32].name, 0, cb_init_mode, (void *)MODE_THOR32, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR44].name, 0, cb_init_mode, (void *)MODE_THOR44, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR56].name, 0, cb_init_mode, (void *)MODE_THOR56, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -9472,7 +9475,7 @@ void resetTHOR() {
 	trx_mode md = active_modem->get_mode();
 	if (md == MODE_THORMICRO || md == MODE_THOR4 || md == MODE_THOR5 || md == MODE_THOR8 ||
 		md == MODE_THOR11 ||
-		md == MODE_THOR16 || md == MODE_THOR22 ||
+		md == MODE_THOR16 || md == MODE_THOR22 || md == MODE_THOR25 ||
 		md == MODE_THOR32 || md == MODE_THOR44 || md == MODE_THOR56 ||
 		md == MODE_THOR25x4 || md == MODE_THOR50x1 ||
 		md == MODE_THOR50x2 || md == MODE_THOR100 )

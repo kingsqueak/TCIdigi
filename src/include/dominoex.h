@@ -67,7 +67,6 @@ protected:
 // common variables
 	double	phase[MAXFFTS + 1];
 	double	txphase;
-	int		symlen;
 	int		doublespaced;
 	double	tonespacing;
 	int		counter;

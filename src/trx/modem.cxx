@@ -223,6 +223,7 @@ modem *thor8_modem = 0;
 modem *thor11_modem = 0;
 modem *thor16_modem = 0;
 modem *thor22_modem = 0;
+modem *thor25_modem = 0;
 modem *thor32_modem = 0;
 modem *thor44_modem = 0;
 modem *thor56_modem = 0;
@@ -297,6 +298,8 @@ modem::modem()
 
 	CW_EOT = false;
 	sig_start = sig_stop = false;
+	sig_smpl = 0;
+	symlen = 1;
 }
 
 // modem types CW and RTTY do not use the base init()
@@ -606,16 +609,32 @@ void modem::ModulateXmtr(double *buffer, int len)
 		audio_alert->monitor(buffer, len, samplerate, progdefaults.mon_tx_vol / 100.0 );
 	}
 
-	int num = len / 16;
-	if (sig_start) {
-		for (int i = 0; i < num; i++)
-			buffer[i] *= (0.5 * (1.0 - cos (M_PI * i / num)));
-		sig_start = false;
+	int num = ( (samplerate * progdefaults.SoftStart / 1000) / symlen + 1) * symlen;
+
+	if (sig_start && sig_smpl < num) {
+		for (int i = 0; i < len; i++) {
+			double coeff = (0.5 * (1.0 - cos (M_PI * sig_smpl / num)));;
+			buffer[i] *= coeff;
+			++sig_smpl;
+			if (sig_smpl >= num) {
+				sig_smpl = 0;
+				sig_start = false;
+				break;
+			}
+		}
 	}
-	if (sig_stop) {
-		for (int i = 0; i < num; i++)
-			buffer[len - i - 1] *= (0.5 * (1.0 - cos (M_PI * i / num)));
-		sig_stop = false;
+
+	if (sig_stop && sig_smpl < num) {
+		for (int i = 0; i < len; i++) {
+			double coeff = 1.0 - (0.5 * (1.0 - cos (M_PI * sig_smpl / num)));;
+			buffer[i] *= coeff;
+			++sig_smpl;
+			if (sig_smpl >= num) {
+				sig_smpl = 0;
+				sig_stop = false;
+				break;
+			}
+		}
 	}
 
 	if (progdefaults.PTTrightchannel) {

@@ -712,13 +712,15 @@ void dominoex::sendsecondary()
 
 void dominoex::flushtx()
 {
-//	if (progdefaults.DOMINOEX_FEC)
-//		MuPskFlushTx();
-//	else {
 // flush the varicode decoder at the receiver end
 		for (int i = 0; i < 4; i++)
 			sendidle();
-//	}
+
+	if (progdefaults.softDOMINOEX) {
+		sig_stop = true;
+		sendtone( 0, (samplerate * progdefaults.SoftStart / 1000) / symlen + 1 );
+	}
+
 }
 
 int dominoex::tx_process()
@@ -730,6 +732,7 @@ int dominoex::tx_process()
 	case TX_STATE_PREAMBLE:
 		if (progdefaults.DOMINOEX_FEC)
 			MuPskClearbits();
+		if (progdefaults.softDOMINOEX) sig_start = true;
 		sendidle();
 		txstate = TX_STATE_START;
 		break;

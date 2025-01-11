@@ -62,8 +62,11 @@ protected:
 	int		samplerate;
 	bool	reverse;
 	int		sigsearch;
+
 	bool	sig_start;
 	bool	sig_stop;
+	int		sig_smpl;
+	int		symlen;
 
 	double	bandwidth;
 	double	freqerr;
@@ -485,6 +488,7 @@ extern modem *thor11_modem;
 extern modem *thor16_modem;
 extern modem *thor22_modem;
 
+extern modem *thor25_modem;
 extern modem *thor32_modem;
 extern modem *thor44_modem;
 extern modem *thor56_modem;

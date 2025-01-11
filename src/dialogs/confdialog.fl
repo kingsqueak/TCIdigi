@@ -505,7 +505,7 @@ static const char szProsigns[] = "~|%|&|+|=|{|}|<|>|[|]| ";} {}
     label {Fldigi configuration} open
     xywh {1057 93 800 380} type Double color 45 selection_color 51 labelsize 18 align 80 resizable size_range {750 380 0 380} visible
   } {
-    Fl_Group {} {open
+    Fl_Group {} {
       xywh {0 0 201 380} resizable
     } {
       Fl_Tree tab_tree {
@@ -516,7 +516,7 @@ static const char szProsigns[] = "~|%|&|+|=|{|}|<|>|[|]| ";} {}
         code2 {o->connectorstyle(FL_TREE_CONNECTOR_DOTTED); // default is NONE on Mac}
         code3 {o->connectorwidth(15); // default is 17}
       }
-      Fl_Group {} {open
+      Fl_Group {} {
         xywh {0 350 201 30}
       } {
         Fl_Group {} {open
@@ -3513,6 +3513,64 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
+      label {Modem/General}
+      xywh {200 0 600 350} box FLAT_BOX align 21 hide
+      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/General"));}
+      code1 {config_pages.push_back(p);}
+      code2 {tab_tree->add(_("Modem/General"));}
+    } {
+      Fl_Counter cntSoftStart {
+        label {Raised cosine start up shape}
+        callback {progdefaults.SoftStart = o->value();
+progdefaults.changed = true;}
+        tooltip {Shape leading edge of modem signal using raised cosine shap
+Value in milliseconds.} xywh {375 89 150 22} align 8 minimum 0 maximum 500 step 1 value 100
+        code0 {o->value(progdefaults.SoftStart);}
+        code1 {o->labelsize(FL_NORMAL_SIZE);}
+        code2 {o->lstep(10);}
+      }
+      Fl_Group {} {
+        label {Enable for Respective Modes} open
+        xywh {239 164 501 134} box ENGRAVED_FRAME align 17
+      } {
+        Fl_Check_Button btn_softPSK {
+          label PSK
+          callback {progdefaults.softPSK = o->value();
+progdefaults.changed = true;}
+          tooltip {Enable for leading edge only!} xywh {330 206 70 15} down_box DOWN_BOX
+          code0 {o->value(progdefaults.softPSK);}
+        }
+        Fl_Check_Button btn_softMFSK {
+          label MFSK
+          callback {progdefaults.softMFSK = o->value();
+progdefaults.changed = true;}
+          tooltip {Enable for leading and trailing edge.} xywh {450 206 70 15} down_box DOWN_BOX
+          code0 {o->value(progdefaults.softMFSK);}
+        }
+        Fl_Check_Button btn_softRTTY {
+          label RTTY
+          callback {progdefaults.softRTTY = o->value();
+progdefaults.changed = true;}
+          tooltip {Enable for leading and trailing edge.} xywh {571 206 70 15} down_box DOWN_BOX
+          code0 {o->value(progdefaults.softRTTY);}
+        }
+        Fl_Check_Button btn_softTHOR {
+          label THOR
+          callback {progdefaults.softTHOR = o->value();
+progdefaults.changed = true;}
+          tooltip {Enable for leading and trailing edge.} xywh {450 240 70 15} down_box DOWN_BOX
+          code0 {o->value(progdefaults.softTHOR);}
+        }
+        Fl_Check_Button btn_softDOMINOEX {
+          label DOMINOEX
+          callback {progdefaults.softDOMINOEX = o->value();
+progdefaults.changed = true;}
+          tooltip {Enable for leading and trailing  edge} xywh {330 240 70 15} down_box DOWN_BOX
+          code0 {o->value(progdefaults.softDOMINOEX);}
+        }
+      }
+    }
+    Fl_Group {} {
       label {Modem/CW/General}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/CW/General"));}
@@ -6032,7 +6090,7 @@ Operator avatar}
       }
     }
     Fl_Group {} {
-      label {Modem/MFSK} open selected
+      label {Modem/MFSK}
       xywh {200 0 600 350} box FLAT_BOX hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/MFSK"));}
       code1 {config_pages.push_back(p);}
@@ -6046,6 +6104,7 @@ progdefaults.changed = true;}
 and greater noise immunity} xywh {360 160 100 22} align 8 minimum 2 maximum 200 step 1 value 32
         code0 {o->value(progdefaults.mfsk_avg);}
         code1 {o->labelsize(FL_NORMAL_SIZE);}
+        code2 {o->lstep(10);}
       }
     }
     Fl_Group {} {
@@ -6396,7 +6455,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/SCAMP} open
+      label {Modem/SCAMP}
       xywh {200 0 600 350} box FLAT_BOX hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/SCAMP"));}
       code1 {config_pages.push_back(p);}
@@ -7347,7 +7406,7 @@ WKFSK_init();} open
       }
     }
     Fl_Group {} {
-      label {Modem/Thor}
+      label {Modem/Thor} open selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/Thor"));}
       code1 {config_pages.push_back(p);}
@@ -7357,7 +7416,7 @@ WKFSK_init();} open
         label {Secondary Text}
         callback {progdefaults.THORsecText = o->value();
 progdefaults.changed = true;}
-        tooltip {Text to send during keyboard idle times} xywh {245 51 430 40} type Multiline align 5 when 1
+        tooltip {Text to send during keyboard idle times} xywh {245 43 430 40} type Multiline align 5 when 1
         code0 {txtTHORSecondary->labelsize(FL_NORMAL_SIZE);}
         class Fl_Input2
       }
@@ -7366,7 +7425,7 @@ progdefaults.changed = true;}
         callback {progdefaults.THOR_FILTER = o->value();
 resetTHOR();
 progdefaults.changed = true;}
-        tooltip {Enable DSP prior to decoder} xywh {245 105 80 20} down_box DOWN_BOX value 1
+        tooltip {Enable DSP prior to decoder} xywh {245 96 81 20} down_box DOWN_BOX value 1
         code0 {o->value(progdefaults.THOR_FILTER);}
       }
       Fl_Counter valTHOR_BW {
@@ -7374,7 +7433,7 @@ progdefaults.changed = true;}
         callback {progdefaults.THOR_BW = o->value();
 resetTHOR();
 progdefaults.changed = true;}
-        tooltip {Filter bandwidth relative to signal width} xywh {390 105 63 20} type Simple align 8 minimum 1 maximum 2 value 1.5
+        tooltip {Filter bandwidth relative to signal width} xywh {345 96 63 20} type Simple align 8 minimum 1 maximum 2 value 1.5
         code0 {o->value(progdefaults.THOR_BW);}
         code1 {o->labelsize(FL_NORMAL_SIZE);}
         class Fl_Counter2
@@ -7383,7 +7442,7 @@ progdefaults.changed = true;}
         label {CWI threshold}
         callback {progdefaults.ThorCWI = o->value();
 progdefaults.changed = true;}
-        tooltip {CWI detection and suppression} xywh {245 158 260 20} type Horizontal align 1 textsize 14
+        tooltip {CWI detection and suppression} xywh {245 126 260 20} type Horizontal align 8 textsize 14
         code0 {o->value(progdefaults.ThorCWI);}
         code1 {o->labelsize(FL_NORMAL_SIZE); o->textsize(FL_NORMAL_SIZE);}
         class Fl_Value_Slider2
@@ -7393,7 +7452,7 @@ progdefaults.changed = true;}
         callback {progdefaults.THOR_PREAMBLE = o->value();
 progdefaults.changed = true;}
         tooltip {Detect the THOR preamble
-Clear the Rx pipeline} xywh {245 200 200 20} down_box DOWN_BOX
+Clear the Rx pipeline} xywh {245 157 190 20} down_box DOWN_BOX
         code0 {o->value(progdefaults.THOR_PREAMBLE);}
       }
       Fl_Check_Button valTHOR_SOFTSYMBOLS {
@@ -7401,7 +7460,7 @@ Clear the Rx pipeline} xywh {245 200 200 20} down_box DOWN_BOX
         callback {progdefaults.THOR_SOFTSYMBOLS = o->value();
 progdefaults.changed = true;}
         tooltip {Use soft-decision decoding for symbol detection
-Assists soft-bit decoding} xywh {245 230 190 20} down_box DOWN_BOX
+Assists soft-bit decoding} xywh {245 188 190 20} down_box DOWN_BOX
         code0 {o->value(progdefaults.THOR_SOFTSYMBOLS);}
       }
       Fl_Check_Button valTHOR_SOFTBITS {
@@ -7409,26 +7468,43 @@ Assists soft-bit decoding} xywh {245 230 190 20} down_box DOWN_BOX
         callback {progdefaults.THOR_SOFTBITS = o->value();
 progdefaults.changed = true;}
         tooltip {Use soft-bit viterbi decoding for better Forward Error Correction
-Works best with soft-symbol decoding enabled} xywh {245 260 170 20} down_box DOWN_BOX
+Works best with soft-symbol decoding enabled} xywh {245 218 190 20} down_box DOWN_BOX
         code0 {o->value(progdefaults.THOR_SOFTBITS);}
       }
+      Fl_Check_Button btnTHOR_DEBUG {
+        label {Enable debug events}
+        callback {progStatus.thordebug = o->value();}
+        xywh {245 249 190 20} down_box DOWN_BOX
+        code0 {o->value(progStatus.thordebug);}
+      }
       Fl_Counter valTHOR_PATHS {
-        label {Paths (hidden)}
+        label {Rx Paths}
         callback {progdefaults.THOR_PATHS = (int)o->value();
 progdefaults.changed = true;}
-        xywh {255 314 75 21} type Simple align 1 minimum 4 maximum 8 step 1 value 5
+        tooltip {Larger number provides wider capture range.
+Smaller gives reduced cpu usage and improves CWI capture.} xywh {245 280 75 21} type Simple align 8 minimum 1 maximum 8 step 1 value 5
         code0 {o->value(progdefaults.THOR_PATHS);}
         code1 {o->labelsize(FL_NORMAL_SIZE);}
-        code2 {o->hide();}
         class Fl_Counter2
       }
-      Fl_Box thor_image_box {
+      Fl_Counter valTHOR_RISETIME {
+        label {Tx tone risetime (msec)}
+        callback {progdefaults.THOR_RISETIME = o->value();
+progdefaults.changed = true;}
+        tooltip {Tone shaping with raised cosine waveform
+Similar to CW shaping.} xywh {245 312 100 21} align 8 minimum 0 maximum 8 value 4
+        code0 {o->value(progdefaults.THOR_RISETIME);}
+        code1 {o->labelsize(FL_NORMAL_SIZE);}
+        code2 {o->lstep(1.0);}
+        class Fl_Counter2
+      }
+      Fl_Group thor_image_box {
         label {
 Operator Avatar}
-        xywh {616 158 59 74} box FLAT_BOX color 0 align 2
+        xywh {668 151 59 74} box FLAT_BOX color 32 align 2
         code0 {init_def_thor_avatar(o);}
         class Fl_Group
-      }
+      } {}
     }
     Fl_Group {} {
       label {Modem/Navtex}
@@ -12169,7 +12245,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Waterfall/FFT Processing} open
+      label {Waterfall/FFT Processing}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Waterfall/FFT Processing"));}
       code1 {config_pages.push_back(p);}

@@ -325,6 +325,7 @@ status progStatus = {
 
 	false,			// 	bool	useCW_KEYLINE;
 
+	false,			//	bool	thordebug;
 //----------------------------------------------------------------------
 // FMT saved controls
 	1500.0,			// double	FMT_ref_freq;
@@ -754,6 +755,8 @@ if (!bWF_only) {
 
 	spref.set("useCW_KEYLINE", useCW_KEYLINE);
 
+	spref.set("thordebug", thordebug);
+	
 //----------------------------------------------------------------------
 // FMT saved controls
 	spref.set("int_FMT_ref_freq", (int)round(FMT_ref_freq * 1000));
@@ -1116,6 +1119,8 @@ void status::loadLastState()
 	spref.get("nanoFSK_online", i, nanoFSK_online); nanoFSK_online = i;
 
 	spref.get("useCW_KEYLINE", i, useCW_KEYLINE); useCW_KEYLINE = i;
+
+	spref.get("thordebug", i, thordebug); thordebug = i;
 
 //----------------------------------------------------------------------
 // FMT saved controls

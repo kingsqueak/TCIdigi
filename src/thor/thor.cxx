@@ -52,8 +52,8 @@
 #include "debug.h"
 
 // Enable to enable profiling output for the soft-decision decoder
-#define SOFTPROFILE false
-//#define SOFTPROFILE true
+//#define SOFTPROFILE false
+#define SOFTPROFILE true
 
 static char thormsg[80];
 static char confidence[80];
@@ -106,7 +106,8 @@ void thor::rx_init()
 
 void thor::reset_filters()
 {
-//LOG_INFO("%s", "Reset filters");
+	if (progStatus.thordebug)
+		LOG_INFO("%s", "Reset filters");
 // fft filter at first IF frequency
 	if (fft)
 	fft->create_filter( (THORFIRSTIF - 0.5 * progdefaults.THOR_BW * bandwidth) / samplerate,
@@ -131,23 +132,27 @@ void thor::reset_filters()
 
 	numbins = hitone - lotone;
 
-//LOG_INFO("MAX ARRAY SIZE %d, paths %d, numbins %d, array_size %d", MAXPATHS, paths, numbins, numbins * paths);
+	if (progStatus.thordebug)
+		LOG_INFO("MAX ARRAY SIZE %d, paths %d, numbins %d, array_size %d", MAXPATHS, paths, numbins, numbins * paths);
 
 	for (int i = 0; i < paths; i++) {
 		if (binsfft[i]) delete binsfft[i];
 		binsfft[i] = new sfft (symlen, lotone, hitone);
 	}
-//LOG_INFO("binsfft(%d) initialized", paths);
+	if (progStatus.thordebug)
+		LOG_INFO("binsfft(%d) initialized", paths);
 
 	for (int i = 0; i < THORSCOPESIZE; i++) {
 		if (vidfilter[i]) delete vidfilter[i];
 		vidfilter[i] = new Cmovavg(16);
 	}
-//LOG_INFO("vidfilter(%d) initialized", THORSCOPESIZE);
+	if (progStatus.thordebug)
+		LOG_INFO("vidfilter(%d) initialized", THORSCOPESIZE);
 
 	if (syncfilter) delete syncfilter;
 	syncfilter = new Cmovavg(8);
-//LOG_INFO("%s", "syncfilter initialized");
+	if (progStatus.thordebug)
+		LOG_INFO("%s", "syncfilter initialized");
 
 	filter_reset = false;
 }
@@ -159,7 +164,8 @@ void thor::restart()
 
 void thor::init()
 {
-//LOG_INFO("%s", "thor::init");
+	if (progStatus.thordebug)
+		LOG_INFO("%s", "thor::init");
 	modem::init();
 
 	if (progdefaults.StartAtSweetSpot)
@@ -224,6 +230,7 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 		symlen = 2048;
 		doublespaced = 2;
 		samplerate = 11025;
+		flushlength = 4;
 		break;
 
 	case MODE_THOR11:
@@ -231,6 +238,7 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 		symlen = 1024;
 		doublespaced = 1;
 		samplerate = 11025;
+		flushlength = 8;
 		break;
 
 	case MODE_THOR22:
@@ -238,6 +246,7 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 		symlen = 512;
 		doublespaced = 1;
 		samplerate = 11025;
+		flushlength = 16;
 		break;
 
 	case MODE_THOR44:
@@ -249,13 +258,13 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 
 // 8kHz modes
 	case MODE_THORMICRO:
-		symlen = 4000; 
+		symlen = 4000;
 		doublespaced = 1;
 		samplerate = 8000;
-        idepth = 4;
+		idepth = 4;
 		break;
-    
-    case MODE_THOR4:
+
+	case MODE_THOR4:
 		symlen = 2048;
 		doublespaced = 2;
 		samplerate = 8000;
@@ -265,6 +274,32 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 		symlen = 1024;
 		doublespaced = 2;
 		samplerate = 8000;
+		break;
+
+	default:
+	case MODE_THOR16:
+		cap |= CAP_IMG;
+		symlen = 512;
+		doublespaced = 1;
+		samplerate = 8000;
+		flushlength = 8;
+		break;
+
+	case MODE_THOR25:
+		cap |= CAP_IMG;
+		symlen = 320;
+		doublespaced = 1;
+		samplerate = 8000;
+		idepth = 25; // 1 sec interleave 25;
+		flushlength = 20;
+		break;
+
+	case MODE_THOR32:
+		cap |= CAP_IMG;
+		symlen = 256;
+		doublespaced = 1;
+		samplerate = 8000;
+		flushlength = 20;
 		break;
 
 	case MODE_THOR25x4:
@@ -299,13 +334,6 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 		flushlength = 40;
 		break;
 
-	case MODE_THOR32:
-		cap |= CAP_IMG;
-		symlen = 256;
-		doublespaced = 1;
-		samplerate = 8000;
-		break;
-
 // 16000 samplerate modes
 
 	case MODE_THOR56:
@@ -313,16 +341,11 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 		symlen = 290;
 		doublespaced = 1;
 		samplerate = 16000;
+		flushlength = 20;
 		break;
 
 // default mode
 
-	case MODE_THOR16:
-	default:
-		cap |= CAP_IMG;
-		symlen = 512;
-		doublespaced = 1;
-		samplerate = 8000;
 	}
 
 	tonespacing = 1.0 * samplerate * doublespaced / symlen;
@@ -334,8 +357,8 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 
 // fft filter at first if frequency
 	fft = new fftfilt( (THORFIRSTIF - 0.5 * progdefaults.THOR_BW * bandwidth) / samplerate,
-	                   (THORFIRSTIF + 0.5 * progdefaults.THOR_BW * bandwidth)/ samplerate,
-	                   1024 );
+					   (THORFIRSTIF + 0.5 * progdefaults.THOR_BW * bandwidth)/ samplerate,
+					   1024 );
 
 	basetone = (int)floor(THORBASEFREQ * symlen / samplerate + 0.5);
 
@@ -372,14 +395,15 @@ thor::thor(trx_mode md) : hilbert(0), fft(0), filter_reset(false)
 
 	prev1symbol = prev2symbol = 0;
 
-	if ( mode == MODE_THOR100 || mode == MODE_THOR50x1 || mode == MODE_THOR50x2 || mode == MODE_THOR25x4 ) {
+	if ( mode == MODE_THOR100 || mode == MODE_THOR50x1 || mode == MODE_THOR50x2 || 
+		 mode == MODE_THOR25  || mode == MODE_THOR25x4 ) {
 		Enc = new encoder (THOR_K15, K15_POLY1, K15_POLY2);
 		Dec = new viterbi (THOR_K15, K15_POLY1, K15_POLY2);
 		Dec->settraceback (15 * 12); // Long constraint length codes require longer traceback
 	} else {
 		Enc = new encoder (THOR_K, THOR_POLY1, THOR_POLY2);
 		Dec = new viterbi (THOR_K, THOR_POLY1, THOR_POLY2);
-		Dec->settraceback (45); 
+		Dec->settraceback (45);
 	}
 	Txinlv = new interleave (isize, idepth, INTERLEAVE_FWD);
 	Rxinlv = new interleave (isize, idepth, INTERLEAVE_REV);
@@ -515,12 +539,12 @@ void thor::decodePairs(unsigned char symbol)
 		return;
 
 	// differential modem, running average of FEC confidence
-	static int fec_confidence; 
+	static int fec_confidence;
 	if(met < 255 / 2) fec_confidence -=  2 + fec_confidence / 2;
 	else fec_confidence += 2;
 	if (fec_confidence < 0) fec_confidence = 0;
 	if (fec_confidence > 100) fec_confidence = 100;
-	
+
 	// Update confidence value for later display in GUI
 	update_quality(fec_confidence);
 
@@ -604,9 +628,10 @@ void thor::softdecodesymbol()
 				return;
 			}
 		}
-#if SOFTPROFILE
+
+	if (progStatus.thordebug)
 		LOG_INFO("Symbol: %3d; DELTAf: +%3d",currsymbol, c);
-#endif
+
 	}
 	c -= 2;
 	if (c < 0) c += THORNUMTONES;
@@ -615,9 +640,8 @@ void thor::softdecodesymbol()
 	// Calculate soft-doppler / frequency-error of the symbol
 	// For a perfect & undistorted symbol, rawdoppler will == 0 (be a perfect multiple of paths*doublespaced)
 	rawdoppler = (currsymbol - prev1symbol) % (paths * doublespaced) ;
-#if SOFTPROFILE
-	LOG_INFO("Raw Doppler: %3d", rawdoppler);
-#endif
+	if (progStatus.thordebug)
+		LOG_INFO("Raw Doppler: %3d", rawdoppler);
 	if ( 0 == rawdoppler)
 		nowdoppler = 1.0f; // Perfect symbol: assign probability = 100%
 	else {
@@ -636,9 +660,8 @@ void thor::softdecodesymbol()
 	}
 
 	prev1rawdoppler = rawdoppler; // save raw-value for comparison on next run
-#if SOFTPROFILE
-	LOG_INFO("Doppler Confidence: %3.1f", nowdoppler);
-#endif
+	if (progStatus.thordebug)
+		LOG_INFO("Doppler Confidence: %3.1f", nowdoppler);
 
 // Since the THOR modem is differential, when an outofrange error occurs
 // there are 2 possibilities:
@@ -683,11 +706,11 @@ void thor::softdecodesymbol()
 		zero = static_cast<unsigned char>( 127-lastmag ); // never < 0
 	}
 
-#if SOFTPROFILE
-	if (outofrange) LOG_INFO("%s","outofrange");
-	if (staticburst) LOG_INFO("%s","staticburst");
-	LOG_INFO("next mag %.3d | now mag %.3d | last mag %.3d \n",nextmag, nowmag, lastmag);
-#endif
+	if (progStatus.thordebug) {
+		if (outofrange) LOG_INFO("%s","outofrange");
+		if (staticburst) LOG_INFO("%s","staticburst");
+		LOG_INFO("next mag %.3d | now mag %.3d | last mag %.3d \n",nextmag, nowmag, lastmag);
+	}
 
 	lastsymbols[3] = (lastc & 1) == 1 ? one : zero ; lastc /= 2;
 	lastsymbols[2] = (lastc & 1) == 1 ? one : zero ; lastc /= 2;
@@ -707,7 +730,7 @@ void thor::softdecodesymbol()
 
 int thor::harddecode()
 {
-	double x, max = 0.0;
+	double x;
 	int symbol = 0;
 	double avg = 0.0;
 	static bool cwi[MAXPATHS]; //[paths * numbins];
@@ -735,6 +758,8 @@ int thor::harddecode()
 		cwi[i] = (count == numtests);
 	}
 
+	max = 0.0;
+	min = 1.0e9;
 	for (int i = 0; i <  paths * numbins ; i++) {
 		if (cwi[i] == false) {
 			x = abs(pipe[pipeptr].vector[i]);
@@ -742,10 +767,13 @@ int thor::harddecode()
 				max = x;
 				symbol = i;
 			}
+			if (x < min) min = x;
 		} else
-LOG_DEBUG("cwi detected in bin %d", i);
-	}
 
+			if (progStatus.thordebug)
+				LOG_DEBUG("cwi detected in bin %d", i);
+	}
+//printf("max: %3f, min: %3f\n", max, min);
 	staticburst = (max / avg < 1.2);
 
 	return symbol;
@@ -841,9 +869,9 @@ bool thor::preambledetect(int c)
 // -16 does not reset the twos counter
 	if (-16 != c && 2 != c)
 		if (twocount > 1) twocount -= 2;
-#if SOFTPROFILE
-	LOG_INFO("[2count:pcheck] [%d:%d]",twocount, preamblecheck);
-#endif
+	if (progStatus.thordebug)
+		LOG_INFO("[2count:pcheck] [%d:%d]",twocount, preamblecheck);
+
 	if ( twocount > 4 && neg16seen ){
 		if ( ++preamblecheck > 4 ) return true;
 	}
@@ -855,9 +883,9 @@ bool thor::preambledetect(int c)
 // Flush the interleaver and convolutional decoder with punctures
 void thor::softflushrx()
 {
-#if SOFTPROFILE
-LOG_INFO("%s", "softflushrx()");
-#endif
+	if (progStatus.thordebug)
+		LOG_INFO("%s", "softflushrx()");
+
 	unsigned char puncture[2], flushsymbols[4];
 	puncture[0]=128;
 	puncture[1]=128;
@@ -876,7 +904,8 @@ void thor::update_syncscope()
 	double max = 0, min = 1e6, range, mag;
 
 	memset(videodata, 0, paths * numbins * sizeof(double));
-//LOG_INFO("%s", "cleared videodata");
+	if (progStatus.thordebug)
+		LOG_INFO("%s", "cleared videodata");
 	if (!progStatus.sqlonoff || metric >= progStatus.sldrSquelchValue) {
 		for (int i = 0; i < paths * numbins; i++ ) {
 			mag = abs(pipe[pipeptr].vector[i]);
@@ -937,33 +966,48 @@ void thor::synchronize()
 
 }
 
+struct snpair {float val; float s2n;};
+static snpair snvals [] = {
+{12.6, -9},
+{15.2, -6},
+{18.4, -3},
+{21.5, 0},
+{23.5, 3},
+{26.1, 6},
+{27.3, 9},
+{30.1, 12},
+{32.0, 16},
+{32.8, 20}
+};
+
 void thor::eval_s2n()
 {
-	double s = abs(pipe[pipeptr].vector[currsymbol]);
-	double n = (THORNUMTONES - 1) *
-				abs( pipe[(pipeptr + symlen) % twosym].vector[currsymbol]);
-
+	double s = abs( pipe[pipeptr].vector[currsymbol] );
+	double val;
+	double n = abs( pipe[(pipeptr + symlen) % twosym].vector[currsymbol]);
 	if (trx_state != STATE_RX) return;
 
-	sig = decayavg( sig, s, s - sig > 0 ? 4 : 20);
-	noise = decayavg( noise, n, 64);
+	sig = decayavg( sig, s, 128);//s - sig > 0 ? 4 : 48);
+	noise = decayavg( noise, n, 128);
 
 	if (noise == 0) noise = sig / 1000.0;
 
-	s2n = 20*log10(sig / noise);
+	val = 20*log10(sig / noise);
 
-	// To partially offset the increase of noise by (THORNUMTONES -1)
-	// in the noise calculation above,
-	// add 15*log10(THORNUMTONES -1) = 18.4, and multiply by 6
-	metric = 6 * (s2n + 18.4);
+	size_t i = 0;
+	for (i = 0; i < sizeof(snvals) / sizeof(*snvals) - 1; i++)
+		if (val >= snvals[i].val && val < snvals[i+1].val)
+			break;
+	s2n = (int)ceil(
+		snvals[i].s2n +
+		(snvals[i+1].s2n - snvals[i].s2n) * (val - snvals[i].val)/(snvals[i+1].val - snvals[i].val)
+			);
+
+	metric = CLAMP(3 * val, 0.0, 100.0);
 
 	if (progdefaults.Pskmails2nreport && (mailserver || mailclient)) {
-		// s2n reporting: re-calibrate
-		s2n_metric = metric * 2.5 - 70;
-		s2n_metric = CLAMP(s2n_metric, 0.0, 100.0);
+		s2n_metric = metric;
 	}
-
-	metric = metric < 0 ? 0 : metric > 100 ? 100 : metric;
 
 	display_metric(metric);
 
@@ -1115,10 +1159,9 @@ int thor::rx_process(const double *buf, int len)
 					if (--synccounter <= 0) {
 						synccounter = symlen;
 
+						currsymbol = harddecode();
 						if (progdefaults.THOR_SOFTSYMBOLS)
 							currsymbol = softdecode();
-						else
-							currsymbol = harddecode();
 
 						currmag = abs(pipe_pipeptr_vector[currsymbol]);
 						eval_s2n();
@@ -1162,26 +1205,38 @@ int thor::get_secondary_char()
 
 void thor::sendtone(int tone, int duration)
 {
-	double f, phaseincr;
-	f = (tone + 0.5) * tonespacing + get_txfreq_woffset() - bandwidth / 2;
-	phaseincr = TWOPI * f / samplerate;
+	double coeff = 1.0;
+	double f = (tone + 0.5) * tonespacing + get_txfreq_woffset() - bandwidth / 2;
+	double phaseincr = TWOPI * f / samplerate;
+	int num = round(samplerate * progdefaults.THOR_RISETIME / 1000.0);
+	int num2 = duration * symlen - num;
+	int smpl_nbr;
 	for (int j = 0; j < duration; j++) {
 		for (int i = 0; i < symlen; i++) {
-			outbuf[i] = cos(txphase);
+			smpl_nbr = i + j * symlen;
+			if ( progdefaults.THOR_RISETIME && ((smpl_nbr < num) || ( smpl_nbr > num2 ) ) ) {
+				// use raised cosine shaping of leading and trailing edges
+				coeff = (smpl_nbr < num) ?
+					0.5 * (1.0 - cos (M_PI * smpl_nbr / num)) :
+					(0.5 * (1.0 - cos (M_PI * (duration * symlen - smpl_nbr) / num)));
+			} else {
+				coeff = 1.0;
+			}
+			outbuf[i] = cos(txphase) * coeff;
 			txphase -= phaseincr;
 			if (txphase < 0) txphase += TWOPI;
 		}
 		ModulateXmtr(outbuf, symlen);
 	}
-}
+                                                                                                                                                         }
 
 void thor::sendsymbol(int sym)
 {
 	cmplx z;
-    int tone;
+	int tone;
 
 	tone = (txprevtone + 2 + sym) % THORNUMTONES;
-    txprevtone = tone;
+	txprevtone = tone;
 	if (reverse)
 		tone = (THORNUMTONES - 1) - tone;
 	sendtone(tone, 1);
@@ -1243,9 +1298,14 @@ void thor::flushtx()
 {
 // flush the varicode decoder at the other end
 // flush the convolutional encoder and interleaver
-  for (int i = 0; i < flushlength; i++) sendidle();
+	for (int i = 0; i < flushlength; i++) sendidle();
 
-  bitstate = 0;
+	if (progdefaults.softTHOR) {
+		sig_stop = true;
+		sendtone( 0, (samplerate * progdefaults.SoftStart / 1000) / symlen + 1 );
+	}
+
+	bitstate = 0;
 }
 
 static bool hide_after_sending = false;
@@ -1259,6 +1319,7 @@ int thor::tx_process()
 	switch (txstate) {
 	case TX_STATE_PREAMBLE:
 		Clearbits();
+		if (progdefaults.softTHOR) sig_start = true;
 
 		for (int j = 0; j < 16; j++) sendsymbol(0);
 
@@ -1267,10 +1328,10 @@ int thor::tx_process()
 		break;
 	case TX_STATE_START:
 		sendchar('\r', 0);
-        if (mode != MODE_THORMICRO) {
-            sendchar(2, 0);		// STX
-            sendchar('\r', 0);
-        }
+		if (mode != MODE_THORMICRO) {
+			sendchar(2, 0);		// STX
+			sendchar('\r', 0);
+		}
 			txstate = TX_STATE_DATA;
 		break;
 	case TX_STATE_DATA:
@@ -1295,21 +1356,25 @@ int thor::tx_process()
 		}
 		break;
 	case TX_STATE_END:
+		if (progdefaults.softTHOR) sig_start = false;
 		sendchar('\r', 0);
-        if (mode != MODE_THORMICRO) {
-            sendchar(4, 0);		// EOT
-            sendchar('\r', 0);
-        }
+		if (mode != MODE_THORMICRO) {
+			sendchar(4, 0);		// EOT
+			sendchar('\r', 0);
+		}
 		txstate = TX_STATE_FLUSH;
 		break;
 	case TX_STATE_FLUSH:
 		flushtx();
 		txstate = TX_STATE_RECEIVE;
+		if (progdefaults.softTHOR) sig_start = false;
+		if (progdefaults.softTHOR) sig_stop = false;
 		return -1;
 	case TX_STATE_IMAGE:
 		for (size_t n = 0; n < imageheader.length(); n++)
 			sendchar(imageheader[n], 0);
 		flushtx();
+		if (progdefaults.softTHOR) sig_start = false;
 		send_image();
 		if (hide_after_sending) thorpicTxWin->hide();
 		hide_after_sending = false;
@@ -1319,6 +1384,7 @@ int thor::tx_process()
 		for (size_t n = 0; n < avatarheader.length(); n++)
 			sendchar(avatarheader[n], 0);
 		flushtx();
+		if (progdefaults.softTHOR) sig_start = false;
 		send_avatar();
 		txstate = TX_STATE_DATA;
 		break;

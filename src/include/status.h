@@ -271,6 +271,9 @@ struct status {
 
 	bool	useCW_KEYLINE;
 
+// THOR debug state
+	bool	thordebug;
+
 //----------------------------------------------------------------------
 // FMT saved controls
 	double	FMT_ref_freq;

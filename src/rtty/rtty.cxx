@@ -326,7 +326,7 @@ void rtty::resetFSK() {
 			fsk_tty->dtr(true);
 		else
 			fsk_tty->rts(true);
-		sig_start = true;
+		if (progdefaults.softRTTY) sig_start = true;
 	}
 }
 
@@ -1035,7 +1035,7 @@ void rtty::flush_stream()
 		FSKbuf[i] = 0.0;
 	}
 
-	sig_stop = true;
+	if (progdefaults.softRTTY) sig_stop = true;
 	if (progdefaults.PseudoFSK)
 		ModulateStereo(outbuf, FSKbuf, symbollen * 6);
 	else
@@ -1179,7 +1179,7 @@ int rtty::tx_process()
 		if (c == GET_TX_CHAR_ETX || stopflag) {
 			stopflag = false;
 			stop_deadman();
-			sig_start = true;
+			if (progdefaults.softRTTY) sig_start = true;
 			return -1;
 		}
 
@@ -1188,12 +1188,6 @@ int rtty::tx_process()
 			return 0;
 		}
 
-//		if (sig_start) {
-//			int cltrs = 0x1F;
-//			send_FSK(cltrs);
-//			send_FSK(cltrs);
-//			sig_start = false;
-//		}
 		send_FSK(c);
 		put_echo_char(toupper(c));
 
@@ -1203,7 +1197,7 @@ int rtty::tx_process()
 	if (progStatus.nanoFSK_online) {
 		if (preamble) {
 			start_deadman();
-			sig_start = true;
+			if (progdefaults.softRTTY) sig_start = true;
 			for (int i = 0; i < progdefaults.TTY_LTRS; i++)
 				nano_send_char(-1);
 			preamble = false;
@@ -1284,7 +1278,7 @@ int rtty::tx_process()
 	}
 
 	if (preamble) {
-		sig_start = true;
+		if (progdefaults.softRTTY) sig_start = true;
 		for (int i = 0; i < progdefaults.TTY_LTRS; i++)
 			send_char(LETTERS);
 		preamble = false;

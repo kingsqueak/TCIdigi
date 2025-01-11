@@ -219,6 +219,24 @@
         ELEM_(bool, StartAtSweetSpot, "STARTATSWEETSPOT",                               \
               "Always start new modems at sweet spot frequencies",                      \
               true)                                                                     \
+        ELEM_(int, SoftStart, "SOFTSTART",                                              \
+              "(1 - cos(x)) shaping of signal start over SoftStart milliseconds",       \
+              100)                                                                      \
+        ELEM_(bool, softDOMINOEX, "SOFTDOMINOEX",                                       \
+              "Enable for DOMINOEX modems",                                             \
+              true)                                                                     \
+        ELEM_(bool, softPSK, "SOFTPSK",                                                 \
+              "Enable for PSK modems",                                                  \
+              false)                                                                    \
+        ELEM_(bool, softMFSK, "SOFTMFSK",                                               \
+              "Enable for MFSK modems",                                                 \
+              true)                                                                     \
+        ELEM_(bool, softRTTY, "SOFTRTTY",                                               \
+              "Enable for RTTY modems",                                                 \
+              false)                                                                    \
+        ELEM_(bool, softTHOR, "SOFTTHOR",                                               \
+              "Enable for THOR modems",                                                 \
+              true)                                                                     \
         ELEM_(bool, CWOffset, "CWOFFSET",                                               \
               "Select if waterfall should compensate for BFO offset in CW",             \
               false)                                                                    \
@@ -788,6 +806,9 @@
         ELEM_(int, THOR_PATHS, "THORPATHS",                                             \
               "This setting is currently unused",                                       \
               5)                                                                        \
+        ELEM_(double, THOR_RISETIME, "THOR_RISETIME",                                   \
+              "Leading/trailing edge raised cosine",                                    \
+              4.0)                                                                      \
         ELEM_(double, ThorCWI, "THORCWI",                                               \
               "CWI threshold (CWI detection and suppression)",                          \
               0.0)                                                                      \
