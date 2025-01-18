@@ -4474,7 +4474,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/CW/WinKeyer}
+      label {Modem/CW/WinKeyer} selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/CW/WinKeyer"));}
       code1 {config_pages.push_back(p);}
@@ -4693,10 +4693,10 @@ default = 0} xywh {713 257 64 22} type Simple
         xywh {210 317 291 25} box ENGRAVED_FRAME
       } {
         Fl_Check_Button btnK3NG {
-          label {K3NG Arduino sketch emulation}
+          label {K3NG sketch / microHAM}
           callback {progdefaults.WK_K3NGsketch = o->value();
 progdefaults.changed = true;}
-          tooltip {Activate for Mortty K3NG sketch} xywh {220 324 223 15} down_box DOWN_BOX
+          tooltip {Enable to bypass keyer echo test} xywh {220 324 223 15} down_box DOWN_BOX
           code0 {o->value(progdefaults.WK_K3NGsketch);}
         }
       }
@@ -6090,7 +6090,7 @@ Operator avatar}
       }
     }
     Fl_Group {} {
-      label {Modem/MFSK} open selected
+      label {Modem/MFSK} open
       xywh {200 0 600 350} box FLAT_BOX hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/MFSK"));}
       code1 {config_pages.push_back(p);}
@@ -7406,7 +7406,7 @@ WKFSK_init();} open
       }
     }
     Fl_Group {} {
-      label {Modem/Thor} open selected
+      label {Modem/Thor}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/Thor"));}
       code1 {config_pages.push_back(p);}

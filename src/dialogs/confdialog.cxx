@@ -13306,8 +13306,8 @@ ded Morse characters."));
       } // Fl_Group* o
       { Fl_Group* o = new Fl_Group(210, 317, 291, 25);
         o->box(FL_ENGRAVED_FRAME);
-        { Fl_Check_Button* o = btnK3NG = new Fl_Check_Button(220, 324, 223, 15, _("K3NG Arduino sketch emulation"));
-          btnK3NG->tooltip(_("Activate for Mortty K3NG sketch"));
+        { Fl_Check_Button* o = btnK3NG = new Fl_Check_Button(220, 324, 223, 15, _("K3NG sketch / microHAM"));
+          btnK3NG->tooltip(_("Enable to bypass keyer echo test"));
           btnK3NG->down_box(FL_DOWN_BOX);
           btnK3NG->callback((Fl_Callback*)cb_btnK3NG);
           o->value(progdefaults.WK_K3NGsketch);
