@@ -2777,7 +2777,7 @@ void cb_mnuBeginnersURL(Fl_Widget*, void*)
 void cb_mnuOnLineDOCS(Fl_Widget *, void *)
 {
 	std::string helpfile = HelpDir;
-	helpfile.append("fldigi-help/index.html");
+	helpfile.append("FldigiHelp/index.html");
 	std::ifstream f(helpfile.c_str());
 	if (!f) {
 		cb_mnuVisitURL(0, (void *)PACKAGE_DOCS);
@@ -2814,16 +2814,34 @@ inline int version_check(std::string v1, std::string v2) {
 static notify_dialog *latest_dialog = 0;
 void cb_mnuCheckUpdate(Fl_Widget *, void *)
 {
-	const char *url = "http://www.w1hkj.com/files/fldigi/";
+	const char *url = "https://www.w1hkj.org/files/fldigi/";
 
 	std::string version_str;
 	std::string reply;
+	std::string probable;
+	if (!latest_dialog) latest_dialog = new notify_dialog;
 
 	put_status(_("Checking for updates..."));
 
-	int ret = get_http(url, reply, 20.0);
-	if (!ret) {
-		put_status(_("Update site not available"), 10);
+	get_http(url, reply, 20.0);
+
+	if (reply.empty()) {
+		probable.assign(_("\
+Internet not available.\n\
+Please check your connection.\n"));
+		latest_dialog->notify(probable.c_str(), 30.0);
+		REQ(show_notifier, latest_dialog);
+		put_status("");
+		return;
+	}
+
+	if (reply.find("Index of /files/fldigi") == std::string::npos) {
+		probable.assign(_("\
+Update site not availabe.\n\
+Please check https://www.w1hkj.org/files/ with your browser.\n"));
+		latest_dialog->notify(probable.c_str(), 30.0);
+		REQ(show_notifier, latest_dialog);
+		put_status("");
 		return;
 	}
 
@@ -2833,21 +2851,23 @@ void cb_mnuCheckUpdate(Fl_Widget *, void *)
 	version_str = reply.substr(p2, p - p2);
 	int is_ok = version_check(std::string(PACKAGE_VERSION), version_str);
 
-	if (!latest_dialog) latest_dialog = new notify_dialog;
 	if (is_ok == 0) {
-		latest_dialog->notify(_("You are running the latest version"), 5.0);
+		latest_dialog->notify(_("You are running the latest version"), 15.0);
 		REQ(show_notifier, latest_dialog);
 	} else if (is_ok > 0) {
-		std::string probable;
-		probable.assign(_("You are probably running an alpha version "));
-		probable.append( PACKAGE_VERSION ).append(_("\nPosted version: "));
-		probable.append(version_str);
-		latest_dialog->notify(probable.c_str(), 5.0);
+		probable.assign(_("\
+You are probably using a development test version.\n\n\
+   In use: ")).append( PACKAGE_VERSION ).append(_("\n\
+   Posted: ")).append(version_str).append("\n");
+		latest_dialog->notify(probable.c_str(), 30.0);
 		REQ(show_notifier, latest_dialog);
-	} else
-		fl_message2(_("Version %s is available at Source Forge"),
-				  version_str.c_str());
-
+	} else {
+		probable.assign(_("Version ")).
+			append(version_str.c_str()).append(" ").
+			append(_("is available at Source Forge"));
+		latest_dialog->notify(probable.c_str(), 30.0);
+		REQ(show_notifier, latest_dialog);
+	}
 	put_status("");
 }
 

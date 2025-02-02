@@ -39,7 +39,7 @@ const char* szAbout =
 Fast and Light DIGItal modem program\n\
 </CENTER>\n\
 <P>\n\
-Copyright \251 2008-2014\n\
+Copyright \251 2008-2025\n\
 <P>\n\
 Distributed under the GNU General Public License version 3 or later.<br>\n\
 This is free software: you are free to change and redistribute it.<br>\n\

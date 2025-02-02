@@ -3,7 +3,7 @@
 // dominoex.cxx  --  DominoEX modem
 //
 // Copyright (C) 2008-20012
-//     David Freese   <w1hkj@w1hkj.com>
+//     David Freese   <w1hkj25@gmail.com>
 //     Hamish Moffatt <hamish@debian.org>
 //     John Phelps    <kl4yfd@gmail.com>
 //

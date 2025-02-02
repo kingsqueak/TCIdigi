@@ -1039,7 +1039,7 @@ void save_cloud_prefs()
 	std::string pref;
 
 #if FLDIGI_FLTK_API_MINOR < 4
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "cloud_fields");
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "cloud_fields");
 #else
 	Fl_Preferences spref(
 		std::string(HomeDir).c_str(),
@@ -1106,7 +1106,7 @@ void load_cloud_prefs()
 	std::string pref;
 
 #if FLDIGI_FLTK_API_MINOR < 4
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "cloud_fields");
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "cloud_fields");
 #else
 	Fl_Preferences spref(
 		std::string(HomeDir).c_str(),
@@ -1445,7 +1445,7 @@ void save_udp_prefs()
 	std::string pref;
 
 #if FLDIGI_FLTK_API_MINOR < 4
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "udp_fields");
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "udp_fields");
 #else
 	Fl_Preferences spref(
 		std::string(HomeDir).c_str(),
@@ -1512,7 +1512,7 @@ void load_udp_prefs()
 	std::string pref;
 
 #if FLDIGI_FLTK_API_MINOR < 4
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "udp_fields");
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "udp_fields");
 #else
 	Fl_Preferences spref(
 		std::string(HomeDir).c_str(),

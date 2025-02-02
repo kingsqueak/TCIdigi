@@ -249,7 +249,7 @@ class  KmlSrvImpl : public KmlServer {
 		void SerializeForReading( std::ostream & ostrm ) const {
 
 			/// Custom data elements for reading the content when restarting.
-			ostrm << "<ExtendedData xmlns:fldigi=\"http://www.w1hkj.com\">\n";
+			ostrm << "<ExtendedData xmlns:fldigi=\"https://www.w1hkj.org\">\n";
 
 			/// Print from the most recent event, which is at the end.
 			for( const_iterator itEvt = begin(), enEvt = end(); itEvt != enEvt; ++itEvt )

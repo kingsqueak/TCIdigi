@@ -2,7 +2,7 @@
 //    thor.h  --  thor modem
 //
 // Copyright (C) 2008-2012
-//     David Freese <w1hkj@w1hkj.com>
+//     David Freese <w1hkj25@gmail.com>
 //     John Douyere <vk2eta@gmail.com>
 //     John Phelps  <kl4yfd@gmail.com>
 //

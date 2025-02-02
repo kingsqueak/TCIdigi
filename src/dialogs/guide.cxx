@@ -747,7 +747,7 @@ asciidoc.install(1);\n\
 <div class=\"content\">\n\
 <div class=\"paragraph\"><p>Of necessity, this Beginners' Guide contains only as much as you need to know to\n\
 get started. You should learn how to make best use of the program by reading the\n\
-<a href=\"http://www.w1hkj.com/FldigiHelp/index.html\">Online Documentation</a>. You can also access it from within the Fldigi program from the <em>Help</em>\n\
+<a href=\"https://www.w1hkj.org/FldigiHelp/index.html\">Online Documentation</a>. You can also access it from within the Fldigi program from the <em>Help</em>\n\
 menu item.</p></div>\n\
 <div class=\"paragraph\"><p>You can install the entire html help system by downloading from Source Forge:</p></div>\n\
 <div class=\"paragraph\"><p><a href=\"https://sourceforge.net/projects/fldigi/files/fldigi-help.zip/download/\">https://sourceforge.net/projects/fldigi/files/fldigi-help.zip/download/</a></p></div>\n\
@@ -761,7 +761,7 @@ item \"Help / Online documentation&#8230;\" will then open the local copy of the
 <div class=\"sectionbody\">\n\
 <div class=\"sect2\">\n\
 <h3 id=\"_what_is_fldigi\">1.1. What is Fldigi?</h3>\n\
-<div class=\"paragraph\"><p><a href=\"http://www.w1hkj.com/Fldigi.html\">Fldigi</a> is a computer program intended for Amateur Radio Digital Modes\n\
+<div class=\"paragraph\"><p><a href=\"https://www.w1hkj.org/Fldigi.html\">Fldigi</a> is a computer program intended for Amateur Radio Digital Modes\n\
 operation using a PC (Personal Computer). Fldigi operates (as does most similar\n\
 software) in conjunction with a conventional HF SSB radio transceiver, and uses\n\
 the PC sound card as the main means of input from the radio, and output to the\n\
@@ -928,7 +928,7 @@ YII=\" />\n\
 <td class=\"content\">\n\
 <div class=\"paragraph\"><p>If your rig is CAT-capable but not yet supported by\n\
 <a href=\"http://www.hamlib.org/\">Hamlib</a>, it may still be possible to control it via\n\
-Fldigi&#8217;s <code>RigCAT</code> system.  Refer to the <a href=\"http://www.w1hkj.com/FldigiHelp/index.html\">Online Documentation</a> for details.</p></div>\n\
+Fldigi&#8217;s <code>RigCAT</code> system.  Refer to the <a href=\"https://www.w1hkj.org/FldigiHelp/index.html\">Online Documentation</a> for details.</p></div>\n\
 </td>\n\
 </tr></table>\n\
 </div>\n\
@@ -1295,7 +1295,7 @@ mode you used.</p></div>\n\
 chance of a QSO, and <em>(b)</em> is appropriate for the band, conditions, bandwidth\n\
 requirements and permissions relevant to your operating licence.</p></div>\n\
 <div class=\"paragraph\"><p>At the bottom of the list are two &#8220;modes&#8221; which aren&#8217;t modes at all, and do not\n\
-transmit (see <a href=\"http://www.w1hkj.com/FldigiHelp/index.html\">Online Documentation</a> for details). <em>WWV</em> mode allows you to receive a\n\
+transmit (see <a href=\"https://www.w1hkj.org/FldigiHelp/index.html\">Online Documentation</a> for details). <em>WWV</em> mode allows you to receive a\n\
 standard time signal so the beeps it transmits can be used for sound card\n\
 calibration. <em>Freq Analysis</em> provides just a waterfall display with a very\n\
 narrow cursor, and a frequency meter which indicates the received frequency in\n\
@@ -1426,7 +1426,7 @@ Hz) control the receiving frequency (they move the red cursor lines).</p></div>\
 <div class=\"paragraph\"><p>The <code>QSY</code> button moves the signal under the bandwidth cursor to a preset audio\n\
 frequency (typically, the centre of the transceiver&#8217;s passband). The Store\n\
 button allows you to store or recall the current frequency and mode. See the\n\
-<a href=\"http://www.w1hkj.com/FldigiHelp/index.html\">Online Documentation</a> for details on these functions.</p></div>\n\
+<a href=\"https://www.w1hkj.org/FldigiHelp/index.html\">Online Documentation</a> for details on these functions.</p></div>\n\
 <div class=\"paragraph\"><p>The <code>Lk</code> button locks the transmit frequency (and illuminates a green marker), and the\n\
 <code>Rv</code> button turns the signal decoding upside down (some modes are sideband\n\
 sensitive, and if they are the wrong way up, can&#8217;t be received\n\
@@ -2021,7 +2021,7 @@ stop.</p></div>\n\
 <div class=\"paragraph\"><div class=\"title\">Move Typing Cursor</div><p>Press <code>Tab</code> to move the cursor (typing insertion point) to the end of the\n\
 transmit buffer. This will also pause transmission. A <code>Tab</code> press at that\n\
 position moves the cursor back to the character following the last one\n\
-transmitted.  Morse operation is slightly different. See the <a href=\"http://www.w1hkj.com/FldigiHelp/index.html\">Online Documentation</a> for CW.</p></div>\n\
+transmitted.  Morse operation is slightly different. See the <a href=\"https://www.w1hkj.org/FldigiHelp/index.html\">Online Documentation</a> for CW.</p></div>\n\
 <div class=\"paragraph\"><div class=\"title\">Send Any ASCII Character</div><p>Press <code>Ctrl</code> and (at the same time) any three-digit number (on the numeric\n\
 keypad or the normal numeric keys) to insert the ASCII character designated by\n\
 that entry value into the transmit buffer. For example, <code>Ctrl 177</code> is &#8220;±&#8221;\n\
@@ -2039,7 +2039,7 @@ numeric keypad&#8217;s 0-9 the sequence will be discarded.</p></div>\n\
 <div id=\"footer\">\n\
 <div id=\"footer-text\">\n\
 Last updated\n\
- 2023-08-04 01:13:25 \n\
+ 2025-01-26 01:49:43 \n\
 </div>\n\
 <div id=\"footer-badges\">\n\
 <a href=\"https://validator.w3.org/check?uri=referer\">\n\

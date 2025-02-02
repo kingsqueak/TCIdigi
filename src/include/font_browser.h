@@ -3,7 +3,7 @@
 //
 //         for the Fast Light Tool Kit (FLTK) 1.1.x .
 //
-//    David Freese, w1hkj@w1hkj.com
+//    David Freese, w1hkj25@gmail.com
 //    based on similar widget by Mariwan Jalal
 //
 // ----------------------------------------------------------------------------

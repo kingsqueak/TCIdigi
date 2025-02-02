@@ -56,13 +56,13 @@ AC_CONFIG_MACRO_DIR([m4])
 
 FLDIGI_AUTHORS="Dave Freese, Stelios Bounanos, and others"
 FLARQ_AUTHORS="Dave Freese, Robert Stiles, and others"
-PACKAGE_HOME="http://www.w1hkj.com/Fldigi.html"
-PACKAGE_DL="http://www.w1hkj.com/download.html"
+PACKAGE_HOME="https://www.w1hkj.org/Fldigi.html"
+PACKAGE_DL="https://www.w1hkj.org/download.html"
 PACKAGE_PROJ="http://sourceforge.net/projects/fldigi/files/"
-PACKAGE_NEWBUG="https://fedorahosted.org/fldigi/newticket"
-PACKAGE_DOCS="http://www.w1hkj.com/FldigiHelp/index.html"
-PACKAGE_GUIDE="http://www.w1hkj.com/beginners.html"
-FLARQ_DOCS="http://www.w1hkj.com/FlarqHelpFiles/flarq.html"
+PACKAGE_NEWBUG=
+PACKAGE_DOCS="https://www.w1hkj.org/FldigiHelp/index.html"
+PACKAGE_GUIDE="https://www.w1hkj.org/beginners.html"
+FLARQ_DOCS="https://www.w1hkj.org/FlarqHelpFiles/flarq.html"
 AC_DEFINE_UNQUOTED([FLDIGI_AUTHORS], ["$FLDIGI_AUTHORS"], [Fldigi authors])
 AC_DEFINE_UNQUOTED([FLARQ_AUTHORS], ["$FLARQ_AUTHORS"], [Flarq authors])
 AC_DEFINE_UNQUOTED([PACKAGE_HOME], ["$PACKAGE_HOME"], [Home page])

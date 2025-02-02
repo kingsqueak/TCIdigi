@@ -6,7 +6,7 @@
 //	Copyright (C) 2006
 //	Hamish Moffatt (hamish@debian.org)
 //	Copyright (C) 2006
-//		David Freese (w1hkj@w1hkj.com)
+//		David Freese (w1hkj25@gmail.com)
 //
 // Fldigi is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

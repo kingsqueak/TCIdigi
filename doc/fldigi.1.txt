@@ -441,14 +441,14 @@ getaddrinfo(3), getopt(3), regex(7), X(7)
 
 
 == RESOURCES ==
-Main web site: http://www.w1hkj.com/Fldigi.html
+Main web site: https://www.w1hkj.org/Fldigi.html
 
 Sourceforge project page: http://sourceforge.net/projects/fldigi/
 
 Wiki and bug tracker: https://fedorahosted.org/fldigi/
 
 More information on MFSK16, DominoEX and other digital modes can be found at
-http://www.qsl.net/zl1bpu/ and http://www.w1hkj.com/FldigiHelp/Modes/index.htm
+http://www.qsl.net/zl1bpu/ and https://www.w1hkj.org/FldigiHelp/Modes/index.htm
 
 The PSK Automatic Propagation Reporter site can be found at
 http://www.pskreporter.info/

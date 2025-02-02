@@ -169,9 +169,9 @@ void ModeBand::save_mode_state()
 	std::string pref;
 
 #if FLDIGI_FLTK_API_MINOR < 4
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "mode_state");
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "mode_state");
 #else
-	Fl_Preferences spref(std::string(HomeDir).append("fldigi.prefs").c_str(), "w1hkj.com", "mode_state", (Fl_Preferences::Root)0);
+	Fl_Preferences spref(std::string(HomeDir).append("fldigi.prefs").c_str(), "w1hkj.org", "mode_state", (Fl_Preferences::Root)0);
 #endif
 
 	spref.set("firstuse", 0);
@@ -201,9 +201,9 @@ void ModeBand::load_mode_state() {
 	std::string pref;
 
 #if FLDIGI_FLTK_API_MINOR < 4
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", "mode_state");
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "mode_state");
 #else
-	Fl_Preferences spref(std::string(HomeDir).append("fldigi.prefs").c_str(), "w1hkj.com", "mode_state", (Fl_Preferences::Root)0);
+	Fl_Preferences spref(std::string(HomeDir).append("fldigi.prefs").c_str(), "w1hkj.org", "mode_state", (Fl_Preferences::Root)0);
 #endif
 
 	spref.get("firstuse", firstuse, firstuse);

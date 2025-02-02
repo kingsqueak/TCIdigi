@@ -22,11 +22,11 @@ Beginners' Guide to Fldigi
 
 :revision: 3.11
 // Aliases
-:docsurl: http://www.w1hkj.com/FldigiHelp/index.html
-//:docszip: http://www.w1hkj.com/files/fldigi/fldigi-help.zip
+:docsurl: https://www.w1hkj.org/FldigiHelp/index.html
+//:docszip: https://www.w1hkj.org/files/fldigi/fldigi-help.zip
 :docszip: https://sourceforge.net/projects/fldigi/files/fldigi-help.zip/download/
 :docs: {docsurl}[Online Documentation]
-:home: http://www.w1hkj.com/Fldigi.html
+:home: https://www.w1hkj.org/Fldigi.html
 
 // This used to be a subsection titled "Where can I find detailed instructions
 // for Fldigi?"

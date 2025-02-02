@@ -496,7 +496,7 @@ void status::saveLastState()
 	int_squelch_value = 0;
 
 #if FLDIGI_FLTK_API_MINOR < 4
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", PACKAGE_TARNAME);
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", PACKAGE_TARNAME);
 #else
 	Fl_Preferences spref(
 		std::string(HomeDir).c_str(),
@@ -783,7 +783,7 @@ if (!bWF_only) {
 void status::loadLastState()
 {
 #if FLDIGI_FLTK_API_MINOR < 4
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", PACKAGE_TARNAME);
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", PACKAGE_TARNAME);
 #else
 	Fl_Preferences spref(
 		std::string(HomeDir).c_str(),

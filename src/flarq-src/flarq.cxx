@@ -728,7 +728,7 @@ void cbMenuConfig()
 
 void cbMenuAbout()
 {
-	fl_message2("flarq - ARQ client\nversion: %s\nw1hkj@@w1hkj.com", VERSION);
+	fl_message2("flarq - ARQ client\nversion: %s\nw1hkj25@gmail.com", VERSION);
 }
 
 std::string txhold = "";
@@ -1966,8 +1966,6 @@ int main (int argc, char *argv[] )
 	arqwin->show(argc, argv);
 
 #ifdef USE_X
-	// See https://groups.google.com/g/fltkgeneral/c/hcjV-rgjHWM
-	// read in the current window hints, then modify them to allow icon transparency
 
 	XWMHints* hints = XGetWMHints(fl_display, fl_xid(arqwin));
 	hints->flags |= IconMaskHint; // ensure transparency mask is enabled for the XPM icon
