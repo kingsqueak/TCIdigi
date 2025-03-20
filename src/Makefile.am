@@ -912,6 +912,7 @@ EXTRA_fldigi_SOURCES += \
 	include/squelch_status.h \
 	include/ui_colors.h \
 	include/vumeter.h \
+	include/scripts.h \
 	include/socket.h \
 	include/soundconf.h \
 	include/sound.h \

@@ -182,13 +182,11 @@
 
 #include "script_parsing.h"
 #include "run_script.h"
+#include "scripts.h"
 
 pthread_mutex_t mutex_script_io = PTHREAD_MUTEX_INITIALIZER;
 
 extern std::string ScriptsDir;
-
-void script_execute(void *);
-static void script_execute(const char *filename, bool queue_flag);
 
 /** ********************************************************
  * \brief Template for assigning bool values to various widget types.
@@ -2840,7 +2838,7 @@ int process_reset(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  * Called from the File->Execute Config Script menu item.
  * \param void
  ***********************************************************/
-static void script_execute(const char *filename, bool queue_flag)
+void script_execute(const char *filename, bool queue_flag)
 {
 
 	ScriptParsing *sp = 0;

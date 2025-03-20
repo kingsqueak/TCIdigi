@@ -125,6 +125,8 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 
 #include "cmedia.h"
 
+#include "scripts.h"
+
 #if BENCHMARK_MODE
 	#include "benchmark.h"
 #endif
@@ -179,6 +181,8 @@ string FLMSG_WRAP_auto_dir = "";
 string FLMSG_ICS_dir = "";
 string FLMSG_ICS_msg_dir = "";
 string FLMSG_ICS_tmp_dir = "";
+
+string RUN_SCRIPT = "";
 
 string PskMailFile;
 string ArqFilename;
@@ -781,6 +785,12 @@ void delayed_startup(void *)
 
 	reset_audio_alerts();
 #endif
+
+	if (!RUN_SCRIPT.empty()) {
+		Fl::lock();
+		script_execute(RUN_SCRIPT.c_str(), false);
+		Fl::unlock();
+	}
 
 }
 
@@ -1421,6 +1431,11 @@ void generate_option_help(void) {
 		 << "  --xmlrpc-list\n"
 		 << "    List all available methods\n\n"
 
+		 << "  --script FILENAME\n"
+		 << "    Execute the script file FILENAME\n"
+		 << "    where FILENAME is fully qualified pathname to the\n"
+		 << "    desired script file\n\n"
+
 #if BENCHMARK_MODE
 		 << "  --benchmark-modem ID\n"
 		 << "    Specify the modem\n"
@@ -1554,6 +1569,8 @@ int parse_args(int argc, char **argv, int& idx)
 		   OPT_NBEMS_DIR,
 		   OPT_AUTOSEND_DIR,
 
+		   OPT_SCRIPT,
+
 		   OPT_CONFIG_XMLRPC_ADDRESS, OPT_CONFIG_XMLRPC_PORT,
 		   OPT_CONFIG_XMLRPC_ALLOW, OPT_CONFIG_XMLRPC_DENY, OPT_CONFIG_XMLRPC_LIST,
 		   OPT_CONFIG_KISS_ADDRESS, OPT_CONFIG_KISS_PORT_IO, OPT_CONFIG_KISS_PORT_O,
@@ -1618,6 +1635,8 @@ int parse_args(int argc, char **argv, int& idx)
 #endif
 
 		{ "font",	   1, 0, OPT_FONT },
+
+		{ "script",  1, 0, OPT_SCRIPT },
 
 		{ "wfall-height",  1, 0, OPT_WFALL_HEIGHT },
 		{ "window-width",  1, 0, OPT_WINDOW_WIDTH },
@@ -1704,6 +1723,10 @@ int parse_args(int argc, char **argv, int& idx)
 
 		case OPT_AUTOSEND_DIR:
 			FLMSG_WRAP_auto_dir = optarg;
+			break;
+
+		case OPT_SCRIPT:
+			RUN_SCRIPT = optarg;
 			break;
 
 		case OPT_ENABLE_IO_PORT:
