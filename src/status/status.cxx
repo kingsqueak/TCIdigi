@@ -149,6 +149,7 @@ status progStatus = {
 	true,				// bool afconoff
 	true,				// bool sqlonoff
 	false,				// bool reverse
+	false,				// bool tx_lock
 	-12.0,				// double txlevel
 	50,					// int	scopeX;
 	50,					// int	scopeY;
@@ -516,6 +517,7 @@ void status::saveLastState()
 	spref.set("afc_enabled", afconoff);
 
 	spref.set("reverse", reverse);
+	spref.set("tx_lock", tx_lock);
 
 	spref.set("psk8DCDShortFlag", psk8DCDShortFlag);
 
@@ -827,6 +829,7 @@ void status::loadLastState()
 	spref.get("afc_enabled", i, afconoff); afconoff = i;
 
 	spref.get("reverse", i, reverse); reverse = i;
+	spref.get("tx_lock", i, tx_lock); tx_lock = i;
 
 //	spref.get("rx_text_height", RxTextHeight, RxTextHeight);
 	spref.get("tiled_group_x", tiled_group_x, tiled_group_x);

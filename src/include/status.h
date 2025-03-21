@@ -94,6 +94,7 @@ struct status {
 	bool	afconoff;
 	bool	sqlonoff;
 	bool	reverse;
+	bool	tx_lock;
 	double	txlevel;
 	int		scopeX;
 	int		scopeY;

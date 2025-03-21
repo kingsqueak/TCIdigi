@@ -334,6 +334,7 @@ void modem::set_freqlock(bool on)
 {
 	freqlock = on;
 	set_freq(frequency);
+	progStatus.tx_lock = on;
 }
 
 

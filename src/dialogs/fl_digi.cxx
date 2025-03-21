@@ -1589,35 +1589,7 @@ void startup_modem(modem* m, int f)
 	if (mode >= MODE_PSK_FIRST && mode <= MODE_PSK_LAST) {
 		m->set_sigsearch(SIGSEARCH);
 	}
-/*
-	if (progdefaults.sqlch_by_mode) {
-		progStatus.sldrSquelchValue = get_mode_squelch(mode);
-		progStatus.sqlonoff = get_mode_squelch_onoff(mode);
-		sldrSquelch->value(progStatus.sldrSquelchValue);
-		btnSQL->value(progStatus.sqlonoff);
-	}
 
-	if (progdefaults.txlevel_by_mode)
-		progStatus.txlevel = get_mode_txlevel(mode);
-	cntTxLevel->value(progStatus.txlevel);
-
-	if (progdefaults.afc_by_mode)
-		progStatus.afconoff = get_mode_afc(mode);
-
-	if (m->get_cap() & modem::CAP_AFC) {
-		btnAFC->value(progStatus.afconoff);
-		btnAFC->activate();
-	}
-	else {
-		btnAFC->value(0);
-		btnAFC->deactivate();
-	}
-
-	if (progdefaults.reverse_by_mode)
-		progStatus.reverse = get_mode_reverse(mode);
-	else
-		progStatus.reverse = wf->Reverse();
-*/
 	if (m->get_cap() & modem::CAP_REV) {
 		wf->btnRev->value(progStatus.reverse);
 		wf->btnRev->activate();
@@ -1627,6 +1599,8 @@ void startup_modem(modem* m, int f)
 		wf->btnRev->deactivate();
 	}
 
+	wf->xmtlock->value(progStatus.tx_lock);
+	wf->xmtlock->do_callback();
 }
 
 void cb_mnuOpenMacro(Fl_Menu_*, void*) {
