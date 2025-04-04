@@ -4474,7 +4474,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/CW/WinKeyer} selected
+      label {Modem/CW/WinKeyer}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/CW/WinKeyer"));}
       code1 {config_pages.push_back(p);}
@@ -6477,7 +6477,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Modem/TTY/Rx}
+      label {Modem/TTY/Rx} open selected
       xywh {200 0 600 350} box FLAT_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/TTY/Rx"));}
       code1 {config_pages.push_back(p);}
@@ -6606,7 +6606,7 @@ if (fl_color_chooser("MARK freq track", clr.r, clr.g, clr.b )) {
           callback {progdefaults.audibleBELL=o->value();
 progdefaults.changed = true;}
           tooltip {Enabled - log QSO using Mark frequency
-Disabled - log QSO using center frequency} xywh {308 259 161 22} down_box DOWN_BOX value 1
+Disabled - log QSO using center frequency} xywh {264 259 161 22} down_box DOWN_BOX value 1
           code0 {o->value(progdefaults.audibleBELL);}
         }
         Fl_Check_Button chk_visibleBELL {
@@ -6614,7 +6614,7 @@ Disabled - log QSO using center frequency} xywh {308 259 161 22} down_box DOWN_B
           callback {progdefaults.visibleBELL=o->value();
 progdefaults.changed = true;}
           tooltip {Enabled - log QSO using Mark frequency
-Disabled - log QSO using center frequency} xywh {551 259 161 22} down_box DOWN_BOX value 1
+Disabled - log QSO using center frequency} xywh {388 259 132 22} down_box DOWN_BOX value 1
           code0 {o->value(progdefaults.visibleBELL);}
         }
         Fl_File_Input inp_wav_fname_bell_ring {
@@ -6669,6 +6669,13 @@ progdefaults.BELL_RING_MENU = o->value();} open
           label Test
           callback {audio_alert->alert(progdefaults.BELL_RING.c_str());}
           xywh {728 312 59 24}
+        }
+        Fl_Check_Button chk_ITA2 {
+          label {ITA-2 encode}
+          callback {progdefaults.ITA2=o->value();
+progdefaults.changed = true;}
+          tooltip {Baudot bell and single quote reversal} xywh {538 259 132 22} down_box DOWN_BOX
+          code0 {o->value(progdefaults.ITA2);}
         }
       }
     }

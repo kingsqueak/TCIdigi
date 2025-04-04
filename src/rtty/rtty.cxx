@@ -69,12 +69,24 @@ static char letters[32] = {
 /*
  * U.S. version of the figures case.
  */
-static char figures[32] = {
+static char USTTY_figures[32] = {
 	'\0',	'3',	'\n',	'-',	' ',	'\a',	'8',	'7',
 	'\r',	'$',	'4',	'\'',	',',	'!',	':',	'(',
 	'5',	'"',	')',	'2',	'#',	'6',	'0',	'1',
 	'9',	'?',	'&',	' ',	'.',	'/',	';',	' '
 };
+
+/*
+ * ITA-2 version of the figures case
+ */
+static char ITA2_figures[32] = {
+	'\0',	'3',	'\n',	'-',	' ',	'\'',	'8',	'7',
+	'\r',	' ',	'4',	'\a',	',',	'!',	':',	'(',
+	'5',	'"',	')',	'2',	'#',	'6',	'0',	'1',
+	'9',	'?',	'&',	' ',	'.',	'/',	';',	' '
+};
+
+static char *figures;
 
 int dspcnt = 0;
 
@@ -1046,6 +1058,12 @@ void rtty::flush_stream()
 void rtty::send_char(int c)
 {
 	int i;
+
+	if (progdefaults.ITA2)
+		figures = ITA2_figures;
+	else
+		figures = USTTY_figures;
+
 	if (nbits == 5) {
 		if (c == LETTERS)
 			c = 0x1F;
@@ -1072,6 +1090,7 @@ void rtty::send_char(int c)
 			c = letters[c];
 		else
 			c = figures[c];
+
 		if (c)
 			put_echo_char(progdefaults.rx_lowercase ? tolower(c) : c);
 	}
@@ -1383,6 +1402,11 @@ int rtty::baudot_enc(unsigned char data)
 	mode = 0;
 	c = -1;
 
+	if (progdefaults.ITA2)
+		figures = ITA2_figures;
+	else
+		figures = USTTY_figures;
+
 	if (islower(data))
 		data = toupper(data);
 
@@ -1405,6 +1429,11 @@ int rtty::baudot_enc(unsigned char data)
 char rtty::baudot_dec(unsigned char data)
 {
 	int out = 0;
+
+	if (progdefaults.ITA2)
+		figures = ITA2_figures;
+	else
+		figures = USTTY_figures;
 
 	switch (data) {
 	case 0x1F:		/* letters */

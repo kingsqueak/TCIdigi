@@ -483,6 +483,9 @@
         ELEM_(bool, PseudoFSK, "PSEUDOFSK",                                             \
               "Generate Pseudo-FSK signal on right audio channel",                      \
               false)                                                                    \
+        ELEM_(bool, ITA2, "ITA2",                                                       \
+              "Use ITA2 shift if true",                                                 \
+              false)                                                                    \
 /* FSK interface elements */                                                            \
         ELEM_(bool, useFSK, "USEFSK",                                                   \
               "TRUE if DTR/RTS keying for RTTY",                                        \

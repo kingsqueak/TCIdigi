@@ -5206,6 +5206,13 @@ static void cb_btn_test_bell_ring_wav(Fl_Button*, void*) {
   audio_alert->alert(progdefaults.BELL_RING.c_str());
 }
 
+Fl_Check_Button *chk_ITA2=(Fl_Check_Button *)0;
+
+static void cb_chk_ITA2(Fl_Check_Button* o, void*) {
+  progdefaults.ITA2=o->value();
+progdefaults.changed = true;
+}
+
 Fl_ListBox *selShift=(Fl_ListBox *)0;
 
 static void cb_selShift(Fl_ListBox* o, void*) {
@@ -15106,7 +15113,7 @@ ency"));
       { Fl_Group* o = new Fl_Group(202, 240, 595, 104, _("RTTY Bell"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { Fl_Check_Button* o = chk_audibleBELL = new Fl_Check_Button(308, 259, 161, 22, _("Audible BELL"));
+        { Fl_Check_Button* o = chk_audibleBELL = new Fl_Check_Button(264, 259, 161, 22, _("Audible BELL"));
           chk_audibleBELL->tooltip(_("Enabled - log QSO using Mark frequency\nDisabled - log QSO using center frequ\
 ency"));
           chk_audibleBELL->down_box(FL_DOWN_BOX);
@@ -15114,7 +15121,7 @@ ency"));
           chk_audibleBELL->callback((Fl_Callback*)cb_chk_audibleBELL);
           o->value(progdefaults.audibleBELL);
         } // Fl_Check_Button* chk_audibleBELL
-        { Fl_Check_Button* o = chk_visibleBELL = new Fl_Check_Button(551, 259, 161, 22, _("Visible BELL"));
+        { Fl_Check_Button* o = chk_visibleBELL = new Fl_Check_Button(388, 259, 132, 22, _("Visible BELL"));
           chk_visibleBELL->tooltip(_("Enabled - log QSO using Mark frequency\nDisabled - log QSO using center frequ\
 ency"));
           chk_visibleBELL->down_box(FL_DOWN_BOX);
@@ -15141,6 +15148,12 @@ ency"));
         { btn_test_bell_ring_wav = new Fl_Button(728, 312, 59, 24, _("Test"));
           btn_test_bell_ring_wav->callback((Fl_Callback*)cb_btn_test_bell_ring_wav);
         } // Fl_Button* btn_test_bell_ring_wav
+        { Fl_Check_Button* o = chk_ITA2 = new Fl_Check_Button(538, 259, 132, 22, _("ITA-2 encode"));
+          chk_ITA2->tooltip(_("Baudot bell and single quote reversal"));
+          chk_ITA2->down_box(FL_DOWN_BOX);
+          chk_ITA2->callback((Fl_Callback*)cb_chk_ITA2);
+          o->value(progdefaults.ITA2);
+        } // Fl_Check_Button* chk_ITA2
         o->end();
       } // Fl_Group* o
       CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Modem/TTY/Rx"));

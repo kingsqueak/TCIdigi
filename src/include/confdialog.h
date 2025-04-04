@@ -595,6 +595,7 @@ extern Fl_File_Input *inp_wav_fname_bell_ring;
 extern Fl_Button *btn_select_bell_ring_wav;
 extern Fl_Choice *mnu_bell_ring_menu;
 extern Fl_Button *btn_test_bell_ring_wav;
+extern Fl_Check_Button *chk_ITA2;
 extern Fl_ListBox *selShift;
 extern Fl_Counter2 *selCustomShift;
 extern Fl_ListBox *selBaud;
