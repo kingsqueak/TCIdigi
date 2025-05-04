@@ -688,7 +688,8 @@ static void update_displays()
 {
 	wf->opmode();
 	set599();
-//	modeband.band_mode_change();
+
+	modeband.band_mode_change();
 }
 
 static modem* new_modem;

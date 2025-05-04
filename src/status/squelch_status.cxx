@@ -34,6 +34,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 #include <FL/Fl_Preferences.H>
@@ -60,46 +61,7 @@ static int firstuse = 1;
 
 ModeBand modeband;
 
-void show_band_mode_change()
-{
-	if (progdefaults.txlevel_by_mode) {
-		progStatus.txlevel = modeband.get_mode_txlevel();
-		cntTxLevel->value(progStatus.txlevel);
-	}
-
-	if (progdefaults.reverse_by_mode) {
-		progStatus.reverse = modeband.get_mode_reverse();
-		if (active_modem->get_cap() & modem::CAP_REV) {
-			wf->btnRev->value(progStatus.reverse);
-			wf->btnRev->activate();
-		}
-		else {
-			wf->btnRev->value(0);
-			wf->btnRev->deactivate();
-		}
-	}
-
-	if (progdefaults.afc_by_mode) {
-		progStatus.afconoff = modeband.get_mode_afc();
-		if (active_modem->get_cap() & modem::CAP_AFC) {
-			btnAFC->value(progStatus.afconoff);
-			btnAFC->activate();
-		}
-		else {
-			btnAFC->value(0);
-			btnAFC->deactivate();
-		}
-	}
-
-	if (progdefaults.sqlch_by_mode) {
-		progStatus.sldrSquelchValue = modeband.get_mode_squelch();
-		progStatus.sqlonoff = modeband.get_mode_squelch_onoff();
-		sldrSquelch->value(progStatus.sldrSquelchValue);
-		btnSQL->value(progStatus.sqlonoff);
-	}
-
-}
-
+void show_band_mode_change();
 const char * ModeBand::bands[NUMBANDS] = {
 	"lo", "160", "80",  "75", "40", "30", "20", 
 	"17", "15", "12", "10", "6", "2", "220", "440", "hi"
@@ -127,6 +89,10 @@ int ModeBand::get_band_in_use()
 	return band;
 }
 
+const char * ModeBand::band_name() {
+	return bands[get_band_in_use()];
+}
+
 bool ModeBand::band_changed() {
 	int band = get_band_in_use();
 	if (band_in_use != band) {
@@ -148,8 +114,7 @@ bool ModeBand::mode_changed() {
 void ModeBand::band_mode_change() {
 	if (!active_modem) return;
 
-	if (band_changed() || mode_changed() )
-		REQ(show_band_mode_change);
+	REQ(show_band_mode_change);
 }
 
 void ModeBand::init() {
@@ -357,5 +322,60 @@ int ModeBand::get_mode_reverse()
 	if (band_in_use < BND_LO || band_in_use > BND_HI) return 0;
 
 	return mode_bands[mode][band_in_use].rev;
+}
+
+void show_band_mode_change()
+{
+	if (progdefaults.txlevel_by_mode) {
+		progStatus.txlevel = modeband.get_mode_txlevel();
+		cntTxLevel->value(progStatus.txlevel);
+		cntTxLevel->redraw();
+	}
+
+	if (progdefaults.reverse_by_mode) {
+		progStatus.reverse = modeband.get_mode_reverse();
+		if (active_modem->get_cap() & modem::CAP_REV) {
+			wf->btnRev->value(progStatus.reverse);
+			wf->btnRev->activate();
+		}
+		else {
+			wf->btnRev->value(0);
+			wf->btnRev->deactivate();
+		}
+		wf->btnRev->redraw();
+	}
+
+	if (progdefaults.afc_by_mode) {
+		progStatus.afconoff = modeband.get_mode_afc();
+		if (active_modem->get_cap() & modem::CAP_AFC) {
+			btnAFC->value(progStatus.afconoff);
+			btnAFC->activate();
+		}
+		else {
+			btnAFC->value(0);
+			btnAFC->deactivate();
+		}
+		btnAFC->redraw();
+	}
+
+	if (progdefaults.sqlch_by_mode) {
+		progStatus.sldrSquelchValue = modeband.get_mode_squelch();
+		progStatus.sqlonoff = modeband.get_mode_squelch_onoff();
+		sldrSquelch->value(progStatus.sldrSquelchValue);
+		btnSQL->value(progStatus.sqlonoff);
+		sldrSquelch->redraw();
+		btnSQL->redraw();
+	}
+
+	std::ostringstream os;
+	os << "\n" <<
+"    band ..... " << modeband.band_name() << "\n" <<
+"    mode ..... " << mode_info[active_modem->get_mode()].name << "\n" <<
+"    txlevel .. " << progdefaults.txlevel_by_mode << " / " << progStatus.txlevel << "\n" <<
+"    reverse .. " << (progStatus.reverse ? "true" : "false") << "\n" <<
+"    afc ...... " << (progdefaults.afc_by_mode ? "true" : "false") << " / " << progStatus.afconoff << "\n" <<
+"    squelch .. " << (progdefaults.sqlch_by_mode ? "true" : "false") << " / " << progStatus.sldrSquelchValue << "\n";
+
+	std::cout << os.str();
 }
 

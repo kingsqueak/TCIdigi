@@ -92,6 +92,8 @@ public:
 		save_mode_state();
 	}
 
+	const char* band_name();
+
 	bool is_loaded() { return loaded; }
 
 	int get_band_in_use();

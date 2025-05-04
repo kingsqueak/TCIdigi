@@ -6576,6 +6576,7 @@ Fl_Check_Button *btnTXLEVEL_by_mode=(Fl_Check_Button *)0;
 
 static void cb_btnTXLEVEL_by_mode(Fl_Check_Button* o, void*) {
   progdefaults.txlevel_by_mode=o->value();
+modeband.band_mode_change();
 progdefaults.changed = true;
 }
 
@@ -6583,6 +6584,7 @@ Fl_Check_Button *btnSQLCH_by_mode=(Fl_Check_Button *)0;
 
 static void cb_btnSQLCH_by_mode(Fl_Check_Button* o, void*) {
   progdefaults.sqlch_by_mode=o->value();
+modeband.band_mode_change();
 progdefaults.changed = true;
 }
 
@@ -6590,6 +6592,7 @@ Fl_Check_Button *btnAFC_by_mode=(Fl_Check_Button *)0;
 
 static void cb_btnAFC_by_mode(Fl_Check_Button* o, void*) {
   progdefaults.afc_by_mode=o->value();
+modeband.band_mode_change();
 progdefaults.changed = true;
 }
 
@@ -6597,6 +6600,7 @@ Fl_Check_Button *btnREVERSE_by_mode=(Fl_Check_Button *)0;
 
 static void cb_btnREVERSE_by_mode(Fl_Check_Button* o, void*) {
   progdefaults.reverse_by_mode=o->value();
+modeband.band_mode_change();
 progdefaults.changed = true;
 }
 
@@ -17058,6 +17062,12 @@ ed)"));
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
+      { Fl_Box* o = new Fl_Box(211, 28, 575, 39, _("Enable specific parameter to Save & Restore on a per mode/band basis."));
+        o->box(FL_ENGRAVED_BOX);
+        o->color((Fl_Color)53);
+        o->labelsize(13);
+        o->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
+      } // Fl_Box* o
       { Fl_Check_Button* o = btnTXLEVEL_by_mode = new Fl_Check_Button(360, 96, 235, 30, _("Transmit level control"));
         btnTXLEVEL_by_mode->tooltip(_("Save transmit level control by mode"));
         btnTXLEVEL_by_mode->down_box(FL_DOWN_BOX);
@@ -17072,12 +17082,6 @@ ed)"));
         btnSQLCH_by_mode->callback((Fl_Callback*)cb_btnSQLCH_by_mode);
         o->value(progdefaults.sqlch_by_mode);
       } // Fl_Check_Button* btnSQLCH_by_mode
-      { Fl_Box* o = new Fl_Box(211, 28, 575, 39, _("Enable specific parameter to Save & Restore on a per mode/band basis."));
-        o->box(FL_ENGRAVED_BOX);
-        o->color((Fl_Color)53);
-        o->labelsize(13);
-        o->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
-      } // Fl_Box* o
       { Fl_Check_Button* o = btnAFC_by_mode = new Fl_Check_Button(360, 184, 270, 30, _("AFC control"));
         btnAFC_by_mode->tooltip(_("Save AFC state by mode"));
         btnAFC_by_mode->down_box(FL_DOWN_BOX);

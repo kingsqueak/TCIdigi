@@ -779,6 +779,7 @@ extern void close_talker();
 extern Fl_Light_Button *btnConnectTalker;
 extern Fl_Check_Button *btn_auto_talk;
 extern Fl_Check_Button *chkRxStream;
+#include "squelch_status.h"
 extern Fl_Check_Button *btnTXLEVEL_by_mode;
 extern Fl_Check_Button *btnSQLCH_by_mode;
 extern Fl_Check_Button *btnAFC_by_mode;
