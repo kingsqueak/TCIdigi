@@ -209,6 +209,9 @@ void loadBrowser(Fl_Widget *widget) {
 
 	w->add(LINE_SEP);
 	w->add(_("<AUDIO:>\tXmt audio wav file"));
+	w->add(_("<GEN_START>\tStart recording TX audio"));
+	w->add(_("<GEN_STOP>\tStop recording TX audio"));
+	w->add(_("<GEN_PAUSE>\tPause recording TX audio"));
 
 	w->add(LINE_SEP);
 	w->add(_("<ALERT:[bark][checkout][doesnot][phone][beeboo][diesel][steam_train][dinner_bell][standard_tone]>"));

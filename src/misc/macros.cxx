@@ -2158,6 +2158,9 @@ static void pALERT(std::string &s, size_t &i, size_t endbracket)
 	substitute(s, i, endbracket, "");
 }
 
+// ---------------------------------------------------------------------
+// AUDIO file playback and record controls
+
 static void doAUDIO(std::string s)
 {
 	s.erase(0, 16);
@@ -2177,6 +2180,99 @@ static void pAUDIO(std::string &s, size_t &i, size_t endbracket)
 	push_txcmd(cmd);
 	substitute(s, i, endbracket, "^!");
 }
+
+// ---------------------------------------------------------------------
+
+void do_start_generate(std::string s)
+{
+	std::cout << s << std::endl;
+	s.erase(0, 20); // remove "Start TX_recording: "
+	std::cout << s << std::endl;
+	TXscard->startGenerate(s, SF_FORMAT_WAV | SF_FORMAT_PCM_16);
+}
+
+static void pTXGEN_START(std::string &s, size_t &i, size_t endbracket)
+{
+	if (within_exec) {
+		substitute(s, i, endbracket, "");
+		return;
+	}
+
+	static char dt_fname[200];
+	static struct tm now;
+	static time_t curr_epoch = time(NULL);
+	gmtime_r(&curr_epoch, &now);
+
+	strftime(
+		(char*)dt_fname, 
+		sizeof(dt_fname),
+		"TX_%Y%m%d%H%M%S.wav",
+		&now);
+
+	std::string fname = "Start TX_recording: ";
+	fname.append(dt_fname);
+	CMDS cmd = {fname, do_start_generate};
+	push_txcmd(cmd);
+	substitute(s, i, endbracket, "^!");
+}
+
+void do_stop_generate(std::string s)
+{
+	TXscard->stopGenerate();
+}
+
+static void pTXGEN_STOP(std::string &s, size_t &i, size_t endbracket)
+{
+	CMDS cmd = {"Stop TX recording: ", do_stop_generate};
+	push_txcmd(cmd);
+	substitute (s, i, endbracket, "^!");
+}
+
+void do_pause_generate(std::string s)
+{
+	TXscard->pauseGenerate();
+}
+
+static void pTXGEN_PAUSE(std::string &s, size_t &i, size_t endbracket)
+{
+	CMDS cmd = {"Stop TX recording: ", do_pause_generate};
+	push_txcmd(cmd);
+	substitute (s, i, endbracket, "^!");
+}
+
+/*
+//----------------------------------------------------------------------
+
+void do_start_capture()
+{
+	static char dt_fname[200];
+
+	struct tm now;
+	gmtime_r(&curr_epoch, &now);
+
+	strftime(
+		(char*)dt_fname, 
+		sizeof(dt_fname),
+		"RX_%Y%m%d%H%M%S.wav",
+		&now);
+
+	std::string fname = dt_fname;
+
+	bool result = TXscard->startCapture(fname, SF_FORMAT_WAV | SF_FORMAT_PCM_16);
+}
+
+void do_stop_capture()
+{
+	TXscard->stopRecord();
+}
+
+void do_pause_capture()
+{
+	TXscard->pauseCapture();
+}
+
+// ---------------------------------------------------------------------
+*/
 
 static void pPAUSE(std::string &s, size_t &i, size_t endbracket)
 {
@@ -5019,6 +5115,10 @@ static const MTAGS mtags[] = {
 	{"<DIGI>",		pDIGI},
 	{"<ALERT:",		pALERT},
 	{"<AUDIO:",		pAUDIO},
+	{"<GEN_START>",	pTXGEN_START},
+	{"<GEN_STOP>",	pTXGEN_STOP},
+	{"<GEN_PAUSE>",	pTXGEN_PAUSE},
+
 	{"<BUFFERED>",	pBUFFERED},
 #ifdef __WIN32__
 	{"<TALK:",		pTALK},

@@ -2543,7 +2543,7 @@ static bool playval = false;
 void cb_mnuCapture(Fl_Widget *w, void *d)
 {
 	if (!RXscard) return;
-	Fl_Menu_Item *m = getMenuItem(((Fl_Menu_*)w)->mvalue()->label()); //eek
+	Fl_Menu_Item *m = getMenuItem(((Fl_Menu_*)w)->mvalue()->label());
 	if (playval || genval) {
 		m->clear();
 		return;

@@ -224,6 +224,14 @@ SoundBase::~SoundBase()
 	delete [] src_rd_out_buffer;
 }
 
+void SoundBase::pauseCapture()
+{
+	if (capture_state == ACTIVE)
+		capture_state = PAUSED;
+	else
+		capture_state = ACTIVE;
+}
+
 void SoundBase::stopCapture()
 {
 	if (ofCapture) {
@@ -231,6 +239,7 @@ void SoundBase::stopCapture()
 		if ((err = sf_close(ofCapture)) != 0)
 			LOG_ERROR("sf_close error: %s", sf_error_number(err));
 		ofCapture = 0;
+		capture_state = ACTIVE;
 	}
 }
 
@@ -249,8 +258,17 @@ int SoundBase::startCapture(std::string fname, int format)
 		LOG_ERROR("ofCapture update header command failed: %s", sf_strerror(ofCapture));
 
 	SND_SUPPORT::tag_file(ofCapture, "Captured audio");
+	capture_state = ACTIVE;
 
 	return 1;
+}
+
+void SoundBase::pauseGenerate()
+{
+	if (generate_state == ACTIVE)
+		generate_state = PAUSED;
+	else
+		generate_state = ACTIVE;
 }
 
 void SoundBase::stopGenerate()
@@ -260,6 +278,7 @@ void SoundBase::stopGenerate()
 		if ((err = sf_close(ofGenerate)) != 0)
 			LOG_ERROR("sf_close error: %s", sf_error_number(err));
 		ofGenerate = 0;
+		generate_state = ACTIVE;
 	}
 }
 
@@ -268,7 +287,6 @@ int SoundBase::startGenerate(std::string fname, int format)
 {
 	SF_INFO info = { 0, sndfile_samplerate[progdefaults.wavSampleRate], 
 		progdefaults.record_both_channels ? 2 : 1,
-//		SNDFILE_CHANNELS,
 		format, 0, 0 };
 	if ((ofGenerate = sf_open(fname.c_str(), SFM_WRITE, &info)) == NULL) {
 		LOG_ERROR("Could not write %s", fname.c_str());
@@ -279,6 +297,7 @@ int SoundBase::startGenerate(std::string fname, int format)
 
 	SND_SUPPORT::tag_file(ofGenerate, "Generated audio");
 
+	generate_state = ACTIVE;
 	modem_wr_sr = sample_frequency;
 
 	writ_src_data_left->src_ratio = 1.0 * sndfile_samplerate[progdefaults.wavSampleRate] / modem_wr_sr;
@@ -287,7 +306,17 @@ int SoundBase::startGenerate(std::string fname, int format)
 	writ_src_data_right->src_ratio = 1.0 * sndfile_samplerate[progdefaults.wavSampleRate] / modem_wr_sr;
 	src_set_ratio(writ_src_state_right, writ_src_data_right->src_ratio);
 
+LOG_INFO("opened sound file for record");
+
 	return 1;
+}
+
+void SoundBase::pausePlayback()
+{
+	if (playback_state == ACTIVE)
+		playback_state = PAUSED;
+	else
+		playback_state = ACTIVE;
 }
 
 void SoundBase::stopPlayback()
@@ -297,6 +326,7 @@ void SoundBase::stopPlayback()
 		if ((err = sf_close(ifPlayback)) != 0)
 			LOG_ERROR("sf_close error: %s", sf_error_number(err));
 		ifPlayback = 0;
+		playback_state = ACTIVE;
 	}
 	progdefaults.loop_playback = false;
 }
@@ -337,6 +367,7 @@ play_info.seekable);
 	LOG_VERBOSE("src ratio %f", play_src_data->src_ratio);
 
 	new_playback = true;
+	playback_state = ACTIVE;
 
 	return 0;
 }
@@ -939,7 +970,7 @@ size_t SoundOSS::Read(float *buffer, size_t buffersize)
 
 	if (ofCapture)
 		write_file(ofCapture, buffer, NULL, buffersize);
-	if (ifPlayback) {
+	if (ifPlayback && (playback_state != PAUSED)) {
 		read_file(ifPlayback, buffer, buffersize);
 		return buffersize;
 	}
@@ -979,7 +1010,7 @@ size_t SoundOSS::Write(double *buf, size_t count)
 	short int *wbuff;
 	unsigned char *p;
 
-	if (ofGenerate)
+	if (ofGenerate && (generate_state != PAUSED))
 		write_file(ofGenerate, buf, NULL, count);
 
 	if (PERFORM_CPS_TEST || active_modem->XMLRPC_CPS_TEST) {

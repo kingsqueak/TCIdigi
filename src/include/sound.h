@@ -64,6 +64,10 @@ protected:
 
 
 class SoundBase {
+
+public:
+	enum sndfile_state { ACTIVE, PAUSED };
+
 protected:
 	int		sample_frequency;
 	int		txppm;
@@ -77,6 +81,10 @@ protected:
 	SNDFILE* ofCapture;
 	SNDFILE* ifPlayback;
 	SNDFILE* ofGenerate;
+
+	int			capture_state;
+	int			playback_state;
+	int			generate_state;
 
 // 2 channel writes
 	SRC_STATE	*writ_src_state_left;
@@ -110,24 +118,27 @@ protected:
 public:
 	SoundBase();
 	virtual ~SoundBase();
-	virtual int	Open(int mode, int freq = 8000) = 0;
-	virtual void    Close(unsigned dir = UINT_MAX) = 0;
-	virtual void    Abort(unsigned dir = UINT_MAX) = 0;
+	virtual int		Open(int mode, int freq = 8000) = 0;
+	virtual void	Close(unsigned dir = UINT_MAX) = 0;
+	virtual void	Abort(unsigned dir = UINT_MAX) = 0;
 	virtual size_t	Write(double *, size_t) = 0;
 	virtual size_t	Write_stereo(double *, double *, size_t) = 0;
 	virtual size_t	resample_write(float *buf, size_t count) = 0;
 	virtual size_t	Read(float *, size_t) = 0;
-	virtual void    flush(unsigned dir = UINT_MAX) = 0;
+	virtual void	flush(unsigned dir = UINT_MAX) = 0;
 	virtual bool	must_close(int dir = 0) = 0;
 
-	int		startCapture(std::string fname, int format);
-	void	stopCapture();
+	virtual int		startGenerate(std::string fname, int format);
+	virtual void	pauseGenerate();
+	virtual void	stopGenerate();
 
-	int		startPlayback(std::string fname, int format);
-	void	stopPlayback();
+	virtual int		startPlayback(std::string fname, int format);
+	virtual void	pausePlayback();
+	virtual void	stopPlayback();
 
-	int		startGenerate(std::string fname, int format);
-	void	stopGenerate();
+	virtual int		startCapture(std::string fname, int format);
+	virtual void	pauseCapture();
+	virtual void	stopCapture();
 
 	int		AudioMP3(std::string fname);
 	int		AudioWAV(std::string fname);
