@@ -1,6 +1,28 @@
-2024-10-11  dave-w1hkj  <w1hkj@bellsouth.net>
+2025-01-26  dave-w1hkj  <w1hkj@bellsouth.net>
 
-	5a0388d15: Version 4.2.06
+	6c258cabb: Version 4.2.07
+	23f7218ea: Change .com to .org
+	01bf30e13: microHAM interface
+	115e49e73: SCAMP ADIF
+	53ca9ebc1: THOR-25
+	00d88ec46: RSID squelch
+	c6b1cc166: MFSK afc
+	8aa6a3ea0: MFSK afc
+	700210c33: WEFAX
+	6a8a621ca: band mode
+	920a1af0c: fmt time scale
+
+2024-11-12  Daniel Marks  <profdc9@gmail.com>
+
+	ff91d9379: scamp
+
+2024-11-09  dave-w1hkj  <w1hkj@bellsouth.net>
+
+	8e16a68df: RsID start/stop
+	2a07b776e: fltk 1.4.0 compatability
+	8f99a6bbe: Hell modes
+	b4e763fe4: ui_colors
+	ea5302cfe: Version 4.2.06
 	41e9ff797: mfsk for QRP Labs qmx/qmxp
 	9aa594062: ADIF correction
 	84488a2f8: FSQ rx/tx freq
