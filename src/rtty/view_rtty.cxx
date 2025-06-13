@@ -48,13 +48,28 @@ static char letters[32] = {
 	'O',	'B',	'G',	' ',	'M',	'X',	'V',	' '
 };
 
-// U.S. version of the figures case.
-static char figures[32] = {
+/*
+ * U.S. version of the figures case.
+ */
+static char USTTY_figures[32] = {
 	'\0',	'3',	'\n',	'-',	' ',	'\a',	'8',	'7',
 	'\r',	'$',	'4',	'\'',	',',	'!',	':',	'(',
 	'5',	'"',	')',	'2',	'#',	'6',	'0',	'1',
 	'9',	'?',	'&',	' ',	'.',	'/',	';',	' '
 };
+
+/*
+ * ITA-2 version of the figures case
+ */
+static char ITA2_figures[32] = {
+	'\0',	'3',	'\n',	'-',	' ',	'\'',	'8',	'7',
+	'\r',	' ',	'4',	'\a',	',',	'!',	':',	'(',
+	'5',	'+',	')',	'2',	'#',	'6',	'0',	'1',
+	'9',	'?',	'&',	' ',	'.',	'/',	'=',	' '
+};
+
+static char *figures;
+
 
 const double	view_rtty::SHIFT[] = {23, 85, 160, 170, 182, 200, 240, 350, 425, 850};
 // FILTLEN must be same size as BAUD
@@ -552,6 +567,11 @@ int view_rtty::rx_process(const double *buf, int buflen)
 char view_rtty::baudot_dec(int ch, unsigned char data)
 {
 	int out = 0;
+
+	if (progdefaults.ITA2)
+		figures = ITA2_figures;
+	else
+		figures = USTTY_figures;
 
 	switch (data) {
 	case 0x1F:		/* letters */
