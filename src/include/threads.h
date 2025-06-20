@@ -162,4 +162,6 @@ public:
 	bool wait( double seconds );
 };
 
+int nano_sleep(const struct timespec *req, struct timespec *rem);
+
 #endif // !THREADS_H_

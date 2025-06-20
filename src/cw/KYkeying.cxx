@@ -96,7 +96,7 @@ void KY_sleep(double secs)
 
 	t2 = KY_now();
 	while (t2 < end1 && (++loop1 < n1)) {
-		nanosleep(&tv, NULL);
+		nano_sleep(&tv, NULL);
 		t2 = KY_now();
 	}
 	t3 = t2;

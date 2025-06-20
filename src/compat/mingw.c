@@ -185,7 +185,7 @@ int socketpair(int family, int type, int protocol, SOCKET *sv)
 
 /******************************************************************************/
 
-int nanosleep(const struct timespec *req, struct timespec *rem)
+int nano_sleep(const struct timespec *req, struct timespec *rem)
 {
 	if (unlikely(req->tv_nsec < 0 || req->tv_nsec < 0L || req->tv_nsec > 999999999L)) {
 		errno = EINVAL;

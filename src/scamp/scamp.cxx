@@ -422,7 +422,7 @@ int scamp::scamp_sleep (double sleep_time)
 	timeBeginPeriod(1);
 #endif
 //	while (1) {
-		rval = nanosleep (&tv, &tv);
+		rval = nano_sleep (&tv, &tv);
 		if (errno == EINTR) {
 //			continue
 std::cout << "EINTR error in scamp_sleep" << std::endl;

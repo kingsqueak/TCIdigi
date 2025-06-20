@@ -49,6 +49,8 @@
 
 #endif
 
+#include "threads.h"
+
 /** ********************************************************************
  * Return the smallest power of 2 not less than n
  ***********************************************************************/
@@ -477,7 +479,7 @@ const char* uint2bin(unsigned u, size_t len)
 void MilliSleep(long msecs)
 {
 	struct timespec tv[2] = { {msecs / 1000L, msecs % 1000L * 1000000L} };
-	nanosleep(&tv[0], &tv[1]);
+	nano_sleep(&tv[0], &tv[1]);
 }
 #else
 
@@ -485,7 +487,7 @@ void MilliSleep(long msecs)
 {
     struct timespec tv[2] = { {msecs / 1000L, msecs % 1000L * 1000000L} };
     timeBeginPeriod(1);
-    nanosleep(&tv[0], &tv[1]);
+    nano_sleep(&tv[0], &tv[1]);
     timeEndPeriod(1);
 }
 #endif
@@ -510,7 +512,7 @@ int accu_sleep (double sleep_time)
 	tv.tv_nsec = (long) ((delay - tv.tv_sec) * 1e+9);
 	int rval = 0;
 	while (1) {
-		rval = nanosleep (&tv, &tv);
+		rval = nano_sleep (&tv, &tv);
 		if (rval == 0)
 			break;
 		else if (errno == EINTR)

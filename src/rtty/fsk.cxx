@@ -396,7 +396,7 @@ void FSK::fskbit(int bit, double secs)
 
 	t3 = fsk_now();
 	while (t3 < end1 && (++loop1 < n1)) {
-		nanosleep(&tv, NULL);
+		nano_sleep(&tv, NULL);
 		t3 = fsk_now();
 	}
 

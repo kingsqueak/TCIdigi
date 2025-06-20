@@ -1527,7 +1527,7 @@ void cwio_bit(int bit, double msecs)
 	end1 = end2 - 0.005;
 
 	while (t3 < end1 && (++loop1 < n1)) {
-		nanosleep(&tv, NULL);
+		nano_sleep(&tv, NULL);
 		t3 = cwio_now();
 	}
 
