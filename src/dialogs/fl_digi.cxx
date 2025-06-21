@@ -878,6 +878,7 @@ static Fl_Menu_Item quick_change_8psk[] = {
 	{ 0 }
 };
 
+/* Commented out pending development work by KL4YFD
 static Fl_Menu_Item quick_change_ofdm[] = {
 	{ mode_info[MODE_OFDM_500F].name, 0, cb_init_mode, (void *)MODE_OFDM_500F },
 	{ mode_info[MODE_OFDM_750F].name, 0, cb_init_mode, (void *)MODE_OFDM_750F },
@@ -886,6 +887,7 @@ static Fl_Menu_Item quick_change_ofdm[] = {
 	{ mode_info[MODE_OFDM_3500].name, 0, cb_init_mode, (void *)MODE_OFDM_3500 },
 	{ 0 }
 };
+*/
 
 static Fl_Menu_Item quick_change_pskr[] = {
 	{ mode_info[MODE_PSK125R].name, 0, cb_init_mode, (void *)MODE_PSK125R },
@@ -1928,8 +1930,8 @@ void init_modem(trx_mode mode, int freq)
 		quick_change = quick_change_8psk;
 //		modem_config_tab = tabPSK;
 		break;
-		
-		
+
+/* Commented out pending development work by KL4YFD
 	case MODE_OFDM_500F:
 	case MODE_OFDM_750F:
 //	case MODE_OFDM_2000F:
@@ -1940,8 +1942,8 @@ void init_modem(trx_mode mode, int freq)
 		quick_change = quick_change_ofdm;
 		//		modem_config_tab = tabPSK;
 		break;
-		
-		
+*/
+
 	case MODE_PSK125R: case MODE_PSK250R: case MODE_PSK500R:
 	case MODE_PSK1000R:
 		startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
@@ -6063,6 +6065,7 @@ Fl_Menu_Item menu_[] = {
 { mode_info[MODE_MT63_2000L].name, 0,  cb_init_mode, (void *)MODE_MT63_2000L, 0, FL_NORMAL_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
 
+/* Commented out pending development work by KL4YFD
 {"OFDM", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OFDM_500F].name, 0,  cb_init_mode, (void *)MODE_OFDM_500F, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OFDM_750F].name, 0,  cb_init_mode, (void *)MODE_OFDM_750F, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
@@ -6070,6 +6073,7 @@ Fl_Menu_Item menu_[] = {
 //{ mode_info[MODE_OFDM_2000].name, 0,  cb_init_mode, (void *)MODE_OFDM_2000, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OFDM_3500].name, 0,  cb_init_mode, (void *)MODE_OFDM_3500, 0, FL_NORMAL_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
+*/
 
 { OLIVIA_MLABEL, 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OLIVIA_4_125].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -7691,7 +7695,8 @@ static Fl_Menu_Item alt_menu_[] = {
 { mode_info[MODE_MT63_2000S].name, 0,  cb_init_mode, (void *)MODE_MT63_2000S, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_MT63_2000L].name, 0,  cb_init_mode, (void *)MODE_MT63_2000L, 0, FL_NORMAL_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
-
+/* Commented out pending development work by KL4YFD
+ * 
 {"OFDM", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OFDM_500F].name, 0,  cb_init_mode, (void *)MODE_OFDM_500F, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OFDM_750F].name, 0,  cb_init_mode, (void *)MODE_OFDM_750F, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
@@ -7699,6 +7704,7 @@ static Fl_Menu_Item alt_menu_[] = {
 //{ mode_info[MODE_OFDM_2000].name, 0,  cb_init_mode, (void *)MODE_OFDM_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OFDM_3500].name, 0,  cb_init_mode, (void *)MODE_OFDM_3500, 0, FL_NORMAL_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
+*/
 
 {"Olivia", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OLIVIA_4_125].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -11324,10 +11330,12 @@ void change_menu_fonts( Fl_Font font, int size)
 		quick_change_pskr[n].labelfont_ = font;
 		quick_change_pskr[n].labelsize_ = size;
 	}
+/* Commented out pending development work by KL4YFD
 	for (size_t n = 0; n < sizeof(quick_change_ofdm) / sizeof(*quick_change_ofdm); n++) {
 		quick_change_ofdm[n].labelfont_ = font;
 		quick_change_ofdm[n].labelsize_ = size;
 	}
+*/
 	for (size_t n = 0; n < sizeof(quick_change_8psk) / sizeof(*quick_change_8psk); n++) {
 		quick_change_8psk[n].labelfont_ = font;
 		quick_change_8psk[n].labelsize_ = size;
