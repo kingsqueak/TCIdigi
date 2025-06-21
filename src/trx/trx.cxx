@@ -336,12 +336,10 @@ void trx_trx_receive_loop()
 			QRUNNER_DROP(true);
 			if (progdefaults.rsid)
 				ReedSolomon->receive(fbuf, numread);
-/* Commented out pending development work by KL4YFD
 			else if (active_modem->get_mode() == MODE_OFDM_500F 
 					 || active_modem->get_mode() == MODE_OFDM_750F)
 //					 || active_modem->get_mode() == MODE_OFDM_2000F)
 				ReedSolomon->receive(fbuf, numread); // OFDM modes use RSID as AFC mechanism. Force RxRSID.
-*/
 			active_modem->HistoryON(true);
 			active_modem->rx_process(hsbuff, numread);
 			QRUNNER_DROP(false);
@@ -368,12 +366,10 @@ void trx_trx_receive_loop()
 
 				if (progdefaults.rsid)
 					ReedSolomon->receive(fbuf, numread);
-/* Commented out pending development work by KL4YFD
 				else if (active_modem->get_mode() == MODE_OFDM_500F 
 						 || active_modem->get_mode() == MODE_OFDM_750F)
 //						 || active_modem->get_mode() == MODE_OFDM_2000F)
 					ReedSolomon->receive(fbuf, numread);  // OFDM modes use RSID as AFC mechanism. Force RxRSID.
-*/
 				dtmf->receive(fbuf, numread);
 			} else {
 				bool afc = progStatus.afconoff;
@@ -442,13 +438,12 @@ void trx_trx_transmit_loop()
 		bool _txrsid = false;
 		if ( ReedSolomon->assigned(active_modem->get_mode()) && (progdefaults.TransmitRSid || progStatus.n_rsids != 0))
 			_txrsid = true;
-/* Commented out pending development work by KL4YFD
 		else if (ReedSolomon->assigned(active_modem->get_mode()) && 
 				 (active_modem->get_mode() == MODE_OFDM_500F 
 				  || active_modem->get_mode() == MODE_OFDM_750F))
 //				  || active_modem->get_mode() == MODE_OFDM_2000F) )
 			_txrsid = true; // RSID is used as header/preamble for OFDM modes. Make mandatory.
-*/
+			
 		if (_txrsid) {
 			if (progStatus.n_rsids < 0) {
 				for (int i = 0; i > progStatus.n_rsids; i--) {

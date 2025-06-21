@@ -226,12 +226,10 @@ void psk::tx_init()
 	vphase = 0;
 	maxamp = 0;
 
-/* Commented out pending development work by KL4YFD
 	if (mode == MODE_OFDM_500F || mode == MODE_OFDM_750F) { // || mode == MODE_OFDM_2000F) {
 		enc->init();
 		Txinlv->flush();
 	}
-*/
 
 }
 
@@ -302,7 +300,6 @@ void psk::init()
 
 	set_freqlock(false); // re-lock modems after setting center-frequency.
 
-/* Commented out pending development work by KL4YFD
 //	if (mode == MODE_OFDM_2000F || mode == MODE_OFDM_2000)
 //		set_freq(1325);
 //	else 
@@ -310,9 +307,7 @@ void psk::init()
 		set_freq(2250);
 	else if (mode == MODE_OFDM_500F || mode == MODE_OFDM_750F)
 		set_freq(1500);
-	else 
-*/
-	if (progdefaults.StartAtSweetSpot)
+	else if (progdefaults.StartAtSweetSpot)
 		set_freq(progdefaults.PSKsweetspot);
 	else if (progStatus.carrier != 0) {
 		set_freq(progStatus.carrier);
@@ -322,11 +317,10 @@ void psk::init()
 	} else
 		set_freq(wf->Carrier());
 
-/* Commented out pending development work by KL4YFD
 //	if (mode == MODE_OFDM_2000 || mode == MODE_OFDM_2000F || mode == MODE_OFDM_3500)
 	if (mode == MODE_OFDM_3500)
 		set_freqlock(true);
-*/
+
 }
 
 psk::~psk()
@@ -460,7 +454,6 @@ FIR_TYPE fir_type = PSK_CORE;
 			fir_type = PSK_CORE;
 			break;
 
-/* Commented out pending development work by KL4YFD
 	// OFDM modes
 		case MODE_OFDM_500F: // 62.5 baud xPSK | 4 carriers | 250 bits/sec @ 1/2 FEC
 			symbollen = 256;
@@ -536,7 +529,6 @@ FIR_TYPE fir_type = PSK_CORE;
 			fir_type = SINC;
 			break;
 	// End OFDM modes
-*/
 
 	// 8psk modes without FEC
 		case MODE_8PSK125: // 125 baud | 375 bits/sec No FEC
@@ -1008,7 +1000,6 @@ FIR_TYPE fir_type = PSK_CORE;
 		dec2 = new viterbi(K16, K16_POLY1, K16_POLY2);
 		dec2->setchunksize(4);
 
-/* Commented out pending development work by KL4YFD
 	} else if (mode == MODE_OFDM_500F) {
 		enc = new encoder(THOR_K15, K15_POLY1, K15_POLY2);
 		dec = new viterbi(THOR_K15, K15_POLY1, K15_POLY2);
@@ -1020,7 +1011,7 @@ FIR_TYPE fir_type = PSK_CORE;
 //		dec = new viterbi(K11, K11_POLY1, K11_POLY2);
 //		dec->setchunksize(4);
 //		dec->settraceback(K11 * 14); // OFDM-2000F is a punctured code
-*/
+
 	} else if (_xpsk || _8psk || _16psk) {
 		enc = new encoder(K13, K13_POLY1, K13_POLY2);
 		dec = new viterbi(K13, K13_POLY1, K13_POLY2);
@@ -1099,7 +1090,6 @@ FIR_TYPE fir_type = PSK_CORE;
 		for (int i = 0; i < 11; i++) sfft_bins[i] = cmplx(0,0);
 	}
 
-/* Commented out pending development work by KL4YFD
 //	if (mode == MODE_OFDM_2000 || mode == MODE_OFDM_2000F) {
 //		set_freqlock(false);
 //		set_freq(1325);
@@ -1110,7 +1100,6 @@ FIR_TYPE fir_type = PSK_CORE;
 		set_freq(2250);
 		set_freqlock(true);
 	}
-*/
 }
 
 //=============================================================================
@@ -1480,12 +1469,9 @@ void psk::phaseafc()
 
 void psk::afc()
 {
-/* Commented out pending development work by KL4YFD
 	if (mode >= MODE_OFDM_500F && mode <= MODE_OFDM_3500) // MODE_OFDM_2000)
 		return vestigial_afc();
-	else 
-*/
-	if (!progStatus.afconoff)
+	else if (!progStatus.afconoff)
 		return;
 	else if (dcd == true || acquire)
 		phaseafc();
@@ -1683,13 +1669,10 @@ void psk::rx_symbol(cmplx symbol, int car)
 		default:
 			if (metric > progStatus.sldrSquelchValue || progStatus.sqlonoff == false) {
 				dcd = true;
-			}
-/* Commented out pending development work by KL4YFD
 			// FIXME BUG OFDM FEC modes have NO DCD OFF yet. TODO KL4YFD MAR2021
-			else if (mode != MODE_OFDM_500F && mode != MODE_OFDM_750F) { // && mode != MODE_OFDM_2000F) {
+			} else if (mode != MODE_OFDM_500F && mode != MODE_OFDM_750F) { // && mode != MODE_OFDM_2000F) {
 				dcd = false;
 			}
-*/
 			dcdOFFcounter -= 1; // If no DCD-off sequence seen in bitshreg, then subtract 1 from counter (to prevent a accumulative-triggering bug)
 			if (dcdOFFcounter < 0) dcdOFFcounter = 0; // prevent wraparound to negative
 			break;
@@ -2588,7 +2571,6 @@ int psk::tx_process()
 			preamble = 0;
 			return 0;
 
-/* Commented out pending development work by KL4YFD
 		} else if (mode == MODE_OFDM_500F || mode == MODE_OFDM_750F ) { //|| mode == MODE_OFDM_2000F) {
 			// RSID is used for frequency-setting and AFC: no preamble needed or used. Just send a header.
 			clearbits();
@@ -2598,7 +2580,7 @@ int psk::tx_process()
 			tx_char(10); // <LF> newline as first character
 			preamble = 0;
 			return 0;
-*/
+
 		} else if (_8psk) {
 			if (!_disablefec) clearbits();
 			if(progStatus.psk8DCDShortFlag)
