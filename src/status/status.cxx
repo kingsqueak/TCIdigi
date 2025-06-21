@@ -500,7 +500,7 @@ void status::saveLastState()
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", PACKAGE_TARNAME);
 #else
 	Fl_Preferences spref(
-		std::string(HomeDir).c_str(),
+		HomeDir.c_str(),
 		"w1hkj.com",
 		PACKAGE_TARNAME,
 		Fl_Preferences::C_LOCALE);
@@ -788,7 +788,7 @@ void status::loadLastState()
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", PACKAGE_TARNAME);
 #else
 	Fl_Preferences spref(
-		std::string(HomeDir).c_str(),
+		HomeDir.c_str(),
 		"w1hkj.com",
 		PACKAGE_TARNAME,
 		Fl_Preferences::C_LOCALE);

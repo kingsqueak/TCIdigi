@@ -43,22 +43,6 @@
 
 static int firstuse = 1;
 
-#define SS_160  1800000
-#define SS_80   3500000
-#define SS_75   3800000
-#define SS_40   7000000
-#define SS_30   10100000
-#define SS_20   14000000
-#define SS_17   18068000
-#define SS_15   21000000
-#define SS_12   24890000
-#define SS_10   28000000
-#define SS_6    50000000
-#define SS_2    144000000
-#define SS_220  222000000
-#define SS_440  420000000
-#define SS_HI   902000000
-
 ModeBand modeband;
 
 void show_band_mode_change();
@@ -69,7 +53,8 @@ const char * ModeBand::bands[NUMBANDS] = {
 
 int ModeBand::get_band_in_use()
 {
-	int band = -1;
+	int band = BND_LO;
+
 	if (wf->rfcarrier() < SS_160) band = BND_LO;
 	else if (wf->rfcarrier() < SS_80) band = BND_160;
 	else if (wf->rfcarrier() < SS_75) band = BND_80;
@@ -86,6 +71,7 @@ int ModeBand::get_band_in_use()
 	else if (wf->rfcarrier() < SS_440) band = BND_220;
 	else if (wf->rfcarrier() < SS_HI) band = BND_440;
 	else band = BND_HI;
+
 	return band;
 }
 
@@ -136,7 +122,11 @@ void ModeBand::save_mode_state()
 #if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "mode_state");
 #else
-	Fl_Preferences spref(std::string(HomeDir).append("fldigi.prefs").c_str(), "w1hkj.org", "mode_state", (Fl_Preferences::Root)0);
+	Fl_Preferences spref(
+		HomeDir.c_str(),
+		"w1hkj.com",
+		"mode_state",
+		Fl_Preferences::C_LOCALE);
 #endif
 
 	spref.set("firstuse", 0);
@@ -168,7 +158,11 @@ void ModeBand::load_mode_state() {
 #if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "mode_state");
 #else
-	Fl_Preferences spref(std::string(HomeDir).append("fldigi.prefs").c_str(), "w1hkj.org", "mode_state", (Fl_Preferences::Root)0);
+	Fl_Preferences spref(
+		HomeDir.c_str(),
+		"w1hkj.com",
+		"mode_state",
+		Fl_Preferences::C_LOCALE);
 #endif
 
 	spref.get("firstuse", firstuse, firstuse);
@@ -367,6 +361,7 @@ void show_band_mode_change()
 		btnSQL->redraw();
 	}
 
+#if 0
 	std::ostringstream os;
 	os << "\n" <<
 "    band ..... " << modeband.band_name() << "\n" <<
@@ -375,7 +370,7 @@ void show_band_mode_change()
 "    reverse .. " << (progStatus.reverse ? "true" : "false") << "\n" <<
 "    afc ...... " << (progdefaults.afc_by_mode ? "true" : "false") << " / " << progStatus.afconoff << "\n" <<
 "    squelch .. " << (progdefaults.sqlch_by_mode ? "true" : "false") << " / " << progStatus.sldrSquelchValue << "\n";
-
 	std::cout << os.str();
+#endif
 }
 
