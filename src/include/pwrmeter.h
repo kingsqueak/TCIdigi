@@ -46,7 +46,8 @@ enum {P25, P50, P100, P200, AUTO};
 
 private:
 	double	value_, peak_, peaks_[NPEAKS],
-			maximum_;
+			maximum_, avg_;
+	int npeaks;
 	int ppeak;
 	int		sval;			// Size of sval bar...
 	int		bx, by, bw, bh;	// Box areas...
@@ -74,17 +75,30 @@ public:
 
 	void	value(double v) { 
 		value_ = v;
-		if (ppeak++ > 9) ppeak = 0;
+		if (ppeak++ > npeaks) ppeak = 0;
 		peaks_[ppeak] = value_;
 		peak_ = 0;
-		for (int n = 0; n < NPEAKS; n++) {
+		avg_ = 0;
+		for (int n = 0; n < npeaks; n++) {
 			if (peaks_[n] > peak_)
 				peak_ = peaks_[n];
+			avg_ += v;
 		}
-//		redraw();
+		avg_ /= npeaks;
 	}
+
 	double	value() const { return (value_); }
 	double	peak() const { return (peak_); }
+	double	average() const { return (avg_); }
+
+	void	set_npeaks(int nbr) {
+		if (nbr < 1) nbr = 1;
+		if (nbr > NPEAKS) nbr = NPEAKS;
+		npeaks = nbr;
+		for (int n = 0; n < npeaks; n++) peaks_[n] = 0;
+		avg_ = 0.0;
+		peak_ = 0.0;
+	}
 
 	void	resize(int x, int y, int w, int h);
 	int		handle(int);

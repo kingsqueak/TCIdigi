@@ -1906,7 +1906,8 @@ const char *log_power()
 	static std::string stemp;
 	if (progdefaults.log_power_meter) 	{
 		static char sval[20];
-		snprintf(sval, sizeof(sval), "%3.0f", pwrmeter->peak());
+		snprintf(sval, sizeof(sval), "%3.0f", 
+			progdefaults.report_average_power ? pwrmeter->average() : pwrmeter->peak());
 		stemp = sval;
 		strtrim(stemp);
 	} else

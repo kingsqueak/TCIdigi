@@ -155,7 +155,9 @@ PWRmeter::PWRmeter(int X, int Y, int W, int H, const char* l)
 	maximum_ = 100.0;
 	value_ = 0.0;
 	peak_ = 0.0;
+	avg_ = 0.0;
 	ppeak = 0;
+	npeaks = NPEAKS;
 	for (int n = 0; n < NPEAKS; n++) peaks_[n] = 0.0;
 
 	select_ = 2; // 100 W scale

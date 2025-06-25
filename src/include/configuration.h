@@ -1868,6 +1868,12 @@
         ELEM_(bool, log_power_meter, "LOG_POWER_METER",                                 \
              "Use power meter reading for logged TX power",                             \
              true)                                                                      \
+        ELEM_(bool, report_average_power, "REPORT_AVERAGE_POWER",                       \
+             "true - report average power, false - report peak power",                  \
+             true)                                                                      \
+        ELEM_(int, pwr_set_size, "PWR_SET_SIZE",                                        \
+             "number of power samples over which to computer peak/average, max 50",     \
+             20)                                                                        \
         ELEM_(std::string, my_FD_call, "FD_CALL",                                       \
               "Field Day call sign",                                                    \
               "")                                                                       \
