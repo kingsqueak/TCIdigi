@@ -1124,7 +1124,7 @@ int Table::handle(int event) {
           for (int col = 0; col < nCols; col++) {
 			  if (col == 0)
 				strcpy(buffer, tableRow[col]);
-			else
+			else {
 				strcat(buffer, "\t");
 				strcat(buffer, tableRow[col]);
 			}
