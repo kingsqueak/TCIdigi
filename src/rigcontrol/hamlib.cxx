@@ -568,11 +568,7 @@ static void *hamlib_loop(void *args)
 	return NULL;
 }
 
-#ifdef RIGCAPS_NOT_CONST
-static int add_to_list(struct rig_caps* rc, void*)
-#else
 static int add_to_list(const struct rig_caps* rc, void*)
-#endif
 {
 	hamlib_rigs.push_back(rc);
 	return 1;

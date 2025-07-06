@@ -413,7 +413,7 @@ const std::string Cstates::cnty_short( std::string st, std::string cnty) // st/c
 		if (!OK) return answer;
 
 		ST = vec_7QP[n].ST;
-		for (size_t k = n; ST == vec_7QP[k].ST, k < vec_7QP.size(); k++) {
+		for (size_t k = n; k < vec_7QP.size(); k++) {
 			dCNTY = ucasestr(vec_7QP[k].CTY);
 			dCOUNTY = ucasestr(vec_7QP[k].county);
 			if (CNTY == dCNTY) {
@@ -435,7 +435,7 @@ const std::string Cstates::cnty_short( std::string st, std::string cnty) // st/c
 		if (!OK) return answer;
 
 		ST = vec_6QP[n].ST;
-		for (size_t k = n; ST == vec_6QP[k].ST, k < vec_6QP.size(); k++) {
+		for (size_t k = n; k < vec_6QP.size(); k++) {
 			dCNTY = ucasestr(vec_6QP[k].CTY);
 			dCOUNTY = ucasestr(vec_6QP[k].county);
 			if (CNTY == dCNTY) {
@@ -457,7 +457,7 @@ const std::string Cstates::cnty_short( std::string st, std::string cnty) // st/c
 		if (!OK) return answer;
 
 		ST = vec_SQSO[n].ST;
-		for (size_t k = n; ST == vec_SQSO[k].ST, k < vec_SQSO.size(); k++) {
+		for (size_t k = n; k < vec_SQSO.size(); k++) {
 			dCNTY = ucasestr(vec_SQSO[k].CTY);
 			dCOUNTY = ucasestr(vec_SQSO[k].county);
 			if (CNTY == dCNTY) {
@@ -489,7 +489,7 @@ const std::string Cstates::county( std::string st, std::string cnty) // st/cnty 
 		if (ST != dST) return "";
 
 		ST = vec_7QP[n].ST;
-		for (size_t k = n; ST == vec_7QP[k].ST, k < vec_7QP.size(); k++) {
+		for (size_t k = n; k < vec_7QP.size(); k++) {
 			dCNTY = ucasestr(vec_7QP[k].CTY);
 			dCOUNTY = ucasestr(vec_7QP[k].county);
 			if (CNTY == dCNTY) return vec_7QP[k].county;
@@ -504,7 +504,7 @@ const std::string Cstates::county( std::string st, std::string cnty) // st/cnty 
 		if (ST != dST) return "";
 
 		ST = vec_6QP[n].ST;
-		for (size_t k = n; ST == vec_6QP[k].ST, k < vec_6QP.size(); k++) {
+		for (size_t k = n; k < vec_6QP.size(); k++) {
 			if (vec_6QP[k].ST.empty()) return "";
 			dCNTY = ucasestr(vec_6QP[k].CTY);
 			dCOUNTY = ucasestr(vec_6QP[k].county);
@@ -521,7 +521,7 @@ const std::string Cstates::county( std::string st, std::string cnty) // st/cnty 
 		if (ST != dST) return "";
 
 		ST = vec_SQSO[n].ST;
-		for (size_t k = n; ST == vec_SQSO[k].ST, k < vec_SQSO.size(); k++) {
+		for (size_t k = n; k < vec_SQSO.size(); k++) {
 			if (vec_SQSO[k].ST.empty()) return "";
 			dCNTY = ucasestr(vec_SQSO[k].CTY);
 			dCOUNTY = ucasestr(vec_SQSO[k].county);

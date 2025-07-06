@@ -1121,10 +1121,13 @@ int Table::handle(int event) {
       // Create a tab separated list from data.
       buffer = (char*)malloc(len);
       if (buffer != nullptr) {
-          strcpy(buffer, tableRow[0]);
-          for (int col = 1; col < nCols; col++) {
-            strcat(buffer, "\t");
-            strcat(buffer, tableRow[col]);
+          for (int col = 0; col < nCols; col++) {
+			  if (col == 0)
+				strcpy(buffer, tableRow[col]);
+			else
+				strcat(buffer, "\t");
+				strcat(buffer, tableRow[col]);
+			}
           }
           Fl::selection(*this, buffer, len);
           free(buffer);
