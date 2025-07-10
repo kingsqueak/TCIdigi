@@ -474,7 +474,7 @@ static const unsigned char code_to_ltrs[128] = {
 	'_', 'O', 'B', '_', 'T', '_', '_', '_', '\r', '_', '_', '_', '_', '_', '_', '_' // 7
 };
 
-static const unsigned char code_to_figs[128] = {
+static const unsigned char USTTY_code_to_figs[128] = {
 	//0 1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 	'_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', // 0
 	'_', '_', '_', '_', '_', '_', '_', '\'', '_', '_', '_', '!', '_', ':', '(', '_', // 1
@@ -485,6 +485,19 @@ static const unsigned char code_to_figs[128] = {
 	'_', '_', '_', '"', '_', ')', '_', '_', '_', '#', '_', '_', '\n', '_', '_', '_', // 6
 	'_', '9', '?', '_', '5', '_', '_', '_', '\r', '_', '_', '_', '_', '_', '_', '_' // 7
 };
+
+static const unsigned char ITA2_code_to_figs[128] = {
+	//0 1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
+	'_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_',  // 0
+	'_', '_', '_', '_', '_', '_', '_', '\'', '_', '_', '_', '!', '_', ':', '(', '_', // 1
+	'_', '_', '_', '_', '_', '_', '_', '2', '_', '_', '_', '6', '_', '0', '1', '_',  // 2
+	'_', '_', '_', '_', '_', '&', '_', '_', '_', '.', '/', '_', '=', '_', '_', '_',  // 3
+	'_', '_', '_', '_', '_', '_', '_', '-', '_', '_', '_', '\'', '_', '8', '7', '_', // 4
+	'_', '_', '_', '$', '_', '4', '3', '_', '_', ',', '_', '_', ' ', '_', '_', '_',  // 5
+	'_', '_', '_', '+', '_', ')', '_', '_', '_', '#', '_', '_', '\n', '_', '_', '_', // 6
+	'_', '9', '?', '_', '5', '_', '_', '_', '\r', '_', '_', '_', '_', '_', '_', '_'  // 7
+};
+
 
 static const int code_ltrs = 0x5a;
 static const int code_figs = 0x36;
@@ -509,7 +522,11 @@ public:
 			// TODO: If a code is invalid, we could take the closest value in terms of bits.
 			if (check_bits(code)) {
 				m_valid_codes[code] = true;
-				unsigned char figv = code_to_figs[code];
+				unsigned char figv;
+				if (progdefaults.ITA2)
+					figv = ITA2_code_to_figs[code];
+				else
+					figv = USTTY_code_to_figs[code];
 				unsigned char ltrv = code_to_ltrs[code];
 				if ( figv != '_') {
 					m_figs_to_code[figv] = code;
@@ -543,7 +560,13 @@ public:
 	}
 
 	int code_to_char(int code, bool shift) const {
-		const unsigned char * target = (shift) ? code_to_figs : code_to_ltrs;
+		const unsigned char * target;
+
+		if (progdefaults.ITA2)
+			target = (shift) ? ITA2_code_to_figs : code_to_ltrs;
+				else
+			target = (shift) ? USTTY_code_to_figs : code_to_ltrs;
+
 		if (target[code] != '_') {
 			return target[code];
 		}
@@ -907,6 +930,10 @@ class navtex_implementation {
 	char snrmsg[80];
 	// filter method related
 	double               m_center_frequency_f ;
+
+	bool m_wfrev;
+	bool m_wfsb;
+	bool m_reverse;
 
 	navtex_implementation( const navtex_implementation & );
 	navtex_implementation();
@@ -1515,6 +1542,14 @@ public:
 			zspace = mixer(m_space_phase, m_space_f, z);
 			n_out = m_space_lowpass->run(zspace, &zp_space);
 
+			m_wfrev = wf->Reverse();
+			m_wfsb = wf->USB();
+			m_reverse = m_wfrev ^ !m_wfsb;
+			if (m_reverse) {
+				cmplx *temp = zp_mark;
+				zp_mark = zp_space;
+				zp_space = temp;
+			}
 			if (n_out)
 				process_fft_output(zp_mark, zp_space, n_out);
 		}
