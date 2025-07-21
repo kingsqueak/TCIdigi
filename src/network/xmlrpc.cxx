@@ -1688,13 +1688,10 @@ public:
 	}
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
-		std::string st;
-		if (btnTune->value())
-			st = "tune";
-		else if (wf->xmtrcv->value())
-			st = "tx";
-		else
-			st = "rx";
+		std::string st = "rx";
+		if (trx_state == STATE_TX) st = "tx";
+		else if (trx_state == STATE_TUNE) st = "tune";
+
 		LOG_INFO("[%s] main.get_trx_status: %s",
 			 XmlRpc::client_id.c_str(),
 			 st.c_str());
