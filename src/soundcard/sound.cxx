@@ -2523,7 +2523,9 @@ size_t SoundNull::Read(float *buf, size_t count)
 
 void SoundNull::flush(unsigned)
 {
-	if (ofGenerate)
+	if (ofGenerate) {
 		sf_close(ofGenerate);
+		ofGenerate = 0;
+	}
 }
 
