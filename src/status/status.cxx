@@ -501,7 +501,7 @@ void status::saveLastState()
 #else
 	Fl_Preferences spref(
 		HomeDir.c_str(),
-		"w1hkj.com",
+		"w1hkj.org",
 		PACKAGE_TARNAME,
 		Fl_Preferences::C_LOCALE);
 #endif
@@ -789,7 +789,7 @@ void status::loadLastState()
 #else
 	Fl_Preferences spref(
 		HomeDir.c_str(),
-		"w1hkj.com",
+		"w1hkj.org",
 		PACKAGE_TARNAME,
 		Fl_Preferences::C_LOCALE);
 #endif

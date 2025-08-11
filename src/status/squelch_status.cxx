@@ -124,7 +124,7 @@ void ModeBand::save_mode_state()
 #else
 	Fl_Preferences spref(
 		HomeDir.c_str(),
-		"w1hkj.com",
+		"w1hkj.org",
 		"mode_state",
 		Fl_Preferences::C_LOCALE);
 #endif
@@ -160,7 +160,7 @@ void ModeBand::load_mode_state() {
 #else
 	Fl_Preferences spref(
 		HomeDir.c_str(),
-		"w1hkj.com",
+		"w1hkj.org",
 		"mode_state",
 		Fl_Preferences::C_LOCALE);
 #endif

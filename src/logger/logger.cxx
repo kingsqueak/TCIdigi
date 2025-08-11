@@ -1042,8 +1042,8 @@ void save_cloud_prefs()
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "cloud_fields");
 #else
 	Fl_Preferences spref(
-		std::string(HomeDir).c_str(),
-		"w1hkj.com",
+		HomeDir.c_str(),
+		"w1hkj.org",
 		"cloud_fields",
 		Fl_Preferences::C_LOCALE);
 #endif
@@ -1109,8 +1109,8 @@ void load_cloud_prefs()
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "cloud_fields");
 #else
 	Fl_Preferences spref(
-		std::string(HomeDir).c_str(),
-		"w1hkj.com",
+		HomeDir.c_str(),
+		"w1hkj.org",
 		"cloud_fields",
 		Fl_Preferences::C_LOCALE);
 #endif
@@ -1448,8 +1448,8 @@ void save_udp_prefs()
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "udp_fields");
 #else
 	Fl_Preferences spref(
-		std::string(HomeDir).c_str(),
-		"w1hkj.com",
+		HomeDir.c_str(),
+		"w1hkj.org",
 		"udp_fields",
 		Fl_Preferences::C_LOCALE);
 #endif
@@ -1515,8 +1515,8 @@ void load_udp_prefs()
 	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", "udp_fields");
 #else
 	Fl_Preferences spref(
-		std::string(HomeDir).c_str(),
-		"w1hkj.com",
+		HomeDir.c_str(),
+		"w1hkj.org",
 		"udp_fields",
 		Fl_Preferences::C_LOCALE);
 #endif

@@ -1605,7 +1605,11 @@ static void notify_save(void)
 #if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences ndata(HomeDir.c_str(), PACKAGE_TARNAME, "notify");
 #else
-	Fl_Preferences ndata(std::string(HomeDir).append("fldigi.prefs").c_str(), PACKAGE_TARNAME, "notify", (Fl_Preferences::Root)0);
+	Fl_Preferences ndata(
+		HomeDir.c_str(),
+		PACKAGE_TARNAME,
+		"notify",
+		(Fl_Preferences::Root)0);
 #endif
 
 	ndata.set("items", static_cast<int>(notify_list.size()));
@@ -1658,7 +1662,11 @@ static void notify_load(void)
 #if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences ndata(HomeDir.c_str(), PACKAGE_TARNAME, "notify");
 #else
-	Fl_Preferences ndata(std::string(HomeDir).append("fldigi.prefs").c_str(), PACKAGE_TARNAME, "notify", (Fl_Preferences::Root)0);
+	Fl_Preferences ndata(
+		HomeDir.c_str(),
+		PACKAGE_TARNAME,
+		"notify",
+		(Fl_Preferences::Root)0);
 #endif
 
 	if (!ndata.get("items", x, 0) || x <= 0)
