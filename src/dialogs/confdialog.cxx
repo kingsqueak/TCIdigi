@@ -20249,27 +20249,29 @@ Fl_Double_Window* ConfigureDialog() {
         } // Fl_Check_Button* btn_tx_lowercase
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(206, 206, 590, 76, gettext("Exit prompts"));
+      { Fl_Group* o = new Fl_Group(206, 206, 590, 76, gettext("Exit confirmations"));
         o->box(FL_ENGRAVED_FRAME);
         o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
-        { Fl_Check_Button* o = btn_save_config_on_exit = new Fl_Check_Button(246, 230, 264, 20, gettext("Prompt to save Configuration"));
+        { Fl_Check_Button* o = btn_save_config_on_exit = new Fl_Check_Button(246, 230, 264, 20, gettext("Save Configuration"));
+          btn_save_config_on_exit->tooltip(gettext("Confirm (yes/no) to save the current configuration."));
           btn_save_config_on_exit->down_box(FL_DOWN_BOX);
           btn_save_config_on_exit->callback((Fl_Callback*)cb_btn_save_config_on_exit);
           o->value(progdefaults.SaveConfig);
         } // Fl_Check_Button* btn_save_config_on_exit
-        { Fl_Check_Button* o = btn2_save_macros_on_exit = new Fl_Check_Button(246, 252, 264, 20, gettext("Prompt to save macro file"));
-          btn2_save_macros_on_exit->tooltip(gettext("Write current macro set on program exit"));
+        { Fl_Check_Button* o = btn2_save_macros_on_exit = new Fl_Check_Button(246, 252, 264, 20, gettext("Save macro file"));
+          btn2_save_macros_on_exit->tooltip(gettext("Confirm (yes/no) to save current macro definitions."));
           btn2_save_macros_on_exit->down_box(FL_DOWN_BOX);
           btn2_save_macros_on_exit->callback((Fl_Callback*)cb_btn2_save_macros_on_exit);
           o->value(progdefaults.SaveMacros);
         } // Fl_Check_Button* btn2_save_macros_on_exit
-        { Fl_Check_Button* o = btn2NagMe = new Fl_Check_Button(523, 230, 188, 20, gettext("Prompt to save log"));
-          btn2NagMe->tooltip(gettext("Bug me about saving log entries"));
+        { Fl_Check_Button* o = btn2NagMe = new Fl_Check_Button(523, 230, 188, 20, gettext("Save log"));
+          btn2NagMe->tooltip(gettext("Confirm (yes/no) to save the log entries."));
           btn2NagMe->down_box(FL_DOWN_BOX);
           btn2NagMe->callback((Fl_Callback*)cb_btn2NagMe);
           o->value(progdefaults.NagMe);
         } // Fl_Check_Button* btn2NagMe
-        { Fl_Check_Button* o = btn2_confirm_exit = new Fl_Check_Button(523, 252, 226, 20, gettext("Confirm exit"));
+        { Fl_Check_Button* o = btn2_confirm_exit = new Fl_Check_Button(523, 252, 226, 20, gettext("Exit"));
+          btn2_confirm_exit->tooltip(gettext("Confirm (yes/no) to end execution."));
           btn2_confirm_exit->down_box(FL_DOWN_BOX);
           btn2_confirm_exit->callback((Fl_Callback*)cb_btn2_confirm_exit);
           o->value(progdefaults.confirmExit);

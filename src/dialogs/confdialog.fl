@@ -9388,7 +9388,7 @@ btnInitRIGCAT->redraw_label();}
       }
     }
     Fl_Group grpRigGPIO {
-      label {Rig Control/GPIO PTT/CW} open
+      label {Rig Control/GPIO PTT/CW}
       xywh {201 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Rig Control/GPIO"));}
       code1 {config_pages.push_back(p);}
@@ -11882,7 +11882,7 @@ if (fl_color_chooser("Button Color", clr.r, clr.g, clr.b) == 0)
       }
     }
     Fl_Group {} {
-      label {UI/General}
+      label {UI/General} selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("UI/General"));}
       code1 {config_pages.push_back(p);}
@@ -11947,38 +11947,38 @@ progdefaults.changed = true;}
         }
       }
       Fl_Group {} {
-        label {Exit prompts}
+        label {Exit confirmations}
         xywh {206 206 590 76} box ENGRAVED_FRAME align 21
       } {
         Fl_Check_Button btn_save_config_on_exit {
-          label {Prompt to save Configuration}
+          label {Save Configuration}
           callback {progdefaults.SaveConfig = o->value();
 progdefaults.changed = true;}
-          xywh {246 230 264 20} down_box DOWN_BOX
+          tooltip {Confirm (yes/no) to save the current configuration.} xywh {246 230 264 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.SaveConfig);}
         }
         Fl_Check_Button btn2_save_macros_on_exit {
-          label {Prompt to save macro file}
+          label {Save macro file}
           callback {btn_save_macros_on_exit->value(o->value());
 progdefaults.SaveMacros = o->value();
 progdefaults.changed = true;}
-          tooltip {Write current macro set on program exit} xywh {246 252 264 20} down_box DOWN_BOX
+          tooltip {Confirm (yes/no) to save current macro definitions.} xywh {246 252 264 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.SaveMacros);}
         }
         Fl_Check_Button btn2NagMe {
-          label {Prompt to save log}
+          label {Save log}
           callback {btnNagMe->value(o->value());
 progdefaults.NagMe=o->value();
 progdefaults.changed = true;}
-          tooltip {Bug me about saving log entries} xywh {523 230 188 20} down_box DOWN_BOX
+          tooltip {Confirm (yes/no) to save the log entries.} xywh {523 230 188 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.NagMe);}
         }
         Fl_Check_Button btn2_confirm_exit {
-          label {Confirm exit}
+          label Exit
           callback {btn2_confirm_exit->value(o->value());
 progdefaults.confirmExit=o->value();
 progdefaults.changed = true;}
-          xywh {523 252 226 20} down_box DOWN_BOX
+          tooltip {Confirm (yes/no) to end execution.} xywh {523 252 226 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.confirmExit);}
         }
       }
