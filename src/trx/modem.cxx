@@ -350,14 +350,10 @@ double modem::get_txfreq(void) const
 
 double modem::get_txfreq_woffset(void) const
 {
-	if (mailserver && progdefaults.PSKmailSweetSpot)
-		return (progdefaults.PSKsweetspot - progdefaults.TxOffset);
-	if (get_mode() == MODE_FSQ) return (1500 - progdefaults.TxOffset);
-
-	if (test_signal_window && test_signal_window->visible() && btnOffsetOn->value())
-		return tx_frequency + ctrl_freq_offset->value();
-
-	return (tx_frequency - progdefaults.TxOffset);
+	double temp = tx_frequency;
+	if (mailserver && progdefaults.PSKmailSweetSpot) temp = progdefaults.PSKsweetspot;
+	if (get_mode() == MODE_FSQ) temp = 1500;
+	return (temp - progdefaults.TxOffset);
 }
 
 void modem::set_bandwidth(double bw)

@@ -605,7 +605,7 @@ int configuration::setDefaults()
 
 	sldrCWxmtWPM->value(CWspeed);
 	cntCWdefWPM->value(defCWspeed);
-	sldrCWbandwidth->value(CWbandwidth);
+	cntCWbandwidth->value(CWbandwidth);
 	btnCWrcvTrack->value(CWtrack);
 	cntCWrange->value(CWrange);
 	cntCWlowerlimit->value(CWlowerlimit);

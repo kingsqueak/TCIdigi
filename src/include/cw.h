@@ -44,10 +44,6 @@
 
 #define MAX_MORSE_ELEMENTS 6 // maximum of 6 elements in a Morse character 256
 
-// CW function return status codes. 
-#define	CW_SUCCESS	0
-#define	CW_ERROR	-1
-
 #define	ASC_NUL		'\0'	// End of string 
 #define	ASC_SPACE	' '	// ASCII space char 
 
@@ -110,7 +106,7 @@ protected:
 	double		upper_threshold;
 	double		lower_threshold;
 
-	fftfilt			*cw_FFT_filter; // sinc / matched filter
+	C_FIR_filter	*cw_filter;		// decimate in time Finite Impulse Response (FIR) filters
 
 	Cmovavg		*bitfilter;
 	Cmovavg		*trackingfilter;
@@ -182,7 +178,7 @@ protected:
 	void	update_Status();
 	void	sync_parameters();
 	void	reset_rx_filter();
-	int		handle_event(int cw_event, std::string &sc);
+	void	handle_event(int cw_event, std::string &sc);
 	inline	int usec_diff(unsigned int earlier, unsigned int later);
 	void	send_symbol(int symbol, int len, int state);
 	void	send_ch(int c);
@@ -223,6 +219,7 @@ protected:
 	void	flush_audio();
 
 	void send_CW(int);
+	void send_gpio_CW(int c);
 
 	view_cw	viewcw;
 

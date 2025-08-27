@@ -26,6 +26,8 @@
 // along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
 // ----------------------------------------------------------------------------
 
+#define CW_DEBUG 0
+
 #include <config.h>
 
 #include <cstring>
@@ -73,15 +75,19 @@
 
 #include "audio_alert.h"
 
+#define FIR_DECIMATE    10 //16
+
 void start_cwio_thread();
 void stop_cwio_thread();
 
-#define XMT_FILT_LEN 256
-#define QSK_DELAY_LEN 4*XMT_FILT_LEN
-#define CW_FFT_SIZE 2048 // must be a factor of 2
+void start_gpio_thread();
+void stop_gpio_thread();
 
 static double nano_d2d = 0;
 static int nano_wpm = 0;
+static bool first_time = true;
+static double cw_freq = 1500;
+static int FIR_FILTER_LEN = 512;
 
 const cw::SOM_TABLE cw::som_table[] = {
 	/* Prosigns */
@@ -259,16 +265,6 @@ void cw::init()
 	bool wfsb = wf->USB();
 	reverse = wfrev ^ !wfsb;
 
-	if (progdefaults.StartAtSweetSpot)
-		set_freq(progdefaults.CWsweetspot);
-	else if (progStatus.carrier != 0) {
-		set_freq(progStatus.carrier);
-#if !BENCHMARK_MODE
-		progStatus.carrier = 0;
-#endif
-	} else
-		set_freq(wf->Carrier());
-
 	trackingfilter->reset();
 	two_dots = (long int)trackingfilter->run(2 * cw_send_dot_length);
 	put_cwRcvWPM(cw_send_speed);
@@ -287,14 +283,20 @@ void cw::init()
 
 	if (use_nanoIO) set_nanoCW();
 
+	reset_rx_filter();
+
 }
 
 cw::~cw() {
-	if (cw_FFT_filter) delete cw_FFT_filter;
+	if (cw_filter) delete cw_filter;
 	if (bitfilter) delete bitfilter;
 	if (trackingfilter) delete trackingfilter;
 	stop_cwio_thread();
+	stop_gpio_thread();
 }
+
+static int debug_count = 0;
+static int filnbr = -1;
 
 cw::cw() : modem()
 {
@@ -303,8 +305,7 @@ cw::cw() : modem()
 	mode = MODE_CW;
 	freqlock = false;
 	usedefaultWPM = false;
-	frequency = progdefaults.CWsweetspot;
-	tx_frequency = get_txfreq_woffset();
+
 	risetime = progdefaults.CWrisetime;
 	QSKshape = progdefaults.QSKshape;
 
@@ -349,13 +350,25 @@ cw::cw() : modem()
 
 	use_matched_filter = progdefaults.CWmfilt;
 
+	if (progdefaults.StartAtSweetSpot) frequency = progdefaults.CWsweetspot;
+
 	bandwidth = progdefaults.CWbandwidth;
 	if (use_matched_filter)
-		progdefaults.CWbandwidth = bandwidth = 5.0 * progdefaults.CWspeed / 1.2;
+		bandwidth = 2 * progdefaults.CWspeed;
 
-	cw_FFT_filter = new fftfilt(1.0 * progdefaults.CWbandwidth / samplerate, CW_FFT_SIZE);
+	switch (progdefaults.CW_fillen) {
+		case 0: FIR_FILTER_LEN = 128; break;
+		case 1: FIR_FILTER_LEN = 256; break;
+		case 2: default: FIR_FILTER_LEN = 512; break;
+		case 3: FIR_FILTER_LEN = 1024; break;
+	}
+	filnbr = progdefaults.CW_fillen;
 
-	int bfv = symbollen / ( 2 * DEC_RATIO);
+	cw_filter = new C_FIR_filter();
+	cw_filter->init_bandpass(FIR_FILTER_LEN, FIR_DECIMATE, 1.0*(frequency - bandwidth/2)/samplerate, 1.0*(frequency + bandwidth/2)/samplerate);
+
+
+	int bfv = symbollen / ( 2 * FIR_DECIMATE);
 	if (bfv < 1) bfv = 1;
 
 	bitfilter = new Cmovavg(bfv);
@@ -368,8 +381,12 @@ cw::cw() : modem()
 	nano_d2d = progdefaults.CWdash2dot;
 
 	sync_parameters();
+
 	REQ(static_cast<void (waterfall::*)(int)>(&waterfall::Bandwidth), wf, (int)bandwidth);
-	REQ(static_cast<int (Fl_Value_Slider2::*)(double)>(&Fl_Value_Slider2::value), sldrCWbandwidth, (int)bandwidth);
+	REQ(static_cast<int (Fl_Counter2::*)(double)>(&Fl_Counter2::value), cntCWbandwidth, (int)bandwidth);
+	REQ(static_cast<int (Fl_Counter2::*)(double)>(&Fl_Counter2::value), cntcwsbandwidth, (int)bandwidth);
+
+
 	update_Status();
 
 	synchscope = 50;
@@ -382,28 +399,49 @@ cw::cw() : modem()
 
 }
 
-// SHOULD ONLY BE CALLED FROM THE rx_processing loop
 void cw::reset_rx_filter()
 {
-	if (use_matched_filter != progdefaults.CWmfilt ||
-		cw_speed != progdefaults.CWspeed ||
+	if (first_time ||
+		(cw_freq != wf->Carrier()) ||
+		(use_matched_filter != progdefaults.CWmfilt) ||
+		filnbr != progdefaults.CW_fillen ||
+		(progdefaults.CWmfilt && (cw_speed != progdefaults.CWspeed)) ||
 		(bandwidth != progdefaults.CWbandwidth && !use_matched_filter)) {
 
+		double sf = 0;
+
+		cw_speed = progdefaults.CWspeed;
+
+		if (first_time) {
+			if (progdefaults.StartAtSweetSpot) sf = progdefaults.CWsweetspot;
+			else if (progStatus.carrier != 0) sf = progStatus.carrier;
+			else sf = wf->Carrier();
+		} else
+			sf = wf->Carrier();
+
+		set_freq(cw_freq = sf);
+
 		use_matched_filter = progdefaults.CWmfilt;
-		cw_send_speed = cw_speed = progdefaults.CWspeed;
 
+		bandwidth = progdefaults.CWbandwidth;
 		if (use_matched_filter)
-			progdefaults.CWbandwidth = bandwidth = 5.0 * progdefaults.CWspeed / 1.2;
-		else
-			bandwidth = progdefaults.CWbandwidth;
+			bandwidth = 2 * progdefaults.CWspeed;
 
-		cw_FFT_filter->create_lpf(1.0 * bandwidth / samplerate);
+		filnbr = progdefaults.CW_fillen;
+		switch (progdefaults.CW_fillen) {
+			case 0: FIR_FILTER_LEN = 128; break;
+			case 1: FIR_FILTER_LEN = 256; break;
+			case 2: default: FIR_FILTER_LEN = 512; break;
+			case 3: FIR_FILTER_LEN = 1024; break;
+		}
+
+		cw_filter->init_bandpass(FIR_FILTER_LEN, FIR_DECIMATE, 1.0*(frequency - bandwidth/2)/samplerate, 1.0*(frequency + bandwidth/2)/samplerate);
+
 		FFTphase = 0;
 
-		REQ(static_cast<void (waterfall::*)(int)>(&waterfall::Bandwidth),
-			wf, (int)bandwidth);
-		REQ(static_cast<int (Fl_Value_Slider2::*)(double)>(&Fl_Value_Slider2::value),
-			sldrCWbandwidth, (int)bandwidth);
+		REQ(static_cast<void (waterfall::*)(int)>(&waterfall::Bandwidth), wf, (int)bandwidth);
+		REQ(static_cast<int (Fl_Counter2::*)(double)>(&Fl_Counter2::value), cntCWbandwidth, (int)bandwidth);
+		REQ(static_cast<int (Fl_Counter2::*)(double)>(&Fl_Counter2::value), cntcwsbandwidth, (int)bandwidth);
 
 		pipesize = (22 * samplerate * 12) / (progdefaults.CWspeed * 160);
 		if (pipesize < 0) pipesize = 512;
@@ -413,8 +451,42 @@ void cw::reset_rx_filter()
 		cw_noise_spike_threshold = two_dots / 4;
 		cw_send_dot_length = KWPM / cw_send_speed;
 		cw_send_dash_length = 3 * cw_send_dot_length;
+
 		symbollen = (int)round(samplerate * 1.2 / progdefaults.CWspeed);
 		fsymlen = (int)round(samplerate * 1.2 / progdefaults.CWfarnsworth);
+
+		int bfv = (symbollen / FIR_DECIMATE) / 4;
+		if (bfv < 1) bfv = 1;
+
+		bitfilter->setLength(bfv);
+
+if (CW_DEBUG)
+{
+	printf("\
+Statitistics: %d\n\
+   dot length:        %ld\n\
+   dash length:       %ld\n\
+   noise threshold:   %ld\n\
+   symbollen:         %d\n\
+   fsymlen:           %d\n\
+   bit filter length: %d\n\
+   frequency:         %f\n\
+   bandwidth:         %f\n\
+   matched:           %d\n\
+   FIR filter length: %d\n",
+		++debug_count,
+		cw_send_dot_length,
+		cw_send_dash_length,
+		cw_noise_spike_threshold,
+		symbollen,
+		fsymlen,
+		bfv,
+		frequency,
+		bandwidth,
+		use_matched_filter,
+		FIR_FILTER_LEN
+	);
+}
 
 		phaseacc = 0.0;
 		FFTphase = 0.0;
@@ -425,15 +497,10 @@ void cw::reset_rx_filter()
 
 		rx_rep_buf.clear();
 
-	int bfv = symbollen / ( 2 * DEC_RATIO);
-	if (bfv < 1) bfv = 1;
-
-	bitfilter->setLength(bfv);
-
-	siglevel = 0;
+		siglevel = 0;
 
 	}
-
+	first_time = false;
 }
 
 // sync_parameters()
@@ -584,18 +651,15 @@ cmplx cw::mixer(cmplx in)
 	return z;
 }
 
-//=====================================================================
-// cw_rxprocess()
-// Called with a block (size SCBLOCKSIZE samples) of audio.
-//
-//======================================================================
-
 void cw::decode_stream(double value)
 {
 	std::string sc;
 	std::string somc;
 	int attack = 0;
 	int decay = 0;
+
+	sc.clear();
+
 	switch (progdefaults.cwrx_attack) {
 		case 0: attack = 400; break;//100; break;
 		case 1: default: attack = 200; break;//50; break;
@@ -655,7 +719,9 @@ void cw::decode_stream(double value)
 		}
 	}
 
-	if (handle_event(CW_QUERY_EVENT, sc) == CW_SUCCESS) {
+//	if (handle_event(CW_QUERY_EVENT, sc) == SC_VALID) {
+	handle_event(CW_QUERY_EVENT, sc);
+	if (!sc.empty()) {
 		update_syncscope();
 		synchscope = 100;
 		if (progdefaults.CWuseSOMdecoding) {
@@ -673,45 +739,32 @@ void cw::decode_stream(double value)
 					sc[n],
 					sc[0] == '<' ? FTextBase::CTRL : FTextBase::RECV);
 		}
-	} else if (--synchscope == 0) {
-		synchscope = 25;
-	update_syncscope();
+	} else {
+		if (--synchscope == 0) {
+			synchscope = 25;
+			update_syncscope();
+		}
 	}
 
 }
 
 void cw::rx_FFTprocess(const double *buf, int len)
 {
-	cmplx z, *zp;
-	int n;
+	if (len <= 0) return;
 
-	while (len-- > 0) {
+	int n = 0;
+	double fil_in = 0, fil_out = 0, bit_value = 0;
 
-		z = cmplx ( *buf * cos(FFTphase), *buf * sin(FFTphase) );
-		FFTphase += TWOPI * frequency / samplerate;
-		if (FFTphase > TWOPI) FFTphase -= TWOPI;
+	while ( len-- ) {
+		fil_in = *buf;
+		n = cw_filter->Irun(fil_in, fil_out);
+		smpl_ctr++; buf++;
+		if (n) {
+			bit_value = bitfilter->run(abs(fil_out));
+			decode_stream(bit_value);
+		}
+	}
 
-		buf++;
-
-		n = cw_FFT_filter->run(z, &zp); // n = 0 or filterlen/2
-
-		if (!n) continue;
-
-		for (int i = 0; i < n; i++) {
-// update the basic sample counter used for morse timing
-			++smpl_ctr;
-
-			if (smpl_ctr % DEC_RATIO) continue; // decimate by DEC_RATIO
-
-// demodulate
-			FFTvalue = abs(zp[i]);
-			FFTvalue = bitfilter->run(FFTvalue);
-
-			decode_stream(FFTvalue);
-
-		} // for (i =0; i < n ...
-
-	} //while (len-- > 0)
 }
 
 static bool cwprocessing = false;
@@ -724,6 +777,8 @@ int cw::rx_process(const double *buf, int len)
 		prosigns = progdefaults.CW_prosigns;
 		morse->init();
 	}
+
+	if (first_time) return 0; // wait for initialization to complete
 
 	if (cwprocessing)
 		return 0;
@@ -763,64 +818,73 @@ inline int cw::usec_diff(unsigned int earlier, unsigned int later)
 //	query commands.
 //   Keyup/down influences decoding logic.
 //	Reset starts everything out fresh.
-//	The query command returns CW_SUCCESS and the character that has
+//	The query command returns SC_VALID and the character that has
 //	been decoded (may be '*',' ' or [a-z,0-9] or a few others)
-//	If there is no data ready, CW_ERROR is returned.
+//	returns decoded chaacer string, or an empty string if decode
+//	is not valid.
 //=======================================================================
 
-int cw::handle_event(int cw_event, std::string &sc)
+void cw::handle_event(int cw_event, std::string &sc)
 {
 	static int space_sent = true;	// for word space logic
 	static int last_element = 0;	// length of last dot/dash
 	int element_usec;		// Time difference in usecs
 
+	sc.clear();
+
 	switch (cw_event) {
-	case CW_RESET_EVENT:
-		sync_parameters();
-		cw_receive_state = RS_IDLE;
-		cw_rr_current = 0;			// reset decoding pointer
-		cw_ptr = 0;
-		memset(cw_buffer, 0, sizeof(cw_buffer));
-		smpl_ctr = 0;					// reset audio sample counter
-		rx_rep_buf.clear();
-		break;
-	case CW_KEYDOWN_EVENT:
+// ---------
+		case CW_RESET_EVENT:
+			sync_parameters();
+			cw_receive_state = RS_IDLE;
+			cw_rr_current = 0;			// reset decoding pointer
+			cw_ptr = 0;
+			memset(cw_buffer, 0, sizeof(cw_buffer));
+			smpl_ctr = 0;					// reset audio sample counter
+			rx_rep_buf.clear();
+if (CW_DEBUG) printf("RESET   ");
+			return;
+
+// ---------
+		case CW_KEYDOWN_EVENT:
 // A receive tone start can only happen while we
 // are idle, or in the middle of a character.
-		if (cw_receive_state == RS_IN_TONE)
-			return CW_ERROR;
+			if (cw_receive_state == RS_IN_TONE)
+				return;
 // first tone in idle state reset audio sample counter
-		if (cw_receive_state == RS_IDLE) {
-			smpl_ctr = 0;
-			rx_rep_buf.clear();
-			cw_rr_current = 0;
-			cw_ptr = 0;
-		}
+			if (cw_receive_state == RS_IDLE) {
+				smpl_ctr = 0;
+				rx_rep_buf.clear();
+				cw_rr_current = 0;
+				cw_ptr = 0;
+			}
 // save the timestamp
-		cw_rr_start_timestamp = smpl_ctr;
+			cw_rr_start_timestamp = smpl_ctr;
 // Set state to indicate we are inside a tone.
-		old_cw_receive_state = cw_receive_state;
-		cw_receive_state = RS_IN_TONE;
-		return CW_ERROR;
-		break;
-	case CW_KEYUP_EVENT:
+			old_cw_receive_state = cw_receive_state;
+			cw_receive_state = RS_IN_TONE;
+			return;
+
+// ---------
+		case CW_KEYUP_EVENT:
 // The receive state is expected to be inside a tone.
-		if (cw_receive_state != RS_IN_TONE)
-			return CW_ERROR;
+			if (cw_receive_state != RS_IN_TONE)
+				return;
 // Save the current timestamp
-		cw_rr_end_timestamp = smpl_ctr;
-		element_usec = usec_diff(cw_rr_start_timestamp, cw_rr_end_timestamp);
+			cw_rr_end_timestamp = smpl_ctr;
+			element_usec = usec_diff(cw_rr_start_timestamp, cw_rr_end_timestamp);
 
 // make sure our timing values are up to date
-		sync_parameters();
+			sync_parameters();
 // If the tone length is shorter than any noise cancelling
 // threshold that has been set, then ignore this tone.
-		if (cw_noise_spike_threshold > 0
-			&& element_usec < cw_noise_spike_threshold) {
-			cw_receive_state = RS_IDLE;
- 			return CW_ERROR;
-		}
-
+			if (element_usec
+				&& (cw_noise_spike_threshold > 0)
+				&& (element_usec < cw_noise_spike_threshold)) {
+				cw_receive_state = RS_IDLE;
+//if (CW_DEBUG) printf("NOISE(%d): %f / %f\n", cw_receive_state, 1.0*element_usec, 1.0*cw_noise_spike_threshold);
+				return;
+			}
 // Set up to track speed on dot-dash or dash-dot pairs for this test to work, we need a dot dash pair or a
 // dash dot pair to validate timing from and force the speed tracking in the right direction. This method
 // is fundamentally different than the method in the unix cw project. Great ideas come from staring at the
@@ -829,95 +893,98 @@ int cw::handle_event(int cw_event, std::string &sc)
 // knowing that one is supposed to be 3 times longer than the other. with straight key code... this gets
 // quite variable, but with most faster cw sent with electronic keyers, this is one relationship that is
 // quite reliable. Lawrence Glaister (ve7it@shaw.ca)
-		if (last_element > 0) {
+			if (last_element > 0) {
 // check for dot dash sequence (current should be 3 x last)
-			if ((element_usec > 2 * last_element) &&
-				(element_usec < 4 * last_element)) {
-				update_tracking(last_element, element_usec);
-			}
+				if ((element_usec > 2 * last_element) &&
+					(element_usec < 4 * last_element)) {
+					update_tracking(last_element, element_usec);
+				}
 // check for dash dot sequence (last should be 3 x current)
-			if ((last_element > 2 * element_usec) &&
-				(last_element < 4 * element_usec)) {
-				update_tracking(element_usec, last_element);
+				if ((last_element > 2 * element_usec) &&
+					(last_element < 4 * element_usec)) {
+					update_tracking(element_usec, last_element);
+				}
 			}
-		}
-		last_element = element_usec;
+			last_element = element_usec;
 // ok... do we have a dit or a dah?
 // a dot is anything shorter than 2 dot times
-		if (element_usec <= two_dots) {
-			rx_rep_buf += CW_DOT_REPRESENTATION;
-	//		printf("%d dit ", last_element/1000);  // print dot length
-			cw_buffer[cw_ptr++] = (float)last_element;
-		} else {
+			if (element_usec <= two_dots) {
+				rx_rep_buf += CW_DOT_REPRESENTATION;
+//if (CW_DEBUG) printf("dot length: %d\n", last_element);
+				cw_buffer[cw_ptr++] = (float)last_element;
+			} else {
 // a dash is anything longer than 2 dot times
-			rx_rep_buf += CW_DASH_REPRESENTATION;
-			cw_buffer[cw_ptr++] = (float)last_element;
-		}
+//if (CW_DEBUG) printf("dash length: %d\n", last_element);
+				rx_rep_buf += CW_DASH_REPRESENTATION;
+				cw_buffer[cw_ptr++] = (float)last_element;
+			}
 // We just added a representation to the receive buffer.
 // If it's full, then reset everything as it probably noise
-		if (rx_rep_buf.length() > MAX_MORSE_ELEMENTS) {
-			cw_receive_state = RS_IDLE;
-			cw_rr_current = 0;	// reset decoding pointer
-			cw_ptr = 0;
-			smpl_ctr = 0;		// reset audio sample counter
-			return CW_ERROR;
-		} else {
+			if (rx_rep_buf.length() > MAX_MORSE_ELEMENTS) {
+				cw_receive_state = RS_IDLE;
+				cw_rr_current = 0;	// reset decoding pointer
+				cw_ptr = 0;
+				smpl_ctr = 0;		// reset audio sample counter
+				return;
+			} else {
 // zero terminate representation
 //			rx_rep_buf.clear();
-			cw_buffer[cw_ptr] = 0.0;
-		}
+				cw_buffer[cw_ptr] = 0.0;
+			}
+
 // All is well.  Move to the more normal after-tone state.
-		cw_receive_state = RS_AFTER_TONE;
-		return CW_ERROR;
-		break;
-	case CW_QUERY_EVENT:
+			cw_receive_state = RS_AFTER_TONE;
+			return;
+
+// ---------
+		case CW_QUERY_EVENT:
 // this should be called quite often (faster than inter-character gap) It looks after timing
 // key up intervals and determining when a character, a word space, or an error char '*' should be returned.
-// CW_SUCCESS is returned when there is a printable character. Nothing to do if we are in a tone
-		if (cw_receive_state == RS_IN_TONE)
-			return CW_ERROR;
+// SC_VALID is returned when there is a printable character. Nothing to do if we are in a tone
+			if (cw_receive_state == RS_IN_TONE)
+				return;
 // compute length of silence so far
-		sync_parameters();
-		element_usec = usec_diff(cw_rr_end_timestamp, smpl_ctr);
+			sync_parameters();
+			element_usec = usec_diff(cw_rr_end_timestamp, smpl_ctr);
 // SHORT time since keyup... nothing to do yet
-		if (element_usec < (2 * cw_receive_dot_length))
-			return CW_ERROR;
+			if (element_usec < (2 * cw_receive_dot_length))
+				return;
 // MEDIUM time since keyup... check for character space
 // one shot through this code via receive state logic
 // FARNSWOTH MOD HERE -->
-		if (element_usec >= (2 * cw_receive_dot_length) &&
-			element_usec <= (4 * cw_receive_dot_length) &&
-			cw_receive_state == RS_AFTER_TONE) {
+			if (element_usec >= (2 * cw_receive_dot_length) &&
+				element_usec <= (4 * cw_receive_dot_length) &&
+				cw_receive_state == RS_AFTER_TONE) {
 // Look up the representation
-			sc = morse->rx_lookup(rx_rep_buf);
-			if (sc.empty()) {
+//if (CW_DEBUG) printf("Decode buffer: %s [", rx_rep_buf.c_str());
+				sc = morse->rx_lookup(rx_rep_buf);
+				if (sc.empty()) {
 // invalid decode... let user see error
-			sc = (progdefaults.CW_noise == '*' ? "*" :
-				  progdefaults.CW_noise == '_' ? "_" :
-				  progdefaults.CW_noise == ' ' ? " " : "");
-
+					sc = (progdefaults.CW_noise == '*' ? "*" :
+					progdefaults.CW_noise == '_' ? "_" :
+					progdefaults.CW_noise == ' ' ? " " : "");
+				}
+				rx_rep_buf.clear();
+				cw_receive_state = RS_IDLE;
+				cw_rr_current = 0;	// reset decoding pointer
+				space_sent = false;
+				cw_ptr = 0;
+//if (CW_DEBUG) printf("%s]\n", sc.c_str());
+				return;;
 			}
-			rx_rep_buf.clear();
-			cw_receive_state = RS_IDLE;
-			cw_rr_current = 0;	// reset decoding pointer
-			space_sent = false;
-			cw_ptr = 0;
-
-			return CW_SUCCESS;
-		}
 // LONG time since keyup... check for a word space
 // FARNSWOTH MOD HERE -->
-		if ((element_usec > (4 * cw_receive_dot_length)) && !space_sent) {
-			sc = " ";
-			space_sent = true;
-			return CW_SUCCESS;
-		}
-// should never get here... catch all
-		return CW_ERROR;
-		break;
+			if ((element_usec > (4 * cw_receive_dot_length)) && !space_sent) {
+				sc = " ";
+				space_sent = true;
+//if (CW_DEBUG) printf("<SP>\n");
+				return;;
+			}
+			return;
+
 	}
-// should never get here... catch all
-	return CW_ERROR;
+
+	return;
 }
 
 //===========================================================================
@@ -1004,6 +1071,12 @@ enum {START, FIRST, MID, LAST, SPACE};
 void cw::send_symbol(int bit, int len, int state)
 {
 	double qsk_amp = progdefaults.QSK ? progdefaults.QSKamp : 0.0;
+	double xmt_freq = get_txfreq_woffset();
+
+	if (CW_KEYLINE_isopen || 
+		progdefaults.CW_KEYLINE_on_cat_port ||
+		progdefaults.CW_KEYLINE_on_ptt_port)
+		xmt_freq = progdefaults.CWsweetspot;
 
 	sync_transmit_parameters();
 	acc_symbols += len;
@@ -1012,13 +1085,8 @@ void cw::send_symbol(int bit, int len, int state)
 	memset(qskbuf, 0, OUTBUFSIZE*sizeof(*qskbuf));
 
 	if (bit == 1) { // keydown
-		tx_frequency = get_txfreq_woffset();
-		if (CW_KEYLINE_isopen || 
-			progdefaults.CW_KEYLINE_on_cat_port ||
-			progdefaults.CW_KEYLINE_on_ptt_port)
-			tx_frequency = progdefaults.CWsweetspot;
 		for (int n = 0; n < len; n++) {
-			outbuf[n] = nco(tx_frequency);
+			outbuf[n] = nco(xmt_freq);
 			if (n < knum) outbuf[n] *= keyshape[n];
 			if (len - n < knum) outbuf[n] *= keyshape[len - n];
 			qskbuf[n] = qsk_amp * qsknco();
@@ -1119,6 +1187,7 @@ void cw::send_ch(int ch)
 	}
 
 	float w = (progdefaults.CWdash2dot + 1) / (progdefaults.CWdash2dot -1);
+	float weight = progdefaults.CWweight;
 
 	int elements = code.length();
 
@@ -1132,12 +1201,12 @@ void cw::send_ch(int ch)
 
 	for (int n = 0; n < elements; n++) {
 		send_symbol(1, 
-					(code[n] == '-' ? (w + 1) : (w - 1)) * symbollen,
+					(code[n] == '-' ? (w + 1) : (w - 1)) * (1 + weight) * symbollen,
 					MID);
 		send_symbol(0,
 					((n < elements - 1) ? tc :
 						(kpost + kpre < 3 * tc) ? tch - kpre:
-							tch),
+							tch) * (1 - weight),
 					(n < elements - 1 ? MID : LAST) );
 	}
 
@@ -1251,7 +1320,12 @@ int cw::tx_process()
 		progdefaults.CW_KEYLINE_on_cat_port ||
 		progdefaults.CW_KEYLINE_on_ptt_port)
 		send_CW(c);
+
+	if (progdefaults.gpio_cw)
+		send_gpio_CW(c);
+
 	send_ch(c);
+
 	first_char = false;
 
 	char_samples = acc_symbols;
@@ -1401,8 +1475,10 @@ void flrig_cwio_send(char c)
 		tc *= 5;
 	} else
 		tc *= (cwio_morse->tx_length(c));
+
 	lastcwiochar = c;
-	MilliSleep(tc);
+
+	MilliSleep(tc > 100 ? (tc - 50) : tc);
 }
 
 //----------------------------------------------------------------------
@@ -1443,16 +1519,6 @@ void cwio_ptt(int on)
 	}
 }
 
-/*
-#define cwio_bit(bit, len) {\
-switch (progdefaults.CW_KEYLINE) {\
-case 0: break;\
-case 1: ser->SetRTS(bit); break;\
-case 2: ser->SetDTR(bit); break;\
-}\
-MilliSleep(len);}
-*/
-
 // return accurate time of day in secs
 
 double cwio_now()
@@ -1461,7 +1527,6 @@ double cwio_now()
 
 #if HAVE_CLOCK_GETTIME
 	clock_gettime(CLOCK_MONOTONIC, &tp); 
-//	return 1000.0 * tp.tv_sec + tp.tv_nsec * 1e-6;
 #elif defined(__WIN32__)
 	DWORD msec = GetTickCount();
 	return 1.0 * msec;
@@ -1472,7 +1537,6 @@ double cwio_now()
 	if (unlikely(info.denom == 0))
 		mach_timebase_info(&info);
 	uint64_t t = mach_absolute_time() * info.numer / info.denom;
-//	return t * 1e-6;
 	tp.tv_sec = t / 1000000000;
 	tp.tv_nsec = t % 1000000000;
 #endif
@@ -1596,16 +1660,18 @@ void send_cwio(int c)
 
 	guard_lock lk(&cwio_ptt_mutex);
 
+	double weight = progdefaults.CWweight;
+
 	for (size_t n = 0; n < code.length(); n++) {
 		if (code[n] == '.') {
-			cwio_bit(1, tc + xcvr_corr);
+			cwio_bit(1, tc * (1 + weight) + xcvr_corr);
 		} else {
-			cwio_bit(1, 3*tc + xcvr_corr);
+			cwio_bit(1, 3*tc * (1 + weight) + xcvr_corr);
 		}
 		if (n < code.length() -1) {
-			cwio_bit(0, tc - xcvr_corr);
+			cwio_bit(0, tc * (1 - weight) - xcvr_corr);
 		} else {
-			cwio_bit(0, tch - xcvr_corr);
+			cwio_bit(0, tch - tc * weight - xcvr_corr);
 		}
 	}
 
@@ -1944,5 +2010,319 @@ void CAT_keying_test()
 	LOG_DEBUG("started CW CAT calibration thread");
 
 	MilliSleep(10);
+
+}
+
+//----------------------------------------------------------------------
+// CW output on GPIO pin
+//----------------------------------------------------------------------
+
+#include <queue>
+#include <fcntl.h>
+
+static pthread_t		CW_gpio_pthread;
+static pthread_cond_t	CW_gpio_cond;
+static pthread_mutex_t	CW_gpio_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t	GPIO_fifo_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t	CW_gpio_ptt_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static bool				CW_gpio_thread_running   = false;
+static bool				CW_gpio_terminate_flag   = false;
+
+static cMorse			*gpio_morse = 0;
+
+static int				CW_gpio_fd = -1;
+
+static const char *gpio_name[] = {
+		"17", "18", "27", "22", "23",
+		"24", "25", "4",  "5",  "6",
+		"13", "19", "26", "12", "16",
+		"20", "21"};
+
+static void set_gpio_pin(bool key)
+{
+	static const char s_values_str[] = "01";
+
+	std::string portname = "/sys/class/gpio/gpio";
+	std::string ctrlport;
+	bool enabled = false;
+	int val = 0;
+	int fd = -1;
+
+	for (int i = 0; i < 17; i++) {
+		enabled = (progdefaults.enable_gpio_cw >> i) & 0x01;
+
+		if (enabled) {
+			val = (progdefaults.gpio_cw_on >> i) & 0x01;
+			ctrlport = portname;
+			ctrlport.append(gpio_name[i]);
+			ctrlport.append("/value");
+			CW_gpio_fd = fl_open(ctrlport.c_str(), O_WRONLY);
+
+			bool ok = false;
+			if (fd == -1) {
+				LOG_ERROR("Failed to open gpio (%s) for writing!", ctrlport.c_str());
+			} else {
+				if (progdefaults.gpio_pulse_width == 0) {
+					if (key) { if (val == 1) val = 1; else val = 0;}
+					if (!key)  { if (val == 1) val = 0; else val = 1;}
+					if (write(fd, &s_values_str[val], 1) == 1)
+						ok = true;
+				} else {
+					if (write(fd, &s_values_str[val], 1) == 1) {
+						MilliSleep(progdefaults.gpio_pulse_width);
+						if (write(fd, &s_values_str[val == 0 ? 1 : 0], 1) == 1)
+							ok = true;
+					}
+				}
+				if (ok)
+					LOG_INFO("Set GPIO CW_gpio keyline on %s %s%s",
+						ctrlport.c_str(),
+						(progdefaults.gpio_pulse_width > 0) ?
+							"pulsed " : "",
+						(val == 1 ? "HIGH" : "LOW")
+					);
+				else
+					LOG_ERROR("Failed to write to GPIO CW_gpio pin!");
+
+				close(fd);
+				return;
+			}
+		}
+	}
+}
+
+//----------------------------------------------------------------------
+
+static double CW_gpio_now()
+{
+	static struct timespec tp;
+
+#if HAVE_CLOCK_GETTIME
+	clock_gettime(CLOCK_MONOTONIC, &tp); 
+#elif defined(__WIN32__)
+	DWORD msec = GetTickCount();
+	return 1.0 * msec;
+	tp.tv_sec = msec / 1000;
+	tp.tv_nsec = (msec % 1000) * 1000000;
+#elif defined(__APPLE__)
+	static mach_timebase_info_data_t info = { 0, 0 };
+	if (unlikely(info.denom == 0))
+		mach_timebase_info(&info);
+	uint64_t t = mach_absolute_time() * info.numer / info.denom;
+	tp.tv_sec = t / 1000000000;
+	tp.tv_nsec = t % 1000000000;
+#endif
+	return 1.0 * tp.tv_sec + tp.tv_nsec * 1e-9;
+
+}
+
+static void CW_gpio_bit(int bit, double msecs)
+{
+	static double secs;
+	static struct timespec tv = { 0, 1000000L};
+	static double end1 = 0;
+	static double end2 = 0;
+	static double t1 = 0;
+#ifdef CW_gpio_TTEST
+	static double t2 = 0;
+#endif
+	static double t3 = 0;
+	static double t4 = 0;
+	int loop1 = 0;
+	int loop2 = 0;
+	int n1 = msecs * 1e3;
+
+	secs = msecs * 1e-3;
+
+#ifdef __WIN32__
+	timeBeginPeriod(1);
+#endif
+
+	t1 = CW_gpio_now();
+
+	end2 = t1 + secs - 0.00001;
+
+	set_gpio_pin(bit);
+
+#ifdef CW_gpio_TTEST
+	t2 = t3 = CW_gpio_now();
+#else
+	t3 = CW_gpio_now();
+#endif
+	end1 = end2 - 0.005;
+
+	while (t3 < end1 && (++loop1 < n1)) {
+		nano_sleep(&tv, NULL);
+		t3 = CW_gpio_now();
+	}
+
+	t4 = t3;
+	while (t4 <= end2) {
+		loop2++;
+		t4 = CW_gpio_now();
+	}
+
+#ifdef __WIN32__
+	timeEndPeriod(1);
+#endif
+
+}
+
+static void send_gpio(int c)
+{
+	if (c == GET_TX_CHAR_NODATA || c == 0x0d) {
+		return;
+	}
+
+	float tc = 1200.0 / progdefaults.CWspeed;
+	if (tc <= 0) tc = 1;
+	float ta = 0.0;
+	float tch = 3 * tc, twd = 4 * tc;
+	int   stdwpm = progdefaults.CWspeed;
+
+	if (progdefaults.CWusefarnsworth && (stdwpm > progdefaults.CWfarnsworth)) {
+		ta = 60000.0 / progdefaults.CWfarnsworth - 37200.0 / progdefaults.CWspeed;
+		tch = 3 * ta / 19;
+		twd = 4 * ta / 19;
+		stdwpm = progdefaults.CWfarnsworth;
+	}
+	if (progdefaults.CWusewordsworth && (stdwpm > progdefaults.CWwordsworth)) {
+		twd += (50.0 * 1200.0 / progdefaults.CWwordsworth - 50.0 * 1200.0 / stdwpm);
+	}
+
+	if (c == 0x0a) c = ' ';
+
+	if (c == ' ') {
+		CW_gpio_bit(0, twd);
+		return;
+	}
+
+	std::string code;
+	code = gpio_morse->tx_lookup(c);
+	if (!code.length()) {
+		return;
+	}
+
+	guard_lock lk(&CW_gpio_ptt_mutex);
+
+	double weight = progdefaults.CWweight;
+
+	for (size_t n = 0; n < code.length(); n++) {
+		if (code[n] == '.') {
+			CW_gpio_bit(1, tc * (1 + weight));
+		} else {
+			CW_gpio_bit(1, 3*tc * (1 + weight));
+		}
+		if (n < code.length() -1) {
+			CW_gpio_bit(0, tc * (1 - weight));
+		} else {
+			CW_gpio_bit(0, tch - tc * weight);
+		}
+	}
+}
+
+static int CW_gpio_ch;
+
+static void * CW_gpio_loop(void *args)
+{
+//	SET_THREAD_ID(CW_gpio_TID);
+
+	CW_gpio_thread_running   = true;
+	CW_gpio_terminate_flag   = false;
+
+	while(1) {
+		pthread_mutex_lock(&CW_gpio_mutex);
+		pthread_cond_wait(&CW_gpio_cond, &CW_gpio_mutex);
+		pthread_mutex_unlock(&CW_gpio_mutex);
+
+		if (CW_gpio_terminate_flag)
+			break;
+		while (!fifo.empty()) {
+			{
+				guard_lock lk(&GPIO_fifo_mutex);
+				CW_gpio_ch = fifo.front();
+				fifo.pop();
+			}
+			send_gpio(CW_gpio_ch);
+		}
+	}
+	return (void *)0;
+}
+
+void stop_gpio_thread(void)
+{
+	if(!CW_gpio_thread_running) return;
+
+	CW_gpio_terminate_flag = true;
+	pthread_cond_signal(&CW_gpio_cond);
+
+	MilliSleep(10);
+
+	pthread_join(CW_gpio_pthread, NULL);
+
+	pthread_mutex_destroy(&CW_gpio_mutex);
+	pthread_cond_destroy(&CW_gpio_cond);
+
+	memset((void *) &CW_gpio_pthread, 0, sizeof(CW_gpio_pthread));
+	memset((void *) &CW_gpio_mutex,   0, sizeof(CW_gpio_mutex));
+
+	delete gpio_morse;
+
+	CW_gpio_thread_running   = false;
+	CW_gpio_terminate_flag   = false;
+
+}
+
+void start_gpio_thread(void)
+{
+	if (CW_gpio_thread_running) return;
+
+	memset((void *) &CW_gpio_pthread, 0, sizeof(CW_gpio_pthread));
+	memset((void *) &CW_gpio_mutex,   0, sizeof(CW_gpio_mutex));
+	memset((void *) &CW_gpio_cond,    0, sizeof(CW_gpio_cond));
+
+	if(pthread_cond_init(&CW_gpio_cond, NULL)) {
+		LOG_ERROR("GPIO thread create fail (pthread_cond_init)");
+		return;
+	}
+
+	if(pthread_mutex_init(&CW_gpio_mutex, NULL)) {
+		LOG_ERROR("GPIO thread create fail (pthread_mutex_init)");
+		return;
+	}
+
+	if (pthread_create(&CW_gpio_pthread, NULL, CW_gpio_loop, NULL) < 0) {
+		pthread_mutex_destroy(&CW_gpio_mutex);
+		LOG_ERROR("GPIO thread create fail (pthread_create)");
+	}
+
+	int time_out = 100;
+	while (!CW_gpio_thread_running) {
+		MilliSleep(10);
+		if (--time_out == 0) {
+			LOG_ERROR("Could not start CW GPIO thread");
+			return;
+		}
+	}
+
+	if (gpio_morse == 0) {
+		gpio_morse = new cMorse;
+		gpio_morse->init();
+	}
+
+	LOG_INFO("Started CW GPIO thread");
+
+}
+
+void cw::send_gpio_CW(int c)
+{
+	if (!CW_gpio_thread_running)
+		start_gpio_thread();
+
+	guard_lock lk(&GPIO_fifo_mutex);
+	fifo.push(c);
+
+	pthread_cond_signal(&CW_gpio_cond);
 
 }

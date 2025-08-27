@@ -856,16 +856,16 @@ public:
 
 // =============================================================================
 
-static Fl_Valuator* get_bw_val(void)
+static int get_bw_val(void)
 {
 	if (!(active_modem->get_cap() & modem::CAP_BW))
 		return 0;
 
 	trx_mode m = active_modem->get_mode();
 	if (m >= MODE_HELL_FIRST && m <= MODE_HELL_LAST)
-		return sldrHellBW;
+		return sldrHellBW->value();
 	else if (m == MODE_CW)
-		return sldrCWbandwidth;
+		return progdefaults.CWbandwidth;
 	return 0;
 }
 
@@ -879,14 +879,11 @@ public:
 	}
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
-		Fl_Valuator* val = get_bw_val();
+		int val = get_bw_val();
 		LOG_INFO("[%s] modem.get_bw: %d",
 			XmlRpc::client_id.c_str(),
-			int(get_bw_val()->value()));
-		if (val)
-			*retval = xmlrpc_c::value_int((int)get_bw_val()->value());
-		else
-			*retval = xmlrpc_c::value_int(0);
+			val);
+		*retval = val;
 	}
 };
 
@@ -901,7 +898,8 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		Fl_Valuator* val = get_bw_val();
+/*
+		int val = get_bw_val();
 		if (val) {
 			int v = (int)(val->value());
 			LOG_INFO("[%s] modem.set_bw: %d",
@@ -911,6 +909,7 @@ public:
 			*retval = xmlrpc_c::value_int(v);
 		} else
 			*retval = xmlrpc_c::value_int(0);
+*/
 	}
 };
 
@@ -925,6 +924,7 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
+/*
 		Fl_Valuator* val = get_bw_val();
 		if (val) {
 			int v = (int)(val->value() + params.getInt(0));
@@ -935,6 +935,7 @@ public:
 			*retval = xmlrpc_c::value_int(v);
 		} else
 			*retval = xmlrpc_c::value_int(0);
+*/
 	}
 };
 

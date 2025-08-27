@@ -28,7 +28,8 @@ void create_fl_digi_main_primary() {
 		Hmenu +
 		Hqsoframe +
 		Hwfall +
-		Hstatus;
+		Hstatus +
+		Hcws_group;
 	int hmacros = TB_HEIGHT * 4;
 
 	fixed_height += hmacros;
@@ -48,17 +49,6 @@ void create_fl_digi_main_primary() {
 	if (Htext < 120) Htext = 120;
 
 	main_hmin = Htext + fixed_height;
-
-// developer usage
-//cout << "=============================================================" << endl;
-//cout << "min main_height ..... " << main_hmin << endl;
-//cout << " = Hmenu ............ " << Hmenu << endl;
-//cout << " + Hqsoframe ........ " << Hqsoframe << endl;
-//cout << " + Hwfall ........... " << Hwfall << endl;
-//cout << " + Hstatus  ......... " << Hstatus << endl;
-//cout << " + Hmacros .......... " << hmacros << endl;
-//cout << " + text height ...... " << Htext << endl;
-//cout << "=============================================================" << endl;
 
 	if (progStatus.mainH < main_hmin) {
 		progStatus.mainH = main_hmin;
@@ -150,6 +140,7 @@ void create_fl_digi_main_primary() {
 
 		Y += mnuFrame->h();
 }
+
 		TopFrame1 = new Fl_Group(
 			0, Y,
 			fl_digi_main->w(), Hqsoframe);
@@ -767,7 +758,7 @@ void create_fl_digi_main_primary() {
 }
 					gCWSS = new Fl_Group (
 						Logging_frame_1->x(), y3, wf1, Hentry + pad);
-{ // CW Sweepstakes - LOG_CWSS
+{ // CW Sweepstakes - LOG_cwsS
 						outSerNo3 = new Fl_Input2(
 							inpCall1->x(), y3, 40, Hentry,
 							"S#");
@@ -1669,7 +1660,7 @@ Logging_frame->resizable(NFtabs);
 			log_cqww_rtty_frame->resizable(lcq_box);
 // end LOG_CQWW_RTTY - partial
 
-// LOG CWSS - partial
+// LOG cwsS - partial
 			log_cqss_frame = new Fl_Group(
 				TopFrame3b->x(), TopFrame3b->y(),
 				TopFrame3b->w(), Hentry,"");
@@ -1715,7 +1706,7 @@ Logging_frame->resizable(NFtabs);
 			log_cqss_frame->end();
 			log_cqss_frame->hide();
 			log_cqss_frame->resizable(lss_box);
-// end LOG CWSS - partial
+// end LOG cwsS - partial
 
 // LOG_CQWPX - partial
 			log_cqwpx_frame = new Fl_Group(
@@ -2371,7 +2362,7 @@ Logging_frame->resizable(NFtabs);
 			macroFrame2->resizable(mf_group2);
 		macroFrame2->end();
 
-		Y += Hmacros;
+		Y += macroFrame2->h();  //Hmacros;
 }
 { // Center group Rx/Tx/Raster displays
 		center_group = new Fl_Group(0, Y, W, Htext);
@@ -3017,8 +3008,92 @@ Logging_frame->resizable(NFtabs);
 		status_group->end();
 		status_group->resizable(VuMeter);
 
-		Y += status_group->h();
 }
+
+{ // CW settings group
+
+		Y += status_group->h();
+
+		cws_group = new Fl_Group(0, Y, W, Hcws_group, "");
+		cws_group->box(FL_DOWN_BOX);
+		cws_group->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+
+			cntcwsrange = new Fl_Counter2(5, cws_group->y() + 1, 80, 20);
+			cntcwsrange->tooltip(gettext("Range +/- wpm"));
+			cntcwsrange->type(1);
+			cntcwsrange->box(FL_UP_BOX);
+			cntcwsrange->color(FL_BACKGROUND_COLOR);
+			cntcwsrange->selection_color(FL_INACTIVE_COLOR);
+			cntcwsrange->labeltype(FL_NORMAL_LABEL);
+			cntcwsrange->labelfont(0);
+			cntcwsrange->labelsize(14);
+			cntcwsrange->labelcolor(FL_FOREGROUND_COLOR);
+			cntcwsrange->minimum(5);
+			cntcwsrange->maximum(25);
+			cntcwsrange->step(1);
+			cntcwsrange->value(10);
+			cntcwsrange->callback((Fl_Callback*)cb_cntcwsrange);
+			cntcwsrange->align(Fl_Align(FL_ALIGN_TOP));
+			cntcwsrange->when(FL_WHEN_CHANGED);
+			cntcwsrange->value(progdefaults.CWrange);
+			cntcwsrange->labelsize(FL_NORMAL_SIZE);
+
+			btncwsrcvTrack = new Fl_Check_Button(90, cws_group->y() + 1, 20, 20, gettext("Track WPM"));
+			btncwsrcvTrack->tooltip(gettext("Automatic Rx speed tracking"));
+			btncwsrcvTrack->down_box(FL_DOWN_BOX);
+			btncwsrcvTrack->value(1);
+			btncwsrcvTrack->callback((Fl_Callback*)cb_btncwsrcvTrack);
+			btncwsrcvTrack->align(Fl_Align(FL_ALIGN_RIGHT));
+			btncwsrcvTrack->value(progdefaults.CWtrack);
+
+			btncwsuseSOMdecoding = new Fl_Check_Button(216, cws_group->y() + 1, 120, 20, gettext("SOM decode"));
+			btncwsuseSOMdecoding->tooltip(gettext("Self Organizing Map Decoder"));
+			btncwsuseSOMdecoding->down_box(FL_DOWN_BOX);
+			btncwsuseSOMdecoding->value(1);
+			btncwsuseSOMdecoding->callback((Fl_Callback*)cb_btncwsuseSOMdecoding);
+			btncwsuseSOMdecoding->value(progdefaults.CWuseSOMdecoding);
+
+			btncwsmfilt = new Fl_Check_Button(345, cws_group->y() + 1, 120, 20, gettext("Matched Filter"));
+			btncwsmfilt->tooltip(gettext("Matched Filter bandwidth"));
+			btncwsmfilt->down_box(FL_DOWN_BOX);
+			btncwsmfilt->value(1);
+			btncwsmfilt->callback((Fl_Callback*)cb_btncwsmfilt);
+			btncwsmfilt->value(progdefaults.CWmfilt);
+
+			cntcwsbandwidth = new Fl_Counter2(470, cws_group->y() + 1, 120, 20);
+			cntcwsbandwidth->tooltip(gettext("Filter bandwidth"));
+			cntcwsbandwidth->box(FL_UP_BOX);
+			cntcwsbandwidth->color(FL_BACKGROUND_COLOR);
+			cntcwsbandwidth->selection_color(FL_INACTIVE_COLOR);
+			cntcwsbandwidth->labeltype(FL_NORMAL_LABEL);
+			cntcwsbandwidth->labelfont(0);
+			cntcwsbandwidth->labelsize(14);
+			cntcwsbandwidth->labelcolor(FL_FOREGROUND_COLOR);
+			cntcwsbandwidth->minimum(10);
+			cntcwsbandwidth->maximum(800);
+			cntcwsbandwidth->step(5);
+			cntcwsbandwidth->value(200);
+			cntcwsbandwidth->callback((Fl_Callback*)cb_cntcwsbandwidth);
+			cntcwsbandwidth->align(Fl_Align(FL_ALIGN_TOP));
+			cntcwsbandwidth->when(FL_WHEN_CHANGED);
+			cntcwsbandwidth->value(progdefaults.CWbandwidth);
+			cntcwsbandwidth->labelsize(FL_NORMAL_SIZE);
+			cntcwsbandwidth->lstep(50);
+
+			mnu_cws_fillen = new Fl_Choice(600, cws_group->y() + 1, 72, 20, gettext("Fil\' Len\'"));
+			mnu_cws_fillen->tooltip(gettext("Filter length in samples"));
+			mnu_cws_fillen->down_box(FL_BORDER_BOX);
+			mnu_cws_fillen->callback((Fl_Callback*)cb_mnu_cws_fillen);
+			mnu_cws_fillen->align(Fl_Align(FL_ALIGN_RIGHT));
+			mnu_cws_fillen->add("128|256|512|1024");
+			mnu_cws_fillen->value(progdefaults.CW_fillen);
+
+		cws_group->end();
+//		cws_group->hide();
+//		cws_group->resize(0, Y, W, 0);
+		Y += cws_group->h();
+}
+
 { // adjust callbacks
 		showMacroSet();
 

@@ -724,6 +724,16 @@ Fl_Button		*opUsageEnter = (Fl_Button *)0;
 Fl_Group	 	*wf_group = (Fl_Group *)0;
 Fl_Group		*status_group = (Fl_Group *)0;
 
+Fl_Group		*cws_group = (Fl_Group *)0;
+
+Fl_Check_Button		*btncwsrcvTrack = (Fl_Check_Button *)0;
+Fl_Counter2			*cntcwsrange = (Fl_Counter2 *)0;
+Fl_Check_Button		*btncwsuseSOMdecoding = (Fl_Check_Button *)0;
+Fl_Check_Button		*btncwsmfilt = (Fl_Check_Button *)0;
+Fl_Counter2			*cntcwsbandwidth = (Fl_Counter2 *)0;
+Fl_Choice			*mnu_cws_fillen = (Fl_Choice *)0;
+
+
 Fl_Value_Slider2	*mvsquelch = (Fl_Value_Slider2 *)0;
 Fl_Button		*btnClearMViewer = 0;
 
@@ -736,6 +746,7 @@ static const int Hqsoframe	= 2*pad + 3 * (Hentry + pad);
 
 int Hstatus = 20;
 int Hmacros = 20;
+int Hcws_group = 22;
 
 #define TB_HEIGHT 20
 #define MACROBAR_MIN 18
@@ -1603,6 +1614,8 @@ void startup_modem(modem* m, int f)
 
 	wf->xmtlock->value(progStatus.tx_lock);
 	wf->xmtlock->do_callback();
+
+//	UI_select();
 }
 
 void cb_mnuOpenMacro(Fl_Menu_*, void*) {
@@ -2109,6 +2122,8 @@ void init_modem(trx_mode mode, int freq)
 
 	clear_StatusMessages();
 	progStatus.lastmode = mode;
+
+	UI_select();
 
 	if (wf->xmtlock->value() == 1 && !mailserver) {
 		if(!progdefaults.retain_freq_lock) {
@@ -4907,6 +4922,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 		} else {
 			int htbar = 4 * TB_HEIGHT;
 
@@ -4930,6 +4948,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 		}
 		fl_digi_main->init_sizes();
 		return;
@@ -4957,6 +4978,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		default:
 		case 1:
@@ -4978,6 +5002,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 2:
 			resize_macroframe_2(x,y1,w,mh);
@@ -4999,6 +5026,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			btnAltMacros1->activate();
 			y1 += mh;
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 3:
 			resize_macroframe_1(x, y1, w, mh);
@@ -5022,6 +5052,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 4:
 			resize_macroframe_2(x, y1, w, mh);
@@ -5045,6 +5078,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 5:
 			HTh -= 2*mh;
@@ -5067,6 +5103,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 6:
 			HTh -= 2*mh;
@@ -5088,6 +5127,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 7:
 			HTh -= 2*mh;
@@ -5109,6 +5151,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			macroFrame2->show();
 			y1 += mh;
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 8:
 			HTh -= 2*mh;
@@ -5129,6 +5174,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			btnAltMacros1->deactivate();
 			y1 += mh;
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 9:
 			HTh -= 2*mh;
@@ -5151,6 +5199,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			btnAltMacros2->activate();
 			y1 += mh;
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 10:
 			HTh -= 2*mh;
@@ -5173,6 +5224,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			btnAltMacros1->deactivate();
 			y1 += mh;
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 11:
 			resize_macroframe_2(x, y1, w, mh);
@@ -5195,6 +5249,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 		case 12:
 			resize_macroframe_1(x, y1, w, mh);
@@ -5217,15 +5274,20 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
 			status_group->position(x, y1);
+			y1 += status_group->h();
+			cws_group->position(x, y1);
+			y1 += cws_group->h();
 			break;
 	}
 	fl_digi_main->init_sizes();
+
 	return;
 }
 
 bool UI_first = true;
 void UI_select()
 {
+
 	if (bWF_only) {
 		int Y = cntTxLevel->y();
 		int psm_width = progdefaults.show_psm_btn ? bwSqlOnOff : 0;
@@ -5263,11 +5325,6 @@ void UI_select()
 		return;
 	}
 
-	int x =   0;
-	int y1 =  Hmenu;
-	int w =   fl_digi_main->w();
-	int HTh = fl_digi_main->h() - y1;
-
 	if (cnt_macro_height) {
 		cnt_macro_height->minimum(MACROBAR_MIN);
 		cnt_macro_height->maximum(MACROBAR_MAX);
@@ -5277,8 +5334,14 @@ void UI_select()
 		cnt_macro_height->value(progdefaults.macro_height);
 	}
 
-	HTh -= wf_group->h();
-	HTh -= status_group->h();
+	int x =   0;
+	int y1 =  Hmenu;
+	int w =   fl_digi_main->w();
+
+	int HTh = fl_digi_main->h() - mnu->h() - wf_group->h() - status_group->h();
+
+	if (progStatus.lastmode == MODE_CW && progdefaults.show_CW_controls)
+		HTh -= cws_group->h();
 
 	if (progStatus.NO_RIGLOG && !restore_minimize) {
 		TopFrame1->hide();
@@ -5854,6 +5917,21 @@ UI_return:
 	fl_digi_main->redraw();
 
 Fl::flush();
+
+// developer usage
+/*
+std::cout << "=====================  UI_select  =======================" << std::endl;
+std::cout << "Main ............ " << fl_digi_main->y() << ", " << fl_digi_main->h() << std::endl;
+std::cout << "Menu ............ " << mnuFrame->y() << ", " << mnuFrame->h() << std::endl;
+std::cout << "Qsoframe ........ " << TopFrame1->y() << ", " << TopFrame1->h() << std::endl;
+std::cout << "Center group .... " << center_group->y() << ", " << center_group->h() << std::endl;
+std::cout << "Macro frame ..... " << macroFrame1->y() << ", " << macroFrame1->h() << std::endl;
+std::cout << "Wfall ........... " << wf_group->y() << ", " << wf_group->h() << std::endl;
+std::cout << "Status  ......... " << status_group->y() << ", " << status_group->h() << std::endl;
+std::cout << "Cws ............. " << cws_group->y() << ", " << cws_group->h() << std::endl;
+std::cout << "==========================================================" << std::endl;
+*/
+
 }
 
 
@@ -6922,6 +7000,9 @@ void setwfrange() {
 
 void sync_cw_parameters()
 {
+	WK_set_wpm();
+	flrig_set_wpm();
+
 	active_modem->sync_parameters();
 	active_modem->update_Status();
 }
@@ -6940,14 +7021,13 @@ void cb_cntCW_WPM(Fl_Widget * w, void *v)
 
 	progdefaults.CWspeed = (int)cnt->value();
 LOG_INFO("%f WPM", progdefaults.CWspeed);
+
 	sldrCWxmtWPM->value(progdefaults.CWspeed);
 	cntr_nanoCW_WPM->value(progdefaults.CWspeed);
 
 	progdefaults.changed = true;
-	sync_cw_parameters();
 
-	if (progStatus.WK_online) WK_set_wpm();
-	flrig_set_wpm();
+	sync_cw_parameters();
 
 	restoreFocus(25);
 }
@@ -8195,7 +8275,7 @@ void create_fl_digi_main_WF_only() {
 	IMAGE_WIDTH = 4000;
 	Hwfall = progdefaults.wfheight;
 	Wwfall = W - 2 * DEFAULT_SW - 2 * pad;
-	WF_only_height = Hmenu + Hwfall + Hstatus + 4 * pad;
+	WF_only_height = Hmenu + Hwfall + Hstatus + Hcws_group + 4 * pad;
 
 	fl_digi_main = new Fl_Double_Window(W, WF_only_height);
 
@@ -8392,6 +8472,15 @@ void create_fl_digi_main_WF_only() {
 			Fl_Group::current()->resizable(VuMeter);
 
 		status_group->end();
+
+		Y += status_group->h();
+
+		cws_group = new Fl_Group(0, Y, W, Hcws_group, "CWS GROUP");
+		cws_group->box(FL_DOWN_BOX);
+		cws_group->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
+		cws_group->end();
+
+		Y += cws_group->h();
 
 	Fl::add_handler(wo_default_handler);
 
@@ -11393,5 +11482,50 @@ void change_menu_fonts( Fl_Font font, int size)
 	tx_timer->resize(btnAutoSpot->x() - timer_width, 0, timer_width, Hmenu);
 	tx_timer->redraw();
 
+}
+
+// cwsettings support code
+
+void cb_btncwsrcvTrack(Fl_Check_Button* o, void*) {
+  progdefaults.CWtrack = o->value();
+  btnCWrcvTrack->value(o->value());
+  progdefaults.changed = true;
+}
+
+void cb_cntcwsrange(Fl_Counter2* o, void*) {
+  progdefaults.CWrange = (int)o->value();
+  cntCWrange->value(o->value());
+  progdefaults.changed = true;
+}
+
+void cb_btncwsuseSOMdecoding(Fl_Check_Button* o, void*) {
+  progdefaults.CWuseSOMdecoding = o->value();
+  btnCWuseSOMdecoding->value(o->value());
+
+  progdefaults.changed = true;
+}
+
+void cb_btncwsmfilt(Fl_Check_Button* o, void*) {
+  progdefaults.CWmfilt = o->value();
+  btnCWmfilt->value(o->value());
+  if (active_modem == cw_modem)
+    active_modem->reset_rx_filter();
+  progdefaults.changed = true;
+}
+
+void cb_cntcwsbandwidth(Fl_Counter2* o, void*) {
+  progdefaults.CWbandwidth = (int)o->value();
+  cntCWbandwidth->value(o->value());
+  if (active_modem == cw_modem)
+    active_modem->reset_rx_filter();
+  progdefaults.changed = true;
+}
+
+void cb_mnu_cws_fillen(Fl_Choice* o, void*) {
+  progdefaults.CW_fillen = o->value();
+  mnu_CW_fillen->value(o->value());
+  if (active_modem == cw_modem)
+    active_modem->reset_rx_filter();
+  progdefaults.changed = true;
 }
 

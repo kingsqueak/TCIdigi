@@ -564,6 +564,9 @@
         ELEM_(int, CWbandwidth, "CWBANDWIDTH",                                          \
               "Filter bandwidth (Hz)",                                                  \
               150)                                                                      \
+        ELEM_(int, CW_fillen, "CWFILLEN",                                               \
+              "CW FIR receive filter length in samples; 0=128, 1=256, 2=512, 3=1024",   \
+              2)                                                                        \
         ELEM_(double, CWlower, "CWLOWER",                                               \
               "Detector hysterisis, lower threshold",                                   \
               0.4)                                                                      \
@@ -602,6 +605,12 @@
         ELEM_(double, CWdash2dot, "CWDASH2DOT",                                         \
               "Dash to dot ratio",                                                      \
               3.0)                                                                      \
+        ELEM_(double, CWweight, "CWWEIGHT",                                             \
+              "Add 'weight' to CW elements",                                            \
+              0.0)                                                                      \
+        ELEM_(bool, show_CW_controls, "SHOWCWCONTROLS",                                 \
+              "Show additional control bar for CW, at bottom of main dialog",           \
+              true)                                                                     \
         ELEM_(bool, QSK, "QSK",                                                         \
               "Generate QSK signal on right audio channel",                             \
               false)                                                                    \
@@ -1504,6 +1513,7 @@
               "Use parallel port PTT",                                                  \
               false)                                                                    \
         /* GPIO parameters */                                                           \
+        /* PTT parameters */                                                            \
         ELEM_(bool, gpio_ptt, "USE_GPIO_PTT",                                           \
               "use GPIO for ptt (pi3/4)",                                               \
               false)                                                                    \
@@ -1517,6 +1527,18 @@
               0)                                                                        \
         ELEM_(int, gpio_pulse_width, "GPIO_PULSE_WIDTH",                                \
               "GPIO pulse width setting for PiHpSDR PTT",                               \
+              0)                                                                        \
+        /* CW parameters */                                                             \
+        ELEM_(bool, gpio_cw, "USE_GPIO_CW",                                             \
+              "CW signal on GPIO pin",                                                  \
+              false)                                                                    \
+        ELEM_(long, enable_gpio_cw, "ENABLE_GPIO_CW",                                   \
+              "GPIO enable cw on\n"                                                     \
+              "bits 0 - 16; bit 0 : gpio pin N",                                        \
+              0)                                                                        \
+        ELEM_(long, gpio_cw_on, "GPIO_CW_STATE",                                        \
+              "GPIO CW State\n"                                                         \
+              "bits 0 - 16; bit 0 : PTT ON state on pin N",                             \
               0)                                                                        \
         /* cmedia parameters */                                                         \
         ELEM_(std::string, cmedia_device, "CMEDIA_DEVICE",                              \

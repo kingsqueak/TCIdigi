@@ -228,7 +228,7 @@ void updateWPM(void *)
 
 void flrig_get_wpm()
 {
-	if (!connected_to_flrig) {
+	if (!connected_to_flrig || !progdefaults.use_FLRIGkeying) {
 		return;
 	}
 	try {

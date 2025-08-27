@@ -28,6 +28,7 @@
 #include <FL/Fl_Browser.H>
 #include <FL/Fl_Pack.H>
 #include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_Choice.H>
 #include <string>
 
 #include "combo.h"
@@ -70,6 +71,7 @@ extern Fl_Double_Window *notify_window;
 extern Fl_Double_Window *dxcc_window;
 extern Fl_Double_Window	*dxcluster_viewer;
 extern Fl_Double_Window *rxaudio_dialog;
+extern Fl_Double_Window *cwsettings;
 
 extern Fl_Menu_Item 	menu_[];
 extern int 				main_menu_size;
@@ -770,6 +772,21 @@ extern Fl_Input2	*inpRstOut_SQSO2;
 extern Fl_Input2	*inpSQSO_category;
 extern Fl_Input2	*inpSQSO_category1;
 extern Fl_Input2	*inpSQSO_category2;
+
+// cwsettings
+extern Fl_Check_Button		*btncwsrcvTrack;
+extern Fl_Counter2			*cntcwsrange;
+extern Fl_Check_Button		*btncwsuseSOMdecoding;
+extern Fl_Check_Button		*btncwsmfilt;
+extern Fl_Counter2			*cntcwsbandwidth;
+extern Fl_Choice			*mnu_cws_fillen;
+
+extern void cb_btncwsrcvTrack(Fl_Check_Button*, void*);
+extern void cb_cntcwsrange(Fl_Counter2*, void*);
+extern void cb_btncwsuseSOMdecoding(Fl_Check_Button*, void*);
+extern void cb_btncwsmfilt(Fl_Check_Button*, void*);
+extern void cb_cntcwsbandwidth(Fl_Counter2*, void*);
+extern void cb_mnu_cws_fillen(Fl_Choice*, void*);
 
 extern Fl_Double_Window *nano_calibration_dialog();;
 

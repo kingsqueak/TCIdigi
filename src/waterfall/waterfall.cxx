@@ -2525,75 +2525,75 @@ int WFdisp::handle(int event)
 
 void waterfall::handle_mouse_wheel(int what, int d)
 {
-	if (d == 0)
+	if (what == WF_NOP)
 		return;
 
-	Fl_Valuator *val = 0;
-	const char* msg_fmt = 0, *msg_label = 0;
+	int val;
+	char msg[200];
 
-	switch (what) {
-	case WF_NOP:
-		return;
-	case WF_AFC_BW:
-	{
+	if (what == WF_AFC_BW) {
 		if (active_modem) {
 			trx_mode m = active_modem->get_mode();
 			if (m >= MODE_PSK_FIRST && m <= MODE_PSK_LAST) {
-				val = mailserver ? cntServerOffset : cntSearchRange;
-				msg_label = "Srch Rng";
+				snprintf(msg, sizeof(msg), "Srch Rng: %3.0f Hz", 
+					mailserver ? cntServerOffset->value() : cntSearchRange->value());
 			}
 			else if (m >= MODE_HELL_FIRST && m <= MODE_HELL_LAST) {
-				val = sldrHellBW;
-				msg_label = "BW";
+				snprintf(msg, sizeof(msg), "BW: %3.0f Hz", sldrHellBW->value());
 			}
 			else if (m == MODE_CW) {
-				val = sldrCWbandwidth;
-				msg_label = "BW";
+				if (d > 0) progdefaults.CWbandwidth += 10;
+				if (d < 0) progdefaults.CWbandwidth -= 10;
+				if (progdefaults.CWbandwidth < 10) progdefaults.CWbandwidth = 10;
+				if (progdefaults.CWbandwidth > 800) progdefaults.CWbandwidth = 800;
+				snprintf(msg, sizeof(msg), "BW: %d Hz", progdefaults.CWbandwidth);
 			}
 			else
 				return;
-			msg_fmt = "%s: %2.0f Hz";
+			put_status(msg, 5.0);
 		}
-		break;
+		return;
 	}
-	case WF_SIGNAL_SEARCH:
+
+	if (what == WF_SIGNAL_SEARCH) {
 		if (d > 0) {
 			if (active_modem) active_modem->searchDown();
 		} else {
 			if (active_modem) active_modem->searchUp();
 		}
+		return;\
+	}
+
+	if (what == WF_SQUELCH) {
+		val = sldrSquelch->value();
+		if (d > 0 ) val++;
+		else 		val--;
+		if (val < 0) val = 0;
+		if (val > 100) val = 100;
+		snprintf(msg, sizeof(msg), "Squelch: %d", val);
+		put_status(msg, 5.0);
+		sldrSquelch->value(val);
 		return;
-	case WF_SQUELCH:
-		val = sldrSquelch;
-		d = -d;
-		msg_fmt = "%s = %2.0f %%";
-		msg_label = "Squelch";
-		break;
-	case WF_CARRIER:
-		val = wfcarrier;
-		break;
-	case WF_MODEM:
+	}
+
+	if (what == WF_CARRIER) {
+		val = wfcarrier->value();
+		if (d > 0) val++;
+		else       val--;
+		carrier(val);
+		return;
+	}
+
+	if (what == WF_MODEM) {
 		init_modem(d > 0 ? MODE_NEXT : MODE_PREV);
 		return;
-	case WF_SCROLL:
+	}
+
+	if (what == WF_SCROLL) {
 		(d > 0 ? right : left)->do_callback();
 		return;
 	}
 
-	val->value(val->clamp(val->increment(val->value(), -d)));
-	bool changed_save = progdefaults.changed;
-	val->do_callback();
-	progdefaults.changed = changed_save;
-	if (val == cntServerOffset || val == cntSearchRange) {
-		if (active_modem) active_modem->set_sigsearch(SIGSEARCH);
-	} else if (val == sldrSquelch) { // sldrSquelch gives focus to TransmitText
-		take_focus();
-	}
-	if (msg_fmt) {
-		char msg[60];
-		snprintf(msg, sizeof(msg), msg_fmt, msg_label, val->value());
-		put_status(msg, 2.0);
-	}
 }
 
 const char* waterfall::wf_wheel_action[] = {

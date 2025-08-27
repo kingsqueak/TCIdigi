@@ -432,6 +432,8 @@ void WK_speed_(int byte)
 
 void WK_set_wpm()
 {
+	if (!progStatus.WK_online) return;
+
 	std::string cmd = SET_WPM;
 	cmd += progdefaults.CWspeed;
 

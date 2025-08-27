@@ -697,10 +697,10 @@ static int new_freq;
 
 void trx_start_modem_loop()
 {
-	double save_freq = active_modem->frequency;
+//	double save_freq = active_modem->frequency;
 	if (new_modem == active_modem) {
 		if (new_freq) active_modem->set_freq(new_freq);
-		if (progdefaults.retain_freq_lock) active_modem->tx_frequency = save_freq;
+//		if (progdefaults.retain_freq_lock) active_modem->tx_frequency = save_freq;
 		active_modem->restart();
 		trx_state = STATE_RX;
 		if (progdefaults.show_psm_btn &&
@@ -715,7 +715,7 @@ void trx_start_modem_loop()
 	new_modem->init();
 	active_modem = new_modem;
 	if (new_freq) active_modem->set_freq(new_freq);
-	if (progdefaults.retain_freq_lock) active_modem->tx_frequency = save_freq;
+//	if (progdefaults.retain_freq_lock) active_modem->tx_frequency = save_freq;
 	trx_state = STATE_RX;
 	REQ(update_displays);
 
