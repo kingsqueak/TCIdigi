@@ -2542,8 +2542,8 @@ void waterfall::handle_mouse_wheel(int what, int d)
 				snprintf(msg, sizeof(msg), "BW: %3.0f Hz", sldrHellBW->value());
 			}
 			else if (m == MODE_CW) {
-				if (d > 0) progdefaults.CWbandwidth += 10;
-				if (d < 0) progdefaults.CWbandwidth -= 10;
+				if (d > 0) progdefaults.CWbandwidth -= 10;
+				if (d < 0) progdefaults.CWbandwidth += 10;
 				if (progdefaults.CWbandwidth < 10) progdefaults.CWbandwidth = 10;
 				if (progdefaults.CWbandwidth > 800) progdefaults.CWbandwidth = 800;
 				snprintf(msg, sizeof(msg), "BW: %d Hz", progdefaults.CWbandwidth);
@@ -2566,8 +2566,8 @@ void waterfall::handle_mouse_wheel(int what, int d)
 
 	if (what == WF_SQUELCH) {
 		val = sldrSquelch->value();
-		if (d > 0 ) val++;
-		else 		val--;
+		if (d > 0 ) val--;
+		else 		val++;
 		if (val < 0) val = 0;
 		if (val > 100) val = 100;
 		snprintf(msg, sizeof(msg), "Squelch: %d", val);
@@ -2578,8 +2578,8 @@ void waterfall::handle_mouse_wheel(int what, int d)
 
 	if (what == WF_CARRIER) {
 		val = wfcarrier->value();
-		if (d > 0) val++;
-		else       val--;
+		if (d > 0) val--;
+		else       val++;
 		carrier(val);
 		return;
 	}
