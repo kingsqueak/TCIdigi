@@ -10,8 +10,13 @@
 #include "flmisc.h"
 #include "logsupport.h"
 #include "pixmaps.h"
+#include "export_prefs.h"
 
 Fl_Double_Window *wExport=(Fl_Double_Window *)0;
+
+static void cb_wExport(Fl_Double_Window*, void*) {
+  export_defaults.load_defaults();
+}
 
 Fl_Check_Browser *chkExportBrowser=(Fl_Check_Browser *)0;
 
@@ -255,55 +260,11 @@ static void cb_btnCheckAllFields(Fl_Button*, void*) {
 Fl_Button *btnSetFieldDefaults=(Fl_Button *)0;
 
 static void cb_btnSetFieldDefaults(Fl_Button*, void*) {
-  btnSelectCall->value(1);
-  btnSelectName->value(1);
-  btnSelectFreq->value(1);
-  btnSelectBand->value(1);
-  btnSelectMode->value(1);
-  btnSelectQSOdateOn->value(1);
-  btnSelectQSOdateOff->value(1);
-  btnSelectTimeON->value(1);
-  btnSelectTimeOFF->value(1);
-  btnSelectTX_pwr->value(0);
-  btnSelectRSTsent->value(1);
-  btnSelectRSTrcvd->value(1);
-  btnSelectQth->value(0);
-  btnSelectLOC->value(0);
-  btnSelectState->value(0);
-  btnSelectAge->value(0);
-
-  btnSelectStaCall->value(0);
-  btnSelectStaGrid->value(0);
-  btnSelectStaCity->value(0);
-  btnSelectOperator->value(0);
-  btnSelectProvince->value(0);
-  btnSelectCountry->value(0);
-  btnSelectNotes->value(0);
-  btnSelectQSLrcvd->value(0);
-  btnSelectQSLsent->value(0);
-  btnSelecteQSLrcvd->value(0);
-  btnSelecteQSLsent->value(0);
-  btnSelectLOTWrcvd->value(0);
-  btnSelectLOTWsent->value(0);
-  btnSelectQSL_VIA->value(0);
-  btnSelectSerialIN->value(0);
-  btnSelectSerialOUT->value(0);
-
-  btnSelectCheck->value(0);
-  btnSelectXchgIn->value(0);
-  btnSelectMyXchg->value(0);
-  btnSelectCNTY->value(0);
-  btnSelectCONT->value(0);
-  btnSelectCQZ->value(0);
-  btnSelectDXCC->value(0);
-  btnSelectIOTA->value(0);
-  btnSelectITUZ->value(0);
-  btnSelectClass->value(0);
-  btnSelectSection->value(0);
-  btnSelect_cwss_serno->value(0);
-  btnSelect_cwss_prec->value(0);
-  btnSelect_cwss_check->value(0);
-  btnSelect_1010->value(0);
+  if (Fl::event_button() == FL_RIGHT_MOUSE) {
+    export_defaults.save_defaults();
+  } else {
+    export_defaults.load_defaults();
+  }
 }
 
 Fl_Button *btnSetLoTWfields=(Fl_Button *)0;
@@ -1442,6 +1403,7 @@ static void cb_btnCLDcancel(Fl_Button*, void*) {
 
 void create_logbook_dialogs() {
   { wExport = new Fl_Double_Window(805, 440, gettext("Export Setup"));
+    wExport->callback((Fl_Callback*)cb_wExport);
     { Fl_Group* o = new Fl_Group(4, 4, 388, 430, gettext("Select Records to Export"));
       o->box(FL_ENGRAVED_FRAME);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));

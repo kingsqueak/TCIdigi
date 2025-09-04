@@ -578,6 +578,7 @@ fldigi_SOURCES += \
 	logbook/county_lists.cxx \
 	logbook/cty-dat.cxx \
 	logbook/date.cxx \
+	logbook/export_prefs.cxx \
 	logbook/fd_logger.cxx \
 	logbook/fd_view.cxx \
 	logbook/lgbook.cxx \
@@ -793,6 +794,7 @@ EXTRA_fldigi_SOURCES += \
 	include/dx_cluster.h \
 	include/dx_dialog.h \
 	include/estrings.h \
+	include/export_prefs.h \
 	include/fd_logger.h \
 	include/fd_view.h \
 	include/feld.h \

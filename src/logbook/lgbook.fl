@@ -1,8 +1,10 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0309
+version 1.0403
 i18n_type 1
-i18n_include "gettext.h"
-i18n_function _
+i18n_include {"gettext.h"}
+i18n_conditional {}
+i18n_gnu_function gettext
+i18n_gnu_static_function gettext_noop
 header_name {.h}
 code_name {.cxx}
 decl {\#include <config.h>} {private local
@@ -26,6 +28,9 @@ decl {\#include "flinput2.h"} {public local
 decl {\#include "logger.h"} {public local
 }
 
+decl {\#include "export_prefs.h"} {private local
+}
+
 decl {// Avoid 'nitems' macro collision between FreeBSD's sys/params.h and fltk's
 // FL/Fl_Check_Browser.H (http://www.fltk.org/str.php?L2984)
 \#undef nitems
@@ -40,7 +45,8 @@ Function {create_logbook_dialogs()} {open return_type void
 } {
   Fl_Window wExport {
     label {Export Setup}
-    xywh {494 421 805 440} type Double hide
+    callback {export_defaults.load_defaults();} open selected
+    xywh {551 25 805 440} type Double visible
   } {
     Fl_Group {} {
       label {Select Records to Export}
@@ -388,55 +394,11 @@ btnSelect_1010->value(1);}
       }
       Fl_Button btnSetFieldDefaults {
         label Defaults
-        callback {btnSelectCall->value(1);
-btnSelectName->value(1);
-btnSelectFreq->value(1);
-btnSelectBand->value(1);
-btnSelectMode->value(1);
-btnSelectQSOdateOn->value(1);
-btnSelectQSOdateOff->value(1);
-btnSelectTimeON->value(1);
-btnSelectTimeOFF->value(1);
-btnSelectTX_pwr->value(0);
-btnSelectRSTsent->value(1);
-btnSelectRSTrcvd->value(1);
-btnSelectQth->value(0);
-btnSelectLOC->value(0);
-btnSelectState->value(0);
-btnSelectAge->value(0);
-
-btnSelectStaCall->value(0);
-btnSelectStaGrid->value(0);
-btnSelectStaCity->value(0);
-btnSelectOperator->value(0);
-btnSelectProvince->value(0);
-btnSelectCountry->value(0);
-btnSelectNotes->value(0);
-btnSelectQSLrcvd->value(0);
-btnSelectQSLsent->value(0);
-btnSelecteQSLrcvd->value(0);
-btnSelecteQSLsent->value(0);
-btnSelectLOTWrcvd->value(0);
-btnSelectLOTWsent->value(0);
-btnSelectQSL_VIA->value(0);
-btnSelectSerialIN->value(0);
-btnSelectSerialOUT->value(0);
-
-btnSelectCheck->value(0);
-btnSelectXchgIn->value(0);
-btnSelectMyXchg->value(0);
-btnSelectCNTY->value(0);
-btnSelectCONT->value(0);
-btnSelectCQZ->value(0);
-btnSelectDXCC->value(0);
-btnSelectIOTA->value(0);
-btnSelectITUZ->value(0);
-btnSelectClass->value(0);
-btnSelectSection->value(0);
-btnSelect_cwss_serno->value(0);
-btnSelect_cwss_prec->value(0);
-btnSelect_cwss_check->value(0);
-btnSelect_1010->value(0);}
+        callback {if (Fl::event_button() == FL_RIGHT_MOUSE) {
+  export_defaults.save_defaults();
+} else {
+  export_defaults.load_defaults();
+}}
         xywh {602 373 85 20}
       }
       Fl_Button btnSetLoTWfields {
@@ -1032,11 +994,11 @@ btnCabRSTrcvd->value(1);}
     }
   }
   Fl_Window wUDPfields {
-    label {UDP export fields} open
-    xywh {566 318 423 405} type Double visible
+    label {UDP export fields}
+    xywh {566 318 423 405} type Double hide
   } {
     Fl_Group {} {
-      label {Select Fields to Export} open selected
+      label {Select Fields to Export} open
       xywh {5 5 410 397} box ENGRAVED_FRAME align 21
     } {
       Fl_Check_Button btn_udp_Call {
@@ -1449,11 +1411,11 @@ wUDPfields->hide();}
     }
   }
   Fl_Window wCLDfields {
-    label {Cloud Log export fields} open
-    xywh {566 318 423 405} type Double visible
+    label {Cloud Log export fields}
+    xywh {566 318 423 405} type Double hide
   } {
     Fl_Group {} {
-      label {Select Fields to Export} open selected
+      label {Select Fields to Export} open
       xywh {5 5 410 397} box ENGRAVED_FRAME align 21
     } {
       Fl_Check_Button btn_cloud_Call {

@@ -162,6 +162,7 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include "test_signal.h"
 
 #include "logbook.h"
+#include "export_prefs.h"
 
 #include "rx_extract.h"
 #include "speak.h"
