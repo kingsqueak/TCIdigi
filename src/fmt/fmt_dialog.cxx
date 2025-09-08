@@ -559,14 +559,14 @@ void set_fmt_scope()
 
 void clear_ref_scope()
 {
-	fmt_plot->data_2 (&fmt_modem->ref_pipe[MAX_DATA_PTS], MAX_DATA_PTS);
+	fmt_plot->data_2 (&fmt_modem->ref_pipe[0], MAX_DATA_PTS);
 	fmt_plot->redraw();
 	Fl::flush();
 }
 
 void clear_unk_scope()
 {
-	fmt_plot->data_1 (&fmt_modem->ref_pipe[MAX_DATA_PTS], MAX_DATA_PTS);
+	fmt_plot->data_1 (&fmt_modem->ref_pipe[0], MAX_DATA_PTS);
 	fmt_plot->redraw();
 	Fl::flush();
 }

@@ -732,7 +732,7 @@ void fmt::restart()
 	dspcnt = DSP_CNT;
 	for (int i = 0; i < MAX_DATA_PTS; i++) {
 		unk_pipe[i].x = i + 1;
-		unk_pipe[i].y = 100;
+		unk_pipe[i].y = 0;
 	}
 
 	ref_ffilt->reset();
@@ -743,7 +743,7 @@ void fmt::restart()
 		guard_lock datalock (&scope_mutex);
 		for (int i = 0; i < MAX_DATA_PTS; i++) {
 			ref_pipe[i].x = i + 1;
-			ref_pipe[i].y = 100;
+			ref_pipe[i].y = 0;
 		}
 	}
 	double tau = 1.0 / (dftlen[sr] - 1);
@@ -773,6 +773,7 @@ fmt::fmt()
 
 	samplerate = srs[progdefaults.FMT_sr];
 
+	unk_pipe = ref_pipe = (PLOT_XY *)0;
 	unk_pipe = new PLOT_XY[MAX_DATA_PTS];
 	ref_pipe = new PLOT_XY[MAX_DATA_PTS];
 
@@ -948,7 +949,7 @@ int fmt::rx_process(const double *buf, int len)
 		guard_lock datalock (&scope_mutex);
 		for (int i = 0; i < MAX_DATA_PTS; i++) {
 			unk_pipe[i].x = i + 1;
-			unk_pipe[i].y = 100;
+			unk_pipe[i].y = 0;
 		}
 		clear_unknown_pipe = false;
 		REQ (clear_unk_scope);
@@ -958,7 +959,7 @@ int fmt::rx_process(const double *buf, int len)
 		guard_lock datalock (&scope_mutex);
 		for (int i = 0; i < MAX_DATA_PTS; i++) {
 			ref_pipe[i].x = i + 1;
-			ref_pipe[i].y = 100;
+			ref_pipe[i].y = 0;
 		}
 		clear_reference_pipe = false;
 		REQ (clear_ref_scope);
