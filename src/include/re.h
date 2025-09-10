@@ -23,11 +23,11 @@
 #ifndef RE_H_
 #define RE_H_
 
-#if HAVE_REGEX_H
-#  include <regex.h>
-#else
+//#if HAVE_REGEX_H
+//#  include <regex.h>
+//#else
 #  include "compat/regex.h"
-#endif
+//#endif
 #include <string>
 #include <vector>
 

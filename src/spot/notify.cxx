@@ -1051,14 +1051,17 @@ static void notify_recv(trx_mode mode, int afreq, const char* str, const regmatc
 		n->submatch_offsets = sub;
 		n->submatch_length = std::min(len, (size_t)10); // whole string + up to 9 user-specified backrefs
 
-std::cout << "trigger: " << n->last_trigger << "\n" <<
-"audio freq: " << n->afreq << "\n" <<
-"rf carrier: " << n->rfreq << "\n" <<
-"mode #: " << n->mode << "\n" <<
-"mode: " << mode_info[n->mode].name << "\n" <<
-"match: " << n->match_string << "\n" <<
-"offsets: " << n->submatch_offsets << "\n" <<
-"length: " << n->submatch_length << std::endl;
+		std::stringstream result;
+
+		result <<
+		"Regular expression search:\n" << 
+		"  audio freq: " << n->afreq << "\n" <<
+		"  rf carrier: " << n->rfreq << "\n" <<
+		"  mode:       " << mode_info[n->mode].name << "\n" <<
+		"  actual re: \"" << notify_get_re(*n) << "\"\n" <<
+		"  match:     \"" << n->match_string << "\"\n";
+
+		LOG_INFO("%s", result.str().c_str());
 
 		notify_notify(*n);
 	}
