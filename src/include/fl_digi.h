@@ -566,6 +566,7 @@ extern const char* ltime(void);
 extern const double zusec(void);
 extern const timeval tmval(void);
 extern const unsigned long zmsec(void);
+extern const unsigned long secs(void);
 extern void  start_macro_time();
 extern int   stop_macro_time();
 

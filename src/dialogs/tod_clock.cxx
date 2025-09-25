@@ -135,6 +135,32 @@ const double zusec(void)
 	return usecs;
 }
 
+static void update_ztimer()
+{
+	struct tm ztm, ltm;
+	time_t t_temp;
+
+	t_temp=(time_t)now_val.tv_sec;
+
+	gmtime_r(&t_temp, &ztm);
+	if (!strftime(ztbuf, sizeof(ztbuf), "%Y%m%d %H%M%S", &ztm))
+		memset(ztbuf, 0, sizeof(ztbuf));
+	else
+		ztbuf[8] = '\0';
+
+	localtime_r(&t_temp, &ltm);
+	if (!strftime(ltbuf, sizeof(ltbuf), "%Y%m%d %H%M%S", &ltm))
+		memset(ltbuf, 0, sizeof(ltbuf));
+	else
+		ltbuf[8] = '\0';
+
+}
+
+const unsigned long secs(void)
+{
+	return now_val.tv_sec;
+}
+
 const unsigned long zmsec(void)
 {
 	struct timeval t1;
@@ -245,22 +271,7 @@ static void show_ztimer()
 
 static void ztimer()
 {
-	struct tm ztm, ltm;
-	time_t t_temp;
-
-	t_temp=(time_t)now_val.tv_sec;
-	gmtime_r(&t_temp, &ztm);
-	if (!strftime(ztbuf, sizeof(ztbuf), "%Y%m%d %H%M%S", &ztm))
-		memset(ztbuf, 0, sizeof(ztbuf));
-	else
-		ztbuf[8] = '\0';
-
-	localtime_r(&t_temp, &ltm);
-	if (!strftime(ltbuf, sizeof(ltbuf), "%Y%m%d %H%M%S", &ltm))
-		memset(ltbuf, 0, sizeof(ltbuf));
-	else
-		ltbuf[8] = '\0';
-
+	update_ztimer();
 	REQ(show_ztimer);
 }
 
@@ -270,19 +281,21 @@ static void ztimer()
 void *TOD_loop(void *args)
 {
 	SET_THREAD_ID(TOD_TID);
-#define LOOP  250
+#define LOOP  50
 	int cnt = 0;
 	while(1) {
 
 		if (TOD_exit) break;
 
-		if (++cnt == 4) {
+		if (cnt % 5 == 0) {
+			REQ(nanoIO_read_pot);
+		}
+		if (++cnt == 21) {
 			guard_lock tmlock(&time_mutex);
 			gettimeofday(&now_val, NULL);
 			ztimer();
 			cnt = 0;
 		}
-		REQ(nanoIO_read_pot);
 		MilliSleep(LOOP);
 	}
 

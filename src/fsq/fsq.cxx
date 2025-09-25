@@ -1620,7 +1620,7 @@ void try_transmit(void *)
 	if (!active_modem->fsq_squelch_open() && trx_state == STATE_RX) {
 		::next = 0;
 		fsq_que_clear();
-		MilliSleep(fsq_xmtdelay());
+//		MilliSleep(fsq_xmtdelay());
 		start_tx();
 		return;
 	}
@@ -1732,11 +1732,11 @@ void timed_xmt(void *)
 	fsq_xmt(fsq_delayed_string);
 }
 
-static float secs = 0;
+static float fsqsecs = 0;
 
 void fsq_add_tx_timeout(void *a = 0)
 {
-	Fl::add_timeout(secs, timed_xmt);
+	Fl::add_timeout(fsqsecs, timed_xmt);
 }
 
 void fsq::reply(std::string s)
@@ -1756,7 +1756,7 @@ void fsq::delayed_reply(std::string s, int delay)
 	fsq_string = std::string("DELAYED SEND: ").append(s);
 	write_fsq_que(fsq_string);
 	fsq_delayed_string = s;
-	secs = delay;
+	fsqsecs = delay;
 	Fl::awake(fsq_add_tx_timeout, 0);
 }
 
@@ -1797,62 +1797,51 @@ void fsq::stop_aging()
 // Sounder support
 //==============================================================================
 
-static int sounder_msecs = 0;
-static int sounder_ticks = 0;
+static int sounder_secs = 0;
+static unsigned long sounder_time = 0;
 
 void disp_sounder(void *)
 {
-//012345
-//01:23:45
+//012345 --> 01:23:45
 	std::string stime = ztime();
+	stime.insert(4,":");
 	stime.insert(2,":");
-//	stime.insert(5,":");
-	stime.erase(5);
+	stime.erase(8);
 	std::string sndx = "Sounded @ ";
-	sndx.append(stime);//.append("\n");
+	sndx.append(stime);
 	display_fsq_rx_text(sndx, FTextBase::ALTR);
 }
 
 void disp_busy(void *)
 {
 	char report[80];
-	snprintf(report, sizeof(report), "Squelch open, retry sounding in %d secs",
-		sounder_ticks / 100);
+	snprintf(report, sizeof(report), "Squelch open, retry sounding at %ld secs",
+		sounder_time  );
 	LOG_INFO("%s", report);
 }
 
 void disp_tx_active(void *)
 {
 	char report[80];
-	snprintf(report, sizeof(report), "TX active, retry sounding in %d secs",
-		sounder_ticks / 100);
+	snprintf(report, sizeof(report), "TX active, retry sounding at %ld secs",
+		sounder_time );
 	LOG_INFO("%s", report);
 }
 
-std::string xmtstr;
-int xmtmsecs = 0;
-
 void sounder()
 {
-	if (active_modem != fsq_modem) return;
-
-	if (trx_state == STATE_TX || trx_state == STATE_TUNE) {
-		sounder_ticks = sounder_msecs; // wait until next interval
-		Fl::awake(disp_tx_active);
-		return;
-	}
 	if (active_modem->fsq_squelch_open()) {
-		sounder_ticks = 2000; // wait 20 seconds
+		sounder_time = secs() + 10; // wait 10 seconds
 		Fl::awake(disp_busy);
 		return;
 	}
-	if (xmtstr.empty()) {
-		xmtstr.assign(FSQBOL).append(active_modem->fsq_mycall()).append(":").append(" ").append(FSQEOT);
+	if (trx_state == STATE_RX) {
+		fsq_xmt(" ");
+		Fl::awake(disp_sounder);
+	} else {
+		Fl::awake(disp_tx_active);
 	}
-	xmtmsecs = round(((100000.0 * xmtstr.length() * fsq::symlen) / 4096.0) / SR);
-	Fl::awake(disp_sounder);
-	fsq_xmt(" ");
-	sounder_ticks = sounder_msecs - xmtmsecs;
+	sounder_time = secs() + sounder_secs;
 }
 
 //======================================================================
@@ -1868,18 +1857,17 @@ bool SOUNDER_enabled = false;
 void *SOUNDER_loop(void *args)
 {
 	SET_THREAD_ID(FSQ_SOUNDER_TID);
-#define LOOP  10
-	sounder_ticks = sounder_msecs;
 	while(1) {
 		if (SOUNDER_exit) break;
 		{
 			guard_lock lock(&SOUNDER_mutex);
-			if (sounder_ticks > 0) {
-				--sounder_ticks;
-				if (sounder_ticks == 0) sounder();
+			if (active_modem == fsq_modem) {
+				if (sounder_time <= secs() && sounder_secs) {
+					sounder();
+				}
 			}
 		}
-		MilliSleep(LOOP);
+		MilliSleep(10);
 	}
 // exit the SOUNDER thread
 	SET_THREAD_CANCEL();
@@ -1918,14 +1906,15 @@ void fsq::start_sounder(int interval)
 	guard_lock txlock(&SOUNDER_mutex);
 
 	switch (interval) {
-		case 0: sounder_msecs = 0; break;    // sounder disabled
-		case 1: sounder_msecs = 6000; break;   // 1 minute
-		case 2: sounder_msecs = 60000; break;  // 10 minutes
-		case 3: sounder_msecs = 180000; break; // 30 minutes
-		case 4: sounder_msecs = 360000; break; // 60 minutes
-		default: sounder_msecs = 60000;
+		case 0: sounder_secs = 0; break;    // sounder disabled
+		case 1: sounder_secs = 60; break;   // 1 minute
+		case 2: sounder_secs = 600; break;  // 10 minutes
+		case 3: sounder_secs = 1800; break; // 30 minutes
+		case 4: sounder_secs = 3600; break; // 60 minutes
+		default: sounder_secs = 600;
 	}
-	sounder_ticks = sounder_msecs;
+	if (sounder_secs)
+		sounder_time = secs() + 5;
 }
 
 #include "bitmaps.cxx"
