@@ -919,7 +919,7 @@ static void xmlrpc_rig_set_pwrmeter(void *data)
 {
 	guard_lock flrig_lock(&mutex_flrig_pwrmeter);
 
-	if (pwrmeter) {
+	if (pwrmeter && pwrlevel_grp) {
 		int val = reinterpret_cast<intptr_t>(data);
 		pwrmeter->value(val);
 		if (pwrlevel_grp->visible())
