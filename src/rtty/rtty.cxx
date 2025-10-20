@@ -1142,7 +1142,7 @@ std::cout << "EINTR error in rtty_sleep" << std::endl;
 //	}
 	rval = 0;
 	while (rtty_now() < end_at) rval++;
-//std::cout << "rtty_sleep( " << sleep_time << ") : " << rval << std::endl;
+std::cout << "rtty_sleep( " << sleep_time << ") : " << rval << std::endl;
 #ifdef __WIN32__
 	timeEndPeriod(1);
 #endif
@@ -1153,7 +1153,7 @@ std::cout << "EINTR error in rtty_sleep" << std::endl;
 static int line_char_count = 0;
 // 1 start, 5 data, 1.5/2.0 stopbits
 #define wait_one_byte(baud, stopbits) \
-rtty_sleep( ((6 + (stopbits))*1.0 / (baud)));
+rtty_sleep( ((6 + (stopbits))*1.0 / (baud)) + 0.005);
 
 void rtty::flrig_fsk_send(char c)
 {
@@ -1163,7 +1163,12 @@ void rtty::flrig_fsk_send(char c)
 //	if (c == '[' || c == ']')
 //		return;
 	wait_one_byte(45.45, 1.5);
+	if ( c == '\n' )
+		wait_one_byte(45.45, 1.5);
 }
+
+int idles = 8;
+int send_idles = 0;
 
 int rtty::tx_process()
 {
@@ -1176,6 +1181,11 @@ int rtty::tx_process()
 			start_deadman();
 			flrig_fsk_send('[');
 			preamble = false;
+			send_idles = idles;
+			while (send_idles) {
+				rtty_sleep(0.022 * 7.5);
+				--send_idles;
+			}
 		}
 		if (c == GET_TX_CHAR_ETX || stopflag) {
 			stopflag = false;
