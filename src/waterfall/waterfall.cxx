@@ -241,8 +241,10 @@ inline void WFdisp::makeMarker_(int width, const RGB* color, int freq, const RGB
 			(progdefaults.rtty_shift < rtty::numshifts ?
 				rtty::SHIFT[progdefaults.rtty_shift] :
 				progdefaults.rtty_custom_shift));
-		int bw_limit_hi = (int)(shift / 2 + progdefaults.RTTY_BW / 2.0);
-		int bw_limit_lo = (int)(shift / 2 - progdefaults.RTTY_BW / 2.0);
+//		int bw_limit_hi = (int)(shift / 2 + progdefaults.RTTY_BW / 2.0);
+//		int bw_limit_lo = (int)(shift / 2 - progdefaults.RTTY_BW / 2.0);
+		int bw_limit_hi = (int)((shift + progdefaults.RTTY_BW )/ 2.0);
+		int bw_limit_lo = (int)((shift - progdefaults.RTTY_BW )/ 2.0);
 		int bw_freq = static_cast<int>(freq + 0.5);
 		int bw_lower1 = -bw_limit_hi;
 		int bw_upper1 = -bw_limit_lo;
@@ -1200,26 +1202,21 @@ case Step: for (int row = 0; row < image_height; row++) { \
 
 				if (mode == MODE_RTTY && progdefaults.useMARKfreq) {
 					if (active_modem->get_reverse()) {
-//						rgbi1 = progdefaults.rttymarkRGBI;
-//						rgbi2 = progdefaults.bwTrackRGBI;
 						Fl::get_color( RGBCOLOR( rttymark ), rgbi1.R, rgbi1.G, rgbi1.B ); rgbi1.I = 255;
-						Fl::get_color( RGBCOLOR( bwTrack ), rgbi1.R, rgbi2.G, rgbi2.B ); rgbi2.I = 255;
+						Fl::get_color( RGBCOLOR( bwTrack ), rgbi2.R, rgbi2.G, rgbi2.B ); rgbi2.I = 255;
 					} else {
-//						rgbi1 = progdefaults.bwTrackRGBI;
-//						rgbi2 = progdefaults.rttymarkRGBI;
 						Fl::get_color( RGBCOLOR( bwTrack ), rgbi1.R, rgbi1.G, rgbi1.B ); rgbi1.I = 255;
 						Fl::get_color( RGBCOLOR( rttymark ), rgbi2.R, rgbi2.G, rgbi2.B ); rgbi2.I = 255;
 					}
 				} else {
-//					rgbi1 = progdefaults.bwTrackRGBI;
-//					rgbi2 = progdefaults.bwTrackRGBI;
 					Fl::get_color( RGBCOLOR( bwTrack ), rgbi1.R, rgbi1.G, rgbi1.B ); rgbi1.I = 255;
 					rgbi2 = rgbi1;
 				}
+
 				if (progdefaults.UseWideTracks) {
 					for (int y = 0; y < image_height; y ++) {
-						*(pos1 + 1) = *pos1 = rgbi1;
-						*(pos2 - 1) = *pos2 = rgbi2;
+						*(pos1 + 1) = *(pos1 - 1) = *pos1 = rgbi1;
+						*(pos2 + 1) = *(pos2 - 1) = *pos2 = rgbi2;
 						pos1 += disp_width;
 						pos2 += disp_width;
 					}
