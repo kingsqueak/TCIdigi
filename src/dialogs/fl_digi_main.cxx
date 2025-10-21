@@ -2856,10 +2856,19 @@ Logging_frame->resizable(NFtabs);
 		wf_group->resizable(wf);
 }
 { // Status bar group
+	// see corner_box below
+	// corner_box used to leave room for OS X corner drag handle
+	#ifdef __APPLE__
+		#define cbwidth DEFAULT_SW
+	#else
+		#define cbwidth 0
+	#endif
+
 		Y += Hwfall;
 
-		status_group = new Fl_Group(0, Y, W, Hstatus);
 
+		status_group = new Fl_Group(0, Y, W, Hstatus);
+{ // MODE / Status1 / CW_WPM
 			MODEstatus = new Fl_Button(0, Y, Wmode, Hstatus, "");
 			MODEstatus->box(FL_DOWN_BOX);
 			MODEstatus->color(FL_BACKGROUND2_COLOR);
@@ -2868,25 +2877,6 @@ Logging_frame->resizable(NFtabs);
 			MODEstatus->when(FL_WHEN_CHANGED);
 			MODEstatus->tooltip(_("Left click: change mode\nRight click: configure"));
 
-			cntCW_WPM = new Fl_Counter2(
-				rightof(MODEstatus), Y,
-				Ws2n - Hstatus, Hstatus, "");
-			cntCW_WPM->callback(cb_cntCW_WPM);
-			cntCW_WPM->minimum(progdefaults.CWlowerlimit);
-			cntCW_WPM->maximum(progdefaults.CWupperlimit);
-			cntCW_WPM->value(progdefaults.CWspeed);
-			cntCW_WPM->type(1);
-			cntCW_WPM->step(1);
-			cntCW_WPM->tooltip(_("CW transmit WPM"));
-			cntCW_WPM->hide();
-
-			btnCW_Default = new Fl_Button(
-				rightof(cntCW_WPM), Y,
-				Hstatus, Hstatus, "*");
-			btnCW_Default->callback(cb_btnCW_Default);
-			btnCW_Default->tooltip(_("Default WPM"));
-			btnCW_Default->hide();
-
 			Status1 = new Fl_Box(
 				rightof(MODEstatus), Y,
 				Ws2n, Hstatus, "STATUS1");
@@ -2894,63 +2884,200 @@ Logging_frame->resizable(NFtabs);
 			Status1->color(FL_BACKGROUND2_COLOR);
 			Status1->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
 
-			Status2 = new Fl_Box(
+			cntCW_WPM = new Fl_Counter2(
+				rightof(MODEstatus), Y,
+				Ws2n, Hstatus, "");
+			cntCW_WPM->callback(cb_cntCW_WPM);
+			cntCW_WPM->minimum(progdefaults.CWlowerlimit);
+			cntCW_WPM->maximum(progdefaults.CWupperlimit);
+			cntCW_WPM->value(progdefaults.CWspeed);
+			cntCW_WPM->type(1);
+			cntCW_WPM->step(1);
+			cntCW_WPM->tooltip(_("CW transmit WPM"));
+			cntCW_WPM->align(FL_ALIGN_INSIDE);
+			cntCW_WPM->hide();
+
+}
+{ // status group A
+			status_group_A = new Fl_Group(
 				rightof(Status1), Y,
-				Wimd, Hstatus, "STATUS2");
-			Status2->box(FL_DOWN_BOX);
-			Status2->color(FL_BACKGROUND2_COLOR);
-			Status2->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+				W - rightof(Status1) - bwTxLevel - bwAfcOnOff - bwSqlOnOff - cbwidth - Wwarn - 1, Hstatus, "");
 
-			inpCall4 = new Fl_Input2(
-				rightof(Status1), Y,
-				Wimd, Hstatus, "");
-			inpCall4->align(FL_ALIGN_LEFT);
-			inpCall4->tooltip(_("Other call"));
-			inpCall4->hide();
+				status_group_A->box(FL_FLAT_BOX);
 
-// see corner_box below
-// corner_box used to leave room for OS X corner drag handle
-#ifdef __APPLE__
-	#define cbwidth DEFAULT_SW
-#else
-	#define cbwidth 0
-#endif
+				Status2 = new Fl_Box(
+					status_group_A->x(), Y,
+					Wimd, Hstatus, "STATUS2");
+				Status2->box(FL_DOWN_BOX);
+				Status2->color(FL_BACKGROUND2_COLOR);
+				Status2->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
 
-			StatusBar = new status_box(
-				rightof(Status2), Y,
-				W - rightof(Status2)
-				- bwAfcOnOff - bwSqlOnOff
-				- Wwarn - bwTxLevel
-				- bwSqlOnOff
-				- cbwidth,
-				Hstatus, "");
-			StatusBar->box(FL_DOWN_BOX);
-			StatusBar->color(FL_BACKGROUND2_COLOR);
-			StatusBar->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-			StatusBar->callback((Fl_Callback *)StatusBar_cb);
-			StatusBar->when(FL_WHEN_RELEASE_ALWAYS);
-			StatusBar->tooltip(_("Left click to toggle VuMeter"));
+				inpCall4 = new Fl_Input2(
+					status_group_A->x(), Y,
+					Wimd, Hstatus, "");
+				inpCall4->align(FL_ALIGN_LEFT);
+				inpCall4->tooltip(_("Other call"));
+				inpCall4->hide();
 
-			VuMeter = new vumeter(StatusBar->x(), StatusBar->y(), StatusBar->w() - 2, StatusBar->h(), "");
-			VuMeter->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
-			VuMeter->when(FL_WHEN_RELEASE);
-			VuMeter->callback((Fl_Callback *)VuMeter_cb);
-			VuMeter->when(FL_WHEN_RELEASE_ALWAYS);
-			VuMeter->tooltip(_("Left click to toggle Status Bar"));
+				svu = new Fl_Group( rightof(Status2), Y, status_group_A->w() - Status2->w(), Hstatus, "");
+					svu->box(FL_FLAT_BOX);
 
-			if (progStatus.vumeter_shown) {
-				VuMeter->show();
-				StatusBar->hide();
-			} else {
-				VuMeter->hide();
-				StatusBar->show();
-			}
+					StatusBar = new status_box( svu->x(), svu->y(), svu->w(), svu->h(), "");
+					StatusBar->box(FL_DOWN_BOX);
+					StatusBar->color(FL_BACKGROUND2_COLOR);
+					StatusBar->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+					StatusBar->callback((Fl_Callback *)StatusBar_cb);
+					StatusBar->when(FL_WHEN_RELEASE_ALWAYS);
+					StatusBar->tooltip(_("Left click to toggle VuMeter"));
 
-			Fl_Box vuspacer(rightof(VuMeter),Y,2,Hstatus,"");
-			vuspacer.box(FL_FLAT_BOX);
+					VuMeter = new vumeter(svu->x(), svu->y(), svu->w(), svu->h(), "");
+					VuMeter->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
+					VuMeter->when(FL_WHEN_RELEASE);
+					VuMeter->callback((Fl_Callback *)VuMeter_cb);
+					VuMeter->when(FL_WHEN_RELEASE_ALWAYS);
+					VuMeter->tooltip(_("Left click to toggle Status Bar"));
+
+				svu->end();
+				svu->show();
+
+				if (progStatus.vumeter_shown) {
+					VuMeter->show();
+					StatusBar->hide();
+				} else {
+					VuMeter->hide();
+					StatusBar->show();
+				}
+
+			status_group_A->end();
+			status_group_A->resizable(svu);
+} // status group A
+
+{ // CW settings group
+
+			cws_group = new Fl_Group(
+				rightof(cntCW_WPM), Y,
+				status_group_A->w(), Hstatus, "");
+
+				cws_group->box(FL_FLAT_BOX);
+
+				int YB = cws_group->y();
+				int WB = cws_group->w() / 7;
+				int HB = cws_group->h();
+
+				Fl_Group *gp1 = new Fl_Group(cws_group->x(), YB, WB * 2, HB, "");
+					gp1->box(FL_FLAT_BOX);
+ 
+					cntcwsrange = new Fl_Counter2(
+						gp1->x(), YB, gp1->w() - 2, HB, "");
+					cntcwsrange->tooltip(gettext("Range +/- wpm"));
+					cntcwsrange->type(1);
+					cntcwsrange->box(FL_UP_BOX);
+					cntcwsrange->color(FL_BACKGROUND_COLOR);
+					cntcwsrange->selection_color(FL_INACTIVE_COLOR);
+					cntcwsrange->labeltype(FL_NORMAL_LABEL);
+					cntcwsrange->labelfont(0);
+					cntcwsrange->labelsize(14);
+					cntcwsrange->labelcolor(FL_FOREGROUND_COLOR);
+					cntcwsrange->minimum(5);
+					cntcwsrange->maximum(25);
+					cntcwsrange->step(1);
+					cntcwsrange->value(10);
+					cntcwsrange->callback((Fl_Callback*)cb_cntcwsrange);
+					cntcwsrange->align(FL_ALIGN_TOP);
+					cntcwsrange->when(FL_WHEN_CHANGED);
+					cntcwsrange->value(progdefaults.CWrange);
+					cntcwsrange->labelsize(FL_NORMAL_SIZE);
+
+					Fl_Box *fb1 = new Fl_Box( rightof(cntcwsrange), YB, 2, HB, "");
+				gp1->end();
+				gp1->resizable(fb1);
+
+				Fl_Group *gp2 = new Fl_Group( rightof(gp1), YB, WB, HB, "");
+					gp2->box(FL_FLAT_BOX);
+
+					btncwsrcvTrack = new Fl_Check_Button(
+						gp2->x(), YB,
+						gp2->w() - 2, HB, gettext("Trk"));
+					btncwsrcvTrack->tooltip(gettext("Automatic Rx speed tracking"));
+					btncwsrcvTrack->down_box(FL_DOWN_BOX);
+					btncwsrcvTrack->value(1);
+					btncwsrcvTrack->callback((Fl_Callback*)cb_btncwsrcvTrack);
+					btncwsrcvTrack->value(progdefaults.CWtrack);
+
+					Fl_Box *fb2 = new Fl_Box( rightof(btncwsrcvTrack), YB, 2, HB, "");
+				gp2->end();
+				gp2->resizable(fb2);
+
+				Fl_Group *gp3 = new Fl_Group( rightof(gp2), YB, WB, HB, "");
+					gp3->box(FL_FLAT_BOX);
+
+					btncwsuseSOMdecoding = new Fl_Check_Button(
+						rightof(btncwsrcvTrack), cws_group->y(),
+						gp2->w() - 2, Hstatus, gettext("SOM"));
+					btncwsuseSOMdecoding->tooltip(gettext("Self Organizing Map Decoder"));
+					btncwsuseSOMdecoding->down_box(FL_DOWN_BOX);
+					btncwsuseSOMdecoding->value(1);
+					btncwsuseSOMdecoding->callback((Fl_Callback*)cb_btncwsuseSOMdecoding);
+					btncwsuseSOMdecoding->value(progdefaults.CWuseSOMdecoding);
+
+					Fl_Box *fb3 = new Fl_Box( rightof(btncwsuseSOMdecoding), YB, 2, HB, "");
+
+				gp3->end();
+				gp3->resizable(fb3);
+
+				Fl_Group *gp4 = new Fl_Group( rightof(gp3), YB, WB, HB, "");
+					gp4->box(FL_FLAT_BOX);
+
+					btncwsmfilt = new Fl_Check_Button(
+						rightof(btncwsuseSOMdecoding), cws_group->y(),
+						gp4->w() - 2, Hstatus, gettext("Mch"));
+					btncwsmfilt->tooltip(gettext("Matched Filter bandwidth"));
+					btncwsmfilt->down_box(FL_DOWN_BOX);
+					btncwsmfilt->value(1);
+					btncwsmfilt->callback((Fl_Callback*)cb_btncwsmfilt);
+					btncwsmfilt->value(progdefaults.CWmfilt);
+
+					Fl_Box *fb4 = new Fl_Box( rightof(btncwsmfilt), YB, 2, HB, "");
+
+				gp4->end();
+				gp4->resizable(fb4);
+
+				Fl_Group *gp5 = new Fl_Group( rightof(gp4), YB, WB * 2, HB, "");
+					gp5->box(FL_FLAT_BOX);
+
+					cntcwsbandwidth = new Fl_Counter2(
+						gp5->x(), cws_group->y(),
+						gp5->w() - 2, Hstatus, "");
+					cntcwsbandwidth->tooltip(gettext("Filter bandwidth"));
+					cntcwsbandwidth->box(FL_UP_BOX);
+					cntcwsbandwidth->color(FL_BACKGROUND_COLOR);
+					cntcwsbandwidth->selection_color(FL_INACTIVE_COLOR);
+					cntcwsbandwidth->labeltype(FL_NORMAL_LABEL);
+					cntcwsbandwidth->labelfont(0);
+					cntcwsbandwidth->labelsize(14);
+					cntcwsbandwidth->labelcolor(FL_FOREGROUND_COLOR);
+					cntcwsbandwidth->minimum(10);
+					cntcwsbandwidth->maximum(800);
+					cntcwsbandwidth->step(5);
+					cntcwsbandwidth->value(200);
+					cntcwsbandwidth->callback((Fl_Callback*)cb_cntcwsbandwidth);
+					cntcwsbandwidth->align(FL_ALIGN_TOP);
+					cntcwsbandwidth->when(FL_WHEN_CHANGED);
+					cntcwsbandwidth->value(progdefaults.CWbandwidth);
+					cntcwsbandwidth->labelsize(FL_NORMAL_SIZE);
+					cntcwsbandwidth->lstep(50);
+
+					Fl_Box *fb5 = new Fl_Box( rightof(cntcwsbandwidth), YB, 2, HB, "");
+
+				gp5->end();
+				gp5->resizable(fb5);
+
+			cws_group->end();
+			cws_group->hide();
+}
 
 			cntTxLevel = new Fl_Counter2(
-				rightof(&vuspacer), Y,
+				rightof(cws_group), Y,
 				bwTxLevel, Hstatus, "");
 			cntTxLevel->minimum(-30);
 			cntTxLevel->maximum(0);
@@ -2962,7 +3089,7 @@ Logging_frame->resizable(NFtabs);
 			cntTxLevel->tooltip(_("Tx level attenuator (dB)"));
 
 			WARNstatus = new Fl_Box(
-				rightof(cntTxLevel) + pad, Y,
+				rightof(cntTxLevel), Y,
 				Wwarn, Hstatus, "");
 			WARNstatus->box(FL_DIAMOND_DOWN_BOX);
 			WARNstatus->color(FL_BACKGROUND_COLOR);
@@ -2970,19 +3097,16 @@ Logging_frame->resizable(NFtabs);
 			WARNstatus->align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE);
 
 			btnAFC = new Fl_Light_Button(
-				rightof(WARNstatus) + pad, Y,
+				rightof(WARNstatus), Y,
 				bwAfcOnOff, Hstatus, "AFC");
 
 			btnSQL = new Fl_Light_Button(
 				rightof(btnAFC), Y,
 				bwSqlOnOff, Hstatus, "SQL");
 
-// btnPSQL will be resized later depending on the state of the
-// configuration parameter to show that widget
-
 			btnPSQL = new Fl_Light_Button(
 				rightof(btnSQL), Y,
-				bwSqlOnOff, Hstatus, "PSM");
+				1, Hstatus, "PSM");
 
 			btnSQL->selection_color( RGBCOLOR( Sql1Color ) );
 
@@ -3006,92 +3130,8 @@ Logging_frame->resizable(NFtabs);
 			corner_box->box(FL_FLAT_BOX);
 
 		status_group->end();
-		status_group->resizable(VuMeter);
+		status_group->resizable(status_group_A);
 
-}
-
-{ // CW settings group
-
-		Y += status_group->h();
-
-		cws_group = new Fl_Group(0, Y, W, Hcws_group, "");
-		cws_group->box(FL_DOWN_BOX);
-		cws_group->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
-
-			cntcwsrange = new Fl_Counter2(5, cws_group->y() + 1, 80, 20);
-			cntcwsrange->tooltip(gettext("Range +/- wpm"));
-			cntcwsrange->type(1);
-			cntcwsrange->box(FL_UP_BOX);
-			cntcwsrange->color(FL_BACKGROUND_COLOR);
-			cntcwsrange->selection_color(FL_INACTIVE_COLOR);
-			cntcwsrange->labeltype(FL_NORMAL_LABEL);
-			cntcwsrange->labelfont(0);
-			cntcwsrange->labelsize(14);
-			cntcwsrange->labelcolor(FL_FOREGROUND_COLOR);
-			cntcwsrange->minimum(5);
-			cntcwsrange->maximum(25);
-			cntcwsrange->step(1);
-			cntcwsrange->value(10);
-			cntcwsrange->callback((Fl_Callback*)cb_cntcwsrange);
-			cntcwsrange->align(Fl_Align(FL_ALIGN_TOP));
-			cntcwsrange->when(FL_WHEN_CHANGED);
-			cntcwsrange->value(progdefaults.CWrange);
-			cntcwsrange->labelsize(FL_NORMAL_SIZE);
-
-			btncwsrcvTrack = new Fl_Check_Button(90, cws_group->y() + 1, 20, 20, gettext("Track WPM"));
-			btncwsrcvTrack->tooltip(gettext("Automatic Rx speed tracking"));
-			btncwsrcvTrack->down_box(FL_DOWN_BOX);
-			btncwsrcvTrack->value(1);
-			btncwsrcvTrack->callback((Fl_Callback*)cb_btncwsrcvTrack);
-			btncwsrcvTrack->align(Fl_Align(FL_ALIGN_RIGHT));
-			btncwsrcvTrack->value(progdefaults.CWtrack);
-
-			btncwsuseSOMdecoding = new Fl_Check_Button(216, cws_group->y() + 1, 120, 20, gettext("SOM decode"));
-			btncwsuseSOMdecoding->tooltip(gettext("Self Organizing Map Decoder"));
-			btncwsuseSOMdecoding->down_box(FL_DOWN_BOX);
-			btncwsuseSOMdecoding->value(1);
-			btncwsuseSOMdecoding->callback((Fl_Callback*)cb_btncwsuseSOMdecoding);
-			btncwsuseSOMdecoding->value(progdefaults.CWuseSOMdecoding);
-
-			btncwsmfilt = new Fl_Check_Button(345, cws_group->y() + 1, 120, 20, gettext("Matched Filter"));
-			btncwsmfilt->tooltip(gettext("Matched Filter bandwidth"));
-			btncwsmfilt->down_box(FL_DOWN_BOX);
-			btncwsmfilt->value(1);
-			btncwsmfilt->callback((Fl_Callback*)cb_btncwsmfilt);
-			btncwsmfilt->value(progdefaults.CWmfilt);
-
-			cntcwsbandwidth = new Fl_Counter2(470, cws_group->y() + 1, 120, 20);
-			cntcwsbandwidth->tooltip(gettext("Filter bandwidth"));
-			cntcwsbandwidth->box(FL_UP_BOX);
-			cntcwsbandwidth->color(FL_BACKGROUND_COLOR);
-			cntcwsbandwidth->selection_color(FL_INACTIVE_COLOR);
-			cntcwsbandwidth->labeltype(FL_NORMAL_LABEL);
-			cntcwsbandwidth->labelfont(0);
-			cntcwsbandwidth->labelsize(14);
-			cntcwsbandwidth->labelcolor(FL_FOREGROUND_COLOR);
-			cntcwsbandwidth->minimum(10);
-			cntcwsbandwidth->maximum(800);
-			cntcwsbandwidth->step(5);
-			cntcwsbandwidth->value(200);
-			cntcwsbandwidth->callback((Fl_Callback*)cb_cntcwsbandwidth);
-			cntcwsbandwidth->align(Fl_Align(FL_ALIGN_TOP));
-			cntcwsbandwidth->when(FL_WHEN_CHANGED);
-			cntcwsbandwidth->value(progdefaults.CWbandwidth);
-			cntcwsbandwidth->labelsize(FL_NORMAL_SIZE);
-			cntcwsbandwidth->lstep(50);
-
-			mnu_cws_fillen = new Fl_Choice(600, cws_group->y() + 1, 72, 20, gettext("Fil\' Len\'"));
-			mnu_cws_fillen->tooltip(gettext("Filter length in samples"));
-			mnu_cws_fillen->down_box(FL_BORDER_BOX);
-			mnu_cws_fillen->callback((Fl_Callback*)cb_mnu_cws_fillen);
-			mnu_cws_fillen->align(Fl_Align(FL_ALIGN_RIGHT));
-			mnu_cws_fillen->add("128|256|512|1024");
-			mnu_cws_fillen->value(progdefaults.CW_fillen);
-
-		cws_group->end();
-//		cws_group->hide();
-//		cws_group->resize(0, Y, W, 0);
-		Y += cws_group->h();
 }
 
 { // adjust callbacks
@@ -3237,7 +3277,7 @@ Logging_frame->resizable(NFtabs);
 
 	adjust_for_contest(0);
 
-	UI_select();
+	UI_select(__func__);
 
 	wf->UI_select(progStatus.WF_UI);
 

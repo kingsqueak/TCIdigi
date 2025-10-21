@@ -77,14 +77,14 @@ extern int Hmacros;
 //#define Hrcvtxt		(Htext) / 2
 //#define Hxmttxt		(Htext - (Hrcvtxt))
 
-#define Wmode 		110
-#define Ws2n  		110
+#define Wmode 		95 //110
+#define Ws2n  		95 //110
 #define Wimd  		110
 #define Wwarn 		16
 #define bwTxLevel	120
-#define bwAfcOnOff	60
-#define bwSqlOnOff	60
-#define bwPwrSqlOnOff	60
+#define bwAfcOnOff	50 //60
+#define bwSqlOnOff	50 //60
+#define bwPwrSqlOnOff	50 //60
 
 #define Wstatus (WNOM - Wmode - Ws2n - Wimd - bwAfcOnOff - bwSqlOnOff - bwPwrSqlOnOff - Wwarn)
 

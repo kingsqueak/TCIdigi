@@ -54,6 +54,8 @@
 
 #include <FL/Fl_Progress.H>
 
+#define UI_debug
+
 extern fre_t seek_re;
 
 extern Fl_Double_Window *fl_digi_main;
@@ -341,8 +343,10 @@ extern Fl_Light_Button		*btnTxRSID;
 extern Fl_Light_Button		*btnTune;
 extern Fl_Light_Button		*btnAutoSpot;
 
-extern bool			bWF_only;
+extern bool				bWF_only;
 extern int				altMacros;
+
+extern bool				ui_debug;
 
 extern waterfall		*wf;
 extern Digiscope		*digiscope;
@@ -374,7 +378,9 @@ extern void activate_thor_image_item(bool b);
 extern void WF_UI();
 
 extern void set_macroLabels();
-extern void UI_select();
+
+extern void UI_select(std::string parent = "");
+extern void UI_STATS(std::string parent = "");
 
 extern void cb_mnuVisitURL(Fl_Widget*, void* arg);
 
@@ -781,14 +787,12 @@ extern Fl_Counter2			*cntcwsrange;
 extern Fl_Check_Button		*btncwsuseSOMdecoding;
 extern Fl_Check_Button		*btncwsmfilt;
 extern Fl_Counter2			*cntcwsbandwidth;
-extern Fl_Choice			*mnu_cws_fillen;
 
 extern void cb_btncwsrcvTrack(Fl_Check_Button*, void*);
 extern void cb_cntcwsrange(Fl_Counter2*, void*);
 extern void cb_btncwsuseSOMdecoding(Fl_Check_Button*, void*);
 extern void cb_btncwsmfilt(Fl_Check_Button*, void*);
 extern void cb_cntcwsbandwidth(Fl_Counter2*, void*);
-extern void cb_mnu_cws_fillen(Fl_Choice*, void*);
 
 extern Fl_Double_Window *nano_calibration_dialog();;
 

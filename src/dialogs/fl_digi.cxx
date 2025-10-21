@@ -256,6 +256,7 @@ void set599();
 fre_t seek_re("CQ", REG_EXTENDED | REG_ICASE | REG_NOSUB);
 
 bool bWF_only = false;
+bool ui_debug = true;//false;
 
 Fl_Double_Window	*fl_digi_main				= (Fl_Double_Window *)0;
 Fl_Double_Window	*scopeview					= (Fl_Double_Window *)0;
@@ -353,7 +354,6 @@ Fl_Box				*Status2 = (Fl_Box *)0;
 Fl_Box				*Status1 = (Fl_Box *)0;
 Fl_Counter2			*cntTxLevel = (Fl_Counter2 *)0;
 Fl_Counter2			*cntCW_WPM=(Fl_Counter2 *)0;
-Fl_Button			*btnCW_Default=(Fl_Button *)0;
 Fl_Box				*WARNstatus = (Fl_Box *)0;
 Fl_Button			*MODEstatus = (Fl_Button *)0;
 Fl_Button 			*btnMacro[NUMMACKEYS * NUMKEYROWS];
@@ -731,15 +731,16 @@ Fl_Button		*opUsageEnter = (Fl_Button *)0;
 Fl_Group	 	*wf_group = (Fl_Group *)0;
 Fl_Group		*status_group = (Fl_Group *)0;
 
+Fl_Group		*status_group_A = (Fl_Group *)0;
+Fl_Group		*svu = (Fl_Group *)0;
 Fl_Group		*cws_group = (Fl_Group *)0;
+Fl_Group		*filler = (Fl_Group *)0;
 
 Fl_Check_Button		*btncwsrcvTrack = (Fl_Check_Button *)0;
 Fl_Counter2			*cntcwsrange = (Fl_Counter2 *)0;
 Fl_Check_Button		*btncwsuseSOMdecoding = (Fl_Check_Button *)0;
 Fl_Check_Button		*btncwsmfilt = (Fl_Check_Button *)0;
 Fl_Counter2			*cntcwsbandwidth = (Fl_Counter2 *)0;
-Fl_Choice			*mnu_cws_fillen = (Fl_Choice *)0;
-
 
 Fl_Value_Slider2	*mvsquelch = (Fl_Value_Slider2 *)0;
 Fl_Button		*btnClearMViewer = 0;
@@ -753,7 +754,7 @@ static const int Hqsoframe	= 2*pad + 3 * (Hentry + pad);
 
 int Hstatus = 20;
 int Hmacros = 20;
-int Hcws_group = 22;
+int Hcws_group = 20;
 
 #define TB_HEIGHT 20
 #define MACROBAR_MIN 18
@@ -822,7 +823,7 @@ static CharsetDistiller echo_chd;
 static OutputEncoder    tx_encoder;
 
 Fl_Menu_Item *getMenuItem(const char *caption, Fl_Menu_Item* submenu = 0);
-void UI_select();
+
 bool clean_exit(bool ask);
 
 void cb_init_mode(Fl_Widget *, void *arg);
@@ -1460,9 +1461,15 @@ void set_dominoex_tab_widgets()
 void set_mode_controls(trx_mode id)
 {
 	if (id == MODE_CW) {
-		cntCW_WPM->show();
-		btnCW_Default->show();
 		Status1->hide();
+		cntCW_WPM->show();
+		if (progdefaults.show_CW_controls) {
+			status_group_A->hide();
+			cws_group->show();
+		} else {
+			cws_group->hide();
+			status_group_A->show();
+		}
 		if (mvsquelch) {
 			mvsquelch->value(progStatus.VIEWER_cwsquelch);
 			mvsquelch->range(0, 40.0);
@@ -1474,10 +1481,12 @@ void set_mode_controls(trx_mode id)
 			sldrViewerSquelch->redraw();
 		}
 	} else {
+		cws_group->hide();
 		cntCW_WPM->hide();
-		btnCW_Default->hide();
 		Status1->show();
+		status_group_A->show();
 	}
+	status_group->redraw();
 
 	if (id == MODE_RTTY) {
 		if (mvsquelch) {
@@ -1622,7 +1631,7 @@ void startup_modem(modem* m, int f)
 	wf->xmtlock->value(progStatus.tx_lock);
 	wf->xmtlock->do_callback();
 
-//	UI_select();
+//	UI_select(__func__);
 }
 
 void cb_mnuOpenMacro(Fl_Menu_*, void*) {
@@ -2130,7 +2139,7 @@ void init_modem(trx_mode mode, int freq)
 	clear_StatusMessages();
 	progStatus.lastmode = mode;
 
-	UI_select();
+	UI_select(std::string(__func__).append("\n").append(mode_info[mode].sname));
 
 	if (wf->xmtlock->value() == 1 && !mailserver) {
 		if(!progdefaults.retain_freq_lock) {
@@ -2561,7 +2570,7 @@ void cb_view_hide_channels(Fl_Menu_ *w, void *d)
 		progStatus.tile_y = ReceiveText->h();
 		progStatus.tile_y_ratio = 1.0 * ReceiveText->h() / text_panel->h();
 	}
-	UI_select();
+	UI_select(__func__);
 	return;
 }
 
@@ -4936,10 +4945,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += HTh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
+			status_group->position(status_group->x(), y1);
+			status_group_A->position(status_group_A->x(), y1);
+			cws_group->position(cws_group->x(), y1);
 		} else {
 			int htbar = 4 * TB_HEIGHT;
 
@@ -4962,10 +4970,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
+			status_group->position(status_group->x(), y1);
+			status_group_A->position(status_group_A->x(), y1);
+			cws_group->position(cws_group->x(), y1);
 		}
 		fl_digi_main->init_sizes();
 		return;
@@ -4992,10 +4999,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += HTh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		default:
 		case 1:
@@ -5004,10 +5007,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			btnAltMacros2->deactivate();
 			HTh -= mh;
 			center_group->resize(x, y1, w, HTh);
-//			text_panel->resize(x, y1, w, HTh);
-//			wefax_group->resize(x, y1, w, HTh);
-//			fsq_group->resize(x, y1, w, HTh);
-//			ifkp_group->resize(x, y1, w, HTh);
 			UI_select_central_frame(y1, HTh);
 			y1 += HTh;
 			resize_macroframe_1(x, y1, w, mh);
@@ -5016,10 +5015,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 2:
 			resize_macroframe_2(x,y1,w,mh);
@@ -5040,10 +5035,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			macroFrame1->show();
 			btnAltMacros1->activate();
 			y1 += mh;
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 3:
 			resize_macroframe_1(x, y1, w, mh);
@@ -5066,10 +5057,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += HTh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 4:
 			resize_macroframe_2(x, y1, w, mh);
@@ -5092,10 +5079,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += HTh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 5:
 			HTh -= 2*mh;
@@ -5117,10 +5100,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 6:
 			HTh -= 2*mh;
@@ -5141,10 +5120,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 7:
 			HTh -= 2*mh;
@@ -5165,10 +5140,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			resize_macroframe_2(x, y1, w, mh);
 			macroFrame2->show();
 			y1 += mh;
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 8:
 			HTh -= 2*mh;
@@ -5188,10 +5159,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			macroFrame1->show();
 			btnAltMacros1->deactivate();
 			y1 += mh;
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 9:
 			HTh -= 2*mh;
@@ -5213,10 +5180,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			macroFrame2->show();
 			btnAltMacros2->activate();
 			y1 += mh;
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 10:
 			HTh -= 2*mh;
@@ -5238,10 +5201,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			macroFrame1->show();
 			btnAltMacros1->deactivate();
 			y1 += mh;
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 11:
 			resize_macroframe_2(x, y1, w, mh);
@@ -5263,10 +5222,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 		case 12:
 			resize_macroframe_1(x, y1, w, mh);
@@ -5288,63 +5243,74 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
-			y1 += status_group->h();
-			cws_group->position(x, y1);
-			y1 += cws_group->h();
 			break;
 	}
+	status_group->position(status_group->x(), y1);
+	status_group_A->position(status_group_A->x(), y1);
+	cws_group->position(cws_group->x(), y1);
 	fl_digi_main->init_sizes();
 
 	return;
 }
 
 bool UI_first = true;
-void UI_select()
+
+void UI_select(std::string parent)
 {
 // WATERFALL ONLY UI
 	if (bWF_only) {
-		int Y = cntTxLevel->y();
-		int psm_width = progdefaults.show_psm_btn ? bwSqlOnOff : 0;
-		int X = rightof(Status2);
-		int W = fl_digi_main->w() - X - bwTxLevel - Wwarn - bwAfcOnOff -
-			bwSqlOnOff - psm_width;
-
-		StatusBar->resize( X, Y, W, StatusBar->h());
-		VuMeter->resize( X, Y, W, VuMeter->h());
-
-		cntTxLevel->position(rightof(VuMeter), Y);
-
-		WARNstatus->position(rightof(cntTxLevel), Y);
-		btnAFC->position(rightof(WARNstatus), Y);
-		btnSQL->position(rightof(btnAFC), Y);
-		btnPSQL->resize(rightof(btnSQL), Y, psm_width, btnPSQL->h());
-
-		if (progdefaults.show_psm_btn)
-			btnPSQL->show();
-		else
-			btnPSQL->hide();
-
-		cntTxLevel->redraw();
-		WARNstatus->redraw();
-		btnAFC->redraw();
-		btnSQL->redraw();
-		btnPSQL->redraw();
-		StatusBar->redraw();
-
-		status_group->init_sizes();
-		status_group->redraw();
-
-		int WF_only_height = Hmenu + Hwfall + Hstatus + 4 * pad;
-		if (progStatus.lastmode != MODE_CW || !progdefaults.show_CW_controls) {
-			fl_digi_main->size_range(WMIN, WF_only_height, 0, WF_only_height);
+		if (progStatus.lastmode == MODE_CW) {
+			Status1->hide();
+			cntCW_WPM->show();
+			if (progdefaults.show_CW_controls) {
+				status_group_A->hide();
+				cws_group->show();
+			} else {
+				cws_group->hide();
+				status_group_A->show();
+			}
+			if (mvsquelch) {
+				mvsquelch->value(progStatus.VIEWER_cwsquelch);
+				mvsquelch->range(0, 40.0);
+				mvsquelch->redraw();
+			}
+			if (sldrViewerSquelch) {
+				sldrViewerSquelch->value(progStatus.VIEWER_cwsquelch);
+				sldrViewerSquelch->range(0, 40.0);
+				sldrViewerSquelch->redraw();
+			}
 		} else {
-			WF_only_height += Hcws_group;
-			fl_digi_main->size_range(WMIN, WF_only_height, 0, WF_only_height);
+			cws_group->hide();
+			cntCW_WPM->hide();
+			Status1->show();
+			status_group_A->show();
 		}
+
+		int y = status_group->y();
+		int h = status_group->h();
+		int x = fl_digi_main->w() - cntTxLevel->w() - WARNstatus->w() - btnAFC->w() - btnSQL->w();
+
+		x -= (progdefaults.show_psm_btn ? bwSqlOnOff : 1);
+		btnPSQL->size( (progdefaults.show_psm_btn ? bwSqlOnOff : 1), h);
+
+		cntTxLevel->position(x, y);
+		x += cntTxLevel->w();
+		WARNstatus->position(x, y);
+		x += WARNstatus->w();
+		btnAFC->position(x, y);
+		x += btnAFC->w();
+		btnSQL->position(x, y);
+		x += btnSQL->w();
+		btnPSQL->position(x, y);
 
 		fl_digi_main->init_sizes();
 		fl_digi_main->redraw();
+
+		int WF_only_height = Hmenu + Hwfall + Hstatus + 4 * pad;
+		fl_digi_main->size_range(WMIN, WF_only_height, 0, WF_only_height);
+
+		UI_STATS(std::string(__func__).append("/").append(parent));
+
 		return;
 	}
 // END WATERFALL ONLY
@@ -5364,8 +5330,33 @@ void UI_select()
 
 	int HTh = fl_digi_main->h() - mnu->h() - wf_group->h() - status_group->h();
 
-	if (progStatus.lastmode == MODE_CW && progdefaults.show_CW_controls)
-		HTh -= cws_group->h();
+	if (progStatus.lastmode == MODE_CW) {
+		Status1->hide();
+		cntCW_WPM->show();
+		if (progdefaults.show_CW_controls) {
+			status_group_A->hide();
+			cws_group->show();
+		} else {
+			cws_group->hide();
+			status_group_A->show();
+		}
+		if (mvsquelch) {
+			mvsquelch->value(progStatus.VIEWER_cwsquelch);
+			mvsquelch->range(0, 40.0);
+			mvsquelch->redraw();
+		}
+		if (sldrViewerSquelch) {
+			sldrViewerSquelch->value(progStatus.VIEWER_cwsquelch);
+			sldrViewerSquelch->range(0, 40.0);
+			sldrViewerSquelch->redraw();
+		}
+	} else {
+		cws_group->hide();
+		cntCW_WPM->hide();
+		Status1->show();
+		status_group_A->show();
+	}
+	status_group->redraw();
 
 	if (progStatus.NO_RIGLOG && !restore_minimize) {
 		TopFrame1->hide();
@@ -5885,36 +5876,24 @@ UI_return:
 	}
 
 	{
-		int Y = status_group->y();
-		int psm_width = progdefaults.show_psm_btn ? bwSqlOnOff : 0;
+		int y = status_group->y();
+		int h = status_group->h();
+		int x = fl_digi_main->w() - cntTxLevel->w() - WARNstatus->w() - btnAFC->w() - btnSQL->w();
 
-		int vuw = 
-			fl_digi_main->w() - Status2->x() - Status2->w() - 2 -
-			bwTxLevel -  // tx level control
-			Wwarn -      // Warn indicator
-			bwAfcOnOff - // afc button
-			bwSqlOnOff - // sql button
-			psm_width -  // psm button, bwSqlOnOff / 0
-			corner_box->w();
+		x -= (progdefaults.show_psm_btn ? bwSqlOnOff : 1);
+		btnPSQL->size( (progdefaults.show_psm_btn ? bwSqlOnOff : 1), h);
 
-		StatusBar->resize( 
-			Status2->x() + Status2->w() + 2, Y, vuw, StatusBar->h());
+		cntTxLevel->position(x, y);
+		x += cntTxLevel->w();
+		WARNstatus->position(x, y);
+		x += WARNstatus->w();
+		btnAFC->position(x, y);
+		x += btnAFC->w();
+		btnSQL->position(x, y);
+		x += btnSQL->w();
+		btnPSQL->position(x, y);
 
-		VuMeter->resize(
-			Status2->x() + Status2->w() + 2, Y, vuw, VuMeter->h());
-
-		cntTxLevel->position(rightof(VuMeter), Y);
-
-		WARNstatus->position(rightof(cntTxLevel), Y);
-		btnAFC->position(rightof(WARNstatus), Y);
-		btnSQL->position(rightof(btnAFC), Y);
-
-		btnPSQL->resize(rightof(btnSQL), Y, psm_width, btnPSQL->h());
-		if (progdefaults.show_psm_btn)
-			btnPSQL->show();
-		else
-			btnPSQL->hide();
-
+		
 		status_group->init_sizes();
 		status_group->redraw();
 
@@ -5940,24 +5919,151 @@ UI_return:
 	LOGBOOK_colors_font();
 	fl_digi_main->redraw();
 
-Fl::flush();
+	Fl::flush();
 
-// developer usage
-/*
-std::cout << "=====================  UI_select  =======================" << std::endl;
-std::cout << "Main ............ " << fl_digi_main->y() << ", " << fl_digi_main->h() << std::endl;
-std::cout << "Menu ............ " << mnuFrame->y() << ", " << mnuFrame->h() << std::endl;
-std::cout << "Qsoframe ........ " << TopFrame1->y() << ", " << TopFrame1->h() << std::endl;
-std::cout << "Center group .... " << center_group->y() << ", " << center_group->h() << std::endl;
-std::cout << "Macro frame ..... " << macroFrame1->y() << ", " << macroFrame1->h() << std::endl;
-std::cout << "Wfall ........... " << wf_group->y() << ", " << wf_group->h() << std::endl;
-std::cout << "Status  ......... " << status_group->y() << ", " << status_group->h() << std::endl;
-std::cout << "Cws ............. " << cws_group->y() << ", " << cws_group->h() << std::endl;
-std::cout << "==========================================================" << std::endl;
-*/
+	UI_STATS(std::string(__func__).append("/").append(parent));
 
 }
 
+void UI_STATS(std::string parent)
+{
+	if (!ui_debug) return;
+
+	static char ui_stats[2000];
+
+	if (bWF_only) {
+
+		snprintf( ui_stats, sizeof(ui_stats),"\n\
+==========================================\n\
+UI stat at:\n\
+ %s\n\
+      CONTROL        X     Y     W     H\n\
+ ----------------- ----- ----- ----- -----\n\
+ Main ............ %5d %5d %5d %5d\n\
+ Menu ............ %5d %5d %5d %5d\n\
+ Wfall ........... %5d %5d %5d %5d\n\
+ Status  ......... %5d %5d %5d %5d\n\
+ MODEstatus ...... %5d %5d %5d %5d\n\
+ Status1 ......... %5d %5d %5d %5d\n\
+ Group A ......... %5d %5d %5d %5d\n\
+ Cws ............. %5d %5d %5d %5d\n\
+   cntcwsrange ... %5d %5d %5d %5d\n\
+   cwsrcvTrack ... %5d %5d %5d %5d\n\
+   useSOMdecoding  %5d %5d %5d %5d\n\
+   btncwsmfilt ... %5d %5d %5d %5d\n\
+   cntbandwidth .. %5d %5d %5d %5d\n\
+ cntTxLevel ...... %5d %5d %5d %5d\n\
+ WARNstatus ...... %5d %5d %5d %5d\n\
+ btnAFC .......... %5d %5d %5d %5d\n\
+ btnSQL .......... %5d %5d %5d %5d\n\
+ btnPSQL ......... %5d %5d %5d %5d\n\
+",
+			parent.c_str(),
+			fl_digi_main->x(), fl_digi_main->y(), fl_digi_main->w(), fl_digi_main->h(),
+			mnuFrame->x(), mnuFrame->y(), mnuFrame->w(), mnuFrame->h(),
+			wf_group->x(), wf_group->y(), wf_group->w(), wf_group->h(),
+			status_group->x(), status_group->y(), status_group->w(), status_group->h(),
+			MODEstatus->x(), MODEstatus->y(), MODEstatus->w(), MODEstatus->h(),
+			Status1->x(), Status1->y(), Status1->w(), Status1->h(),
+			status_group_A->x(), status_group_A->y(), status_group_A->w(), status_group_A->h(),
+			cws_group->x(), cws_group->y(), cws_group->w(), cws_group->h(),
+			cntcwsrange->x(), cntcwsrange->y(), cntcwsrange->w(), cntcwsrange->h(),
+			btncwsrcvTrack->x(), btncwsrcvTrack->y(), btncwsrcvTrack->w(), btncwsrcvTrack->h(),
+			btncwsuseSOMdecoding->x(), btncwsuseSOMdecoding->y(), btncwsuseSOMdecoding->w(), btncwsuseSOMdecoding->h(),
+			btncwsmfilt->x(), btncwsmfilt->y(), btncwsmfilt->w(), btncwsmfilt->h(),
+			cntcwsbandwidth->x(), cntcwsbandwidth->y(), cntcwsbandwidth->w(), cntcwsbandwidth->h(),
+			cntTxLevel->x(), cntTxLevel->y(), cntTxLevel->w(), cntTxLevel->h(),
+			WARNstatus->x(), WARNstatus->y(), WARNstatus->w(), WARNstatus->h(),
+			btnAFC->x(), btnAFC->y(), btnAFC->w(), btnAFC->h(),
+			btnSQL->x(), btnSQL->y(), btnSQL->w(), btnSQL->h(),
+			btnPSQL->x(), btnPSQL->y(), btnPSQL->w(), btnPSQL->h()
+		);
+
+	} else {
+
+		snprintf( ui_stats, sizeof(ui_stats),"\
+==========================================\n\
+Control positions at:\n\
+ %s\n\
+      CONTROL        X     Y     W     H\n\
+ ----------------- ----- ----- ----- -----\n\
+ Main ............ %5d %5d %5d %5d\n\
+ Main hmin .......                   %5d\n\
+ Menu ............ %5d %5d %5d %5d\n\
+ Qsoframe ........ %5d %5d %5d %5d\n\
+ Center group .... %5d %5d %5d %5d\n\
+ Text group ...... %5d %5d %5d %5d\n\
+ Text panel ...... %5d %5d %5d %5d\n\
+ mv group ........ %5d %5d %5d %5d\n\
+ main viewer ..... %5d %5d %5d %5d\n\
+ Receive text .... %5d %5d %5d %5d\n\
+ FH display ...... %5d %5d %5d %5d\n\
+ Transmit text ... %5d %5d %5d %5d\n\
+ Wefax group ..... %5d %5d %5d %5d\n\
+ FSQ group ....... %5d %5d %5d %5d\n\
+ IFKP group ...... %5d %5d %5d %5d\n\
+ Macro frame ..... %5d %5d %5d %5d\n\
+ Wfall ........... %5d %5d %5d %5d\n\
+ Status  ......... %5d %5d %5d %5d\n\
+ MODEstatus ...... %5d %5d %5d %5d\n\
+ Status1 ......... %5d %5d %5d %5d\n\
+ Group A ......... %5d %5d %5d %5d\n\
+ Cws ............. %5d %5d %5d %5d\n\
+   cntcwsrange ... %5d %5d %5d %5d\n\
+   cwsrcvTrack ... %5d %5d %5d %5d\n\
+   useSOMdecoding  %5d %5d %5d %5d\n\
+   btncwsmfilt ... %5d %5d %5d %5d\n\
+   cntbandwidth .. %5d %5d %5d %5d\n\
+ cntTxLevel ...... %5d %5d %5d %5d\n\
+ WARNstatus ...... %5d %5d %5d %5d\n\
+ btnAFC .......... %5d %5d %5d %5d\n\
+ btnSQL .......... %5d %5d %5d %5d\n\
+ btnPSQL ......... %5d %5d %5d %5d\n\
+",
+			parent.c_str(),
+			fl_digi_main->x(), fl_digi_main->y(), fl_digi_main->w(), fl_digi_main->h(),
+			main_hmin,
+			mnuFrame->x(), mnuFrame->y(), mnuFrame->w(), mnuFrame->h(),
+			TopFrame1->x(), TopFrame1->y(), TopFrame1->w(), TopFrame1->h(),
+			center_group->x(), center_group->y(), center_group->w(), center_group->h(),
+			text_group->x(), text_group->y(),text_group->w(), text_group->h(),
+			text_panel->x(), text_panel->y(), text_panel->w(), text_panel->h(),
+			mvgroup->x(), mvgroup->y(), mvgroup->w(), mvgroup->h(),
+			mainViewer->x(), mainViewer->y(), mainViewer->w(), mainViewer->h(),
+			ReceiveText->x(), ReceiveText->y(), ReceiveText->w(), ReceiveText->h(),
+			FHdisp->x(), FHdisp->y(), FHdisp->w(), FHdisp->h(),
+			TransmitText->x(), TransmitText->y(), TransmitText->w(), TransmitText->h(),
+			wefax_group->x(), wefax_group->y(), wefax_group->w(), wefax_group->h(),
+			fsq_group->x(), fsq_group->y(), fsq_group->w(), fsq_group->h(),
+			ifkp_group->x(), ifkp_group->y(), ifkp_group->w(), ifkp_group->h(),
+			macroFrame1->x(), macroFrame1->y(), macroFrame1->w(), macroFrame1->h(),
+			wf_group->x(), wf_group->y(), wf_group->w(), wf_group->h(),
+			status_group->x(), status_group->y(), status_group->w(), status_group->h(),
+			MODEstatus->x(), MODEstatus->y(), MODEstatus->w(), MODEstatus->h(),
+			Status1->x(), Status1->y(), Status1->w(), Status1->h(),
+			status_group_A->x(), status_group_A->y(), status_group_A->w(), status_group_A->h(),
+			cws_group->x(), cws_group->y(), cws_group->w(), cws_group->h(),
+			cntcwsrange->x(), cntcwsrange->y(), cntcwsrange->w(), cntcwsrange->h(),
+			btncwsrcvTrack->x(), btncwsrcvTrack->y(), btncwsrcvTrack->w(), btncwsrcvTrack->h(),
+			btncwsuseSOMdecoding->x(), btncwsuseSOMdecoding->y(), btncwsuseSOMdecoding->w(), btncwsuseSOMdecoding->h(),
+			btncwsmfilt->x(), btncwsmfilt->y(), btncwsmfilt->w(), btncwsmfilt->h(),
+			cntcwsbandwidth->x(), cntcwsbandwidth->y(), cntcwsbandwidth->w(), cntcwsbandwidth->h(),
+			cntTxLevel->x(), cntTxLevel->y(), cntTxLevel->w(), cntTxLevel->h(),
+			WARNstatus->x(), WARNstatus->y(), WARNstatus->w(), WARNstatus->h(),
+			btnAFC->x(), btnAFC->y(), btnAFC->w(), btnAFC->h(),
+			btnSQL->x(), btnSQL->y(), btnSQL->w(), btnSQL->h(),
+			btnPSQL->x(), btnPSQL->y(), btnPSQL->w(), btnPSQL->h()
+		);
+	}
+
+	std::string stat_fname = HomeDir;
+	stat_fname.append("/ui_stats.txt");
+	FILE *stat_file = fopen( stat_fname.c_str(), "a" );
+	fprintf(stat_file, "%s", ui_stats);
+	fclose(stat_file);
+
+//	std::cout << ui_stats;
+}
 
 void cb_mnu_wf_all(Fl_Menu_* w, void *d)
 {
@@ -5970,7 +6076,7 @@ void cb_mnu_riglog_all(Fl_Menu_* w, void *d)
 	progStatus.Rig_Log_UI = false;
 	progStatus.NO_RIGLOG = false;
 
-	UI_select();
+	UI_select(__func__);
 }
 
 void cb_mnu_riglog_partial(Fl_Menu_* w, void *d)
@@ -5979,7 +6085,8 @@ void cb_mnu_riglog_partial(Fl_Menu_* w, void *d)
 	progStatus.Rig_Log_UI = true;
 	progStatus.NO_RIGLOG = false;
 
-	UI_select();
+	UI_select(__func__);
+
 }
 
 void cb_mnu_riglog_none(Fl_Menu_* w, void *d)
@@ -5988,7 +6095,8 @@ void cb_mnu_riglog_none(Fl_Menu_* w, void *d)
 	progStatus.NO_RIGLOG = true;
 	progStatus.Rig_Log_UI = false;
 
-	UI_select();
+	UI_select(__func__);
+
 }
 
 void cb_mnuDockedscope(Fl_Menu_ *w, void *d)
@@ -6038,7 +6146,7 @@ void cb_menu_make_default_scripts(Fl_Widget*, void*)
 void cb_48macros(Fl_Widget*, void*)
 {
 	progdefaults.display_48macros = !progdefaults.display_48macros;
-	UI_select();
+	UI_select(__func__);
 }
 
 static void cb_opmode_show(Fl_Widget* w, void*);
@@ -6722,7 +6830,7 @@ void CloseQsoView()
 	if (restore_minimize) {
 		restore_minimize = false;
 
-		UI_select();
+	UI_select(__func__);
 	}
 }
 
@@ -6730,7 +6838,7 @@ void showOpBrowserView2(Fl_Widget *w, void *)
 {
 	restore_minimize = true;
 
-	UI_select();
+	UI_select(__func__);
 	showOpBrowserView(w, NULL);
 }
 
@@ -6982,7 +7090,7 @@ void show_bw2(const std::string sVal)
 
 void show_spot(bool v)
 {
-//if (bWF_only) return;
+	if (bWF_only) return;
 	static bool oldval = false;
 	if (v) {
 		mnu->size(btnAutoSpot->x(), mnu->h());
@@ -7057,12 +7165,6 @@ LOG_INFO("%f WPM", progdefaults.CWspeed);
 	sync_cw_parameters();
 
 	restoreFocus(25);
-}
-
-void cb_btnCW_Default(Fl_Widget *w, void *v)
-{
-	active_modem->toggleWPM();
-	restoreFocus(26);
 }
 
 static void cb_mainViewer_Seek(Fl_Input *, void *)
@@ -8302,7 +8404,7 @@ void create_fl_digi_main_WF_only() {
 	IMAGE_WIDTH = 4000;
 	Hwfall = progdefaults.wfheight;
 	Wwfall = W - 2 * DEFAULT_SW - 2 * pad;
-	WF_only_height = Hmenu + Hwfall + Hstatus + Hcws_group + 4 * pad;
+	WF_only_height = Hmenu + Hwfall + Hstatus + 4 * pad;
 
 	fl_digi_main = new Fl_Double_Window(W, WF_only_height);
 
@@ -8379,11 +8481,18 @@ void create_fl_digi_main_WF_only() {
 
 		Y += (Hwfall + pad);
 
-		status_group = new Fl_Group(0, Y, W, Hstatus);
+{ // Status bar group
+	// see corner_box below
+	// corner_box used to leave room for OS X corner drag handle
+	#ifdef __APPLE__
+		#define cbwidth DEFAULT_SW
+	#else
+		#define cbwidth 0
+	#endif
 
-			MODEstatus = new Fl_Button(
-				0, Y,
-				Wmode, Hstatus, "");
+		status_group = new Fl_Group(0, Y, W, Hstatus);
+{ // MODE / Status1 / CW_WPM
+			MODEstatus = new Fl_Button(0, Y, Wmode, Hstatus, "");
 			MODEstatus->box(FL_DOWN_BOX);
 			MODEstatus->color(FL_BACKGROUND2_COLOR);
 			MODEstatus->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
@@ -8391,63 +8500,207 @@ void create_fl_digi_main_WF_only() {
 			MODEstatus->when(FL_WHEN_CHANGED);
 			MODEstatus->tooltip(_("Left click: change mode\nRight click: configure"));
 
-			cntCW_WPM = new Fl_Counter2(
-				rightof(MODEstatus), Y,
-				Ws2n - Hstatus, Hstatus, "");
-			cntCW_WPM->callback(cb_cntCW_WPM);
-			cntCW_WPM->minimum(progdefaults.CWlowerlimit);
-			cntCW_WPM->maximum(progdefaults.CWupperlimit);
-			cntCW_WPM->value(progdefaults.CWspeed);
-			cntCW_WPM->tooltip(_("CW transmit WPM"));
-			cntCW_WPM->type(1);
-			cntCW_WPM->step(1);
-			cntCW_WPM->hide();
-
-			btnCW_Default = new Fl_Button(
-				rightof(cntCW_WPM), Y,
-				Hstatus, Hstatus, "*");
-			btnCW_Default->callback(cb_btnCW_Default);
-			btnCW_Default->tooltip(_("Default WPM"));
-			btnCW_Default->hide();
-
 			Status1 = new Fl_Box(
 				rightof(MODEstatus), Y,
-				Ws2n, Hstatus, "");
+				Ws2n, Hstatus, "STATUS1");
 			Status1->box(FL_DOWN_BOX);
 			Status1->color(FL_BACKGROUND2_COLOR);
 			Status1->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
 
-			Status2 = new Fl_Box(
+			cntCW_WPM = new Fl_Counter2(
+				rightof(MODEstatus), Y,
+				Ws2n, Hstatus, "");
+			cntCW_WPM->callback(cb_cntCW_WPM);
+			cntCW_WPM->minimum(progdefaults.CWlowerlimit);
+			cntCW_WPM->maximum(progdefaults.CWupperlimit);
+			cntCW_WPM->value(progdefaults.CWspeed);
+			cntCW_WPM->type(1);
+			cntCW_WPM->step(1);
+			cntCW_WPM->tooltip(_("CW transmit WPM"));
+			cntCW_WPM->align(FL_ALIGN_INSIDE);
+			cntCW_WPM->hide();
+
+}
+{ // status group A
+			status_group_A = new Fl_Group(
 				rightof(Status1), Y,
-				Wimd, Hstatus, "");
-			Status2->box(FL_DOWN_BOX);
-			Status2->color(FL_BACKGROUND2_COLOR);
-			Status2->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+				W - rightof(Status1) - bwTxLevel - bwAfcOnOff - bwSqlOnOff * 2 - cbwidth - Wwarn, Hstatus, "");
 
-			StatusBar = new status_box(
-				rightof(Status2), Y,
-				W - rightof(Status2)
-				- bwAfcOnOff - bwSqlOnOff
-				- Wwarn - bwTxLevel
-				- bwSqlOnOff
-				- cbwidth,
-				Hstatus, "");
-			StatusBar->box(FL_DOWN_BOX);
-			StatusBar->color(FL_BACKGROUND2_COLOR);
-			StatusBar->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-			StatusBar->callback((Fl_Callback *)StatusBar_cb);
-			StatusBar->when(FL_WHEN_RELEASE_ALWAYS);
-			StatusBar->tooltip(_("Left click to toggle VuMeter"));
-			StatusBar->show();
+				status_group_A->box(FL_FLAT_BOX);
 
-			VuMeter = new vumeter(StatusBar->x(), StatusBar->y(), StatusBar->w(), StatusBar->h(), "" );
-			VuMeter->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
-			VuMeter->when(FL_WHEN_RELEASE_ALWAYS);
-			VuMeter->tooltip(_("Left click to toggle Status Bar"));
-			VuMeter->callback((Fl_Callback *)VuMeter_cb);
+				Status2 = new Fl_Box(
+					status_group_A->x(), Y,
+					Wimd, Hstatus, "STATUS2");
+				Status2->box(FL_DOWN_BOX);
+				Status2->color(FL_BACKGROUND2_COLOR);
+				Status2->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+
+				inpCall4 = new Fl_Input2(
+					status_group_A->x(), Y,
+					Wimd, Hstatus, "");
+				inpCall4->align(FL_ALIGN_LEFT);
+				inpCall4->tooltip(_("Other call"));
+				inpCall4->hide();
+
+				svu = new Fl_Group( rightof(Status2), Y, status_group_A->w() - Status2->w(), Hstatus, "");
+					svu->box(FL_FLAT_BOX);
+
+					StatusBar = new status_box( svu->x(), svu->y(), svu->w(), svu->h(), "");
+					StatusBar->box(FL_DOWN_BOX);
+					StatusBar->color(FL_BACKGROUND2_COLOR);
+					StatusBar->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+					StatusBar->callback((Fl_Callback *)StatusBar_cb);
+					StatusBar->when(FL_WHEN_RELEASE_ALWAYS);
+					StatusBar->tooltip(_("Left click to toggle VuMeter"));
+
+					VuMeter = new vumeter(svu->x(), svu->y(), svu->w(), svu->h(), "");
+					VuMeter->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
+					VuMeter->when(FL_WHEN_RELEASE);
+					VuMeter->callback((Fl_Callback *)VuMeter_cb);
+					VuMeter->when(FL_WHEN_RELEASE_ALWAYS);
+					VuMeter->tooltip(_("Left click to toggle Status Bar"));
+
+				svu->end();
+				svu->show();
+
+				if (progStatus.vumeter_shown) {
+					VuMeter->show();
+					StatusBar->hide();
+				} else {
+					VuMeter->hide();
+					StatusBar->show();
+				}
+
+			status_group_A->end();
+			status_group_A->resizable(svu);
+} // status group A
+
+{ // CW settings group
+
+			cws_group = new Fl_Group(
+				rightof(cntCW_WPM), Y,
+				status_group_A->w(), Hstatus, "");
+
+				cws_group->box(FL_FLAT_BOX);
+
+				int YB = cws_group->y();
+				int WB = cws_group->w() / 5;
+				int HB = cws_group->h();
+
+				Fl_Group *gp1 = new Fl_Group(cws_group->x(), YB, WB, HB, "");
+					gp1->box(FL_FLAT_BOX);
+ 
+					cntcwsrange = new Fl_Counter2(
+						gp1->x(), YB, gp1->w() - 2, HB, "");
+					cntcwsrange->tooltip(gettext("Range +/- wpm"));
+					cntcwsrange->type(1);
+					cntcwsrange->box(FL_UP_BOX);
+					cntcwsrange->color(FL_BACKGROUND_COLOR);
+					cntcwsrange->selection_color(FL_INACTIVE_COLOR);
+					cntcwsrange->labeltype(FL_NORMAL_LABEL);
+					cntcwsrange->labelfont(0);
+					cntcwsrange->labelsize(14);
+					cntcwsrange->labelcolor(FL_FOREGROUND_COLOR);
+					cntcwsrange->minimum(5);
+					cntcwsrange->maximum(25);
+					cntcwsrange->step(1);
+					cntcwsrange->value(10);
+					cntcwsrange->callback((Fl_Callback*)cb_cntcwsrange);
+					cntcwsrange->align(FL_ALIGN_TOP);
+					cntcwsrange->when(FL_WHEN_CHANGED);
+					cntcwsrange->value(progdefaults.CWrange);
+					cntcwsrange->labelsize(FL_NORMAL_SIZE);
+
+					Fl_Box *fb1 = new Fl_Box( rightof(cntcwsrange), YB, 2, HB, "");
+				gp1->end();
+				gp1->resizable(fb1);
+
+				Fl_Group *gp2 = new Fl_Group( rightof(gp1), YB, WB, HB, "");
+					gp2->box(FL_FLAT_BOX);
+
+					btncwsrcvTrack = new Fl_Check_Button(
+						gp2->x(), YB,
+						gp2->w() - 2, HB, gettext("Trk"));
+					btncwsrcvTrack->tooltip(gettext("Automatic Rx speed tracking"));
+					btncwsrcvTrack->down_box(FL_DOWN_BOX);
+					btncwsrcvTrack->value(1);
+					btncwsrcvTrack->callback((Fl_Callback*)cb_btncwsrcvTrack);
+					btncwsrcvTrack->value(progdefaults.CWtrack);
+
+					Fl_Box *fb2 = new Fl_Box( rightof(btncwsrcvTrack), YB, 2, HB, "");
+				gp2->end();
+				gp2->resizable(fb2);
+
+				Fl_Group *gp3 = new Fl_Group( rightof(gp2), YB, WB, HB, "");
+					gp3->box(FL_FLAT_BOX);
+
+					btncwsuseSOMdecoding = new Fl_Check_Button(
+						rightof(btncwsrcvTrack), cws_group->y(),
+						gp2->w() - 2, Hstatus, gettext("SOM"));
+					btncwsuseSOMdecoding->tooltip(gettext("Self Organizing Map Decoder"));
+					btncwsuseSOMdecoding->down_box(FL_DOWN_BOX);
+					btncwsuseSOMdecoding->value(1);
+					btncwsuseSOMdecoding->callback((Fl_Callback*)cb_btncwsuseSOMdecoding);
+					btncwsuseSOMdecoding->value(progdefaults.CWuseSOMdecoding);
+
+					Fl_Box *fb3 = new Fl_Box( rightof(btncwsuseSOMdecoding), YB, 2, HB, "");
+
+				gp3->end();
+				gp3->resizable(fb3);
+
+				Fl_Group *gp4 = new Fl_Group( rightof(gp3), YB, WB, HB, "");
+					gp4->box(FL_FLAT_BOX);
+
+					btncwsmfilt = new Fl_Check_Button(
+						rightof(btncwsuseSOMdecoding), cws_group->y(),
+						gp4->w() - 2, Hstatus, gettext("Mch"));
+					btncwsmfilt->tooltip(gettext("Matched Filter bandwidth"));
+					btncwsmfilt->down_box(FL_DOWN_BOX);
+					btncwsmfilt->value(1);
+					btncwsmfilt->callback((Fl_Callback*)cb_btncwsmfilt);
+					btncwsmfilt->value(progdefaults.CWmfilt);
+
+					Fl_Box *fb4 = new Fl_Box( rightof(btncwsmfilt), YB, 2, HB, "");
+
+				gp4->end();
+				gp4->resizable(fb4);
+
+				Fl_Group *gp5 = new Fl_Group( rightof(gp4), YB, cws_group->w() + cws_group->x() - rightof(gp4) , HB, "");
+					gp5->box(FL_FLAT_BOX);
+
+					cntcwsbandwidth = new Fl_Counter2(
+						gp5->x(), cws_group->y(),
+						gp5->w() - 2, Hstatus, "");
+					cntcwsbandwidth->tooltip(gettext("Filter bandwidth"));
+					cntcwsbandwidth->box(FL_UP_BOX);
+					cntcwsbandwidth->color(FL_BACKGROUND_COLOR);
+					cntcwsbandwidth->selection_color(FL_INACTIVE_COLOR);
+					cntcwsbandwidth->labeltype(FL_NORMAL_LABEL);
+					cntcwsbandwidth->labelfont(0);
+					cntcwsbandwidth->labelsize(14);
+					cntcwsbandwidth->labelcolor(FL_FOREGROUND_COLOR);
+					cntcwsbandwidth->minimum(10);
+					cntcwsbandwidth->maximum(800);
+					cntcwsbandwidth->step(5);
+					cntcwsbandwidth->value(200);
+					cntcwsbandwidth->callback((Fl_Callback*)cb_cntcwsbandwidth);
+					cntcwsbandwidth->align(FL_ALIGN_TOP);
+					cntcwsbandwidth->when(FL_WHEN_CHANGED);
+					cntcwsbandwidth->value(progdefaults.CWbandwidth);
+					cntcwsbandwidth->labelsize(FL_NORMAL_SIZE);
+					cntcwsbandwidth->lstep(50);
+
+					Fl_Box *fb5 = new Fl_Box( rightof(cntcwsbandwidth), YB, 2, HB, "");
+
+				gp5->end();
+				gp5->resizable(fb5);
+
+			cws_group->end();
+			cws_group->hide();
+}
 
 			cntTxLevel = new Fl_Counter2(
-				rightof(StatusBar), Y,
+				rightof(cws_group), Y,
 				bwTxLevel, Hstatus, "");
 			cntTxLevel->minimum(-30);
 			cntTxLevel->maximum(0);
@@ -8469,121 +8722,46 @@ void create_fl_digi_main_WF_only() {
 			btnAFC = new Fl_Light_Button(
 				rightof(WARNstatus), Y,
 				bwAfcOnOff, Hstatus, "AFC");
-			btnAFC->selection_color(RGBCOLOR(AfcColor));
 
 			btnSQL = new Fl_Light_Button(
 				rightof(btnAFC), Y,
 				bwSqlOnOff, Hstatus, "SQL");
 
-// btnPSQL will be resized later depending on the state of the
-// configuration parameter to show that widget
-
 			btnPSQL = new Fl_Light_Button(
 				rightof(btnSQL), Y,
 				bwSqlOnOff, Hstatus, "PSM");
+
+			btnSQL->selection_color( RGBCOLOR( Sql1Color ) );
 
 			btnAFC->callback(cbAFC, 0);
 			btnAFC->value(1);
 			btnAFC->tooltip(_("Automatic Frequency Control"));
 
 			btnSQL->callback(cbSQL, 0);
-			btnSQL->selection_color(RGBCOLOR(Sql1Color));
 			btnSQL->value(1);
 			btnSQL->tooltip(_("Squelch"));
 
-			btnPSQL->selection_color(RGBCOLOR(Sql1Color));
-			btnPSQL->callback(cbPwrSQL, 0);
+			btnPSQL->selection_color( RGBCOLOR( Sql1Color ) );
 			btnPSQL->value(progdefaults.kpsql_enabled);
+			btnPSQL->callback(cbPwrSQL, 0);
 			btnPSQL->tooltip(_("Power Signal Monitor"));
 
-			Fl_Group::current()->resizable(VuMeter);
+			corner_box = new Fl_Box(
+				fl_digi_main->w() - cbwidth, Y,
+				cbwidth, Hstatus, "");
+
+			corner_box->box(FL_FLAT_BOX);
 
 		status_group->end();
-
-		Y += status_group->h();
-
-		cws_group = new Fl_Group(0, Y, W, Hcws_group, "");
-		cws_group->box(FL_DOWN_BOX);
-		cws_group->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
-
-			cntcwsrange = new Fl_Counter2(5, cws_group->y() + 1, 80, 20);
-			cntcwsrange->tooltip(gettext("Range +/- wpm"));
-			cntcwsrange->type(1);
-			cntcwsrange->box(FL_UP_BOX);
-			cntcwsrange->color(FL_BACKGROUND_COLOR);
-			cntcwsrange->selection_color(FL_INACTIVE_COLOR);
-			cntcwsrange->labeltype(FL_NORMAL_LABEL);
-			cntcwsrange->labelfont(0);
-			cntcwsrange->labelsize(14);
-			cntcwsrange->labelcolor(FL_FOREGROUND_COLOR);
-			cntcwsrange->minimum(5);
-			cntcwsrange->maximum(25);
-			cntcwsrange->step(1);
-			cntcwsrange->value(10);
-			cntcwsrange->callback((Fl_Callback*)cb_cntcwsrange);
-			cntcwsrange->align(Fl_Align(FL_ALIGN_TOP));
-			cntcwsrange->when(FL_WHEN_CHANGED);
-			cntcwsrange->value(progdefaults.CWrange);
-			cntcwsrange->labelsize(FL_NORMAL_SIZE);
-
-			btncwsrcvTrack = new Fl_Check_Button(90, cws_group->y() + 1, 20, 20, gettext("Track WPM"));
-			btncwsrcvTrack->tooltip(gettext("Automatic Rx speed tracking"));
-			btncwsrcvTrack->down_box(FL_DOWN_BOX);
-			btncwsrcvTrack->value(1);
-			btncwsrcvTrack->callback((Fl_Callback*)cb_btncwsrcvTrack);
-			btncwsrcvTrack->align(Fl_Align(FL_ALIGN_RIGHT));
-			btncwsrcvTrack->value(progdefaults.CWtrack);
-
-			btncwsuseSOMdecoding = new Fl_Check_Button(216, cws_group->y() + 1, 120, 20, gettext("SOM decode"));
-			btncwsuseSOMdecoding->tooltip(gettext("Self Organizing Map Decoder"));
-			btncwsuseSOMdecoding->down_box(FL_DOWN_BOX);
-			btncwsuseSOMdecoding->value(1);
-			btncwsuseSOMdecoding->callback((Fl_Callback*)cb_btncwsuseSOMdecoding);
-			btncwsuseSOMdecoding->value(progdefaults.CWuseSOMdecoding);
-
-			btncwsmfilt = new Fl_Check_Button(345, cws_group->y() + 1, 120, 20, gettext("Matched Filter"));
-			btncwsmfilt->tooltip(gettext("Matched Filter bandwidth"));
-			btncwsmfilt->down_box(FL_DOWN_BOX);
-			btncwsmfilt->value(1);
-			btncwsmfilt->callback((Fl_Callback*)cb_btncwsmfilt);
-			btncwsmfilt->value(progdefaults.CWmfilt);
-
-			cntcwsbandwidth = new Fl_Counter2(470, cws_group->y() + 1, 120, 20);
-			cntcwsbandwidth->tooltip(gettext("Filter bandwidth"));
-			cntcwsbandwidth->box(FL_UP_BOX);
-			cntcwsbandwidth->color(FL_BACKGROUND_COLOR);
-			cntcwsbandwidth->selection_color(FL_INACTIVE_COLOR);
-			cntcwsbandwidth->labeltype(FL_NORMAL_LABEL);
-			cntcwsbandwidth->labelfont(0);
-			cntcwsbandwidth->labelsize(14);
-			cntcwsbandwidth->labelcolor(FL_FOREGROUND_COLOR);
-			cntcwsbandwidth->minimum(10);
-			cntcwsbandwidth->maximum(800);
-			cntcwsbandwidth->step(5);
-			cntcwsbandwidth->value(200);
-			cntcwsbandwidth->callback((Fl_Callback*)cb_cntcwsbandwidth);
-			cntcwsbandwidth->align(Fl_Align(FL_ALIGN_TOP));
-			cntcwsbandwidth->when(FL_WHEN_CHANGED);
-			cntcwsbandwidth->value(progdefaults.CWbandwidth);
-			cntcwsbandwidth->labelsize(FL_NORMAL_SIZE);
-			cntcwsbandwidth->lstep(50);
-
-			mnu_cws_fillen = new Fl_Choice(600, cws_group->y() + 1, 72, 20, gettext("Fil\' Len\'"));
-			mnu_cws_fillen->tooltip(gettext("Filter length in samples"));
-			mnu_cws_fillen->down_box(FL_BORDER_BOX);
-			mnu_cws_fillen->callback((Fl_Callback*)cb_mnu_cws_fillen);
-			mnu_cws_fillen->align(Fl_Align(FL_ALIGN_RIGHT));
-			mnu_cws_fillen->add("128|256|512|1024");
-			mnu_cws_fillen->value(progdefaults.CW_fillen);
-
-		cws_group->end();
-
-		Y += cws_group->h();
+		status_group->resizable(status_group_A);
+		status_group->show();
+}
 
 	Fl::add_handler(wo_default_handler);
 
 	fl_digi_main->end();
 	fl_digi_main->callback(cb_wMain);
+	fl_digi_main->resizable(wf_group);
 
 	const struct {
 		bool var; const char* label;
@@ -8628,13 +8806,43 @@ void create_fl_digi_main_WF_only() {
 		wf->xmtrcv->deactivate();
 	}
 
-	UI_select();
+	UI_select(__func__);
 
 }
 
 
 void create_fl_digi_main(int argc, char** argv)
 {
+#ifdef UI_debug
+	time_t currentTime;
+	char* timestring;
+
+	currentTime = time(NULL);
+	if (currentTime == ((time_t)-1)) {
+		fprintf(stderr, "Error: Could not obtain current time.\n");
+	} else {
+		timestring = ctime(&currentTime);
+		if (timestring == NULL) {
+			fprintf(stderr, "Error: Could not convert time to string.\n");
+		} else {
+			std::string stat_fname = HomeDir;
+			stat_fname.append("/ui_stats.txt");
+			FILE *stat_file = fopen( stat_fname.c_str(), "a" );
+			if (stat_file == NULL) {
+				fprintf(stderr, "Error: Could not open 'ui_stats.txt' file.\n");
+			} else {
+				fprintf(stat_file, "\
+\n\
+##########################################\n\
+        %s\
+##########################################\n",
+					timestring);
+				fclose(stat_file);
+			}
+		}
+	}
+#endif
+
 	if (bWF_only)
 		create_fl_digi_main_WF_only();
 	else
@@ -10592,15 +10800,15 @@ void enable_disable_kpsql(void)
 {
 	if (progdefaults.data_io_enabled == KISS_IO) {
 		check_kiss_modem();
-		//btnPSQL->activate();
-		//if(progStatus.kpsql_enabled || progdefaults.kpsql_enabled) {
-		//    btnPSQL->value(true);
-		//    btnPSQL->do_callback();
-		//}
+		btnPSQL->activate();
+		if(progStatus.kpsql_enabled || progdefaults.kpsql_enabled) {
+		    btnPSQL->value(true);
+		    btnPSQL->do_callback();
+		}
 	} else {
 		sldrSquelch->value(progStatus.sldrSquelchValue);
-		//btnPSQL->value(false);
-		//btnPSQL->deactivate();
+		btnPSQL->value(false);
+		btnPSQL->deactivate();
 	}
 
 	progStatus.data_io_enabled = progdefaults.data_io_enabled;
@@ -11418,7 +11626,7 @@ void FHdisp_char_height()
 			text_panel->h() - 2*minhtext);
 	minbox->redraw();
 
-//	UI_select();
+//	UI_select(__func__);
 
 }
 
@@ -11611,14 +11819,6 @@ void cb_btncwsmfilt(Fl_Check_Button* o, void*) {
 void cb_cntcwsbandwidth(Fl_Counter2* o, void*) {
   progdefaults.CWbandwidth = (int)o->value();
   cntCWbandwidth->value(o->value());
-  if (active_modem == cw_modem)
-    active_modem->reset_rx_filter();
-  progdefaults.changed = true;
-}
-
-void cb_mnu_cws_fillen(Fl_Choice* o, void*) {
-  progdefaults.CW_fillen = o->value();
-  mnu_CW_fillen->value(o->value());
   if (active_modem == cw_modem)
     active_modem->reset_rx_filter();
   progdefaults.changed = true;

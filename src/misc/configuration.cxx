@@ -435,7 +435,7 @@ void configuration::loadDefaults()
 // contest settings for state qso parties
 	adjust_for_contest(0);
 
-	UI_select();
+	UI_select(__func__);
 	set_log_colors();
 	clear_log_fields();
 	clearQSO();

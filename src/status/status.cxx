@@ -779,6 +779,8 @@ if (!bWF_only) {
 
 	ui_colors.save("fldigi_UI_colors");
 
+	UI_STATS(__func__);
+
 	modeband.save_mode_state();
 }
 
@@ -1308,7 +1310,7 @@ void status::initLastState()
 
 		set_macroLabels();
 
-		UI_select();
+		UI_select(__func__);
 	}
 
 	if (VIEWERvisible)

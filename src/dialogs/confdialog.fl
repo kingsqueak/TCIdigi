@@ -2360,7 +2360,7 @@ if (contests[progdefaults.logging].name == "State QSO parties") {
   progdefaults.CONTESTnotes = contests[progdefaults.logging].notes;
 }
 inp_contest_notes->value(progdefaults.CONTESTnotes.c_str());
-UI_select();
+UI_select(__func__); UI_STATS(__func__);
 clear_log_fields();
 clearQSO();
 progdefaults.changed = true;} open
@@ -2381,7 +2381,7 @@ if (contests[progdefaults.logging].name == "State QSO parties") {
 } else
   inp_contest_notes->value("");
 adjust_for_contest(0);
-UI_select();
+UI_select(__func__); UI_STATS(__func__);
 clear_log_fields();
 clearQSO();
 progdefaults.changed = true;} open
@@ -3697,7 +3697,6 @@ progdefaults.changed = true;}
           Fl_Choice mnu_CW_fillen {
             label {Fil' Len'}
             callback {progdefaults.CW_fillen = o->value();
-            mnu_cws_fillen->value(o->value());
 if (active_modem == cw_modem)
   active_modem->reset_rx_filter();
 progdefaults.changed = true;} open
@@ -3709,7 +3708,7 @@ progdefaults.changed = true;} open
         Fl_Check_Button btn_show_embedded_CW_controls {
           label {Show embedded controls}
           callback {progdefaults.show_CW_controls = o->value();
-UI_select();
+UI_select(__func__); UI_STATS(__func__);
 progdefaults.changed = true;}
           xywh {233 137 78 22} down_box DOWN_BOX
           code0 {o->value(progdefaults.show_CW_controls);}
@@ -8401,7 +8400,7 @@ progdefaults.changed = true;}
         Fl_Check_Button btn_show_psm_button {
           label {Show and enable Power Signal Monitor button (PSM)}
           callback {progdefaults.show_psm_btn = o->value();
-UI_select();
+UI_select(__func__); UI_STATS(__func__);
 progdefaults.changed = true;}
           tooltip {display PSM button on main dialog} xywh {214 291 150 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.show_psm_btn);}
@@ -11099,7 +11098,7 @@ progdefaults.changed = true;}
           callback {progdefaults.macro_height = (int)o->value();
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           tooltip {Height of macro bar} xywh {415 50 89 22} type Simple align 8 minimum 18 maximum 30 step 1 value 20
           code0 {o->value(progdefaults.macro_height);}
         }
@@ -11107,7 +11106,7 @@ UI_select();}
           label {One above Rx/Tx}
           callback {progdefaults.mbar_scheme = 0;
 set_macroLabels();
-UI_select();
+UI_select(__func__); UI_STATS(__func__);
 progdefaults.changed = true;}
           tooltip {Single macro bar below logging panel
 variable height} xywh {261 78 144 22} type Radio down_box ROUND_DOWN_BOX
@@ -11116,7 +11115,7 @@ variable height} xywh {261 78 144 22} type Radio down_box ROUND_DOWN_BOX
           label {One above waterfall}
           callback {progdefaults.mbar_scheme = 1;
 set_macroLabels();
-UI_select();
+UI_select(__func__); UI_STATS(__func__);
 progdefaults.changed = true;}
           xywh {261 103 144 22} type Radio down_box ROUND_DOWN_BOX
         }
@@ -11124,7 +11123,7 @@ progdefaults.changed = true;}
           label {One below waterfall}
           callback {progdefaults.mbar_scheme = 2;
 set_macroLabels();
-UI_select();
+UI_select(__func__); UI_STATS(__func__);
 progdefaults.changed = true;}
           xywh {261 128 144 22} type Radio down_box ROUND_DOWN_BOX
         }
@@ -11133,7 +11132,7 @@ progdefaults.changed = true;}
           callback {progdefaults.mbar_scheme = 3;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {428 78 144 22} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button btn_scheme_4 {
@@ -11141,7 +11140,7 @@ UI_select();}
           callback {progdefaults.mbar_scheme = 4;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {596 78 144 22} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button btn_scheme_5 {
@@ -11149,7 +11148,7 @@ UI_select();}
           callback {progdefaults.mbar_scheme = 5;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {428 103 144 22} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button btn_scheme_6 {
@@ -11157,7 +11156,7 @@ UI_select();}
           callback {progdefaults.mbar_scheme = 6;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {596 103 144 22} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button btn_scheme_7 {
@@ -11165,7 +11164,7 @@ UI_select();}
           callback {progdefaults.mbar_scheme = 7;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {428 128 144 22} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button btn_scheme_8 {
@@ -11173,7 +11172,7 @@ UI_select();}
           callback {progdefaults.mbar_scheme = 8;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {596 128 144 22} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button btn_scheme_9 {
@@ -11181,7 +11180,7 @@ UI_select();}
           callback {progdefaults.mbar_scheme = 9;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {428 153 144 22} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button btn_scheme_10 {
@@ -11189,7 +11188,7 @@ UI_select();}
           callback {progdefaults.mbar_scheme = 10;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {596 153 144 22} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button btn_scheme_11 {
@@ -11197,7 +11196,7 @@ UI_select();}
           callback {progdefaults.mbar_scheme = 11;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {428 178 144 22} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button btn_scheme_12 {
@@ -11205,7 +11204,7 @@ UI_select();}
           callback {progdefaults.mbar_scheme = 12;
 progdefaults.changed = true;
 set_macroLabels();
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           xywh {596 178 144 22} type Radio down_box ROUND_DOWN_BOX
         }
       }
@@ -11254,7 +11253,7 @@ progdefaults.changed = true;}
         Fl_Check_Button btn_4bar_position {
           label {4 bar macro set below Tx}
           callback {progdefaults.four_bar_position = o->value();
-UI_select();
+UI_select(__func__); UI_STATS(__func__);
 progdefaults.changed = true;}
           tooltip {Position the 4 bar macro set below Tx panel
 Default above Rx panel} xywh {532 307 216 20} down_box DOWN_BOX
@@ -11352,7 +11351,7 @@ progdefaults.changed = true;} open
           label {Tx above Rx}
           callback {progdefaults.rxtx_swap = o->value();
 progdefaults.changed = true;
-UI_select();}
+UI_select(__func__); UI_STATS(__func__);}
           tooltip {Enable to put Tx panel above Rx panel} xywh {336 225 116 30} down_box DOWN_BOX
           code0 {o->value(progdefaults.rxtx_swap);}
         }

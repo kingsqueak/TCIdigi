@@ -347,7 +347,7 @@ if (progdefaults.connect_to_fdserver) {
 	listbox_contest->index(LOG_QSO);
 	progdefaults.logging = LOG_QSO;
 }
-UI_select();}
+UI_select(__func__);}
         tooltip {Connect / Disconnect^jAddr/Port/OP required} xywh {502 236 70 20} down_box DOWN_BOX
         code0 {o->value(progdefaults.connect_to_fdserver);}
         code1 {\#include "confdialog.h"}

@@ -61,7 +61,7 @@ static void cb_btn_fd_connect(Fl_Check_Button* o, void*) {
   	listbox_contest->index(LOG_QSO);
   	progdefaults.logging = LOG_QSO;
   }
-  UI_select();
+  UI_select(__func__);
 }
 
 Fl_Box *box_fdserver_connected=(Fl_Box *)0;

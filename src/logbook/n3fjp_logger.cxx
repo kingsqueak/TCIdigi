@@ -2432,7 +2432,7 @@ n3fjp_print(std::string("logger: ").append(logger));
 	if (logger == "Amateur Contact Log") {
 		listbox_contest->index(0);
 		progdefaults.logging = 0;
-		UI_select();
+		UI_select(__func__);
 		return;
 	}
 
@@ -2449,7 +2449,7 @@ n3fjp_print(std::string("logger: ").append(logger));
 			progdefaults.logging = n;
 			listbox_contest->index(n);
 			listbox_QP_contests->index(0);
-			UI_select();
+			UI_select(__func__);
 			progdefaults.CONTESTnotes = contests[progdefaults.logging].notes;
 			inp_contest_notes->value(progdefaults.CONTESTnotes.c_str());
 n3fjp_print(std::string("found: ").append(contests[n].name));
@@ -2483,7 +2483,7 @@ n3fjp_print(std::string("QSOparty: ").append(QSOparties.qso_parties[n].contest))
 	}
 	inp_contest_notes->value(progdefaults.CONTESTnotes.c_str());
 
-	UI_select();
+	UI_select(__func__);
 	clearQSO();
 	return;
 }
@@ -2493,7 +2493,7 @@ static void fldigi_no_contest()
 	progdefaults.SQSOcontest = 0;//1;
 	progdefaults.logging = 0;
 	adjust_for_contest(0);
-	UI_select();
+	UI_select(__func__);
 	set_log_colors();
 	clearQSO();
 	listbox_contest->index(0);

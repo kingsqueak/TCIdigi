@@ -1974,7 +1974,7 @@ static void cb_listbox_contest(Fl_ListBox* o, void*) {
     progdefaults.CONTESTnotes = contests[progdefaults.logging].notes;
   }
   inp_contest_notes->value(progdefaults.CONTESTnotes.c_str());
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
   clear_log_fields();
   clearQSO();
   progdefaults.changed = true;
@@ -1992,7 +1992,7 @@ static void cb_listbox_QP_contests(Fl_ListBox* o, void*) {
   } else
     inp_contest_notes->value("");
   adjust_for_contest(0);
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
   clear_log_fields();
   clearQSO();
   progdefaults.changed = true;
@@ -2973,7 +2973,6 @@ Fl_Choice *mnu_CW_fillen=(Fl_Choice *)0;
 
 static void cb_mnu_CW_fillen(Fl_Choice* o, void*) {
   progdefaults.CW_fillen = o->value();
-              mnu_cws_fillen->value(o->value());
   if (active_modem == cw_modem)
     active_modem->reset_rx_filter();
   progdefaults.changed = true;
@@ -2983,7 +2982,7 @@ Fl_Check_Button *btn_show_embedded_CW_controls=(Fl_Check_Button *)0;
 
 static void cb_btn_show_embedded_CW_controls(Fl_Check_Button* o, void*) {
   progdefaults.show_CW_controls = o->value();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
   progdefaults.changed = true;
 }
 
@@ -6578,7 +6577,7 @@ Fl_Check_Button *btn_show_psm_button=(Fl_Check_Button *)0;
 
 static void cb_btn_show_psm_button(Fl_Check_Button* o, void*) {
   progdefaults.show_psm_btn = o->value();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
   progdefaults.changed = true;
 }
 
@@ -8712,7 +8711,7 @@ static void cb_cnt_macro_height(Fl_Counter* o, void*) {
   progdefaults.macro_height = (int)o->value();
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_0=(Fl_Round_Button *)0;
@@ -8720,7 +8719,7 @@ Fl_Round_Button *btn_scheme_0=(Fl_Round_Button *)0;
 static void cb_btn_scheme_0(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 0;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
   progdefaults.changed = true;
 }
 
@@ -8729,7 +8728,7 @@ Fl_Round_Button *btn_scheme_1=(Fl_Round_Button *)0;
 static void cb_btn_scheme_1(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 1;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
   progdefaults.changed = true;
 }
 
@@ -8738,7 +8737,7 @@ Fl_Round_Button *btn_scheme_2=(Fl_Round_Button *)0;
 static void cb_btn_scheme_2(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 2;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
   progdefaults.changed = true;
 }
 
@@ -8748,7 +8747,7 @@ static void cb_btn_scheme_3(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 3;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_4=(Fl_Round_Button *)0;
@@ -8757,7 +8756,7 @@ static void cb_btn_scheme_4(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 4;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_5=(Fl_Round_Button *)0;
@@ -8766,7 +8765,7 @@ static void cb_btn_scheme_5(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 5;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_6=(Fl_Round_Button *)0;
@@ -8775,7 +8774,7 @@ static void cb_btn_scheme_6(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 6;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_7=(Fl_Round_Button *)0;
@@ -8784,7 +8783,7 @@ static void cb_btn_scheme_7(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 7;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_8=(Fl_Round_Button *)0;
@@ -8793,7 +8792,7 @@ static void cb_btn_scheme_8(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 8;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_9=(Fl_Round_Button *)0;
@@ -8802,7 +8801,7 @@ static void cb_btn_scheme_9(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 9;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_10=(Fl_Round_Button *)0;
@@ -8811,7 +8810,7 @@ static void cb_btn_scheme_10(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 10;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_11=(Fl_Round_Button *)0;
@@ -8820,7 +8819,7 @@ static void cb_btn_scheme_11(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 11;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Round_Button *btn_scheme_12=(Fl_Round_Button *)0;
@@ -8829,7 +8828,7 @@ static void cb_btn_scheme_12(Fl_Round_Button*, void*) {
   progdefaults.mbar_scheme = 12;
   progdefaults.changed = true;
   set_macroLabels();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Check_Button *btnUseLastMacro=(Fl_Check_Button *)0;
@@ -8866,7 +8865,7 @@ Fl_Check_Button *btn_4bar_position=(Fl_Check_Button *)0;
 
 static void cb_btn_4bar_position(Fl_Check_Button* o, void*) {
   progdefaults.four_bar_position = o->value();
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
   progdefaults.changed = true;
 }
 
@@ -8918,7 +8917,7 @@ Fl_Check_Button *btn_rxtx_swap=(Fl_Check_Button *)0;
 static void cb_btn_rxtx_swap(Fl_Check_Button* o, void*) {
   progdefaults.rxtx_swap = o->value();
   progdefaults.changed = true;
-  UI_select();
+  UI_select(__func__); UI_STATS(__func__);
 }
 
 Fl_Check_Button *btnWF_UIrev=(Fl_Check_Button *)0;
