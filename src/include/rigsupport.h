@@ -101,6 +101,9 @@ extern void set_flrig_bw(int bw1, int bw2 = 0);
 extern void set_flrig_notch();
 extern void flrig_set_wpm();
 extern void flrig_get_wpm();
+extern void flrig_get_baud();
+extern void flrig_get_idles();
+extern void flrig_get_stopbits();
 
 //extern void flrig_cwio_ptt(int);
 extern void flrig_cwio_send_text(std::string);

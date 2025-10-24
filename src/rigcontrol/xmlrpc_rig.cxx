@@ -276,6 +276,89 @@ LOG_VERBOSE("set wpm %f", progdefaults.CWspeed);
 }
 
 //----------------------------------------------------------------------
+// FSK parameters
+//----------------------------------------------------------------------
+
+void flrig_get_idles()
+{
+	if (!connected_to_flrig || !progdefaults.use_FLRIGkeying) {
+		return;
+	}
+	try {
+		XmlRpcValue result;
+		bool ret;
+		{
+			guard_lock flrig_lock(&mutex_flrig);
+			ret = flrig_client->execute("rig.get_fsk_idles", XmlRpcValue(), result, timeout);
+		}
+		if (ret) {
+			int val = (int)result;
+			progdefaults.flrig_fsk_stopbits = val;
+LOG_VERBOSE("rig.get_fsk_idles = %d", val);
+			return;
+		}
+		progdefaults.flrig_fsk_stopbits = 4;
+//		connected_to_flrig = false;
+		LOG_ERROR("%s failed!", "get_fsk_idless");
+	} catch (...) {
+LOG_ERROR("rig.get_fsk_idless FAILED");
+	}
+}
+
+void flrig_get_baud()
+{
+	if (!connected_to_flrig || !progdefaults.use_FLRIGkeying) {
+		return;
+	}
+	try {
+		XmlRpcValue result;
+		bool ret;
+		{
+			guard_lock flrig_lock(&mutex_flrig);
+			ret = flrig_client->execute("rig.get_fsk_baud", XmlRpcValue(), result, timeout);
+		}
+		if (ret) {
+			double val = (int)result;
+			progdefaults.flrig_fsk_baud = val;
+LOG_VERBOSE("rig.get_fsk_baud = %f", val);
+			return;
+		}
+		progdefaults.flrig_fsk_baud = 45.45;
+//		connected_to_flrig = false;
+		LOG_ERROR("%s failed!", "get_fsk_baud");
+	} catch (...) {
+LOG_ERROR("rig.get_fsk_baud FAILED");
+	}
+}
+
+void flrig_get_stopbits()
+{
+	if (!connected_to_flrig || !progdefaults.use_FLRIGkeying) {
+		return;
+	}
+	try {
+		XmlRpcValue result;
+		bool ret;
+		{
+			guard_lock flrig_lock(&mutex_flrig);
+			ret = flrig_client->execute("rig.get_fsk_stopbits", XmlRpcValue(), result, timeout);
+		}
+		if (ret) {
+			double val = (int)result;
+			progdefaults.flrig_fsk_stopbits = val;
+LOG_VERBOSE("rig.get_fsk_stopbits = %f", val);
+			return;
+		}
+		progdefaults.flrig_fsk_stopbits = 1.5;
+//		connected_to_flrig = false;
+		LOG_ERROR("%s failed!", "get_fsk_stopbits");
+	} catch (...) {
+LOG_ERROR("rig.get_fsk_stopbits FAILED");
+	}
+}
+
+
+//----------------------------------------------------------------------
 // transceiver radio frequency
 //----------------------------------------------------------------------
 

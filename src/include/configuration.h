@@ -508,9 +508,20 @@
         ELEM_(bool, fsk_STOPBITS, "FSK_STOPBITS",                                       \
               "True - 1.5 stop bits; False - 2 stop bits",                              \
               true)                                                                     \
+/* FLRIG FSK elements */                                                                \
         ELEM_(bool, use_FLRIG_FSK, "FLRIG_FSK",                                         \
               "True - enable; False - disable",                                         \
               false)                                                                    \
+        ELEM_(int, flrig_fsk_idles, "FLRIG_FSK_IDLES",                                  \
+              "Number of idles for flrig FSK - default 4",                              \
+              4)                                                                        \
+        ELEM_(double, flrig_fsk_baud, "FLRIG_FSK_BAUD",                                 \
+              "flrig FSK baudrate - default 45.45, US standard BAUDOT",                 \
+              45.45)                                                                    \
+        ELEM_(double, flrig_fsk_stopbits, "FLRIG_FSK_STOPBITS",                         \
+              "flrig FSK stopbits - default 1.5",                                       \
+              1.5)                                                                      \
+/* end FLRIG FSK elements */                                                            \
         ELEM_(double, flrig_poll, "FLRIG_POLL",                                         \
               "range 50 to 5000 msecs",                                                 \
               200)                                                                      \

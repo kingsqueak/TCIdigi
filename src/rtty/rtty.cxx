@@ -1132,17 +1132,13 @@ int rtty::rtty_sleep (double sleep_time)
 #ifdef __WIN32__
 	timeBeginPeriod(1);
 #endif
-//	while (1) {
-		rval = nano_sleep (&tv, &tv);
-		if (errno == EINTR) {
-//			continue
-std::cout << "EINTR error in rtty_sleep" << std::endl;
-		}
-//		break;
-//	}
+	rval = nano_sleep (&tv, &tv);
+	if (errno == EINTR) {
+		std::cerr << "EINTR error in rtty_sleep" << std::endl;
+	}
 	rval = 0;
 	while (rtty_now() < end_at) rval++;
-std::cout << "rtty_sleep( " << sleep_time << ") : " << rval << std::endl;
+// std::cout << "rtty_sleep( " << sleep_time << ") : " << rval << std::endl;
 #ifdef __WIN32__
 	timeEndPeriod(1);
 #endif
@@ -1151,20 +1147,15 @@ std::cout << "rtty_sleep( " << sleep_time << ") : " << rval << std::endl;
 }
 
 static int line_char_count = 0;
-// 1 start, 5 data, 1.5/2.0 stopbits
-#define wait_one_byte(baud, stopbits) \
-rtty_sleep( ((6 + (stopbits))*1.0 / (baud)) + 0.005);
 
 void rtty::flrig_fsk_send(char c)
 {
 	static std::string s = " ";
 	s[0] = c;
 	flrig_fskio_send_text(s);
-//	if (c == '[' || c == ']')
-//		return;
-	wait_one_byte(45.45, 1.5);
+	wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
 	if ( c == '\n' )
-		wait_one_byte(45.45, 1.5);
+		wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
 }
 
 int idles = 8;
@@ -1177,13 +1168,19 @@ int rtty::tx_process()
 	int c = get_tx_char();
 
 	if (progdefaults.use_FLRIG_FSK) {
+
+// read idles, stop bits, baudrate from flrig
+		flrig_get_idles();
+		flrig_get_stopbits();
+		flrig_get_baud();
+
 		if (preamble) {
 			start_deadman();
 			flrig_fsk_send('[');
 			preamble = false;
-			send_idles = idles;
+			send_idles = idles = progdefaults.flrig_fsk_idles;
 			while (send_idles) {
-				rtty_sleep(0.022 * 7.5);
+				wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
 				--send_idles;
 			}
 		}
@@ -1195,7 +1192,7 @@ int rtty::tx_process()
 			return -1;
 		}
 		if (c == GET_TX_CHAR_NODATA) {
-			rtty_sleep(0.022 * 7.5);
+			wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
 		} else {
 			flrig_fsk_send(c);
 			put_echo_char(c);
