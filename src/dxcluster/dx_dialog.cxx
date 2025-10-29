@@ -401,7 +401,7 @@ Fl_Double_Window* dxc_window() {
       } // Fl_Check_Button* btn_dxcc_connect
       { lbl_dxc_connected = new Fl_Box(540, 17, 20, 20);
         lbl_dxc_connected->tooltip(gettext("Connected State"));
-        lbl_dxc_connected->box(FL_DIAMOND_DOWN_BOX);
+        lbl_dxc_connected->box(FL_DOWN_BOX);
         lbl_dxc_connected->color((Fl_Color)55);
         lbl_dxc_connected->align(Fl_Align(FL_ALIGN_RIGHT));
       } // Fl_Box* lbl_dxc_connected

@@ -84,7 +84,7 @@ DXcluster_connect(o->value());}
         code1 {\#include "status.h"}
       }
       Fl_Box lbl_dxc_connected {
-        tooltip {Connected State} xywh {540 17 20 20} box DIAMOND_DOWN_BOX color 55 align 8
+        tooltip {Connected State} xywh {540 17 20 20} box DOWN_BOX color 55 align 8
       }
       Fl_Check_Button btn_dxc_auto_connect {
         label {Auto conn'}

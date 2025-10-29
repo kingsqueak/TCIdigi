@@ -129,7 +129,7 @@ Function {arq_dialog()} {} {
         xywh {0 54 515 31} box ENGRAVED_FRAME
       } {
         Fl_Box indCONNECT {
-          tooltip {ARQ state} xywh {5 60 18 18} box DIAMOND_DOWN_BOX color 50 labelfont 13 align 24
+          tooltip {ARQ state} xywh {5 60 18 18} box DOWN_BOX color 50 labelfont 13 align 24
         }
         Fl_Output txtState {
           label Disconnecting

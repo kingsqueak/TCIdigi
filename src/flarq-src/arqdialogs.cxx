@@ -172,7 +172,7 @@ Fl_Double_Window* arq_dialog() {
         o->box(FL_ENGRAVED_FRAME);
         { indCONNECT = new Fl_Box(5, 60, 18, 18);
           indCONNECT->tooltip("ARQ state");
-          indCONNECT->box(FL_DIAMOND_DOWN_BOX);
+          indCONNECT->box(FL_DOWN_BOX);
           indCONNECT->color(FL_LIGHT1);
           indCONNECT->labelfont(13);
           indCONNECT->align(Fl_Align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE));

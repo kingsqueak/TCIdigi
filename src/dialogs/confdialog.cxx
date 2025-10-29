@@ -1832,7 +1832,7 @@ Fl_Button *btn_default_signal_levels=(Fl_Button *)0;
 
 static void cb_btn_default_signal_levels(Fl_Button*, void*) {
   cnt_normal_signal_level->value(
-    progdefaults.normal_signal_level = -60.0);
+    progdefaults.normal_signal_level = -30.0);
   cnt_high_signal_level->value(
     progdefaults.high_signal_level = -6.0);
   cnt_over_signal_level->value(
@@ -8422,7 +8422,7 @@ Fl_Button *btn_default_signal_levels2=(Fl_Button *)0;
 
 static void cb_btn_default_signal_levels2(Fl_Button*, void*) {
   cnt_normal_signal_level->value(
-    progdefaults.normal_signal_level = -60.0);
+    progdefaults.normal_signal_level = -30.0);
   cnt_high_signal_level->value(
     progdefaults.high_signal_level = -6.0);
   cnt_over_signal_level->value(
@@ -10341,7 +10341,7 @@ Fl_Double_Window* ConfigureDialog() {
       { new Fl_Box(340, 39, 316, 21, gettext("Signal Level Indicator"));
       } // Fl_Box* o
       { Fl_Box* o = lowcolor = new Fl_Box(365, 76, 20, 20);
-        lowcolor->box(FL_ROUND_DOWN_BOX);
+        lowcolor->box(FL_DOWN_BOX);
         lowcolor->color(FL_FOREGROUND_COLOR);
         o->color( RGBCOLOR( LowSignal ) );
       } // Fl_Box* lowcolor
@@ -10349,7 +10349,7 @@ Fl_Double_Window* ConfigureDialog() {
         btnLowSignal->callback((Fl_Callback*)cb_btnLowSignal);
       } // Fl_Button* btnLowSignal
       { Fl_Box* o = normalcolor = new Fl_Box(365, 122, 20, 20);
-        normalcolor->box(FL_ROUND_DOWN_BOX);
+        normalcolor->box(FL_DOWN_BOX);
         normalcolor->color((Fl_Color)2);
         o->color(RGBCOLOR(NormSignal));
       } // Fl_Box* normalcolor
@@ -10365,7 +10365,7 @@ Fl_Double_Window* ConfigureDialog() {
         btnNormalSignal->callback((Fl_Callback*)cb_btnNormalSignal);
       } // Fl_Button* btnNormalSignal
       { Fl_Box* o = highcolor = new Fl_Box(365, 169, 20, 20);
-        highcolor->box(FL_ROUND_DOWN_BOX);
+        highcolor->box(FL_DOWN_BOX);
         highcolor->color((Fl_Color)3);
         o->color(RGBCOLOR(HighSignal));
       } // Fl_Box* highcolor
@@ -10380,7 +10380,7 @@ Fl_Double_Window* ConfigureDialog() {
         btnHighSignal->callback((Fl_Callback*)cb_btnHighSignal);
       } // Fl_Button* btnHighSignal
       { Fl_Box* o = overcolor = new Fl_Box(365, 216, 20, 20);
-        overcolor->box(FL_ROUND_DOWN_BOX);
+        overcolor->box(FL_DOWN_BOX);
         overcolor->color((Fl_Color)1);
         o->color(RGBCOLOR(OverSignal));
       } // Fl_Box* overcolor
@@ -11209,7 +11209,7 @@ Fl_Double_Window* ConfigureDialog() {
         o->value(progdefaults.connect_to_n3fjp);
       } // Fl_Check_Button* btn_connect_to_n3fjp
       { box_n3fjp_connected = new Fl_Box(695, 66, 16, 16, gettext("Connected"));
-        box_n3fjp_connected->box(FL_DIAMOND_DOWN_BOX);
+        box_n3fjp_connected->box(FL_DOWN_BOX);
         box_n3fjp_connected->color(FL_LIGHT2);
         box_n3fjp_connected->selection_color((Fl_Color)58);
         box_n3fjp_connected->align(Fl_Align(FL_ALIGN_RIGHT));
@@ -12725,23 +12725,23 @@ Fl_Double_Window* ConfigureDialog() {
         o->value(progStatus.WK_online);
       } // Fl_Light_Button* btn_WKCW_connect
       { box_WK_wait = new Fl_Box(269, 66, 16, 16, gettext("Wait"));
-        box_WK_wait->box(FL_DIAMOND_DOWN_BOX);
+        box_WK_wait->box(FL_DOWN_BOX);
         box_WK_wait->align(Fl_Align(FL_ALIGN_RIGHT));
       } // Fl_Box* box_WK_wait
       { box_WK_break_in = new Fl_Box(344, 66, 16, 16, gettext("Bk"));
-        box_WK_break_in->box(FL_DIAMOND_DOWN_BOX);
+        box_WK_break_in->box(FL_DOWN_BOX);
         box_WK_break_in->align(Fl_Align(FL_ALIGN_RIGHT));
       } // Fl_Box* box_WK_break_in
       { box_WK_busy = new Fl_Box(419, 66, 16, 16, gettext("Busy"));
-        box_WK_busy->box(FL_DIAMOND_DOWN_BOX);
+        box_WK_busy->box(FL_DOWN_BOX);
         box_WK_busy->align(Fl_Align(FL_ALIGN_RIGHT));
       } // Fl_Box* box_WK_busy
       { box_WK_xoff = new Fl_Box(494, 66, 16, 16, gettext("Bfr"));
-        box_WK_xoff->box(FL_DIAMOND_DOWN_BOX);
+        box_WK_xoff->box(FL_DOWN_BOX);
         box_WK_xoff->align(Fl_Align(FL_ALIGN_RIGHT));
       } // Fl_Box* box_WK_xoff
       { box_WK_keydown = new Fl_Box(570, 66, 16, 16, gettext("Key"));
-        box_WK_keydown->box(FL_DIAMOND_DOWN_BOX);
+        box_WK_keydown->box(FL_DOWN_BOX);
         box_WK_keydown->align(Fl_Align(FL_ALIGN_RIGHT));
       } // Fl_Box* box_WK_keydown
       { choice_WK_keyer_mode = new Fl_ComboBox(237, 104, 90, 22, gettext("Keyer Mode"));
@@ -16418,7 +16418,7 @@ Fl_Double_Window* ConfigureDialog() {
         o->value(progdefaults.pskrep_autostart);
       } // Fl_Check_Button* btn_pskrep_autostart
       { box_connected_to_pskrep = new Fl_Box(562, 193, 18, 18, gettext("Connected"));
-        box_connected_to_pskrep->box(FL_DIAMOND_DOWN_BOX);
+        box_connected_to_pskrep->box(FL_DOWN_BOX);
         box_connected_to_pskrep->color(FL_BACKGROUND2_COLOR);
         box_connected_to_pskrep->align(Fl_Align(FL_ALIGN_RIGHT));
       } // Fl_Box* box_connected_to_pskrep
@@ -18546,7 +18546,7 @@ Fl_Double_Window* ConfigureDialog() {
       { new Fl_Box(340, 39, 316, 21, gettext("Signal Levels"));
       } // Fl_Box* o
       { Fl_Box* o = lowcolor2 = new Fl_Box(365, 78, 21, 21);
-        lowcolor2->box(FL_DIAMOND_DOWN_BOX);
+        lowcolor2->box(FL_DOWN_BOX);
         lowcolor2->color(FL_FOREGROUND_COLOR);
         o->color(RGBCOLOR(LowSignal));
       } // Fl_Box* lowcolor2
@@ -18554,7 +18554,7 @@ Fl_Double_Window* ConfigureDialog() {
         btnLowSignal2->callback((Fl_Callback*)cb_btnLowSignal2);
       } // Fl_Button* btnLowSignal2
       { Fl_Box* o = normalcolor2 = new Fl_Box(365, 122, 21, 21);
-        normalcolor2->box(FL_DIAMOND_DOWN_BOX);
+        normalcolor2->box(FL_DOWN_BOX);
         normalcolor2->color((Fl_Color)2);
         o->color(RGBCOLOR(NormSignal));
       } // Fl_Box* normalcolor2
@@ -18570,7 +18570,7 @@ Fl_Double_Window* ConfigureDialog() {
         btnNormalSignal2->callback((Fl_Callback*)cb_btnNormalSignal2);
       } // Fl_Button* btnNormalSignal2
       { Fl_Box* o = highcolor2 = new Fl_Box(365, 166, 21, 21);
-        highcolor2->box(FL_DIAMOND_DOWN_BOX);
+        highcolor2->box(FL_DOWN_BOX);
         highcolor2->color((Fl_Color)3);
         o->color( RGBCOLOR( HighSignal ) );
       } // Fl_Box* highcolor2
@@ -18585,7 +18585,7 @@ Fl_Double_Window* ConfigureDialog() {
         btnHighSignal2->callback((Fl_Callback*)cb_btnHighSignal2);
       } // Fl_Button* btnHighSignal2
       { Fl_Box* o = overcolor2 = new Fl_Box(365, 210, 21, 21);
-        overcolor2->box(FL_DIAMOND_DOWN_BOX);
+        overcolor2->box(FL_DOWN_BOX);
         overcolor2->color((Fl_Color)1);
         o->color( RGBCOLOR( OverSignal ) );
       } // Fl_Box* overcolor2

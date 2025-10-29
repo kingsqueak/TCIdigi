@@ -769,7 +769,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Colors-Fonts/Buttons-Menus} open
+      label {Colors-Fonts/Buttons-Menus}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons-Menus"));}
       code1 {config_pages.push_back(p);}
@@ -2057,7 +2057,7 @@ progdefaults.changed = true;}
         xywh {340 39 316 21}
       }
       Fl_Box lowcolor {
-        xywh {365 76 20 20} box ROUND_DOWN_BOX color 0
+        xywh {365 76 20 20} box DOWN_BOX color 0
         code0 {o->color( RGBCOLOR( LowSignal ) );}
       }
       Fl_Button btnLowSignal {
@@ -2071,7 +2071,7 @@ if (fl_color_chooser("Low", clr.r, clr.g, clr.b )) {
         xywh {402 75 70 22}
       }
       Fl_Box normalcolor {
-        xywh {365 122 20 20} box ROUND_DOWN_BOX color 2
+        xywh {365 122 20 20} box DOWN_BOX color 2
         code0 {o->color(RGBCOLOR(NormSignal));}
       }
       Fl_Counter cnt_normal_signal_level {
@@ -2106,7 +2106,7 @@ if (fl_color_chooser(" XXXX ", clr.r, clr.g, clr.b )) {
         xywh {402 122 70 21}
       }
       Fl_Box highcolor {
-        xywh {365 169 20 20} box ROUND_DOWN_BOX color 3
+        xywh {365 169 20 20} box DOWN_BOX color 3
         code0 {o->color(RGBCOLOR(HighSignal));}
       }
       Fl_Counter cnt_high_signal_level {
@@ -2139,7 +2139,7 @@ if (fl_color_chooser("High", clr.r, clr.g, clr.b )) {
         xywh {402 169 70 21}
       }
       Fl_Box overcolor {
-        xywh {365 216 20 20} box ROUND_DOWN_BOX color 1
+        xywh {365 216 20 20} box DOWN_BOX color 1
         code0 {o->color(RGBCOLOR(OverSignal));}
       }
       Fl_Counter cnt_over_signal_level {
@@ -2188,7 +2188,7 @@ if (fl_color_chooser("Over", clr.r, clr.g, clr.b )) {
       Fl_Button btn_default_signal_levels {
         label Default
         callback {cnt_normal_signal_level->value(
-  progdefaults.normal_signal_level = -60.0);
+  progdefaults.normal_signal_level = -30.0);
 cnt_high_signal_level->value(
   progdefaults.high_signal_level = -6.0);
 cnt_over_signal_level->value(
@@ -3046,7 +3046,7 @@ progdefaults.changed=true;}
       }
       Fl_Box box_n3fjp_connected {
         label Connected
-        xywh {695 66 16 16} box DIAMOND_DOWN_BOX color 52 selection_color 58 align 8
+        xywh {695 66 16 16} box DOWN_BOX color 52 selection_color 58 align 8
       }
       Fl_Check_Button btn_N3FJP_sweet_spot {
         label {Center DXspot freq at sweet spot}
@@ -4545,23 +4545,23 @@ select_WKFSK_CommPort->value(progStatus.WK_serial_port_name.c_str());} open
       }
       Fl_Box box_WK_wait {
         label Wait
-        xywh {269 66 16 16} box DIAMOND_DOWN_BOX align 8
+        xywh {269 66 16 16} box DOWN_BOX align 8
       }
       Fl_Box box_WK_break_in {
         label Bk
-        xywh {344 66 16 16} box DIAMOND_DOWN_BOX align 8
+        xywh {344 66 16 16} box DOWN_BOX align 8
       }
       Fl_Box box_WK_busy {
         label Busy
-        xywh {419 66 16 16} box DIAMOND_DOWN_BOX align 8
+        xywh {419 66 16 16} box DOWN_BOX align 8
       }
       Fl_Box box_WK_xoff {
         label Bfr
-        xywh {494 66 16 16} box DIAMOND_DOWN_BOX align 8
+        xywh {494 66 16 16} box DOWN_BOX align 8
       }
       Fl_Box box_WK_keydown {
         label Key
-        xywh {570 66 16 16} box DIAMOND_DOWN_BOX align 8
+        xywh {570 66 16 16} box DOWN_BOX align 8
       }
       Fl_Group choice_WK_keyer_mode {
         label {Keyer Mode}
@@ -8185,7 +8185,7 @@ progdefaults.changed = true;}
       }
       Fl_Box box_connected_to_pskrep {
         label Connected
-        xywh {562 193 18 18} box DIAMOND_DOWN_BOX color 7 align 8
+        xywh {562 193 18 18} box DOWN_BOX color 7 align 8
       }
       Fl_Input inpPSKRepHost {
         label {Host:}
@@ -10544,7 +10544,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Signal Level}
+      label {Signal Level} open selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Soundcard/Signal Level"));}
       code1 {config_pages.push_back(p);}
@@ -10555,7 +10555,7 @@ progdefaults.changed = true;}
         xywh {340 39 316 21}
       }
       Fl_Box lowcolor2 {
-        xywh {365 78 21 21} box DIAMOND_DOWN_BOX color 0
+        xywh {365 78 21 21} box DOWN_BOX color 0
         code0 {o->color(RGBCOLOR(LowSignal));}
       }
       Fl_Button btnLowSignal2 {
@@ -10571,7 +10571,7 @@ progdefaults.changed = true;}}
         xywh {402 78 70 21}
       }
       Fl_Box normalcolor2 {
-        xywh {365 122 21 21} box DIAMOND_DOWN_BOX color 2
+        xywh {365 122 21 21} box DOWN_BOX color 2
         code0 {o->color(RGBCOLOR(NormSignal));}
       }
       Fl_Counter cnt_normal_signal_level2 {
@@ -10614,7 +10614,7 @@ if (fl_color_chooser("Normal Signal", clr.r, clr.g, clr.b )) {
         xywh {402 122 70 21}
       }
       Fl_Box highcolor2 {
-        xywh {365 166 21 21} box DIAMOND_DOWN_BOX color 3
+        xywh {365 166 21 21} box DOWN_BOX color 3
         code0 {o->color( RGBCOLOR( HighSignal ) );}
       }
       Fl_Counter cnt_high_signal_level2 {
@@ -10655,7 +10655,7 @@ if (fl_color_chooser("High Signal", clr.r, clr.g, clr.b )) {
         xywh {402 166 70 21}
       }
       Fl_Box overcolor2 {
-        xywh {365 210 21 21} box DIAMOND_DOWN_BOX color 1
+        xywh {365 210 21 21} box DOWN_BOX color 1
         code0 {o->color( RGBCOLOR( OverSignal ) );}
       }
       Fl_Counter cnt_over_signal_level2 {
@@ -10711,7 +10711,7 @@ progdefaults.changed = true;
       Fl_Button btn_default_signal_levels2 {
         label Default
         callback {cnt_normal_signal_level->value(
-  progdefaults.normal_signal_level = -60.0);
+  progdefaults.normal_signal_level = -30.0);
 cnt_high_signal_level->value(
   progdefaults.high_signal_level = -6.0);
 cnt_over_signal_level->value(
@@ -10940,7 +10940,7 @@ if (fl_color_chooser("Button Color", clr.r, clr.g, clr.b) == 0)
       }
     }
     Fl_Group {} {
-      label {UI/General} open selected
+      label {UI/General}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("UI/General"));}
       code1 {config_pages.push_back(p);}
