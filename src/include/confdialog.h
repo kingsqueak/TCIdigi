@@ -1012,6 +1012,7 @@ extern Fl_Check_Button *btnShowTooltips;
 extern Fl_Check_Button *chkMenuIcons;
 extern Fl_Button *bVisibleModes;
 extern Fl_ListBox *listbox_language;
+extern Fl_Check_Button *btnfill_between_control;
 extern Fl_Check_Button *btn_rx_lowercase;
 extern Fl_Check_Button *btn_tx_lowercase;
 extern Fl_Check_Button *btn_save_config_on_exit;

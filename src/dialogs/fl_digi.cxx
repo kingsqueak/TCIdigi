@@ -734,7 +734,6 @@ Fl_Group		*status_group = (Fl_Group *)0;
 Fl_Group		*status_group_A = (Fl_Group *)0;
 Fl_Group		*svu = (Fl_Group *)0;
 Fl_Group		*cws_group = (Fl_Group *)0;
-Fl_Group		*filler = (Fl_Group *)0;
 
 Fl_Check_Button		*btncwsrcvTrack = (Fl_Check_Button *)0;
 Fl_Counter2			*cntcwsrange = (Fl_Counter2 *)0;
@@ -1486,6 +1485,7 @@ void set_mode_controls(trx_mode id)
 		Status1->show();
 		status_group_A->show();
 	}
+	status_group->init_sizes();
 	status_group->redraw();
 
 	if (id == MODE_RTTY) {
@@ -4310,6 +4310,13 @@ void cbAFC(Fl_Widget *w, void *vi)
 
 void cbSQL(Fl_Widget *w, void *vi)
 {
+	if (((Fl::event_state() & (FL_SHIFT)) == FL_SHIFT) &&
+	    ((Fl::event_state() & (FL_CTRL)) == FL_CTRL)) {
+			btnSQL->hide();
+			btnPSQL->show();
+			return;
+	}
+
 	Fl_Button *b = (Fl_Button *)w;
 	int v = b->value();
 	progStatus.sqlonoff = v ? true : false;
@@ -4320,6 +4327,13 @@ extern void set_wf_mode(void);
 
 void cbPwrSQL(Fl_Widget *w, void *vi)
 {
+	if (((Fl::event_state() & (FL_SHIFT)) == FL_SHIFT) &&
+	    ((Fl::event_state() & (FL_CTRL)) == FL_CTRL)) {
+			btnPSQL->hide();
+			btnSQL->show();
+			return;
+	}
+
 	Fl_Button *b = (Fl_Button *)w;
 	int v = b->value();
 	if(!v) {
@@ -5286,24 +5300,32 @@ void UI_select(std::string parent)
 			status_group_A->show();
 		}
 
-		int y = status_group->y();
-		int h = status_group->h();
-		int x = fl_digi_main->w() - cntTxLevel->w() - WARNstatus->w() - btnAFC->w() - btnSQL->w();
+//		int y = status_group->y();
+//		int h = status_group->h();
+//		int x = fl_digi_main->w() - cntTxLevel->w() - WARNstatus->w() - btnAFC->w() - btnSQL->w();
 
-		x -= (progdefaults.show_psm_btn ? bwSqlOnOff : 1);
-		btnPSQL->size( (progdefaults.show_psm_btn ? bwSqlOnOff : 1), h);
+//		x -= (progdefaults.show_psm_btn ? bwSqlOnOff : 1);
+//		btnPSQL->size( (progdefaults.show_psm_btn ? bwSqlOnOff : 1), h);
 
-		cntTxLevel->position(x, y);
-		x += cntTxLevel->w();
-		WARNstatus->position(x, y);
-		x += WARNstatus->w();
-		btnAFC->position(x, y);
-		x += btnAFC->w();
-		btnSQL->position(x, y);
-		x += btnSQL->w();
-		btnPSQL->position(x, y);
+//		cntTxLevel->position(x, y);
+//		x += cntTxLevel->w();
+//		WARNstatus->position(x, y);
+//		x += WARNstatus->w();
+//		btnAFC->position(x, y);
+//		x += btnAFC->w();
+//		btnSQL->position(x, y);
+//		x += btnSQL->w();
+//		btnPSQL->position(x, y);
 
-		fl_digi_main->init_sizes();
+		if (progdefaults.show_psm_btn) {
+			btnSQL->hide();
+			btnPSQL->show();
+		} else {
+			btnPSQL->hide();
+			btnSQL->show();
+		}
+
+//		fl_digi_main->init_sizes();
 		fl_digi_main->redraw();
 
 		int WF_only_height = Hmenu + Hwfall + Hstatus + 4 * pad;
@@ -5356,6 +5378,7 @@ void UI_select(std::string parent)
 		Status1->show();
 		status_group_A->show();
 	}
+	status_group->init_sizes();
 	status_group->redraw();
 
 	if (progStatus.NO_RIGLOG && !restore_minimize) {
@@ -5876,24 +5899,30 @@ UI_return:
 	}
 
 	{
-		int y = status_group->y();
-		int h = status_group->h();
-		int x = fl_digi_main->w() - cntTxLevel->w() - WARNstatus->w() - btnAFC->w() - btnSQL->w();
+//		int y = status_group->y();
+//		int h = status_group->h();
+//		int x = fl_digi_main->w() - cntTxLevel->w() - WARNstatus->w() - btnAFC->w() - btnSQL->w();
 
-		x -= (progdefaults.show_psm_btn ? bwSqlOnOff : 1);
-		btnPSQL->size( (progdefaults.show_psm_btn ? bwSqlOnOff : 1), h);
+//		x -= (progdefaults.show_psm_btn ? bwSqlOnOff : 1);
+//		btnPSQL->size( (progdefaults.show_psm_btn ? bwSqlOnOff : 1), h);
 
-		cntTxLevel->position(x, y);
-		x += cntTxLevel->w();
-		WARNstatus->position(x, y);
-		x += WARNstatus->w();
-		btnAFC->position(x, y);
-		x += btnAFC->w();
-		btnSQL->position(x, y);
-		x += btnSQL->w();
-		btnPSQL->position(x, y);
+//		cntTxLevel->position(x, y);
+//		x += cntTxLevel->w();
+//		WARNstatus->position(x, y);
+//		x += WARNstatus->w();
+//		btnAFC->position(x, y);
+//		x += btnAFC->w();
+//		btnSQL->position(x, y);
+//		x += btnSQL->w();
+//		btnPSQL->position(x, y);
 
-		
+		if (progdefaults.show_psm_btn){
+			btnPSQL->show();
+			btnSQL->hide();
+		} else {
+			btnSQL->show();
+			btnPSQL->hide();
+		}
 		status_group->init_sizes();
 		status_group->redraw();
 
@@ -6525,8 +6554,7 @@ Fl_Menu_Item menu_[] = {
 
 {0,0,0,0,0,0,0,0,0},
 
-{"     ", 0, 0, 0, FL_MENU_INACTIVE, FL_NORMAL_LABEL, 0, 14, 0},
-{_("&Help"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
+{_("  &Help"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 #ifndef NDEBUG
 // settle the gmfsk vs fldigi argument once and for all
 { icons::make_icon_label(_("Create sunspots"), weather_clear_icon), 0, cb_mnuFun, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
@@ -7320,13 +7348,18 @@ void LOGGING_colors_font()
 
 // buttons, boxes
 	Fl_Widget *wid[] = {
-		MODEstatus, Status1, Status2, StatusBar, WARNstatus };
+		MODEstatus, Status1, Status2, StatusBar, WARNstatus,
+		btncwsrcvTrack, btncwsuseSOMdecoding, btncwsmfilt,
+		btnAFC, btnSQL, btnPSQL };
 	for (size_t i = 0; i < sizeof(wid)/sizeof(*wid); i++)
 		widget_color_font(wid[i]);
 
 // counters
 	counter_color_font(cntCW_WPM);
 	counter_color_font(cntTxLevel);
+	counter_color_font(cntcwsrange);
+	counter_color_font(cntcwsbandwidth);
+
 	counter_color_font(wf->wfRefLevel);
 	counter_color_font(wf->wfAmpSpan);
 	counter_color_font(wf->wfcarrier);
@@ -7831,985 +7864,6 @@ void cb_exit_pwr_level(void*)
 }
 
 #include "fl_digi_main.cxx"
-
-void cb_mnuAltDockedscope(Fl_Menu_ *w, void *d);
-
-static Fl_Menu_Item alt_menu_[] = {
-{_("&File"), 0,  0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Exit"), log_out_icon), 'x',  (Fl_Callback*)cb_E, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{_("Op &Mode"), 0,  0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_CW].name, 0, cb_init_mode, (void *)MODE_CW, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{"Contestia", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_125].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_250].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_CONTESTIA_8_125].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_8_250].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_8_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_8_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_8_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_CONTESTIA_16_250].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_16_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_16_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_16_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_16_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_16_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_16_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_16_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_CONTESTIA_32_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_32_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_32_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_32_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_CONTESTIA_64_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_64_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_64_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_64_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_64_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_64_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ _("Custom..."), 0, cb_contestiaCustom, (void *)MODE_CONTESTIA, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"DominoEX", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEXMICRO].name, 0, cb_init_mode, (void *)MODE_DOMINOEXMICRO, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX4].name, 0, cb_init_mode, (void *)MODE_DOMINOEX4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX5].name, 0, cb_init_mode, (void *)MODE_DOMINOEX5, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX8].name, 0, cb_init_mode, (void *)MODE_DOMINOEX8, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX11].name, 0, cb_init_mode, (void *)MODE_DOMINOEX11, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX16].name, 0, cb_init_mode, (void *)MODE_DOMINOEX16, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX22].name, 0, cb_init_mode, (void *)MODE_DOMINOEX22, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX44].name, 0,  cb_init_mode, (void *)MODE_DOMINOEX44, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX88].name, 0,  cb_init_mode, (void *)MODE_DOMINOEX88, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"MFSK", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK4].name, 0,  cb_init_mode, (void *)MODE_MFSK4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK8].name, 0,  cb_init_mode, (void *)MODE_MFSK8, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK11].name, 0,  cb_init_mode, (void *)MODE_MFSK11, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK16].name, 0,  cb_init_mode, (void *)MODE_MFSK16, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK22].name, 0,  cb_init_mode, (void *)MODE_MFSK22, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK31].name, 0,  cb_init_mode, (void *)MODE_MFSK31, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK32].name, 0,  cb_init_mode, (void *)MODE_MFSK32, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK64].name, 0,  cb_init_mode, (void *)MODE_MFSK64, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK128].name, 0,  cb_init_mode, (void *)MODE_MFSK128, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK64L].name, 0,  cb_init_mode, (void *)MODE_MFSK64L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK128L].name, 0,  cb_init_mode, (void *)MODE_MFSK128L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"MT63", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_500S].name, 0,  cb_init_mode, (void *)MODE_MT63_500S, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_500L].name, 0,  cb_init_mode, (void *)MODE_MT63_500L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_1000S].name, 0,  cb_init_mode, (void *)MODE_MT63_1000S, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_1000L].name, 0,  cb_init_mode, (void *)MODE_MT63_1000L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_2000S].name, 0,  cb_init_mode, (void *)MODE_MT63_2000S, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_2000L].name, 0,  cb_init_mode, (void *)MODE_MT63_2000L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-/* Commented out pending development work by KL4YFD
- * 
-{"OFDM", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OFDM_500F].name, 0,  cb_init_mode, (void *)MODE_OFDM_500F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OFDM_750F].name, 0,  cb_init_mode, (void *)MODE_OFDM_750F, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-//{ mode_info[MODE_OFDM_2000F].name, 0,  cb_init_mode, (void *)MODE_OFDM_2000F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-//{ mode_info[MODE_OFDM_2000].name, 0,  cb_init_mode, (void *)MODE_OFDM_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OFDM_3500].name, 0,  cb_init_mode, (void *)MODE_OFDM_3500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-*/
-
-{"Olivia", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_125].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_250].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_OLIVIA_8_125].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_8_250].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_8_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_8_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_8_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_OLIVIA_16_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_16_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_16_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_16_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_16_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_16_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_OLIVIA_32_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_32_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_32_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_32_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_OLIVIA_64_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_64_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_64_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_64_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_64_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_64_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ _("Custom..."), 0, cb_oliviaCustom, (void *)MODE_OLIVIA, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"PSK", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK31].name, 0, cb_init_mode, (void *)MODE_PSK31, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK63].name, 0, cb_init_mode, (void *)MODE_PSK63, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK63F].name, 0, cb_init_mode, (void *)MODE_PSK63F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK125].name, 0, cb_init_mode, (void *)MODE_PSK125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK250].name, 0, cb_init_mode, (void *)MODE_PSK250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK500].name, 0, cb_init_mode, (void *)MODE_PSK500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK1000].name, 0, cb_init_mode, (void *)MODE_PSK1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{"MultiCarrier", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_12X_PSK125].name, 0, cb_init_mode, (void *)MODE_12X_PSK125, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_6X_PSK250].name, 0, cb_init_mode, (void *)MODE_6X_PSK250, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK500].name, 0, cb_init_mode, (void *)MODE_2X_PSK500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_4X_PSK500].name, 0, cb_init_mode, (void *)MODE_4X_PSK500, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK800].name, 0, cb_init_mode, (void *)MODE_2X_PSK800, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK1000].name, 0, cb_init_mode, (void *)MODE_2X_PSK1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0},
-
-{"QPSK", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK31].name, 0, cb_init_mode, (void *)MODE_QPSK31, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK63].name, 0, cb_init_mode, (void *)MODE_QPSK63, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK125].name, 0, cb_init_mode, (void *)MODE_QPSK125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK250].name, 0, cb_init_mode, (void *)MODE_QPSK250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK500].name, 0, cb_init_mode, (void *)MODE_QPSK500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"8PSK", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK125].name, 0, cb_init_mode, (void *)MODE_8PSK125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK250].name, 0, cb_init_mode, (void *)MODE_8PSK250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK500].name, 0, cb_init_mode, (void *)MODE_8PSK500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK1000].name, 0, cb_init_mode, (void *)MODE_8PSK1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK125FL].name, 0, cb_init_mode, (void *)MODE_8PSK125FL, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK125F].name, 0, cb_init_mode, (void *)MODE_8PSK125F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK250FL].name, 0, cb_init_mode, (void *)MODE_8PSK250FL, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK250F].name, 0, cb_init_mode, (void *)MODE_8PSK250F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK500F].name, 0, cb_init_mode, (void *)MODE_8PSK500F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK1000F].name, 0, cb_init_mode, (void *)MODE_8PSK1000F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK1200F].name, 0, cb_init_mode, (void *)MODE_8PSK1200F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"PSKR", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK125R].name, 0, cb_init_mode, (void *)MODE_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK250R].name, 0, cb_init_mode, (void *)MODE_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK500R].name, 0, cb_init_mode, (void *)MODE_PSK500R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK1000R].name, 0, cb_init_mode, (void *)MODE_PSK1000R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{"MultiCarrier", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_4X_PSK63R].name, 0, cb_init_mode, (void *)MODE_4X_PSK63R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_5X_PSK63R].name, 0, cb_init_mode, (void *)MODE_5X_PSK63R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_10X_PSK63R].name, 0, cb_init_mode, (void *)MODE_10X_PSK63R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_20X_PSK63R].name, 0, cb_init_mode, (void *)MODE_20X_PSK63R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_32X_PSK63R].name, 0, cb_init_mode, (void *)MODE_32X_PSK63R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_4X_PSK125R].name, 0, cb_init_mode, (void *)MODE_4X_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_5X_PSK125R].name, 0, cb_init_mode, (void *)MODE_5X_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_10X_PSK125R].name, 0, cb_init_mode, (void *)MODE_10X_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_12X_PSK125R].name, 0, cb_init_mode, (void *)MODE_12X_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_16X_PSK125R].name, 0, cb_init_mode, (void *)MODE_16X_PSK125R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK250R].name, 0, cb_init_mode, (void *)MODE_2X_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_3X_PSK250R].name, 0, cb_init_mode, (void *)MODE_3X_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_5X_PSK250R].name, 0, cb_init_mode, (void *)MODE_5X_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_6X_PSK250R].name, 0, cb_init_mode, (void *)MODE_6X_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_7X_PSK250R].name, 0, cb_init_mode, (void *)MODE_7X_PSK250R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK500R].name, 0, cb_init_mode, (void *)MODE_2X_PSK500R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_3X_PSK500R].name, 0, cb_init_mode, (void *)MODE_3X_PSK500R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_4X_PSK500R].name, 0, cb_init_mode, (void *)MODE_4X_PSK500R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK800R].name, 0, cb_init_mode, (void *)MODE_2X_PSK800R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK1000R].name, 0, cb_init_mode, (void *)MODE_2X_PSK1000R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0},
-
-{ RTTY_MLABEL, 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ "RTTY-45", 0, cb_rtty45, (void *)MODE_RTTY, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ "RTTY-50", 0, cb_rtty50, (void *)MODE_RTTY, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ "RTTY-75N", 0, cb_rtty75N, (void *)MODE_RTTY, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ "RTTY-75W", 0, cb_rtty75W, (void *)MODE_RTTY, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ _("Custom..."), 0, cb_rttyCustom, (void *)MODE_RTTY, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"SCAMP", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_SCAMPFSK].name, 0, cb_init_mode, (void *)MODE_SCAMPFSK, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_SCAMPOOK].name, 0, cb_init_mode, (void *)MODE_SCAMPOOK, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_SCFSKFST].name, 0, cb_init_mode, (void *)MODE_SCFSKFST, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_SCFSKSLW].name, 0, cb_init_mode, (void *)MODE_SCFSKSLW, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_SCOOKSLW].name, 0, cb_init_mode, (void *)MODE_SCOOKSLW, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_SCFSKVSL].name, 0, cb_init_mode, (void *)MODE_SCFSKVSL, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"THOR", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THORMICRO].name, 0, cb_init_mode, (void *)MODE_THORMICRO, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR4].name, 0, cb_init_mode, (void *)MODE_THOR4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR5].name, 0, cb_init_mode, (void *)MODE_THOR5, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR8].name, 0, cb_init_mode, (void *)MODE_THOR8, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR11].name, 0, cb_init_mode, (void *)MODE_THOR11, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR16].name, 0, cb_init_mode, (void *)MODE_THOR16, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR22].name, 0, cb_init_mode, (void *)MODE_THOR22, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_THOR25].name, 0, cb_init_mode, (void *)MODE_THOR25, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR32].name, 0, cb_init_mode, (void *)MODE_THOR32, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR44].name, 0, cb_init_mode, (void *)MODE_THOR44, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR56].name, 0, cb_init_mode, (void *)MODE_THOR56, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_THOR25x4].name, 0,  cb_init_mode, (void *)MODE_THOR25x4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR50x1].name, 0,  cb_init_mode, (void *)MODE_THOR50x1, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR50x2].name, 0,  cb_init_mode, (void *)MODE_THOR50x2, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR100].name, 0,  cb_init_mode, (void *)MODE_THOR100, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"Throb", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROB1].name, 0, cb_init_mode, (void *)MODE_THROB1, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROB2].name, 0, cb_init_mode, (void *)MODE_THROB2, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROB4].name, 0, cb_init_mode, (void *)MODE_THROB4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROBX1].name, 0, cb_init_mode, (void *)MODE_THROBX1, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROBX2].name, 0, cb_init_mode, (void *)MODE_THROBX2, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROBX4].name, 0, cb_init_mode, (void *)MODE_THROBX4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{ mode_info[MODE_WWV].name, 0, cb_init_mode, (void *)MODE_WWV, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_NULL].name, 0, cb_init_mode, (void *)MODE_NULL, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_SSB].name, 0, cb_init_mode, (void *)MODE_SSB, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{_("&Configure"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Config Dialog")), 0, (Fl_Callback*)cb_mnu_config_dialog, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Test Signals")), 0, (Fl_Callback*)cb_mnuTestSignals, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Notifications")), 0,  (Fl_Callback*)cb_mnuConfigNotify, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Save Config"), save_icon), 0, (Fl_Callback*)cb_mnuSaveConfig, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{ VIEW_MLABEL, 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Rx Audio Dialog")), 'a', (Fl_Callback*)cb_mnuRxAudioDialog, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Signal Browser")), 0, (Fl_Callback*)cb_mnuViewer, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Spectrum scope")), 0, (Fl_Callback*)cb_mnuSpectrum, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Floating scope"), utilities_system_monitor_icon), 'f', (Fl_Callback*)cb_mnuDigiscope, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{ DOCKEDSCOPE_MLABEL, 0, (Fl_Callback*)cb_mnuAltDockedscope, 0, FL_MENU_TOGGLE, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ icons::make_icon_label(MFSK_IMAGE_MLABEL, image_icon), 0, (Fl_Callback*)cb_mnuPicViewer, 0, FL_MENU_INACTIVE, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(THOR_IMAGE_MLABEL, image_icon), 0, (Fl_Callback*)cb_mnuThorViewRaw,0, FL_MENU_INACTIVE, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(IFKP_IMAGE_MLABEL, image_icon), 0, (Fl_Callback*)cb_mnuIfkpViewRaw,0, FL_MENU_INACTIVE | FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(WEFAX_TX_IMAGE_MLABEL, image_icon), 0, (Fl_Callback*)wefax_pic::cb_mnu_pic_viewer_tx,0, FL_MENU_INACTIVE | FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{_("&Help"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Online documentation..."), help_browser_icon), 0, cb_mnuOnLineDOCS, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Event log"), dialog_information_icon), 0, cb_mnuDebug, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Check for updates..."), system_software_update_icon), 0, cb_mnuCheckUpdate, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("&About"), help_about_icon), 'a', cb_mnuAboutURL, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{0,0,0,0,0,0,0,0,0},
-};
-
-void cb_mnuAltDockedscope(Fl_Menu_ *w, void *d) {
-	Fl_Menu_Item *m = getMenuItem(((Fl_Menu_*)w)->mvalue()->label(), alt_menu_);
-	progStatus.DOCKEDSCOPE = m->value();
-	wf->show_scope(progStatus.DOCKEDSCOPE);
-}
-
-
-#define defwidget 0, 0, 10, 10, ""
-
-void noop_controls() // create and then hide all controls not being used
-{
-	Fl_Double_Window *dummywindow = new Fl_Double_Window(0,0,100,100,"");
-
-	btnMacroTimer = new Fl_Button(defwidget); btnMacroTimer->hide();
-
-	ReceiveText = new FTextRX(0,0,100,100); ReceiveText->hide();
-	TransmitText = new FTextTX(0,0,100,100); TransmitText->hide();
-	FHdisp = new Raster(0,0,10,100); FHdisp->hide();
-
-	for (int i = 0; i < NUMMACKEYS * NUMKEYROWS; i++) {
-		btnMacro[i] = new Fl_Button(defwidget); btnMacro[i]->hide();
-	}
-	for (int i = 0; i < 48; i++) {
-		btnDockMacro[i] = new Fl_Button(defwidget); btnDockMacro[i]->hide();
-	}
-
-	inpQth = new Fl_Input2(defwidget); inpQth->hide();
-	inpLoc1 = new Fl_Input2(defwidget); inpLoc1->hide();
-	inpState1 = new Fl_Input2(defwidget); inpState1->hide();
-	cboCountryQSO = new Fl_ComboBox(defwidget); cboCountryQSO->end();
-	cboCountryQSO->hide();
-	cboCountyQSO = new Fl_ComboBox(defwidget); cboCountyQSO->hide();
-	cboCountyQSO->hide();
-	inpSerNo = new Fl_Input2(defwidget); inpSerNo->hide();
-	outSerNo = new Fl_Input2(defwidget); outSerNo->hide();
-	inpXchgIn = new Fl_Input2(defwidget); inpXchgIn->hide();
-	inpVEprov = new Fl_Input2(defwidget); inpVEprov->hide();
-	inpNotes = new Fl_Input2(defwidget); inpNotes->hide();
-	inpAZ = new Fl_Input2(defwidget); inpAZ->hide();
-
-	qsoTime = new Fl_Button(defwidget); qsoTime->hide();
-	btnQRZ = new Fl_Button(defwidget); btnQRZ->hide();
-	qsoClear = new Fl_Button(defwidget); qsoClear->hide();
-	qsoSave = new Fl_Button(defwidget); qsoSave->hide();
-
-	qsoFreqDisp = new cFreqControl(0,0,80,20,""); qsoFreqDisp->hide();
-	qso_opMODE = new Fl_ListBox(defwidget); qso_opMODE->hide();
-	qso_opBW = new Fl_ListBox(defwidget); qso_opBW->hide();
-	qso_opPICK = new Fl_Button(defwidget); qso_opPICK->hide();
-	qso_opGROUP = new Fl_Group(defwidget); qso_opGROUP->hide();
-
-	inpFreq = new Fl_Input2(defwidget); inpFreq->hide();
-	inpTimeOff = new Fl_Input2(defwidget); inpTimeOff->hide();
-	inpTimeOn = new Fl_Input2(defwidget); inpTimeOn->hide();
-	btnTimeOn = new Fl_Button(defwidget); btnTimeOn->hide();
-	inpCall = new Fl_Input2(defwidget); inpCall->hide();
-	inpName = new Fl_Input2(defwidget); inpName->hide();
-	inpRstIn = new Fl_Input2(defwidget); inpRstIn->hide();
-	inpRstOut = new Fl_Input2(defwidget); inpRstOut->hide();
-
-	inpFreq1 = new Fl_Input2(defwidget); inpFreq1->hide();
-	inpTimeOff1 = new Fl_Input2(defwidget); inpTimeOff1->hide();
-	inpTimeOn1 = new Fl_Input2(defwidget); inpTimeOn1->hide();
-	btnTimeOn1 = new Fl_Button(defwidget); btnTimeOn1->hide();
-	inpCall1 = new Fl_Input2(defwidget); inpCall1->hide();
-	inpName1 = new Fl_Input2(defwidget); inpName1->hide();
-	inpRstIn1 = new Fl_Input2(defwidget); inpRstIn1->hide();
-	inpRstOut1 = new Fl_Input2(defwidget); inpRstOut1->hide();
-	inpXchgIn1 = new Fl_Input2(defwidget); inpXchgIn1->hide();
-	outSerNo1 = new Fl_Input2(defwidget); outSerNo1->hide();
-	inpSerNo1 = new Fl_Input2(defwidget); inpSerNo1->hide();
-	qsoFreqDisp1 = new cFreqControl(0,0,80,20,""); qsoFreqDisp1->hide();
-
-	inp_FD_class1 = new Fl_Input2(defwidget); inp_FD_class1->hide();
-	inp_FD_class2 = new Fl_Input2(defwidget); inp_FD_class2->hide();
-	inp_FD_section1 = new Fl_Input2(defwidget); inp_FD_section1->hide();
-	inp_FD_section2 = new Fl_Input2(defwidget); inp_FD_section2->hide();
-
-	inp_KD_name2 = new Fl_Input2(defwidget); inp_KD_name2->hide();
-	inp_KD_age1 = new  Fl_Input2(defwidget); inp_KD_age1->hide();
-	inp_KD_age2 = new  Fl_Input2(defwidget); inp_KD_age2->hide();
-	inp_KD_state1 = new  Fl_Input2(defwidget); inp_KD_state1->hide();
-	inp_KD_state2 = new  Fl_Input2(defwidget); inp_KD_state2->hide();
-	inp_KD_VEprov1 = new Fl_Input2(defwidget); inp_KD_VEprov1->hide();
-	inp_KD_VEprov2 = new Fl_Input2(defwidget); inp_KD_VEprov2->hide();
-	inp_KD_XchgIn1 = new  Fl_Input2(defwidget); inp_KD_XchgIn1->hide();
-	inp_KD_XchgIn2 = new  Fl_Input2(defwidget); inp_KD_XchgIn2->hide();
-
-	inp_1010_XchgIn1 = new Fl_Input2(defwidget); inp_1010_XchgIn1->hide();
-	inp_1010_XchgIn2 = new Fl_Input2(defwidget); inp_1010_XchgIn2->hide();
-	inp_1010_nr1 = new Fl_Input2(defwidget); inp_1010_nr1->hide();
-	inp_1010_nr2 = new Fl_Input2(defwidget); inp_1010_nr2->hide();
-	inp_1010_name2 = new Fl_Input2(defwidget); inp_1010_name2->hide();
-
-	inp_ARR_Name2 = new Fl_Input2(defwidget); inp_ARR_Name2->hide();
-	inp_ARR_XchgIn1 = new Fl_Input2(defwidget); inp_ARR_XchgIn1->hide();
-	inp_ARR_XchgIn2 = new Fl_Input2(defwidget); inp_ARR_XchgIn2->hide();
-	inp_ARR_check1 = new Fl_Input2(defwidget); inp_ARR_check1->hide();
-	inp_ARR_check2 = new Fl_Input2(defwidget); inp_ARR_check2->hide();
-
-	inp_vhf_Loc1 = new Fl_Input2(defwidget); inp_vhf_Loc1->hide();
-	inp_vhf_Loc2 = new Fl_Input2(defwidget); inp_vhf_Loc2->hide();
-	inp_vhf_RSTin1 = new Fl_Input2(defwidget); inp_vhf_RSTin1->hide();
-	inp_vhf_RSTin2 = new Fl_Input2(defwidget); inp_vhf_RSTin2->hide();
-	inp_vhf_RSTout1 = new Fl_Input2(defwidget); inp_vhf_RSTout1->hide();
-	inp_vhf_RSTout2 = new Fl_Input2(defwidget); inp_vhf_RSTout2->hide();
-
-	inp_CQ_RSTin2 = new Fl_Input2(defwidget); inp_CQ_RSTin2->hide();
-	inp_CQ_RSTout2 = new Fl_Input2(defwidget); inp_CQ_RSTout2->hide();
-	inp_CQstate1 = new Fl_Input2(defwidget); inp_CQstate1->hide();
-	inp_CQstate2 = new Fl_Input2(defwidget); inp_CQstate2->hide();
-	inp_CQzone1 = new Fl_Input2(defwidget); inp_CQzone1->hide();
-	inp_CQzone2 = new Fl_Input2(defwidget); inp_CQzone2->hide();
-	cboCountryCQ2 = new Fl_ComboBox(defwidget); cboCountryCQ2->end();
-	cboCountryCQ2->hide();
-	inp_CQDX_RSTin2 = new Fl_Input2(defwidget); inp_CQDX_RSTin2->hide();
-	inp_CQDX_RSTout2 = new Fl_Input2(defwidget); inp_CQDX_RSTout2->hide();
-	cboCountryCQDX2 = new Fl_ComboBox(defwidget); cboCountryCQDX2->end();
-	cboCountryCQDX2->hide();
-	inp_CQDXzone1 = new Fl_Input2(defwidget); inp_CQDXzone1->hide();
-	inp_CQDXzone2 = new Fl_Input2(defwidget); inp_CQDXzone2->hide();
-
-	inpTimeOff2 = new Fl_Input2(defwidget); inpTimeOff2->hide();
-	inpTimeOn2 = new Fl_Input2(defwidget); inpTimeOn2->hide();
-	btnTimeOn2 = new Fl_Button(defwidget); btnTimeOn2->hide();
-	inpCall2 = new Fl_Input2(defwidget); inpCall2->hide();
-	inpName2 = new Fl_Input2(defwidget); inpName2->hide();
-	inpRstIn2 = new Fl_Input2(defwidget); inpRstIn2->hide();
-	inpRstOut2 = new Fl_Input2(defwidget); inpRstOut2->hide();
-	qsoFreqDisp2 = new cFreqControl(0,0,80,20,""); qsoFreqDisp2->hide();
-
-	qso_opPICK2 = new Fl_Button(defwidget); qso_opPICK2->hide();
-	qsoClear2 = new Fl_Button(defwidget); qsoClear2->hide();
-	qsoSave2 = new Fl_Button(defwidget); qsoSave2->hide();
-	btnQRZ2 = new Fl_Button(defwidget); btnQRZ2->hide();
-
-	inpTimeOff3 = new Fl_Input2(defwidget); inpTimeOff3->hide();
-	inpTimeOn3 = new Fl_Input2(defwidget); inpTimeOn3->hide();
-	btnTimeOn3 = new Fl_Button(defwidget); btnTimeOn3->hide();
-	inpCall3 = new Fl_Input2(defwidget); inpCall3->hide();
-	outSerNo2 = new Fl_Input2(defwidget); outSerNo2->hide();
-	inpSerNo2 = new Fl_Input2(defwidget); inpSerNo2->hide();
-	inpXchgIn2 = new Fl_Input2(defwidget); inpXchgIn2->hide();
-	qsoFreqDisp3 = new cFreqControl(0,0,80,20,""); qsoFreqDisp3->hide();
-
-	inpTimeOff4 = new Fl_Input2(defwidget); inpTimeOff4->hide();
-	inpTimeOn4 = new Fl_Input2(defwidget); inpTimeOn4->hide();
-	btnTimeOn4 = new Fl_Button(defwidget); btnTimeOn4->hide();
-	inpTimeOff5 = new Fl_Input2(defwidget); inpTimeOff5->hide();
-	inpTimeOn5 = new Fl_Input2(defwidget); inpTimeOn5->hide();
-	btnTimeOn5 = new Fl_Button(defwidget); btnTimeOn5->hide();
-
-	outSerNo3 = new Fl_Input2(defwidget); outSerNo3->hide();
-	inp_SS_SerialNoR1 = new Fl_Input2(defwidget); inp_SS_SerialNoR1->hide();
-	inp_SS_Precedence1 = new Fl_Input2(defwidget); inp_SS_Precedence1->hide();
-	inp_SS_Check1 = new Fl_Input2(defwidget); inp_SS_Check1->hide();
-	inp_SS_Section1 = new Fl_Input2(defwidget); inp_SS_Section1->hide();
-	outSerNo4 = new Fl_Input2(defwidget); outSerNo4->hide();
-	inp_SS_SerialNoR2 = new Fl_Input2(defwidget); inp_SS_SerialNoR2->hide();
-	inp_SS_Precedence2 = new Fl_Input2(defwidget); inp_SS_Precedence2->hide();
-	inp_SS_Check2 = new Fl_Input2(defwidget); inp_SS_Check2->hide();
-	inp_SS_Section2 = new Fl_Input2(defwidget); inp_SS_Section2->hide();
-
-	inp_ASCR_class1 = new Fl_Input2(defwidget); inp_ASCR_class1->hide();
-	inp_ASCR_XchgIn1 = new Fl_Input2(defwidget); inp_ASCR_XchgIn1->hide();
-	inp_ASCR_name2 = new Fl_Input2(defwidget); inp_ASCR_name2->hide();
-	inp_ASCR_class2 = new Fl_Input2(defwidget); inp_ASCR_class2->hide();
-	inp_ASCR_XchgIn2 = new Fl_Input2(defwidget); inp_ASCR_XchgIn2->hide();
-	inp_ASCR_RSTin2 = new Fl_Input2(defwidget); inp_ASCR_RSTin2->hide();
-	inp_ASCR_RSTout2 = new Fl_Input2(defwidget); inp_ASCR_RSTout2->hide();
-
-	inpNAQPname2 = new Fl_Input2(defwidget); inpNAQPname2->hide();
-	inpSPCnum_NAQP1 =  new Fl_Input2(defwidget); inpSPCnum_NAQP1->hide();
-	inpSPCnum_NAQP2 =  new Fl_Input2(defwidget); inpSPCnum_NAQP2->hide();
-
-	inpRTU_stpr1 = new Fl_Input2(defwidget); inpRTU_stpr1->hide();
-	inpRTU_serno1 = new Fl_Input2(defwidget); inpRTU_serno1->hide();
-	inpRTU_RSTin2 = new Fl_Input2(defwidget); inpRTU_RSTin2->hide();
-	inpRTU_RSTout2 = new Fl_Input2(defwidget); inpRTU_RSTout2->hide();
-	inpRTU_stpr2 = new Fl_Input2(defwidget); inpRTU_stpr2->hide();
-	inpRTU_serno2 = new Fl_Input2(defwidget); inpRTU_serno2->hide();
-	cboCountryRTU2 = new Fl_ComboBox(defwidget); cboCountryRTU2->end();
-	cboCountryRTU2->hide();
-
-	inp_IARI_PR1 = new Fl_Input2(defwidget); inp_IARI_PR1->hide();
-	inp_IARI_RSTin2 = new Fl_Input2(defwidget); inp_IARI_RSTin2->hide();
-	inp_IARI_RSTout2 = new Fl_Input2(defwidget); inp_IARI_RSTout2->hide();
-	out_IARI_SerNo1 = new Fl_Input2(defwidget); out_IARI_SerNo1->hide();
-	inp_IARI_SerNo1 = new Fl_Input2(defwidget); inp_IARI_SerNo1->hide();
-	out_IARI_SerNo2 = new Fl_Input2(defwidget); out_IARI_SerNo2->hide();
-	inp_IARI_SerNo2 = new Fl_Input2(defwidget); inp_IARI_SerNo2->hide();
-	inp_IARI_PR2 = new Fl_Input2(defwidget); inp_IARI_PR2->hide();
-	cboCountryIARI2 = new Fl_ComboBox(defwidget); cboCountryIARI2->end();
-	cboCountryIARI2->hide();
-
-	outSerNo5 = new Fl_Input2(defwidget); outSerNo4->hide();
-	inp_ser_NAS1 = new Fl_Input2(defwidget); inp_ser_NAS1->hide();
-	inpSPCnum_NAS1 = new Fl_Input2(defwidget); inpSPCnum_NAS1->hide();
-	outSerNo6 = new Fl_Input2(defwidget); outSerNo5->hide();
-	inp_ser_NAS2 = new Fl_Input2(defwidget); inp_ser_NAS2->hide();
-	inpSPCnum_NAS2 = new Fl_Input2(defwidget); inpSPCnum_NAS2->hide();
-	inp_name_NAS2 = new Fl_Input2(defwidget); inp_name_NAS2->hide();
-
-	outSerNo7 = new Fl_Input2(defwidget); outSerNo7->hide();
-	inpSerNo3 = new Fl_Input2(defwidget); inpSerNo3->hide();
-	cboCountryAIDX2 = new Fl_ComboBox(defwidget); cboCountryAIDX2->end();
-	cboCountryAIDX2->hide();
-
-	inpRstIn3 = new Fl_Input2(defwidget); inpRstIn3->hide();
-	inpRstOut3 = new Fl_Input2(defwidget); inpRstOut3->hide();
-	outSerNo8 = new Fl_Input2(defwidget); outSerNo8->hide();
-	inpSerNo4 = new Fl_Input2(defwidget); inpSerNo4->hide();
-
-	inp_JOTA_troop1 = new Fl_Input2(defwidget); inp_JOTA_troop1->hide();
-	inp_JOTA_troop2 = new Fl_Input2(defwidget); inp_JOTA_troop2->hide();
-	inp_JOTA_scout1 = new Fl_Input2(defwidget); inp_JOTA_scout1->hide();
-	inp_JOTA_scout2 = new Fl_Input2(defwidget); inp_JOTA_scout2->hide();
-	inp_JOTA_spc1 = new Fl_Input2(defwidget); inp_JOTA_spc1->hide();
-	inp_JOTA_spc2 = new Fl_Input2(defwidget); inp_JOTA_spc2->hide();
-
-	inpSPCnum_AICW1 = new Fl_Input2(defwidget); inpSPCnum_AICW1->hide();
-	inpSPCnum_AICW2 = new Fl_Input2(defwidget); inpSPCnum_AICW2->hide();
-	inpRstIn_AICW2 = new Fl_Input2(defwidget); inpRstIn_AICW2->hide();
-	inpRstOut_AICW2 = new Fl_Input2(defwidget); inpRstOut_AICW2->hide();
-
-	inpSQSO_state1 = new Fl_Input2(defwidget); inpSQSO_state1->hide();
-	inpSQSO_state2 = new Fl_Input2(defwidget); inpSQSO_state2->hide();
-	inpSQSO_county1 = new Fl_Input2(defwidget); inpSQSO_county1->hide();
-	inpSQSO_county2 = new Fl_Input2(defwidget); inpSQSO_county2->hide();
-	inpSQSO_serno1 = new Fl_Input2(defwidget); inpSQSO_serno1->hide();
-	inpSQSO_serno2 = new Fl_Input2(defwidget); inpSQSO_serno2->hide();
-	outSQSO_serno1 = new Fl_Input2(defwidget); outSQSO_serno1->hide();
-	outSQSO_serno2 = new Fl_Input2(defwidget); outSQSO_serno2->hide();
-	inpSQSO_name2 = new Fl_Input2(defwidget); inpSQSO_name2->hide();
-	inpRstIn_SQSO2 = new Fl_Input2(defwidget); inpRstIn_SQSO2->hide();
-	inpRstOut_SQSO2 = new Fl_Input2(defwidget); inpRstOut_SQSO2->hide();
-	inpSQSO_category1 = new Fl_Input2(defwidget); inpSQSO_category1->hide();
-	inpSQSO_category2 = new Fl_Input2(defwidget); inpSQSO_category2->hide();
-
-	inpSerNo_WPX1 = new Fl_Input2(defwidget); inpSerNo_WPX1->hide();
-	outSerNo_WPX1 = new Fl_Input2(defwidget); outSerNo_WPX1->hide();
-	inpSerNo_WPX2 = new Fl_Input2(defwidget); inpSerNo_WPX2->hide();
-	outSerNo_WPX2 = new Fl_Input2(defwidget); outSerNo_WPX2->hide();
-	inpRstIn_WPX2 = new Fl_Input2(defwidget); inpRstIn_WPX2->hide();
-	inpRstOut_WPX2 = new Fl_Input2(defwidget); inpRstOut_WPX2->hide();
-
-	inpSerNo_WAE1 = new Fl_Input2(defwidget); inpSerNo_WAE1->hide();
-	inpSerNo_WAE2 = new Fl_Input2(defwidget); inpSerNo_WAE2->hide();
-	outSerNo_WAE1 = new Fl_Input2(defwidget); outSerNo_WAE1->hide();
-	outSerNo_WAE2 = new Fl_Input2(defwidget); outSerNo_WAE2->hide();
-	inpRstIn_WAE2 = new Fl_Input2(defwidget); inpRstIn_WAE2->hide();
-	inpRstOut_WAE2 = new Fl_Input2(defwidget); inpRstOut_WAE2->hide();
-	cboCountryWAE2 = new Fl_ComboBox(defwidget); cboCountryWAE2->end();
-	cboCountryWAE2->hide();
-
-	qso_opPICK3 = new Fl_Button(defwidget); qso_opPICK3->hide();
-	qsoClear3 = new Fl_Button(defwidget); qsoClear3->hide();
-	qsoSave3 = new Fl_Button(defwidget); qsoSave3->hide();
-
-	inpCall4 = new Fl_Input2(defwidget); inpCall4->hide();
-
-	qso_opBrowser = new Fl_Browser(defwidget); qso_opBrowser->hide();
-	qso_btnAddFreq = new Fl_Button(defwidget); qso_btnAddFreq->hide();
-	qso_btnSelFreq = new Fl_Button(defwidget); qso_btnSelFreq->hide();
-	qso_btnDelFreq = new Fl_Button(defwidget); qso_btnDelFreq->hide();
-	qso_btnClearList = new Fl_Button(defwidget); qso_btnClearList->hide();
-	qso_btnAct = new Fl_Button(defwidget); qso_btnAct->hide();
-	qso_inpAct = new Fl_Input2(defwidget); qso_inpAct->hide();
-
-	pwrmeter = new PWRmeter(defwidget); pwrmeter->hide();
-	smeter = new Smeter(defwidget); smeter->hide();
-	pwr_level = new Fl_Value_Slider2(defwidget); pwr_level->hide();
-	set_pwr_level = new Fl_Button(defwidget); set_pwr_level->hide();
-
-	dummywindow->end();
-	dummywindow->hide();
-
-}
-
-void make_scopeviewer()
-{
-	scopeview = new Fl_Double_Window(0,0,140,140, _("Scope"));
-	scopeview->xclass(PACKAGE_NAME);
-	digiscope = new Digiscope (0, 0, 140, 140);
-	digiscope->bk_color(RGBCOLOR(digi_background));
-	digiscope->axis_color(RGBCOLOR(digi_axis_color));
-	digiscope->user_color_1(RGBCOLOR(digi_color_1));
-	digiscope->user_color_2(RGBCOLOR(digi_color_2));
-	digiscope->user_color_3(RGBCOLOR(digi_color_3));
-	digiscope->user_color_4(RGBCOLOR(digi_color_4));
-	scopeview->resizable(digiscope);
-	scopeview->size_range(SCOPEWIN_MIN_WIDTH, SCOPEWIN_MIN_HEIGHT);
-	scopeview->end();
-	scopeview->hide();
-}
-
-static int WF_only_height = 0;
-
-void create_fl_digi_main_WF_only() {
-
-	int fnt = fl_font();
-	int fsize = fl_size();
-	int freqheight = Hentry + 2 * pad;
-	int Y = 0;
-	int W = progStatus.mainW;
-
-	fl_font(fnt, freqheight);
-	fl_font(fnt, fsize);
-
-
-	IMAGE_WIDTH = 4000;
-	Hwfall = progdefaults.wfheight;
-	Wwfall = W - 2 * DEFAULT_SW - 2 * pad;
-	WF_only_height = Hmenu + Hwfall + Hstatus + 4 * pad;
-
-	fl_digi_main = new Fl_Double_Window(W, WF_only_height);
-
-		mnuFrame = new Fl_Group(0, 0, W, Hmenu);
-
-			mnu = new Fl_Menu_Bar(0, 0, W - 275 - pad, Hmenu);
-// do some more work on the menu
-			for (size_t i = 0; i < sizeof(alt_menu_)/sizeof(alt_menu_[0]); i++) {
-// FL_NORMAL_SIZE may have changed; update the menu items
-				if (alt_menu_[i].text) {
-					alt_menu_[i].labelsize_ = FL_NORMAL_SIZE;
-				}
-// set the icon label for items with the multi label type
-				if (alt_menu_[i].labeltype() == _FL_MULTI_LABEL)
-					icons::set_icon_label(&alt_menu_[i]);
-			}
-			mnu->menu(alt_menu_);
-
-			tx_timer = new Fl_Box(W - 275 - pad, 0, 75 - pad, Hmenu, "");
-			tx_timer->box(FL_UP_BOX);
-			tx_timer->color(FL_BACKGROUND_COLOR);
-			tx_timer->labelcolor(FL_BACKGROUND_COLOR);
-
-			btnAutoSpot = new Fl_Light_Button(W - 200 - pad, 0, 50, Hmenu, "Spot");
-			btnAutoSpot->selection_color(RGBCOLOR(SpotColor));
-			btnAutoSpot->callback(cbAutoSpot, 0);
-			btnAutoSpot->deactivate();
-
-			btnRSID = new Fl_Light_Button(W - 150 - pad, 0, 50, Hmenu, "RxID");
-			btnRSID->tooltip("Receive RSID");
-			btnRSID->value(progdefaults.rsid);
-			btnRSID->callback(cbRSID, 0);
-
-			btnTxRSID = new Fl_Light_Button(W - 100 - pad, 0, 50, Hmenu, "TxID");
-			btnTxRSID->selection_color(RGBCOLOR(TxIDColor));
-			btnTxRSID->tooltip("Transmit RSID");
-			btnTxRSID->callback(cbTxRSID, 0);
-
-			btnTune = new Fl_Light_Button(W - 50 - pad, 0, 50, Hmenu, "TUNE");
-			btnTune->selection_color(RGBCOLOR(TuneColor));
-			btnTune->callback(cbTune, 0);
-
-		mnuFrame->resizable(mnu);
-		mnuFrame->end();
-
-		Y = Hmenu + pad;
-
-		wf_group = new Fl_Group(0, Y, W, Hwfall);
-
-			wf = new waterfall(0, Y, Wwfall, Hwfall);
-			wf->end();
-
-			pgrsSquelch = new Progress(
-				rightof(wf), Y + pad,
-				DEFAULT_SW, Hwfall - 2 * pad,
-				"");
-			pgrsSquelch->color(FL_BACKGROUND2_COLOR, FL_DARK_GREEN);
-			pgrsSquelch->type(Progress::VERTICAL);
-			pgrsSquelch->tooltip(_("Detected signal level"));
-
-			sldrSquelch = new Fl_Slider2(
-				rightof(pgrsSquelch), Y + pad,
-				DEFAULT_SW, Hwfall - 2 * pad,
-				"");
-			sldrSquelch->minimum(100);
-			sldrSquelch->maximum(0);
-			sldrSquelch->step(1);
-			sldrSquelch->value(progStatus.sldrSquelchValue);
-			sldrSquelch->callback((Fl_Callback*)cb_sldrSquelch);
-			sldrSquelch->color(FL_INACTIVE_COLOR);
-			sldrSquelch->tooltip(_("Squelch level"));
-			Fl_Group::current()->resizable(wf);
-		wf_group->end();
-
-		Y += (Hwfall + pad);
-
-{ // Status bar group
-	// see corner_box below
-	// corner_box used to leave room for OS X corner drag handle
-	#ifdef __APPLE__
-		#define cbwidth DEFAULT_SW
-	#else
-		#define cbwidth 0
-	#endif
-
-		status_group = new Fl_Group(0, Y, W, Hstatus);
-{ // MODE / Status1 / CW_WPM
-			MODEstatus = new Fl_Button(0, Y, Wmode, Hstatus, "");
-			MODEstatus->box(FL_DOWN_BOX);
-			MODEstatus->color(FL_BACKGROUND2_COLOR);
-			MODEstatus->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-			MODEstatus->callback(status_cb, (void *)0);
-			MODEstatus->when(FL_WHEN_CHANGED);
-			MODEstatus->tooltip(_("Left click: change mode\nRight click: configure"));
-
-			Status1 = new Fl_Box(
-				rightof(MODEstatus), Y,
-				Ws2n, Hstatus, "STATUS1");
-			Status1->box(FL_DOWN_BOX);
-			Status1->color(FL_BACKGROUND2_COLOR);
-			Status1->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-
-			cntCW_WPM = new Fl_Counter2(
-				rightof(MODEstatus), Y,
-				Ws2n, Hstatus, "");
-			cntCW_WPM->callback(cb_cntCW_WPM);
-			cntCW_WPM->minimum(progdefaults.CWlowerlimit);
-			cntCW_WPM->maximum(progdefaults.CWupperlimit);
-			cntCW_WPM->value(progdefaults.CWspeed);
-			cntCW_WPM->type(1);
-			cntCW_WPM->step(1);
-			cntCW_WPM->tooltip(_("CW transmit WPM"));
-			cntCW_WPM->align(FL_ALIGN_INSIDE);
-			cntCW_WPM->hide();
-
-}
-{ // status group A
-			status_group_A = new Fl_Group(
-				rightof(Status1), Y,
-				W - rightof(Status1) - bwTxLevel - bwAfcOnOff - bwSqlOnOff * 2 - cbwidth - Wwarn, Hstatus, "");
-
-				status_group_A->box(FL_FLAT_BOX);
-
-				Status2 = new Fl_Box(
-					status_group_A->x(), Y,
-					Wimd, Hstatus, "STATUS2");
-				Status2->box(FL_DOWN_BOX);
-				Status2->color(FL_BACKGROUND2_COLOR);
-				Status2->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-
-				inpCall4 = new Fl_Input2(
-					status_group_A->x(), Y,
-					Wimd, Hstatus, "");
-				inpCall4->align(FL_ALIGN_LEFT);
-				inpCall4->tooltip(_("Other call"));
-				inpCall4->hide();
-
-				svu = new Fl_Group( rightof(Status2), Y, status_group_A->w() - Status2->w(), Hstatus, "");
-					svu->box(FL_FLAT_BOX);
-
-					StatusBar = new status_box( svu->x(), svu->y(), svu->w(), svu->h(), "");
-					StatusBar->box(FL_DOWN_BOX);
-					StatusBar->color(FL_BACKGROUND2_COLOR);
-					StatusBar->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-					StatusBar->callback((Fl_Callback *)StatusBar_cb);
-					StatusBar->when(FL_WHEN_RELEASE_ALWAYS);
-					StatusBar->tooltip(_("Left click to toggle VuMeter"));
-
-					VuMeter = new vumeter(svu->x(), svu->y(), svu->w(), svu->h(), "");
-					VuMeter->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
-					VuMeter->when(FL_WHEN_RELEASE);
-					VuMeter->callback((Fl_Callback *)VuMeter_cb);
-					VuMeter->when(FL_WHEN_RELEASE_ALWAYS);
-					VuMeter->tooltip(_("Left click to toggle Status Bar"));
-
-				svu->end();
-				svu->show();
-
-				if (progStatus.vumeter_shown) {
-					VuMeter->show();
-					StatusBar->hide();
-				} else {
-					VuMeter->hide();
-					StatusBar->show();
-				}
-
-			status_group_A->end();
-			status_group_A->resizable(svu);
-} // status group A
-
-{ // CW settings group
-
-			cws_group = new Fl_Group(
-				rightof(cntCW_WPM), Y,
-				status_group_A->w(), Hstatus, "");
-
-				cws_group->box(FL_FLAT_BOX);
-
-				int YB = cws_group->y();
-				int WB = cws_group->w() / 5;
-				int HB = cws_group->h();
-
-				Fl_Group *gp1 = new Fl_Group(cws_group->x(), YB, WB, HB, "");
-					gp1->box(FL_FLAT_BOX);
- 
-					cntcwsrange = new Fl_Counter2(
-						gp1->x(), YB, gp1->w() - 2, HB, "");
-					cntcwsrange->tooltip(gettext("Range +/- wpm"));
-					cntcwsrange->type(1);
-					cntcwsrange->box(FL_UP_BOX);
-					cntcwsrange->color(FL_BACKGROUND_COLOR);
-					cntcwsrange->selection_color(FL_INACTIVE_COLOR);
-					cntcwsrange->labeltype(FL_NORMAL_LABEL);
-					cntcwsrange->labelfont(0);
-					cntcwsrange->labelsize(14);
-					cntcwsrange->labelcolor(FL_FOREGROUND_COLOR);
-					cntcwsrange->minimum(5);
-					cntcwsrange->maximum(25);
-					cntcwsrange->step(1);
-					cntcwsrange->value(10);
-					cntcwsrange->callback((Fl_Callback*)cb_cntcwsrange);
-					cntcwsrange->align(FL_ALIGN_TOP);
-					cntcwsrange->when(FL_WHEN_CHANGED);
-					cntcwsrange->value(progdefaults.CWrange);
-					cntcwsrange->labelsize(FL_NORMAL_SIZE);
-
-					Fl_Box *fb1 = new Fl_Box( rightof(cntcwsrange), YB, 2, HB, "");
-				gp1->end();
-				gp1->resizable(fb1);
-
-				Fl_Group *gp2 = new Fl_Group( rightof(gp1), YB, WB, HB, "");
-					gp2->box(FL_FLAT_BOX);
-
-					btncwsrcvTrack = new Fl_Check_Button(
-						gp2->x(), YB,
-						gp2->w() - 2, HB, gettext("Trk"));
-					btncwsrcvTrack->tooltip(gettext("Automatic Rx speed tracking"));
-					btncwsrcvTrack->down_box(FL_DOWN_BOX);
-					btncwsrcvTrack->value(1);
-					btncwsrcvTrack->callback((Fl_Callback*)cb_btncwsrcvTrack);
-					btncwsrcvTrack->value(progdefaults.CWtrack);
-
-					Fl_Box *fb2 = new Fl_Box( rightof(btncwsrcvTrack), YB, 2, HB, "");
-				gp2->end();
-				gp2->resizable(fb2);
-
-				Fl_Group *gp3 = new Fl_Group( rightof(gp2), YB, WB, HB, "");
-					gp3->box(FL_FLAT_BOX);
-
-					btncwsuseSOMdecoding = new Fl_Check_Button(
-						rightof(btncwsrcvTrack), cws_group->y(),
-						gp2->w() - 2, Hstatus, gettext("SOM"));
-					btncwsuseSOMdecoding->tooltip(gettext("Self Organizing Map Decoder"));
-					btncwsuseSOMdecoding->down_box(FL_DOWN_BOX);
-					btncwsuseSOMdecoding->value(1);
-					btncwsuseSOMdecoding->callback((Fl_Callback*)cb_btncwsuseSOMdecoding);
-					btncwsuseSOMdecoding->value(progdefaults.CWuseSOMdecoding);
-
-					Fl_Box *fb3 = new Fl_Box( rightof(btncwsuseSOMdecoding), YB, 2, HB, "");
-
-				gp3->end();
-				gp3->resizable(fb3);
-
-				Fl_Group *gp4 = new Fl_Group( rightof(gp3), YB, WB, HB, "");
-					gp4->box(FL_FLAT_BOX);
-
-					btncwsmfilt = new Fl_Check_Button(
-						rightof(btncwsuseSOMdecoding), cws_group->y(),
-						gp4->w() - 2, Hstatus, gettext("Mch"));
-					btncwsmfilt->tooltip(gettext("Matched Filter bandwidth"));
-					btncwsmfilt->down_box(FL_DOWN_BOX);
-					btncwsmfilt->value(1);
-					btncwsmfilt->callback((Fl_Callback*)cb_btncwsmfilt);
-					btncwsmfilt->value(progdefaults.CWmfilt);
-
-					Fl_Box *fb4 = new Fl_Box( rightof(btncwsmfilt), YB, 2, HB, "");
-
-				gp4->end();
-				gp4->resizable(fb4);
-
-				Fl_Group *gp5 = new Fl_Group( rightof(gp4), YB, cws_group->w() + cws_group->x() - rightof(gp4) , HB, "");
-					gp5->box(FL_FLAT_BOX);
-
-					cntcwsbandwidth = new Fl_Counter2(
-						gp5->x(), cws_group->y(),
-						gp5->w() - 2, Hstatus, "");
-					cntcwsbandwidth->tooltip(gettext("Filter bandwidth"));
-					cntcwsbandwidth->box(FL_UP_BOX);
-					cntcwsbandwidth->color(FL_BACKGROUND_COLOR);
-					cntcwsbandwidth->selection_color(FL_INACTIVE_COLOR);
-					cntcwsbandwidth->labeltype(FL_NORMAL_LABEL);
-					cntcwsbandwidth->labelfont(0);
-					cntcwsbandwidth->labelsize(14);
-					cntcwsbandwidth->labelcolor(FL_FOREGROUND_COLOR);
-					cntcwsbandwidth->minimum(10);
-					cntcwsbandwidth->maximum(800);
-					cntcwsbandwidth->step(5);
-					cntcwsbandwidth->value(200);
-					cntcwsbandwidth->callback((Fl_Callback*)cb_cntcwsbandwidth);
-					cntcwsbandwidth->align(FL_ALIGN_TOP);
-					cntcwsbandwidth->when(FL_WHEN_CHANGED);
-					cntcwsbandwidth->value(progdefaults.CWbandwidth);
-					cntcwsbandwidth->labelsize(FL_NORMAL_SIZE);
-					cntcwsbandwidth->lstep(50);
-
-					Fl_Box *fb5 = new Fl_Box( rightof(cntcwsbandwidth), YB, 2, HB, "");
-
-				gp5->end();
-				gp5->resizable(fb5);
-
-			cws_group->end();
-			cws_group->hide();
-}
-
-			cntTxLevel = new Fl_Counter2(
-				rightof(cws_group), Y,
-				bwTxLevel, Hstatus, "");
-			cntTxLevel->minimum(-30);
-			cntTxLevel->maximum(0);
-			cntTxLevel->value(0);
-			cntTxLevel->callback((Fl_Callback*)cb_cntTxLevel);
-			cntTxLevel->value(progStatus.txlevel);
-			cntTxLevel->step(0.1);
-			cntTxLevel->lstep(1.0);
-			cntTxLevel->tooltip(_("Tx level attenuator (dB)"));
-
-			WARNstatus = new Fl_Box(
-				rightof(cntTxLevel), Y,
-				Wwarn, Hstatus, "");
-			WARNstatus->box(FL_DIAMOND_DOWN_BOX);
-			WARNstatus->color(FL_BACKGROUND_COLOR);
-			WARNstatus->labelcolor(FL_RED);
-			WARNstatus->align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE);
-
-			btnAFC = new Fl_Light_Button(
-				rightof(WARNstatus), Y,
-				bwAfcOnOff, Hstatus, "AFC");
-
-			btnSQL = new Fl_Light_Button(
-				rightof(btnAFC), Y,
-				bwSqlOnOff, Hstatus, "SQL");
-
-			btnPSQL = new Fl_Light_Button(
-				rightof(btnSQL), Y,
-				bwSqlOnOff, Hstatus, "PSM");
-
-			btnSQL->selection_color( RGBCOLOR( Sql1Color ) );
-
-			btnAFC->callback(cbAFC, 0);
-			btnAFC->value(1);
-			btnAFC->tooltip(_("Automatic Frequency Control"));
-
-			btnSQL->callback(cbSQL, 0);
-			btnSQL->value(1);
-			btnSQL->tooltip(_("Squelch"));
-
-			btnPSQL->selection_color( RGBCOLOR( Sql1Color ) );
-			btnPSQL->value(progdefaults.kpsql_enabled);
-			btnPSQL->callback(cbPwrSQL, 0);
-			btnPSQL->tooltip(_("Power Signal Monitor"));
-
-			corner_box = new Fl_Box(
-				fl_digi_main->w() - cbwidth, Y,
-				cbwidth, Hstatus, "");
-
-			corner_box->box(FL_FLAT_BOX);
-
-		status_group->end();
-		status_group->resizable(status_group_A);
-		status_group->show();
-}
-
-	Fl::add_handler(wo_default_handler);
-
-	fl_digi_main->end();
-	fl_digi_main->callback(cb_wMain);
-	fl_digi_main->resizable(wf_group);
-
-	const struct {
-		bool var; const char* label;
-	} toggles[] = {
-		{ progStatus.DOCKEDSCOPE, DOCKEDSCOPE_MLABEL }
-	};
-	Fl_Menu_Item* toggle;
-	for (size_t i = 0; i < sizeof(toggles)/sizeof(*toggles); i++) {
-		if (toggles[i].var && (toggle = getMenuItem(toggles[i].label, alt_menu_))) {
-			toggle->set();
-			if (toggle->callback()) {
-				mnu->value(toggle);
-				toggle->do_callback(reinterpret_cast<Fl_Widget*>(mnu));
-			}
-		}
-	}
-
-	make_scopeviewer();
-	noop_controls();
-
-	progdefaults.WF_UIwfcarrier =
-	progdefaults.WF_UIwfreflevel =
-	progdefaults.WF_UIwfampspan =
-	progdefaults.WF_UIwfmode =
-	progdefaults.WF_UIx1 =
-	progdefaults.WF_UIwfshift =
-	progdefaults.WF_UIrev =
-	progdefaults.WF_UIwfstore =
-	progdefaults.WF_UIxmtlock =
-	progdefaults.WF_UIwfdrop =
-	progdefaults.WF_UIqsy = true;
-	wf->UI_select(true);
-
-	load_counties();
-
-	createConfig();
-
-	createRecordLoader();
-
-	if (rx_only) {
-		btnTune->deactivate();
-		wf->xmtrcv->deactivate();
-	}
-
-	UI_select(__func__);
-
-}
-
 
 void create_fl_digi_main(int argc, char** argv)
 {
@@ -10126,6 +9180,7 @@ void set_default_btn_color()
 
 	for (size_t i = 0; i < nbtns; i++) {
 		if (buttons[i] != NULL) {
+			buttons[i]->color(FL_BACKGROUND_COLOR);
 			buttons[i]->selection_color(RGBCOLOR(default_btn_color));
 			buttons[i]->redraw();
 		}
@@ -10800,7 +9855,7 @@ void enable_disable_kpsql(void)
 {
 	if (progdefaults.data_io_enabled == KISS_IO) {
 		check_kiss_modem();
-		btnPSQL->activate();
+//		btnPSQL->activate();
 		if(progStatus.kpsql_enabled || progdefaults.kpsql_enabled) {
 		    btnPSQL->value(true);
 		    btnPSQL->do_callback();
@@ -10808,7 +9863,7 @@ void enable_disable_kpsql(void)
 	} else {
 		sldrSquelch->value(progStatus.sldrSquelchValue);
 		btnPSQL->value(false);
-		btnPSQL->deactivate();
+//		btnPSQL->deactivate();
 	}
 
 	progStatus.data_io_enabled = progdefaults.data_io_enabled;
@@ -11746,43 +10801,34 @@ void change_menu_fonts( Fl_Font font, int size)
 		directed_popup[n].labelsize_ = size;
 	}
 
-	int timer_width = 75 * size / 12;
-	int btn_width = 50 * size / 12;
-
 	btnMacroTimer->labelsize(size);
 	btnMacroTimer->labelfont(font);
 	btnMacroTimer->redraw_label();
-	btnMacroTimer->resize(fl_digi_main->w() - btn_width, 0, btn_width, Hmenu);
 	btnMacroTimer->redraw();
 
 	btnTune->labelsize(size);
 	btnTune->labelfont(font);
 	btnTune->redraw_label();
-	btnTune->resize(btnMacroTimer->x() - btn_width, 0, btn_width, Hmenu);
 	btnTune->redraw();
 
 	btnTxRSID->labelsize(size);
 	btnTxRSID->labelfont(font);
 	btnTxRSID->redraw_label();
-	btnTxRSID->resize(btnTune->x() - btn_width, 0, btn_width, Hmenu);
 	btnTxRSID->redraw();
 
 	btnRSID->labelsize(size);
 	btnRSID->labelfont(font);
 	btnRSID->redraw_label();
-	btnRSID->resize(btnTxRSID->x() - btn_width, 0, btn_width, Hmenu);
 	btnRSID->redraw();
 
 	btnAutoSpot->labelsize(size);
 	btnAutoSpot->labelfont(font);
 	btnAutoSpot->redraw_label();
-	btnAutoSpot->resize(btnRSID->x() - btn_width, 0, btn_width, Hmenu);
 	btnAutoSpot->redraw();
 
 	tx_timer->labelsize(size);
 	tx_timer->labelfont(font);
 	tx_timer->redraw_label();
-	tx_timer->resize(btnAutoSpot->x() - timer_width, 0, timer_width, Hmenu);
 	tx_timer->redraw();
 
 }

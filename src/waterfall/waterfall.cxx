@@ -101,6 +101,32 @@
 				cwCnt + wSpace + bwQsy + wSpace + bwMem + wSpace + \
 				bwXmtLock + wSpace + bwRev + wSpace + bwXmtRcv + wSpace)
 
+Fl_Group *wfgp1 = (Fl_Group *)0;
+Fl_Group *wfgp2 = (Fl_Group *)0;
+Fl_Group *wfgp3 = (Fl_Group *)0;
+Fl_Group *wfgp4 = (Fl_Group *)0;
+Fl_Group *wfgp5 = (Fl_Group *)0;
+Fl_Group *wfgp6 = (Fl_Group *)0;
+Fl_Group *wfgp7 = (Fl_Group *)0;
+Fl_Group *wfgp8 = (Fl_Group *)0;
+Fl_Group *wfgp9 = (Fl_Group *)0;
+Fl_Group *wfgp10 = (Fl_Group *)0;
+Fl_Group *wfgp11 = (Fl_Group *)0;
+Fl_Group *wfgp12 = (Fl_Group *)0;
+
+Fl_Box *wfbx1 = (Fl_Box *)0;
+Fl_Box *wfbx2 = (Fl_Box *)0;
+Fl_Box *wfbx3 = (Fl_Box *)0;
+Fl_Box *wfbx4 = (Fl_Box *)0;
+Fl_Box *wfbx5 = (Fl_Box *)0;
+Fl_Box *wfbx6 = (Fl_Box *)0;
+Fl_Box *wfbx7 = (Fl_Box *)0;
+Fl_Box *wfbx8 = (Fl_Box *)0;
+Fl_Box *wfbx9 = (Fl_Box *)0;
+Fl_Box *wfbx10 = (Fl_Box *)0;
+Fl_Box *wfbx11 = (Fl_Box *)0;
+Fl_Box *wfbx12 = (Fl_Box *)0;
+
 extern modem *active_modem;
 
 static RGB RGByellow  = {254,254,0};
@@ -1490,7 +1516,7 @@ void WFdisp::draw() {
 //=======================================================================
 
 void x1_cb(Fl_Widget *w, void* v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	int m = wf->wfdisp->wfmag();
 	if (m == MAG_1) w->label("x1");
 	if (m == MAG_2) w->label("x2");
@@ -1499,20 +1525,20 @@ void x1_cb(Fl_Widget *w, void* v) {
 }
 
 void slew_left(Fl_Widget *w, void * v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	wf->wfdisp->slew(-100);
 	restoreFocus();
 }
 
 void slew_right(Fl_Widget *w, void * v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	wf->wfdisp->slew(100);
 	restoreFocus();
 }
 
 
 void center_cb(Fl_Widget *w, void *v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	wf->wfdisp->movetocenter();
 	restoreFocus();
 }
@@ -1524,7 +1550,7 @@ void killMacroTimer()
 
 void carrier_cb(Fl_Widget *w, void *v) {
 	Fl_Counter *cntr = (Fl_Counter *)w;
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	int selfreq = (int) cntr->value();
 	if (selfreq > progdefaults.HighFreqCutoff) selfreq = progdefaults.HighFreqCutoff - wf->wfdisp->Bandwidth() / 2;
 	killMacroTimer();
@@ -1622,7 +1648,7 @@ void qsy_cb(Fl_Widget *w, void *v)
 }
 
 void rate_cb(Fl_Widget *w, void *v) {
-	waterfall* wf = static_cast<waterfall*>(w->parent());
+	waterfall* wf = static_cast<waterfall*>(w->parent()->parent());
 	WFspeed new_speed;
 
 	switch (wf->wfdisp->Speed()) {
@@ -1722,13 +1748,13 @@ void set_wf_mode(void)
    static const char* names[NUM_WF_MODES] = { "WF", "FFT", "SIG" };
    int m = 0;
 
-   if (progdefaults.show_psm_btn && progStatus.kpsql_enabled) {
-	  if(wf->wfdisp->Mode() == WATERFALL) {
-		 return;
-	  }
-	  m = WATERFALL;
+	if (progStatus.kpsql_enabled) {
+		if(wf->wfdisp->Mode() == WATERFALL) {
+			return;
+		}
+		m = WATERFALL;
    } else {
-	  m = wf->wfdisp->Mode() + (Fl::event_button() == FL_LEFT_MOUSE ? 1 : -1);
+		m = wf->wfdisp->Mode() + (Fl::event_button() == FL_LEFT_MOUSE ? 1 : -1);
    }
 
 	m = WCLAMP(m, WATERFALL, NUM_WF_MODES-1);
@@ -1750,24 +1776,26 @@ void mode_cb(Fl_Widget* w, void*)
 }
 
 void reflevel_cb(Fl_Widget *w, void *v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	double val = wf->wfRefLevel->value();
 	progdefaults.wfRefLevel = val;
 	restoreFocus();
+std::cout << "ref: " << val << std::endl;
 }
 
 void ampspan_cb(Fl_Widget *w, void *v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	double val = wf->wfAmpSpan->value();
 	wf->wfdisp->Ampspan(val);
 	progdefaults.wfAmpSpan = val;
 	restoreFocus();
+std::cout << "span: " << val << std::endl;
 }
 
 void btnRev_cb(Fl_Widget *w, void *v)
 {
 	if (!active_modem) return;
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	Fl_Light_Button *b = (Fl_Light_Button *)w;
 	wf->Reverse(b->value());
 	progdefaults.rtty_reverse = wf->Reverse();
@@ -1998,11 +2026,13 @@ void waterfall::show_scope(bool on)
 	wfscope->redraw();
 }
 
+inline int rightof(Fl_Widget* w)
+{
+	return w->x() + w->w();
+}
+
 waterfall::waterfall(int x0, int y0, int w0, int h0, char *lbl) :
 	Fl_Group(x0,y0,w0,h0,lbl) {
-	int xpos;
-	float ratio;
-	ratio = w0 * 1.0 / bwdths;
 
 	wf_dim = h() - BTN_HEIGHT - 4;
 
@@ -2026,106 +2056,220 @@ waterfall::waterfall(int x0, int y0, int w0, int h0, char *lbl) :
 	rs1->end();
 	wfscope->hide();
 
-	xpos = x() + wSpace;
+	int bw = w() / 20;
 
-	mode = new Fl_Button(xpos, buttonrow, (int)(bwFFT*ratio), BTN_HEIGHT, "WF");
-	mode->callback(mode_cb, 0);
-	mode->tooltip(_("Waterfall / FFT / Scope"));
+	wfgp1 = new Fl_Group(x(), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp1->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwFFT*ratio) + wSpace;
-	wfRefLevel = new Fl_Counter2(xpos, buttonrow, (int)(cwRef*ratio), BTN_HEIGHT );
-	wfRefLevel->callback(reflevel_cb, 0);
-	wfRefLevel->step(1.0);
-	wfRefLevel->precision(0);
-	wfRefLevel->range(-80.0, 0.0);//(-40.0, 0.0);
-	wfRefLevel->value(0.0);//(-20.0);
-	wfRefLevel->tooltip(_("Upper signal level (dB)"));
-	wfRefLevel->type(FL_SIMPLE_COUNTER);
+		mode = new Fl_Button(wfgp1->x(), wfgp1->y(), 36, BTN_HEIGHT, "WF");
+		mode->callback(mode_cb, 0);
+		mode->tooltip(_("Waterfall / FFT / Scope"));
 
-	xpos = xpos + (int)(cwRef*ratio) + wSpace;
-	wfAmpSpan = new Fl_Counter2(xpos, buttonrow, (int)(cwRef*ratio), BTN_HEIGHT );
-	wfAmpSpan->callback(ampspan_cb, 0);
-	wfAmpSpan->step(1.0);
-	wfAmpSpan->precision(0);
-	wfAmpSpan->range(6.0, 90.0);
-	wfAmpSpan->value(70.0);
-	wfdisp->Ampspan(70.0);
-	wfAmpSpan->tooltip(_("Signal range (dB)"));
-	wfAmpSpan->type(FL_SIMPLE_COUNTER);
+		wfbx1 = new Fl_Box(rightof(mode), buttonrow, wfgp1->w() - 37, BTN_HEIGHT, "");
+		wfbx1->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(cwRef*ratio) + wSpace;
-	x1 = new Fl_Button(xpos, buttonrow, (int)(bwX1*ratio), BTN_HEIGHT, "x1");
-	x1->callback(x1_cb, 0);
-	x1->tooltip(_("Change waterfall scale"));
+		wfgp1->end();
+		if (progdefaults.status_bar_fill) wfgp1->resizable(wfbx1);
+// 1
+	wfgp2 = new Fl_Group(rightof(wfgp1), buttonrow, bw * 2, BTN_HEIGHT, "");
+		wfgp2->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwX1*ratio) + wSpace;
-	left = new Fl_Repeat_Button(xpos, buttonrow, (int)(bwMov*ratio), BTN_HEIGHT, "@<");
-	left->callback(slew_left, 0);
-	left->tooltip(_("Slew display lower in frequency"));
+		wfRefLevel = new Fl_Counter2(wfgp2->x(), buttonrow, 75, BTN_HEIGHT );
+		wfRefLevel->callback(reflevel_cb, 0);
+		wfRefLevel->step(1.0);
+		wfRefLevel->precision(0);
+		wfRefLevel->range(-80.0, 0.0);//(-40.0, 0.0);
+		wfRefLevel->value(0.0);//(-20.0);
+		wfRefLevel->tooltip(_("Upper signal level (dB)"));
+		wfRefLevel->type(FL_SIMPLE_COUNTER);
 
-	xpos = xpos + (int)(bwMov*ratio);
-	center = new Fl_Button(xpos, buttonrow, (int)(bwMov*ratio), BTN_HEIGHT, "@||");
-	center->callback(center_cb, 0);
-	center->tooltip(_("Center display on signal"));
+		wfbx2 = new Fl_Box(rightof(wfRefLevel), buttonrow, wfgp2->w() - 75, BTN_HEIGHT, "");
+		wfbx2->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwMov*ratio);
-	right = new Fl_Repeat_Button(xpos, buttonrow, (int)(bwMov*ratio), BTN_HEIGHT, "@>");
-	right->callback(slew_right, 0);
-	right->tooltip(_("Slew display higher in frequency"));
+		wfgp2->end();
+		if (progdefaults.status_bar_fill) wfgp2->resizable(wfbx2);
+//3
+	wfgp3 = new Fl_Group(rightof(wfgp2), buttonrow, bw * 2, BTN_HEIGHT, "");
+		wfgp3->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwMov*ratio) + wSpace;
-	wfrate = new Fl_Button(xpos, buttonrow, (int)(bwRate*ratio), BTN_HEIGHT, "Norm");
-	wfrate->callback(rate_cb, 0);
-	wfrate->tooltip(_("Waterfall drop speed"));
+		wfAmpSpan = new Fl_Counter2(wfgp3->x(), buttonrow, 75, BTN_HEIGHT );
+		wfAmpSpan->callback(ampspan_cb, 0);
+		wfAmpSpan->step(1.0);
+		wfAmpSpan->precision(0);
+		wfAmpSpan->range(6.0, 90.0);
+		wfAmpSpan->value(70.0);
+		wfdisp->Ampspan(70.0);
+		wfAmpSpan->tooltip(_("Signal range (dB)"));
+		wfAmpSpan->type(FL_SIMPLE_COUNTER);
 
-	xpos = xpos + (int)(bwRate*ratio) + wSpace;
-	wfcarrier = new Fl_Counter2(xpos, buttonrow, (int)(cwCnt*ratio), BTN_HEIGHT );
-	wfcarrier->callback(carrier_cb, 0);
-	wfcarrier->step(1.0);
-	wfcarrier->lstep(10.0);
-	wfcarrier->precision(0);
-	wfcarrier->range(16.0, progdefaults.HighFreqCutoff - 16.0);
-	wfcarrier->value(wfdisp->carrier());
-	wfcarrier->tooltip(_("Adjust cursor frequency"));
+		wfbx3 = new Fl_Box(rightof(wfAmpSpan), buttonrow, wfgp3->w() - 75, BTN_HEIGHT, "");
+		wfbx3->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(cwCnt*ratio) + wSpace;
-	qsy = new Fl_Button(xpos, buttonrow, (int)(bwQsy*ratio), BTN_HEIGHT, "QSY");
-	qsy->callback(qsy_cb, 0);
-	qsy->tooltip(_("Center in passband\nRight click to undo"));
-	qsy->deactivate();
+		wfgp3->end();
+		if (progdefaults.status_bar_fill) wfgp3->resizable(wfbx3);
+//5
+	wfgp4 = new Fl_Group(rightof(wfgp3), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp4->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwQsy*ratio) + wSpace;
-	btnMem = new Fl_Button(xpos, buttonrow, (int)(bwMem*ratio), BTN_HEIGHT, "Store");
-	btnMem->callback(btnMem_cb, 0);
-	btnMem->tooltip(_("Store mode and frequency\nRight click for list"));
-	mbtnMem = new Fl_Menu_Button(btnMem->x(), btnMem->y(), btnMem->w(), btnMem->h(), 0);
-	mbtnMem->callback(btnMem->callback(), mbtnMem);
-	mbtnMem->type(Fl_Menu_Button::POPUP3);
+		x1 = new Fl_Button(wfgp4->x(), buttonrow, 37, BTN_HEIGHT, "x1");
+		x1->callback(x1_cb, 0);
+		x1->tooltip(_("Change waterfall scale"));
 
-	xpos = xpos + (int)(bwMem*ratio) + wSpace;
-	xmtlock = new Fl_Light_Button(xpos, buttonrow, (int)(bwXmtLock*ratio), BTN_HEIGHT, "Lk");
-	xmtlock->callback(xmtlock_cb, 0);
-	xmtlock->value(0);
-	xmtlock->selection_color(RGBCOLOR( LkColor ));
-	xmtlock->tooltip(_("Lock transmit frequency"));
+		wfbx4 = new Fl_Box(rightof(x1), buttonrow, wfgp4->w() - 37, BTN_HEIGHT, "");
+		wfbx4->box(FL_FLAT_BOX);
 
-	/// We save this flag which is used by rtty decoding.
-	xpos = xpos + (int)(bwXmtLock*ratio) + wSpace;
-	btnRev = new Fl_Light_Button(xpos, buttonrow, (int)(bwRev*ratio), BTN_HEIGHT, "Rv");
-	btnRev->callback(btnRev_cb, 0);
-	reverse = progdefaults.rtty_reverse;
-	btnRev->value(reverse);
-	btnRev->selection_color(RGBCOLOR( RevColor ));
-	btnRev->tooltip(_("Reverse"));
+		wfgp4->end();
+		if (progdefaults.status_bar_fill) wfgp4->resizable(wfbx4);
+//6
+	wfgp5 = new Fl_Group(rightof(wfgp4), buttonrow, bw * 3, BTN_HEIGHT, "");
+		wfgp5->box(FL_FLAT_BOX);
 
-	xpos = w() - (int)(bwXmtRcv*ratio) - wSpace;
-	xmtrcv = new Fl_Light_Button(xpos, buttonrow, (int)(bwXmtRcv*ratio) - BEZEL, BTN_HEIGHT, "T/R");
-	xmtrcv->callback(xmtrcv_cb, 0);
-	xmtrcv->selection_color(RGBCOLOR( XmtColor ));
-	xmtrcv->value(0);
-	xmtrcv->tooltip(_("Transmit/Receive"));
+		left = new Fl_Repeat_Button(wfgp5->x(), buttonrow, 37, BTN_HEIGHT, "@<");
+		left->callback(slew_left, 0);
+		left->tooltip(_("Slew display lower in frequency"));
+
+		center = new Fl_Button(rightof(left), buttonrow, 38, BTN_HEIGHT, "@||");
+		center->callback(center_cb, 0);
+		center->tooltip(_("Center display on signal"));
+
+		right = new Fl_Repeat_Button(rightof(center), buttonrow, 37, BTN_HEIGHT, "@>");
+		right->callback(slew_right, 0);
+		right->tooltip(_("Slew display higher in frequency"));
+
+		wfbx5 = new Fl_Box(rightof(right), buttonrow, wfgp5->w() - 37 - 38 - 37, BTN_HEIGHT, "");
+		wfbx5->box(FL_FLAT_BOX);
+
+		wfgp5->end();
+		if (progdefaults.status_bar_fill) wfgp5->resizable(wfbx5);
+//9
+	wfgp6 = new Fl_Group(rightof(wfgp5), buttonrow, bw * 2, BTN_HEIGHT, "");
+		wfgp6->box(FL_FLAT_BOX);
+
+		wfrate = new Fl_Button(wfgp6->x(), buttonrow, 75, BTN_HEIGHT, "Norm");
+		wfrate->callback(rate_cb, 0);
+		wfrate->tooltip(_("Waterfall drop speed"));
+
+		wfbx6 = new Fl_Box(rightof(wfrate), buttonrow, wfgp6->w() - 75, BTN_HEIGHT, "");
+		wfbx6->box(FL_FLAT_BOX);
+
+		wfgp6->end();
+		if (progdefaults.status_bar_fill) wfgp6->resizable(wfbx6);
+//11
+	wfgp7 = new Fl_Group(rightof(wfgp6), buttonrow, bw * 3.5, BTN_HEIGHT, "");
+		wfgp6->box(FL_FLAT_BOX);
+
+		wfcarrier = new Fl_Counter2(wfgp7->x(), buttonrow, 132, BTN_HEIGHT );
+		wfcarrier->callback(carrier_cb, 0);
+		wfcarrier->step(1.0);
+		wfcarrier->lstep(10.0);
+		wfcarrier->precision(0);
+		wfcarrier->range(16.0, progdefaults.HighFreqCutoff - 16.0);
+		wfcarrier->value(wfdisp->carrier());
+		wfcarrier->tooltip(_("Adjust cursor frequency"));
+
+		wfbx7 = new Fl_Box(rightof(wfcarrier), buttonrow, wfgp7->w() - 132, BTN_HEIGHT, "");
+		wfbx7->box(FL_FLAT_BOX);
+
+		wfgp7->end();
+		if (progdefaults.status_bar_fill) wfgp7->resizable(wfbx7);
+//14.5
+	wfgp8 = new Fl_Group(rightof(wfgp7), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp8->box(FL_FLAT_BOX);
+
+		qsy = new Fl_Button(wfgp8->x(), buttonrow, 37, BTN_HEIGHT, "QSY");
+		qsy->callback(qsy_cb, 0);
+		qsy->tooltip(_("Center in passband\nRight click to undo"));
+		qsy->deactivate();
+
+		wfbx8 = new Fl_Box(rightof(qsy), buttonrow, wfgp8->w() - 37, BTN_HEIGHT, "");
+		wfbx8->box(FL_FLAT_BOX);
+
+		wfgp8->end();
+		if (progdefaults.status_bar_fill) wfgp8->resizable(wfbx8);
+//15.5
+	wfgp9 = new Fl_Group(rightof(wfgp8), buttonrow, bw * 1.5, BTN_HEIGHT, "");
+		wfgp9->box(FL_FLAT_BOX);
+
+		btnMem = new Fl_Button(wfgp9->x(), buttonrow, 56, BTN_HEIGHT, "Store");
+		btnMem->callback(btnMem_cb, 0);
+		btnMem->tooltip(_("Store mode and frequency\nRight click for list"));
+
+		mbtnMem = new Fl_Menu_Button(btnMem->x() + 4, btnMem->y() + 4, bw * 3, btnMem->h(), 0);
+		mbtnMem->callback(btnMem->callback(), mbtnMem);
+		mbtnMem->type(Fl_Menu_Button::POPUP3);
+
+		wfbx9 = new Fl_Box(rightof(btnMem), buttonrow, wfgp9->w() - 56, BTN_HEIGHT, "");
+		wfbx9->box(FL_FLAT_BOX);
+
+		wfgp9->end();
+		if (progdefaults.status_bar_fill) wfgp9->resizable(wfbx9);
+
+//17
+	wfgp10 = new Fl_Group(rightof(wfgp9), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp10->box(FL_FLAT_BOX);
+
+		xmtlock = new Fl_Light_Button(wfgp10->x(), buttonrow, 37, BTN_HEIGHT, "Lk");
+		xmtlock->callback(xmtlock_cb, 0);
+		xmtlock->value(0);
+		xmtlock->selection_color(RGBCOLOR( LkColor ));
+		xmtlock->tooltip(_("Lock transmit frequency"));
+
+		wfbx10 = new Fl_Box(rightof(xmtlock), buttonrow, wfgp10->w() - 37, BTN_HEIGHT, "");
+		wfbx10->box(FL_FLAT_BOX);
+
+		wfgp10->end();
+		if (progdefaults.status_bar_fill) wfgp10->resizable(wfbx10);
+//18
+	wfgp11 = new Fl_Group(rightof(wfgp10), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp11->box(FL_FLAT_BOX);
+
+		btnRev = new Fl_Light_Button(wfgp11->x(), buttonrow, 37, BTN_HEIGHT, "Rv");
+		btnRev->callback(btnRev_cb, 0);
+		reverse = progdefaults.rtty_reverse;
+		btnRev->value(reverse);
+		btnRev->selection_color(RGBCOLOR( RevColor ));
+		btnRev->tooltip(_("Reverse"));
+
+		wfbx11 = new Fl_Box(rightof(btnRev), buttonrow, wfgp11->w() - 37, BTN_HEIGHT, "");
+		wfbx11->box(FL_FLAT_BOX);
+
+		wfgp11->end();
+		if (progdefaults.status_bar_fill) wfgp11->resizable(wfbx11);
+//19
+	wfgp12 = new Fl_Group(rightof(wfgp11), buttonrow, x() + w() - rightof(wfgp11), BTN_HEIGHT, "");
+		wfgp12->box(FL_FLAT_BOX);
+
+		xmtrcv = new Fl_Light_Button(wfgp12->x(),buttonrow, 45, BTN_HEIGHT, "T/R");
+		xmtrcv->callback(xmtrcv_cb, 0);
+		xmtrcv->selection_color(RGBCOLOR( XmtColor ));
+		xmtrcv->value(0);
+		xmtrcv->tooltip(_("Transmit/Receive"));
+
+		wfbx12 = new Fl_Box(rightof(xmtrcv), buttonrow, wfgp12->w() - 45, BTN_HEIGHT, "");
+		wfbx12->box(FL_FLAT_BOX);
+
+		wfgp12->end();
+		if (progdefaults.status_bar_fill) wfgp12->resizable(wfbx12);
+//20
 	end();
+/*
+std::cout << "++++++++++++++++++ waterfall widths +++++++++++++++++++++" << std::endl;
+std::cout << "wfgp1  " << wfgp1->w() << std::endl;
+std::cout << "wfgp2  " << wfgp2->w() << std::endl;
+std::cout << "wfgp3  " << wfgp3->w() << std::endl;
+std::cout << "wfgp4  " << wfgp4->w() << std::endl;
+std::cout << "wfgp5  " << wfgp5->w() << std::endl;
+std::cout << "wfgp6  " << wfgp6->w() << std::endl;
+std::cout << "wfgp7  " << wfgp7->w() << std::endl;
+std::cout << "wfgp8  " << wfgp8->w() << std::endl;
+std::cout << "wfgp9  " << wfgp9->w() << std::endl;
+std::cout << "wfgp11 " << wfgp11->w() << std::endl;
+std::cout << "wfgp12 " << wfgp12->w() << std::endl;
+std::cout << "wfgp13 " << wfgp13->w() << std::endl;
+std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+*/
 }
+
 
 void waterfall::UI_select(bool on) {
 	if (on) {

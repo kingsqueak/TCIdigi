@@ -769,7 +769,7 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
-      label {Colors-Fonts/Buttons-Menus}
+      label {Colors-Fonts/Buttons-Menus} open
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Colors-Fonts/Buttons-Menus"));}
       code1 {config_pages.push_back(p);}
@@ -784,7 +784,7 @@ if (fl_color_chooser("Spot color", clr.r, clr.g, clr.b )) {
   spotcolor->redraw();
   spot_selection_color();
   progdefaults.changed = true;}}
-        xywh {284 66 110 21}
+        xywh {284 66 110 20}
       }
       Fl_Button btnRevColor {
         label Rev
@@ -795,7 +795,7 @@ if (fl_color_chooser("Rev color", clr.r, clr.g, clr.b )) {
   revcolor->redraw();
   rev_selection_color();
   progdefaults.changed = true;}}
-        xywh {284 103 110 21}
+        xywh {284 103 110 20}
       }
       Fl_Button btnTuneColor {
         label Tune
@@ -806,7 +806,7 @@ if (fl_color_chooser("Tune color", clr.r, clr.g, clr.b )) {
   tunecolor->redraw();
   tune_selection_color();
   progdefaults.changed = true;}}
-        xywh {284 141 110 21}
+        xywh {284 141 110 20}
       }
       Fl_Button btnRxIDColor {
         label {RxID nar}
@@ -821,7 +821,7 @@ if (fl_color_chooser("RxID color", clr.r, clr.g, clr.b )) {
   clr = progdefaults.rsidWideSearch ? ui_colors.RxIDwideColor : ui_colors.RxIDColor;
   btnRSID->selection_color( fl_rgb_color( clr.r, clr.g, clr.b ));
   btnRSID->redraw();}}
-        xywh {284 179 110 21}
+        xywh {284 179 110 20}
       }
       Fl_Button btnLkColor {
         label Lk
@@ -832,7 +832,7 @@ lockcolor->color( RGBCOLOR( LkColor ) );
 lockcolor->redraw();
 xmtlock_selection_color();
 progdefaults.changed = true;}}
-        xywh {473 66 110 21}
+        xywh {473 66 110 20}
       }
       Fl_Button btnSql1Color {
         label {SQL-1}
@@ -843,7 +843,7 @@ if (fl_color_chooser("SQL1 color", clr.r, clr.g, clr.b )) {
   sql1color->redraw();
   sql_selection_color();
   progdefaults.changed = true;}}
-        xywh {473 103 110 21}
+        xywh {473 103 110 20}
       }
       Fl_Button btnXmtColor {
         label {T/R}
@@ -869,7 +869,7 @@ if (fl_color_chooser("RxID wide", clr.r, clr.g, clr.b )) {
   clr = progdefaults.rsidWideSearch ? ui_colors.RxIDwideColor : ui_colors.RxIDColor;
   btnRSID->selection_color( fl_rgb_color( clr.r, clr.g, clr.b ) );
   btnRSID->redraw();}}
-        xywh {473 179 110 21}
+        xywh {473 179 110 20}
       }
       Fl_Button btnAfcColor {
         label AFC
@@ -880,7 +880,7 @@ if (fl_color_chooser("AFC color", clr.r, clr.g, clr.b )) {
   afccolor->redraw();
   afc_selection_color();
   progdefaults.changed = true;}}
-        xywh {663 66 110 21}
+        xywh {663 66 110 20}
       }
       Fl_Button btnSql2Color {
         label {SQL-2}
@@ -908,47 +908,47 @@ if (fl_color_chooser("TxID color", clr.r, clr.g, clr.b )) {
         xywh {662 179 110 20}
       }
       Fl_Box spotcolor {
-        xywh {254 67 18 19} box THIN_DOWN_BOX color 3
+        xywh {254 66 20 20} box THIN_DOWN_BOX color 3
         code0 {o->color( RGBCOLOR( SpotColor ) );}
       }
       Fl_Box revcolor {
-        xywh {254 104 18 19} box THIN_DOWN_BOX
+        xywh {254 103 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( RevColor ) );}
       }
       Fl_Box tunecolor {
-        xywh {254 142 18 19} box THIN_DOWN_BOX
+        xywh {254 141 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( TuneColor ) );}
       }
       Fl_Box rxidcolor {
-        xywh {254 180 18 19} box THIN_DOWN_BOX
+        xywh {254 179 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( RxIDColor ) );}
       }
       Fl_Box lockcolor {
-        xywh {442 67 18 19} box THIN_DOWN_BOX color 3
+        xywh {442 66 20 20} box THIN_DOWN_BOX color 3
         code0 {o->color( RGBCOLOR( LkColor ) );}
       }
       Fl_Box sql1color {
-        xywh {442 104 18 19} box THIN_DOWN_BOX
+        xywh {442 103 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( Sql1Color ) );}
       }
       Fl_Box rxidcolorwide {
-        xywh {442 180 18 19} box THIN_DOWN_BOX
+        xywh {442 179 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( RxIDwideColor ) );}
       }
       Fl_Box xmtcolor {
-        xywh {442 142 18 18} box THIN_DOWN_BOX
+        xywh {442 141 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( XmtColor ) );}
       }
       Fl_Box afccolor {
-        xywh {630 76 18 19} box THIN_DOWN_BOX color 3
+        xywh {630 66 20 20} box THIN_DOWN_BOX color 3
         code0 {o->color( RGBCOLOR( AfcColor ) );}
       }
       Fl_Box sql2color {
-        xywh {630 104 18 18} box THIN_DOWN_BOX
+        xywh {630 103 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( Sql2Color ) );}
       }
       Fl_Box txidcolor {
-        xywh {630 180 18 18} box THIN_DOWN_BOX
+        xywh {630 179 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( TxIDColor ) );}
       }
       Fl_Button btn_default_btn_color {
@@ -960,10 +960,10 @@ if (fl_color_chooser("Button color", clr.r, clr.g, clr.b )) {
   default_btn_color->redraw();
   set_default_btn_color();
   progdefaults.changed = true;}}
-        xywh {284 217 110 21}
+        xywh {284 217 110 20}
       }
       Fl_Box default_btn_color {
-        xywh {254 218 18 19} box THIN_DOWN_BOX
+        xywh {254 217 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( default_btn_color ) );}
       }
       Fl_Button btn_check_btn_color {
@@ -975,10 +975,10 @@ if (fl_color_chooser("Check button", clr.r, clr.g, clr.b )) {
   default_check_btn_color->redraw();
   set_default_btn_color();
   progdefaults.changed = true;}}
-        xywh {473 217 110 21}
+        xywh {473 217 110 20}
       }
       Fl_Box default_check_btn_color {
-        xywh {442 220 18 19} box THIN_DOWN_BOX
+        xywh {442 217 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( default_check_btn_color ) );}
       }
       Fl_Button btn_default_round_btn_color {
@@ -990,10 +990,10 @@ if (fl_color_chooser("Round button", clr.r, clr.g, clr.b )) {
   default_round_btn_color->redraw();
   set_default_btn_color();
   progdefaults.changed = true;}}
-        xywh {662 217 110 21}
+        xywh {662 217 110 20}
       }
       Fl_Box default_round_btn_color {
-        xywh {630 218 18 19} box ROUND_DOWN_BOX
+        xywh {630 217 20 20} box ROUND_DOWN_BOX
         code0 {o->color( RGBCOLOR( default_round_btn_color ) );}
       }
       Fl_Button btnMenuFont {
@@ -1002,7 +1002,7 @@ if (fl_color_chooser("Round button", clr.r, clr.g, clr.b )) {
 font_browser->fontSize(progdefaults.MenuFontsize);
 font_browser->callback(cbMenuFontBrowser);
 font_browser->show();}
-        xywh {284 255 110 21}
+        xywh {284 255 110 20}
       }
       Fl_Group listboxScheme {
         label {UI scheme}
@@ -1039,10 +1039,10 @@ progdefaults.changed = true;} open
  redraw_windows();
   
  progdefaults.changed = true;}
-        xywh {473 255 110 21}
+        xywh {473 255 110 20}
       }
       Fl_Box background_color {
-        xywh {442 256 18 19} box THIN_DOWN_BOX
+        xywh {442 255 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( background ) );}
       }
       Fl_Button btn_background2_color {
@@ -1066,10 +1066,10 @@ progdefaults.changed = true;} open
  redraw_windows();
   
  progdefaults.changed = true;}
-        xywh {473 292 110 21}
+        xywh {473 293 110 20}
       }
       Fl_Box background2_color {
-        xywh {442 293 18 19} box THIN_DOWN_BOX
+        xywh {442 293 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( background2 ) );}
       }
       Fl_Button btn_foreground_color {
@@ -1093,10 +1093,10 @@ progdefaults.changed = true;} open
  redraw_windows();
  
  progdefaults.changed = true;}
-        xywh {662 255 110 21}
+        xywh {662 255 110 20}
       }
       Fl_Box foreground_color {
-        xywh {630 256 18 19} box THIN_DOWN_BOX
+        xywh {630 255 20 20} box THIN_DOWN_BOX
         code0 {o->color( RGBCOLOR( foreground ) );}
       }
     }
@@ -2057,7 +2057,7 @@ progdefaults.changed = true;}
         xywh {340 39 316 21}
       }
       Fl_Box lowcolor {
-        xywh {365 96 21 21} box DIAMOND_DOWN_BOX color 0
+        xywh {365 76 20 20} box ROUND_DOWN_BOX color 0
         code0 {o->color( RGBCOLOR( LowSignal ) );}
       }
       Fl_Button btnLowSignal {
@@ -2071,7 +2071,7 @@ if (fl_color_chooser("Low", clr.r, clr.g, clr.b )) {
         xywh {402 75 70 22}
       }
       Fl_Box normalcolor {
-        xywh {365 142 21 21} box DIAMOND_DOWN_BOX color 2
+        xywh {365 122 20 20} box ROUND_DOWN_BOX color 2
         code0 {o->color(RGBCOLOR(NormSignal));}
       }
       Fl_Counter cnt_normal_signal_level {
@@ -2106,7 +2106,7 @@ if (fl_color_chooser(" XXXX ", clr.r, clr.g, clr.b )) {
         xywh {402 122 70 21}
       }
       Fl_Box highcolor {
-        xywh {365 189 21 21} box DIAMOND_DOWN_BOX color 3
+        xywh {365 169 20 20} box ROUND_DOWN_BOX color 3
         code0 {o->color(RGBCOLOR(HighSignal));}
       }
       Fl_Counter cnt_high_signal_level {
@@ -2139,7 +2139,7 @@ if (fl_color_chooser("High", clr.r, clr.g, clr.b )) {
         xywh {402 169 70 21}
       }
       Fl_Box overcolor {
-        xywh {365 236 21 21} box DIAMOND_DOWN_BOX color 1
+        xywh {365 216 20 20} box ROUND_DOWN_BOX color 1
         code0 {o->color(RGBCOLOR(OverSignal));}
       }
       Fl_Counter cnt_over_signal_level {
@@ -9615,7 +9615,7 @@ hamlib_get_defaults();
       }
     }
     Fl_Group grpRigHardware {
-      label {Rig Control/Hardware PTT} selected
+      label {Rig Control/Hardware PTT}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Rig Control/Hardware PTT"));}
       code1 {config_pages.push_back(p);}
@@ -10940,7 +10940,7 @@ if (fl_color_chooser("Button Color", clr.r, clr.g, clr.b) == 0)
       }
     }
     Fl_Group {} {
-      label {UI/General}
+      label {UI/General} open selected
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("UI/General"));}
       code1 {config_pages.push_back(p);}
@@ -10954,7 +10954,7 @@ if (fl_color_chooser("Button Color", clr.r, clr.g, clr.b) == 0)
           callback {progdefaults.tooltips = o->value();
 Fl_Tooltip::enable(progdefaults.tooltips);
 progdefaults.changed = true;}
-          tooltip {Enable / disable tooltips} xywh {276 34 120 20} down_box DOWN_BOX value 1
+          tooltip {Enable / disable tooltips} xywh {247 34 120 20} down_box DOWN_BOX value 1
           code0 {o->value(progdefaults.tooltips);}
         }
         Fl_Check_Button chkMenuIcons {
@@ -10962,7 +10962,7 @@ progdefaults.changed = true;}
           callback {progdefaults.menuicons = o->value();
 icons::toggle_icon_labels();
 progdefaults.changed = true;}
-          tooltip {Enable / disable icons on menus} xywh {420 34 150 20} down_box DOWN_BOX
+          tooltip {Enable / disable icons on menus} xywh {393 34 150 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.menuicons);}
         }
         Fl_Button bVisibleModes {
@@ -10971,7 +10971,7 @@ progdefaults.changed = true;}
 mode_browser->callback(toggle_visible_modes);
 mode_browser->show_(&progdefaults.visible_modes);
 progdefaults.changed = true;}
-          tooltip {Select modes for menu access} xywh {259 63 110 20}
+          tooltip {Select modes for menu access} xywh {230 63 110 20}
         }
         Fl_Group listbox_language {
           label {UI language}
@@ -10981,6 +10981,13 @@ progdefaults.changed = true;} open
           code0 {o->labelsize(FL_NORMAL_SIZE);}
           class Fl_ListBox
         } {}
+        Fl_Check_Button btnfill_between_control {
+          label {Fill between controls}
+          callback {progdefaults.status_bar_fill = o->value();
+progdefaults.changed = true;}
+          tooltip {Expand / Fill requires program restart} xywh {393 63 120 20} down_box DOWN_BOX value 1
+          code0 {o->value(progdefaults.status_bar_fill);}
+        }
       }
       Fl_Group {} {open
         xywh {206 103 590 34} box ENGRAVED_FRAME align 21

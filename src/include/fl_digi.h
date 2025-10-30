@@ -454,6 +454,32 @@ extern void set_default_btn_color();
 
 extern void put_WARNstatus(double);
 
+extern Fl_Group *wfgp1;
+extern Fl_Group *wfgp2;
+extern Fl_Group *wfgp3;
+extern Fl_Group *wfgp4;
+extern Fl_Group *wfgp5;
+extern Fl_Group *wfgp6;
+extern Fl_Group *wfgp7;
+extern Fl_Group *wfgp8;
+extern Fl_Group *wfgp9;
+extern Fl_Group *wfgp10;
+extern Fl_Group *wfgp11;
+extern Fl_Group *wfgp12;
+
+extern Fl_Box *wfbx1;
+extern Fl_Box *wfbx2;
+extern Fl_Box *wfbx3;
+extern Fl_Box *wfbx4;
+extern Fl_Box *wfbx5;
+extern Fl_Box *wfbx6;
+extern Fl_Box *wfbx7;
+extern Fl_Box *wfbx8;
+extern Fl_Box *wfbx9;
+extern Fl_Box *wfbx10;
+extern Fl_Box *wfbx11;
+extern Fl_Box *wfbx12;
+
 extern void qsoSave_cb(Fl_Widget *b, void *);
 
 extern bool que_ok;

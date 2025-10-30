@@ -2737,6 +2737,9 @@
         ELEM_(bool, reverse_by_mode, "REVERSE_BY_MODE",                                 \
               "Save/restore REVERSE on per mode basis",                                 \
               true)                                                                     \
+        ELEM_(bool, status_bar_fill, "STATUS_BAR_FILL",                                 \
+              "Enable to display expandable fill space between controls",               \
+              false)                                                                    \
 
 // declare the struct
 #define ELEM_DECLARE_CONFIGURATION(type_, var_, tag_, ...) type_ var_;

@@ -1656,6 +1656,7 @@ int parse_args(int argc, char **argv, int& idx)
 		{ "window-height", 1, 0, OPT_WINDOW_HEIGHT },
 		{ "wfall-only",    0, 0, OPT_WFALL_ONLY },
 		{ "wo",            0, 0, OPT_WFALL_ONLY },
+
 		{ "rx-only",       0, 0, OPT_RX_ONLY },
 		{ "ro",            0, 0, OPT_RX_ONLY },
 

@@ -8632,6 +8632,13 @@ static void cb_listbox_language(Fl_ListBox* o, void*) {
   progdefaults.changed = true;
 }
 
+Fl_Check_Button *btnfill_between_control=(Fl_Check_Button *)0;
+
+static void cb_btnfill_between_control(Fl_Check_Button* o, void*) {
+  progdefaults.status_bar_fill = o->value();
+  progdefaults.changed = true;
+}
+
 Fl_Check_Button *btn_rx_lowercase=(Fl_Check_Button *)0;
 
 static void cb_btn_rx_lowercase(Fl_Check_Button* o, void*) {
@@ -9848,31 +9855,31 @@ Fl_Double_Window* ConfigureDialog() {
       o->box(FL_ENGRAVED_BOX);
       o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
       o->hide();
-      { btnSpotColor = new Fl_Button(284, 66, 110, 21, gettext("Spot"));
+      { btnSpotColor = new Fl_Button(284, 66, 110, 20, gettext("Spot"));
         btnSpotColor->callback((Fl_Callback*)cb_btnSpotColor);
       } // Fl_Button* btnSpotColor
-      { btnRevColor = new Fl_Button(284, 103, 110, 21, gettext("Rev"));
+      { btnRevColor = new Fl_Button(284, 103, 110, 20, gettext("Rev"));
         btnRevColor->callback((Fl_Callback*)cb_btnRevColor);
       } // Fl_Button* btnRevColor
-      { btnTuneColor = new Fl_Button(284, 141, 110, 21, gettext("Tune"));
+      { btnTuneColor = new Fl_Button(284, 141, 110, 20, gettext("Tune"));
         btnTuneColor->callback((Fl_Callback*)cb_btnTuneColor);
       } // Fl_Button* btnTuneColor
-      { btnRxIDColor = new Fl_Button(284, 179, 110, 21, gettext("RxID nar"));
+      { btnRxIDColor = new Fl_Button(284, 179, 110, 20, gettext("RxID nar"));
         btnRxIDColor->callback((Fl_Callback*)cb_btnRxIDColor);
       } // Fl_Button* btnRxIDColor
-      { btnLkColor = new Fl_Button(473, 66, 110, 21, gettext("Lk"));
+      { btnLkColor = new Fl_Button(473, 66, 110, 20, gettext("Lk"));
         btnLkColor->callback((Fl_Callback*)cb_btnLkColor);
       } // Fl_Button* btnLkColor
-      { btnSql1Color = new Fl_Button(473, 103, 110, 21, gettext("SQL-1"));
+      { btnSql1Color = new Fl_Button(473, 103, 110, 20, gettext("SQL-1"));
         btnSql1Color->callback((Fl_Callback*)cb_btnSql1Color);
       } // Fl_Button* btnSql1Color
       { btnXmtColor = new Fl_Button(473, 141, 110, 20, gettext("T/R"));
         btnXmtColor->callback((Fl_Callback*)cb_btnXmtColor);
       } // Fl_Button* btnXmtColor
-      { btnRxIDwideColor = new Fl_Button(473, 179, 110, 21, gettext("RxID wide"));
+      { btnRxIDwideColor = new Fl_Button(473, 179, 110, 20, gettext("RxID wide"));
         btnRxIDwideColor->callback((Fl_Callback*)cb_btnRxIDwideColor);
       } // Fl_Button* btnRxIDwideColor
-      { btnAfcColor = new Fl_Button(663, 66, 110, 21, gettext("AFC"));
+      { btnAfcColor = new Fl_Button(663, 66, 110, 20, gettext("AFC"));
         btnAfcColor->callback((Fl_Callback*)cb_btnAfcColor);
       } // Fl_Button* btnAfcColor
       { btnSql2Color = new Fl_Button(663, 103, 110, 20, gettext("SQL-2"));
@@ -9881,75 +9888,75 @@ Fl_Double_Window* ConfigureDialog() {
       { btnTxIDColor = new Fl_Button(662, 179, 110, 20, gettext("TxID"));
         btnTxIDColor->callback((Fl_Callback*)cb_btnTxIDColor);
       } // Fl_Button* btnTxIDColor
-      { Fl_Box* o = spotcolor = new Fl_Box(254, 67, 18, 19);
+      { Fl_Box* o = spotcolor = new Fl_Box(254, 66, 20, 20);
         spotcolor->box(FL_THIN_DOWN_BOX);
         spotcolor->color((Fl_Color)3);
         o->color( RGBCOLOR( SpotColor ) );
       } // Fl_Box* spotcolor
-      { Fl_Box* o = revcolor = new Fl_Box(254, 104, 18, 19);
+      { Fl_Box* o = revcolor = new Fl_Box(254, 103, 20, 20);
         revcolor->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( RevColor ) );
       } // Fl_Box* revcolor
-      { Fl_Box* o = tunecolor = new Fl_Box(254, 142, 18, 19);
+      { Fl_Box* o = tunecolor = new Fl_Box(254, 141, 20, 20);
         tunecolor->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( TuneColor ) );
       } // Fl_Box* tunecolor
-      { Fl_Box* o = rxidcolor = new Fl_Box(254, 180, 18, 19);
+      { Fl_Box* o = rxidcolor = new Fl_Box(254, 179, 20, 20);
         rxidcolor->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( RxIDColor ) );
       } // Fl_Box* rxidcolor
-      { Fl_Box* o = lockcolor = new Fl_Box(442, 67, 18, 19);
+      { Fl_Box* o = lockcolor = new Fl_Box(442, 66, 20, 20);
         lockcolor->box(FL_THIN_DOWN_BOX);
         lockcolor->color((Fl_Color)3);
         o->color( RGBCOLOR( LkColor ) );
       } // Fl_Box* lockcolor
-      { Fl_Box* o = sql1color = new Fl_Box(442, 104, 18, 19);
+      { Fl_Box* o = sql1color = new Fl_Box(442, 103, 20, 20);
         sql1color->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( Sql1Color ) );
       } // Fl_Box* sql1color
-      { Fl_Box* o = rxidcolorwide = new Fl_Box(442, 180, 18, 19);
+      { Fl_Box* o = rxidcolorwide = new Fl_Box(442, 179, 20, 20);
         rxidcolorwide->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( RxIDwideColor ) );
       } // Fl_Box* rxidcolorwide
-      { Fl_Box* o = xmtcolor = new Fl_Box(442, 142, 18, 18);
+      { Fl_Box* o = xmtcolor = new Fl_Box(442, 141, 20, 20);
         xmtcolor->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( XmtColor ) );
       } // Fl_Box* xmtcolor
-      { Fl_Box* o = afccolor = new Fl_Box(630, 76, 18, 19);
+      { Fl_Box* o = afccolor = new Fl_Box(630, 66, 20, 20);
         afccolor->box(FL_THIN_DOWN_BOX);
         afccolor->color((Fl_Color)3);
         o->color( RGBCOLOR( AfcColor ) );
       } // Fl_Box* afccolor
-      { Fl_Box* o = sql2color = new Fl_Box(630, 104, 18, 18);
+      { Fl_Box* o = sql2color = new Fl_Box(630, 103, 20, 20);
         sql2color->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( Sql2Color ) );
       } // Fl_Box* sql2color
-      { Fl_Box* o = txidcolor = new Fl_Box(630, 180, 18, 18);
+      { Fl_Box* o = txidcolor = new Fl_Box(630, 179, 20, 20);
         txidcolor->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( TxIDColor ) );
       } // Fl_Box* txidcolor
-      { btn_default_btn_color = new Fl_Button(284, 217, 110, 21, gettext("Lighted Btns"));
+      { btn_default_btn_color = new Fl_Button(284, 217, 110, 20, gettext("Lighted Btns"));
         btn_default_btn_color->callback((Fl_Callback*)cb_btn_default_btn_color);
       } // Fl_Button* btn_default_btn_color
-      { Fl_Box* o = default_btn_color = new Fl_Box(254, 218, 18, 19);
+      { Fl_Box* o = default_btn_color = new Fl_Box(254, 217, 20, 20);
         default_btn_color->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( default_btn_color ) );
       } // Fl_Box* default_btn_color
-      { btn_check_btn_color = new Fl_Button(473, 217, 110, 21, gettext("Check Btns"));
+      { btn_check_btn_color = new Fl_Button(473, 217, 110, 20, gettext("Check Btns"));
         btn_check_btn_color->callback((Fl_Callback*)cb_btn_check_btn_color);
       } // Fl_Button* btn_check_btn_color
-      { Fl_Box* o = default_check_btn_color = new Fl_Box(442, 220, 18, 19);
+      { Fl_Box* o = default_check_btn_color = new Fl_Box(442, 217, 20, 20);
         default_check_btn_color->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( default_check_btn_color ) );
       } // Fl_Box* default_check_btn_color
-      { btn_default_round_btn_color = new Fl_Button(662, 217, 110, 21, gettext("Round Btns"));
+      { btn_default_round_btn_color = new Fl_Button(662, 217, 110, 20, gettext("Round Btns"));
         btn_default_round_btn_color->callback((Fl_Callback*)cb_btn_default_round_btn_color);
       } // Fl_Button* btn_default_round_btn_color
-      { Fl_Box* o = default_round_btn_color = new Fl_Box(630, 218, 18, 19);
+      { Fl_Box* o = default_round_btn_color = new Fl_Box(630, 217, 20, 20);
         default_round_btn_color->box(FL_ROUND_DOWN_BOX);
         o->color( RGBCOLOR( default_round_btn_color ) );
       } // Fl_Box* default_round_btn_color
-      { btnMenuFont = new Fl_Button(284, 255, 110, 21, gettext("Menu font"));
+      { btnMenuFont = new Fl_Button(284, 255, 110, 20, gettext("Menu font"));
         btnMenuFont->callback((Fl_Callback*)cb_btnMenuFont);
       } // Fl_Button* btnMenuFont
       { listboxScheme = new Fl_ListBox(314, 293, 80, 20, gettext("UI scheme"));
@@ -9970,24 +9977,24 @@ Fl_Double_Window* ConfigureDialog() {
         listboxScheme->labelsize(FL_NORMAL_SIZE);
         listboxScheme->end();
       } // Fl_ListBox* listboxScheme
-      { btn_background_color = new Fl_Button(473, 255, 110, 21, gettext("Background"));
+      { btn_background_color = new Fl_Button(473, 255, 110, 20, gettext("Background"));
         btn_background_color->callback((Fl_Callback*)cb_btn_background_color);
       } // Fl_Button* btn_background_color
-      { Fl_Box* o = background_color = new Fl_Box(442, 256, 18, 19);
+      { Fl_Box* o = background_color = new Fl_Box(442, 255, 20, 20);
         background_color->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( background ) );
       } // Fl_Box* background_color
-      { btn_background2_color = new Fl_Button(473, 292, 110, 21, gettext("Background2"));
+      { btn_background2_color = new Fl_Button(473, 293, 110, 20, gettext("Background2"));
         btn_background2_color->callback((Fl_Callback*)cb_btn_background2_color);
       } // Fl_Button* btn_background2_color
-      { Fl_Box* o = background2_color = new Fl_Box(442, 293, 18, 19);
+      { Fl_Box* o = background2_color = new Fl_Box(442, 293, 20, 20);
         background2_color->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( background2 ) );
       } // Fl_Box* background2_color
-      { btn_foreground_color = new Fl_Button(662, 255, 110, 21, gettext("Foreground"));
+      { btn_foreground_color = new Fl_Button(662, 255, 110, 20, gettext("Foreground"));
         btn_foreground_color->callback((Fl_Callback*)cb_btn_foreground_color);
       } // Fl_Button* btn_foreground_color
-      { Fl_Box* o = foreground_color = new Fl_Box(630, 256, 18, 19);
+      { Fl_Box* o = foreground_color = new Fl_Box(630, 255, 20, 20);
         foreground_color->box(FL_THIN_DOWN_BOX);
         o->color( RGBCOLOR( foreground ) );
       } // Fl_Box* foreground_color
@@ -10333,16 +10340,16 @@ Fl_Double_Window* ConfigureDialog() {
       o->hide();
       { new Fl_Box(340, 39, 316, 21, gettext("Signal Level Indicator"));
       } // Fl_Box* o
-      { Fl_Box* o = lowcolor = new Fl_Box(365, 96, 21, 21);
-        lowcolor->box(FL_DIAMOND_DOWN_BOX);
+      { Fl_Box* o = lowcolor = new Fl_Box(365, 76, 20, 20);
+        lowcolor->box(FL_ROUND_DOWN_BOX);
         lowcolor->color(FL_FOREGROUND_COLOR);
         o->color( RGBCOLOR( LowSignal ) );
       } // Fl_Box* lowcolor
       { btnLowSignal = new Fl_Button(402, 75, 70, 22, gettext("Low"));
         btnLowSignal->callback((Fl_Callback*)cb_btnLowSignal);
       } // Fl_Button* btnLowSignal
-      { Fl_Box* o = normalcolor = new Fl_Box(365, 142, 21, 21);
-        normalcolor->box(FL_DIAMOND_DOWN_BOX);
+      { Fl_Box* o = normalcolor = new Fl_Box(365, 122, 20, 20);
+        normalcolor->box(FL_ROUND_DOWN_BOX);
         normalcolor->color((Fl_Color)2);
         o->color(RGBCOLOR(NormSignal));
       } // Fl_Box* normalcolor
@@ -10357,8 +10364,8 @@ Fl_Double_Window* ConfigureDialog() {
       { btnNormalSignal = new Fl_Button(402, 122, 70, 21, gettext("Normal"));
         btnNormalSignal->callback((Fl_Callback*)cb_btnNormalSignal);
       } // Fl_Button* btnNormalSignal
-      { Fl_Box* o = highcolor = new Fl_Box(365, 189, 21, 21);
-        highcolor->box(FL_DIAMOND_DOWN_BOX);
+      { Fl_Box* o = highcolor = new Fl_Box(365, 169, 20, 20);
+        highcolor->box(FL_ROUND_DOWN_BOX);
         highcolor->color((Fl_Color)3);
         o->color(RGBCOLOR(HighSignal));
       } // Fl_Box* highcolor
@@ -10372,8 +10379,8 @@ Fl_Double_Window* ConfigureDialog() {
       { btnHighSignal = new Fl_Button(402, 169, 70, 21, gettext("High"));
         btnHighSignal->callback((Fl_Callback*)cb_btnHighSignal);
       } // Fl_Button* btnHighSignal
-      { Fl_Box* o = overcolor = new Fl_Box(365, 236, 21, 21);
-        overcolor->box(FL_DIAMOND_DOWN_BOX);
+      { Fl_Box* o = overcolor = new Fl_Box(365, 216, 20, 20);
+        overcolor->box(FL_ROUND_DOWN_BOX);
         overcolor->color((Fl_Color)1);
         o->color(RGBCOLOR(OverSignal));
       } // Fl_Box* overcolor
@@ -18811,20 +18818,20 @@ Fl_Double_Window* ConfigureDialog() {
       o->hide();
       { Fl_Group* o = new Fl_Group(206, 21, 590, 76);
         o->box(FL_ENGRAVED_FRAME);
-        { Fl_Check_Button* o = btnShowTooltips = new Fl_Check_Button(276, 34, 120, 20, gettext("Show tooltips"));
+        { Fl_Check_Button* o = btnShowTooltips = new Fl_Check_Button(247, 34, 120, 20, gettext("Show tooltips"));
           btnShowTooltips->tooltip(gettext("Enable / disable tooltips"));
           btnShowTooltips->down_box(FL_DOWN_BOX);
           btnShowTooltips->value(1);
           btnShowTooltips->callback((Fl_Callback*)cb_btnShowTooltips);
           o->value(progdefaults.tooltips);
         } // Fl_Check_Button* btnShowTooltips
-        { Fl_Check_Button* o = chkMenuIcons = new Fl_Check_Button(420, 34, 150, 20, gettext("Show menu icons"));
+        { Fl_Check_Button* o = chkMenuIcons = new Fl_Check_Button(393, 34, 150, 20, gettext("Show menu icons"));
           chkMenuIcons->tooltip(gettext("Enable / disable icons on menus"));
           chkMenuIcons->down_box(FL_DOWN_BOX);
           chkMenuIcons->callback((Fl_Callback*)cb_chkMenuIcons);
           o->value(progdefaults.menuicons);
         } // Fl_Check_Button* chkMenuIcons
-        { bVisibleModes = new Fl_Button(259, 63, 110, 20, gettext("Visible modes"));
+        { bVisibleModes = new Fl_Button(230, 63, 110, 20, gettext("Visible modes"));
           bVisibleModes->tooltip(gettext("Select modes for menu access"));
           bVisibleModes->callback((Fl_Callback*)cb_bVisibleModes);
         } // Fl_Button* bVisibleModes
@@ -18843,6 +18850,13 @@ Fl_Double_Window* ConfigureDialog() {
           o->labelsize(FL_NORMAL_SIZE);
           listbox_language->end();
         } // Fl_ListBox* listbox_language
+        { Fl_Check_Button* o = btnfill_between_control = new Fl_Check_Button(393, 63, 120, 20, gettext("Fill between controls"));
+          btnfill_between_control->tooltip(gettext("Expand / Fill requires program restart"));
+          btnfill_between_control->down_box(FL_DOWN_BOX);
+          btnfill_between_control->value(1);
+          btnfill_between_control->callback((Fl_Callback*)cb_btnfill_between_control);
+          o->value(progdefaults.status_bar_fill);
+        } // Fl_Check_Button* btnfill_between_control
         o->end();
       } // Fl_Group* o
       { Fl_Group* o = new Fl_Group(206, 103, 590, 34);
