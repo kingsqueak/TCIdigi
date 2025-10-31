@@ -88,6 +88,7 @@
 status progStatus = {
 	MODE_PSK31,			// trx_mode	lastmode;
 	mode_info[MODE_PSK31].sname,	// lastmode_name
+	0,					// int screen_number;
 	50,					// int mainX;
 	50,					// int mainY;
 	WMIN, 				// int mainW;
@@ -365,10 +366,18 @@ status progStatus = {
 
 void status::saveLastState()
 {
-	int mX = fl_digi_main->x();
-	int mY = fl_digi_main->y();
-	mainX = mX;
-	mainY = mY;
+	int screen_number = 0;
+	int scrx = 0, scry = 0, scrw = 0, scrh = 0;
+
+	mainX = fl_digi_main->x();
+	mainY = fl_digi_main->y();
+
+#if FLDIGI_FLTK_API_MINOR >3
+	screen_number = fl_digi_main->screen_num();
+	Fl::screen_xywh( scrx, scry, scrw, scrh);
+	mainX -= scrx;
+	mainY -= scry;
+#endif
 
 	mainW = fl_digi_main->w();
 	mainH = fl_digi_main->h();
@@ -398,7 +407,6 @@ void status::saveLastState()
 	dxdialog_h = dxcluster_viewer->h();
 
 	if (!bWF_only) {
-//		RxTextHeight = (ReceiveText->h() * 100) / text_panel->h();//VTgroup->h();
 		quick_entry = ReceiveText->get_quick_entry();
 		rx_scroll_hints = ReceiveText->get_scroll_hints();
 		rx_word_wrap = ReceiveText->get_word_wrap();
@@ -542,6 +550,7 @@ void status::saveLastState()
 	spref.set("noCATmode", noCATmode.c_str());
 	spref.set("noCATwidth", noCATwidth.c_str());
 
+	spref.set("screen_number", screen_number);
 	spref.set("main_x", mainX);
 	spref.set("main_y", mainY);
 	spref.set("main_w", mainW);
@@ -868,6 +877,7 @@ void status::loadLastState()
 	spref.get("noCATwidth", strbuff, "3000", sizeof(strbuff) - 1);
 	noCATwidth = strbuff;
 
+	spref.get("screen_number", screen_number, screen_number);
 	spref.get("main_x", mainX, mainX);
 	spref.get("main_y", mainY, mainY);
 
@@ -1303,6 +1313,10 @@ void status::initLastState()
 	progdefaults.kpsql_attenuation = kpsql_attenuation;
 
 	kiss_io_set_button_state(0);
+
+#if FLDIGI_FLTK_API_MINOR >3
+	fl_digi_main->screen_num(screen_number);
+#endif
 
 	if (bWF_only)
 		fl_digi_main->resize(mainX, mainY, mainW, Hmenu + Hwfall + Hstatus);

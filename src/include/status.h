@@ -31,6 +31,7 @@
 struct status {
 	trx_mode	lastmode;
 	std::string	mode_name;
+	int		screen_number;
 	int		mainX;
 	int		mainY;
 	int		mainW;
