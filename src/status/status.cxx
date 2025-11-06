@@ -89,6 +89,7 @@ status progStatus = {
 	MODE_PSK31,			// trx_mode	lastmode;
 	mode_info[MODE_PSK31].sname,	// lastmode_name
 	0,					// int screen_number;
+	1.0,				// double screen_scale;
 	50,					// int mainX;
 	50,					// int mainY;
 	WMIN, 				// int mainW;
@@ -374,6 +375,7 @@ void status::saveLastState()
 
 #if FLDIGI_FLTK_API_MINOR >3
 	screen_number = fl_digi_main->screen_num();
+	screen_scale = Fl::screen_scale(screen_number);
 	Fl::screen_xywh( scrx, scry, scrw, scrh);
 	mainX -= scrx;
 	mainY -= scry;
@@ -551,6 +553,8 @@ void status::saveLastState()
 	spref.set("noCATwidth", noCATwidth.c_str());
 
 	spref.set("screen_number", screen_number);
+	spref.set("screen_scale", screen_scale);
+
 	spref.set("main_x", mainX);
 	spref.set("main_y", mainY);
 	spref.set("main_w", mainW);
@@ -878,6 +882,8 @@ void status::loadLastState()
 	noCATwidth = strbuff;
 
 	spref.get("screen_number", screen_number, screen_number);
+	spref.get("screen_scale", screen_scale, screen_scale);
+
 	spref.get("main_x", mainX, mainX);
 	spref.get("main_y", mainY, mainY);
 
@@ -1316,6 +1322,7 @@ void status::initLastState()
 
 #if FLDIGI_FLTK_API_MINOR >3
 	fl_digi_main->screen_num(screen_number);
+	Fl::screen_scale(screen_number, screen_scale);
 #endif
 
 	if (bWF_only)
