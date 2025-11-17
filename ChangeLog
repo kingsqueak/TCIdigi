@@ -1,6 +1,21 @@
-2025-09-08  dave-w1hkj  <w1hkj25@gmail.com>
+2025-11-16  dave-w1hkj  <w1hkj25@gmail.com>
 
-	42811d228b: Version 4.2.09
+	e8cb9b86e2: Version 4.2.10
+	f4d7a2f1d0: screen scale
+	d2f74a648e: screen number
+	5bc74b113c: Control Positions
+	08f39fddae: Deprecate DIAMOND box
+	99fd23b498: flrig FSK parameters
+	35fd4db4e7: LMDE-7 compiler
+	d299fba18b: disappearing rx pane
+	c55bcc2e59: Blinking RTTY mark track
+	90bdcfc5fc: FSK with flrig
+	810954588d: Add gpiod support
+	435a10f4aa: Mxe compatability
+	690d841dae: fsq sounder
+	a83ecd638d: cw/wfall-only
+	ca8538fcd6: Regex Search
+	ba5d357a16: Version 4.2.09
 	3292f4a9c6: fmt segmentation fault
 	039cb1c527: Version 4.2.08
 	73a641244c: Export ADIF defaults
