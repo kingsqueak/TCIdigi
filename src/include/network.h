@@ -181,7 +181,7 @@ public:
 		_data.clear();
 		_pers = "fldigi";
 		_timeout = 5.0;
-		debug();
+//		debug();
 	}
 
 	void parse(std::string url);
