@@ -60,25 +60,41 @@
 #include <sstream>
 
 #ifdef __linux__
+
 #  include <dirent.h>
 #  include <limits.h>
 #  include <errno.h>
 #  include <glob.h>
-#endif
-#ifdef __APPLE__
-#  include <glob.h>
-#endif
-#ifndef __CYGWIN__
-#  include <sys/stat.h>
-#else
+
+#  include <stdio.h>
+#  include <stdlib.h>
+#  include <dirent.h>
 #  include <fcntl.h>
+#  include <termios.h>
+
+#endif
+
+#ifdef __APPLE__
+
+#  include <glob.h>
+
+#endif
+
+#ifndef __CYGWIN__
+
+#  include <sys/stat.h>
+
+#else
+
+#  include <fcntl.h>
+
 #endif
 
 // this tests depends on a modified FL/filename.H in the Fltk-1.3.0
 // change
 //#  if defined(WIN32) && !defined(__CYGWIN__) && !defined(__WATCOMC__)
 // to
-//#  if defined(WIN32) && !defined(__CYGWIN__) && !defined(__WATCOMC__) && !defined(__WOE32__)
+//#  if defined(WIN32) && !defined(__CYGWIN__) && !defined(__WATCOMC__) && !defined(__WIN32__)
 
 #include <dirent.h>
 
@@ -474,7 +490,7 @@ void configuration::saveDefaults()
 	LOGBOOKtextname = Fl::get_font_name(LOGBOOKtextfont);
 
 
-#if ENABLE_NLS && defined(__WOE32__)
+#if ENABLE_NLS && defined(__WIN32__)
 	set_ui_lang(listbox_language->index());
 #endif
 
@@ -679,16 +695,6 @@ int configuration::setDefaults()
 	wf->setPrefilter(wfPreFilter);
 	btnWFaveraging->value(WFaveraging);
 
-//	Fl::get_color( RGBCOLOR( cfgpal0 ), palette[0].R, palette[0].G, palette[0].B);
-//	Fl::get_color( RGBCOLOR( cfgpal1 ), palette[1].R, palette[1].G, palette[1].B);
-//	Fl::get_color( RGBCOLOR( cfgpal2 ), palette[2].R, palette[2].G, palette[2].B);
-//	Fl::get_color( RGBCOLOR( cfgpal3 ), palette[3].R, palette[3].G, palette[3].B);
-//	Fl::get_color( RGBCOLOR( cfgpal4 ), palette[4].R, palette[4].G, palette[4].B);
-//	Fl::get_color( RGBCOLOR( cfgpal5 ), palette[5].R, palette[5].G, palette[5].B);
-//	Fl::get_color( RGBCOLOR( cfgpal6 ), palette[6].R, palette[6].G, palette[6].B);
-//	Fl::get_color( RGBCOLOR( cfgpal7 ), palette[7].R, palette[7].G, palette[7].B);
-//	Fl::get_color( RGBCOLOR( cfgpal8 ), palette[8].R, palette[8].G, palette[8].B);
-
 	palette[0].R = ui_colors.cfgpal0.r; palette[0].G = ui_colors.cfgpal0.g; palette[0].B = ui_colors.cfgpal0.b;
 	palette[1].R = ui_colors.cfgpal1.r; palette[1].G = ui_colors.cfgpal1.g; palette[1].B = ui_colors.cfgpal1.b;
 	palette[2].R = ui_colors.cfgpal2.r; palette[2].G = ui_colors.cfgpal2.g; palette[2].B = ui_colors.cfgpal2.b;
@@ -710,7 +716,7 @@ int configuration::setDefaults()
 	btnUsePPortPTT->hide();
 #endif
 
-#if ENABLE_NLS && defined(__WOE32__)
+#if ENABLE_NLS && defined(__WIN32__)
 	std::ostringstream ss;
 	for (lang_def_t* p = ui_langs; p->lang; p++) {
 		ss.str("");
@@ -882,45 +888,187 @@ int configuration::BaudRate(size_t n)
 	return (atoi(szBaudRates[n + 1]));
 }
 
-#ifdef __WOE32__
-static bool open_serial(const char* dev)
+void update_COM_controls( char *szComName )
 {
-	bool ret = false;
-#ifdef __CYGWIN__
-	int fd = fl_open(dev, O_RDWR | O_NOCTTY | O_NDELAY | O_CLOEXEC);
-	if (fd != -1) {
-		close(fd);
-		ret = true;
-	}
-#elif defined(__MINGW32__)
-	HANDLE fd = CreateFile(dev, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
-	if (fd != INVALID_HANDLE_VALUE) {
-		CloseHandle(fd);
-		ret = true;
-	}
-#endif
-	return ret;
-}
-#endif // __WOE32__
+	LOG_INFO("Found serial port %s", szComName);
+	inpTTYdev->add(szComName);
+	inpRIGdev->add(szComName);
+	inpXmlRigDevice->add(szComName);
+	select_nanoIO_CommPort->add(szComName);
+	select_nanoCW_CommPort->add(szComName);
+	select_CW_KEYLINE_CommPort->add(szComName);
+	select_FSK_CommPort->add(szComName);
+	select_USN_FSK_port->add(szComName);
+	select_Nav_config_port->add(szComName);
+	select_WK_CommPort->add(szComName);
+	select_WKFSK_CommPort->add(szComName);
 
-void configuration::testCommPorts()
-{
+}
+
+#if defined ( __WIN32__ )
+
+void test_Win_COMPorts() {
+	char lpTargetPath[1024]; // Buffer to store the target path of the COM port
+	DWORD dwResult;
+
 	inpTTYdev->clear();
 	inpRIGdev->clear();
 	inpXmlRigDevice->clear();
-#ifndef PATH_MAX
-#  define PATH_MAX 1024
-#endif
-#ifndef __WOE32__
-	struct stat st;
-#endif
 
-#ifndef __APPLE__
-	char ttyname[PATH_MAX + 1];
-#endif
+// Iterate through potential COM port names (COM1 to COM255)
+	for (int i = 1; i <= 255; i++) {
+		char szComName[10];
+		snprintf(szComName, sizeof(szComName), "COM%d", i);
+
+// Query the device for its target path
+		dwResult = QueryDosDeviceA(szComName, lpTargetPath, sizeof(lpTargetPath));
+
+// If QueryDosDevice returns a non-zero value, it means the device exists
+		if (dwResult != 0) update_COM_controls( szComName );
+	}
+}
+
+#else 
+
+#if defined (__APPLE__)
+
+#  include <CoreFoundation/CoreFoundation.h>
+#  include <IOKit/IOKitLib.h>
+#  include <IOKit/serial/IOSerialKeys.h>
+#  include <IOKit/IOBSD.h>
+
+void test_MAC_COMports() {
+	inpTTYdev->clear();
+	inpRIGdev->clear();
+	inpXmlRigDevice->clear();
 
 	const char* tty_fmt[] = {
-#if defined(__linux__)
+		"/dev/cu.*",
+		"/dev/tty.*"
+	};
+
+// Create a matching dictionary: 
+//   This dictionary specifies the criteria for the serial ports you are 
+//   looking for. You typically match on kIOSerialBSDServiceValue.
+
+	CFMutableDictionaryRef matchingDict = IOServiceMatching(kIOSerialBSDServiceValue);
+
+// Get an iterator for matching services:
+//   Use IOServiceGetMatchingServices to find all services that match your dictionary.
+
+	io_iterator_t serialPortIterator;
+	kern_return_t kernResult = IOServiceGetMatchingServices
+									(kIOMasterPortDefault,
+									matchingDict,
+									&serialPortIterator);
+	if (KERN_SUCCESS != kernResult) {
+		LOG_ERROR( "KERNAL ERROR" );
+		return;
+	}
+
+// Iterate through the services: Loop through the serialPortIterator to 
+//   get individual serial port devices.
+
+	io_object_t serialPortService;
+	while ((serialPortService = IOIteratorNext(serialPortIterator))) {
+		// Get the callout device path (e.g., /dev/cu.usbserial-XXXX)
+		CFStringRef calloutPath = (CFStringRef)IORegistryEntryCreateCFProperty(
+									 serialPortService,
+									 CFSTR(kIOCalloutDeviceKey),
+									 kCFAllocatorDefault, 0);
+		if (calloutPath) {
+
+// Convert CFStringRef to C string and print or store
+
+			char pathBuffer[1024];
+			if ( CFStringGetCString(
+					calloutPath,
+					pathBuffer,
+					sizeof(pathBuffer),
+					kCFStringEncodingUTF8)) {
+				update_COM_controls( pathBuffer );
+			}
+			CFRelease(calloutPath);
+		}
+		IOObjectRelease(serialPortService); // Release the service object
+	}
+
+// Release the iterator.
+
+	IOObjectRelease(serialPortIterator);
+
+#if HAVE_UHROUTER
+	struct stat st;
+	if (stat(UHROUTER_FIFO_PREFIX "Read", &st) != -1 && S_ISFIFO(st.st_mode) &&
+	    stat(UHROUTER_FIFO_PREFIX "Write", &st) != -1 && S_ISFIFO(st.st_mode))
+		inpTTYdev->add(UHROUTER_FIFO_PREFIX);
+#endif // HAVE_UHROUTER
+
+}
+
+//end defined ( __APPLE__ )
+
+# else
+
+# if defined ( __OpenBSD__ ) || defined ( __NetBSD__ )
+
+void test_BSD_COMports() {
+	inpTTYdev->clear();
+	inpRIGdev->clear();
+	inpXmlRigDevice->clear();
+#  define PATH_MAX 1024
+
+	struct stat st;
+
+	char ttyname[PATH_MAX + 1];
+
+	const char* tty_fmt[] = {
+		"/dev/tty%2.2u"
+	};
+
+#  define TTY_MAX 4
+
+	glob_t gbuf;
+	glob("/dev/serial/by-id/*", 0, NULL, &gbuf);
+	for (size_t j = 0; j < gbuf.gl_pathc; j++) {
+		if ( !(stat(gbuf.gl_pathv[j], &st) == 0 && S_ISCHR(st.st_mode)) ||
+		     strstr(gbuf.gl_pathv[j], "modem") )
+			continue;
+		update_COM_controls( gbuf.gl_pathv[j] );
+	}
+	globfree(&gbuf);
+
+	for (size_t i = 0; i < sizeof(tty_fmt)/sizeof(*tty_fmt); i++) {
+		for (unsigned j = 0; j < TTY_MAX; j++) {
+			snprintf(ttyname, sizeof(ttyname), tty_fmt[i], j);
+			if ( !(stat(ttyname, &st) == 0 && S_ISCHR(st.st_mode)) )
+				continue;
+			update_COM_controls( ttyname );
+		}
+#if HAVE_UHROUTER
+	if (stat(UHROUTER_FIFO_PREFIX "Read", &st) != -1 && S_ISFIFO(st.st_mode) &&
+	    stat(UHROUTER_FIFO_PREFIX "Write", &st) != -1 && S_ISFIFO(st.st_mode))
+		inpTTYdev->add(UHROUTER_FIFO_PREFIX);
+#endif // HAVE_UHROUTER
+
+}
+
+# else // must be good old Linux
+
+void test_Linux_COMports() {
+
+	struct stat st;
+	glob_t gbuf;
+	glob("/dev/serial/by-id/*", 0, NULL, &gbuf);
+	for (size_t j = 0; j < gbuf.gl_pathc; j++) {
+		if ( !(stat(gbuf.gl_pathv[j], &st) == 0 && S_ISCHR(st.st_mode)) ||
+		     strstr(gbuf.gl_pathv[j], "modem") )
+			continue;
+		update_COM_controls( gbuf.gl_pathv[j] );
+	}
+	globfree(&gbuf);
+
+	const char* tty_fmt[] = {
 		"/dev/ttyS%u",
 		"/dev/ttyUSB%u",
 		"/dev/usb/ttyUSB%u",
@@ -928,125 +1076,16 @@ void configuration::testCommPorts()
 		"/dev/usb/ttyACM%u",
 		"/dev/rfcomm%u",
 		"/opt/vttyS%u"
-#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
-		"/dev/tty%2.2u"
-#elif defined(__CYGWIN__)
-		"/dev/ttyS%u"
-#elif defined(__MINGW32__)
-		"//./COM%u"
-#elif defined(__APPLE__)
-		"/dev/cu.*",
-		"/dev/tty.*"
-#endif
 	};
-
-#if defined(__WOE32__)
-#  define TTY_MAX 255
-#elif defined(__OpenBSD__) || defined(__NetBSD__)
-#  define TTY_MAX 4
-#else
-#  define TTY_MAX 8
-#endif
-
-#ifdef __linux__
-	glob_t gbuf;
-	glob("/dev/serial/by-id/*", 0, NULL, &gbuf);
-	for (size_t j = 0; j < gbuf.gl_pathc; j++) {
-		if ( !(stat(gbuf.gl_pathv[j], &st) == 0 && S_ISCHR(st.st_mode)) ||
-		     strstr(gbuf.gl_pathv[j], "modem") )
-			continue;
-		LOG_INFO("Found serial port %s", gbuf.gl_pathv[j]);
-		inpTTYdev->add(gbuf.gl_pathv[j]);
-#  if USE_HAMLIB
-		inpRIGdev->add(gbuf.gl_pathv[j]);
-#  endif
-		inpXmlRigDevice->add(gbuf.gl_pathv[j]);
-
-		select_nanoIO_CommPort->add(gbuf.gl_pathv[j]);
-		select_nanoCW_CommPort->add(gbuf.gl_pathv[j]);
-		select_CW_KEYLINE_CommPort->add(gbuf.gl_pathv[j]);
-		select_FSK_CommPort->add(gbuf.gl_pathv[j]);
-
-		select_USN_FSK_port->add(gbuf.gl_pathv[j]);
-		select_Nav_config_port->add(gbuf.gl_pathv[j]);
-
-		select_WK_CommPort->add(gbuf.gl_pathv[j]);
-		select_WKFSK_CommPort->add(gbuf.gl_pathv[j]);
-	}
-	globfree(&gbuf);
-#endif
+	char ttyname[512];
 
 	for (size_t i = 0; i < sizeof(tty_fmt)/sizeof(*tty_fmt); i++) {
-#ifndef __APPLE__
-		for (unsigned j = 0; j < TTY_MAX; j++) {
+		for (unsigned j = 0; j < 8; j++) {
 			snprintf(ttyname, sizeof(ttyname), tty_fmt[i], j);
-#  ifndef __WOE32__
 			if ( !(stat(ttyname, &st) == 0 && S_ISCHR(st.st_mode)) )
 				continue;
-#  else // __WOE32__
-			LOG_DEBUG("Testing serial port %s", ttyname);
-			if (!open_serial(ttyname))
-				continue;
-#    ifdef __CYGWIN__
-			snprintf(ttyname, sizeof(ttyname), "COM%u", j+1);
-#    else
-			snprintf(ttyname, sizeof(ttyname), "COM%u", j);
-#    endif
-#  endif // __WOE32__
-
-			LOG_VERBOSE("Found serial port %s", ttyname);
-			inpTTYdev->add(ttyname);
-#  if USE_HAMLIB
-			inpRIGdev->add(ttyname);
-#  endif
-			inpXmlRigDevice->add(ttyname);
-
-			select_nanoIO_CommPort->add(ttyname);
-			select_nanoCW_CommPort->add(ttyname);
-			select_CW_KEYLINE_CommPort->add(ttyname);
-			select_FSK_CommPort->add(ttyname);
-
-			select_USN_FSK_port->add(ttyname);
-			select_Nav_config_port->add(ttyname);
-
-			select_WK_CommPort->add(ttyname);
-			select_WKFSK_CommPort->add(ttyname);
+			update_COM_controls ( ttyname );
 		}
-#else // __APPLE__
-		glob_t gbuf;
-		glob(tty_fmt[i], 0, NULL, &gbuf);
-		for (size_t j = 0; j < gbuf.gl_pathc; j++) {
-			int ret1 = !stat(gbuf.gl_pathv[j], &st);
-			int ret2 = S_ISCHR(st.st_mode);
-			if (ret1) {
-				LOG_INFO("Serial port %s", gbuf.gl_pathv[j]);
-				LOG_INFO("  device mode:     %X", st.st_mode);
-				LOG_INFO("  char device?     %s", ret2 ? "Y" : "N");
-			} else
-				LOG_INFO("%s does not return stat query", gbuf.gl_pathv[j]);
-
-			if ( (ret1 && ret2 ) || strstr(gbuf.gl_pathv[j], "modem") )
-				inpTTYdev->add(gbuf.gl_pathv[j]);
-			else
-				continue;
-#  if USE_HAMLIB
-			inpRIGdev->add(gbuf.gl_pathv[j]);
-#  endif
-			inpXmlRigDevice->add(gbuf.gl_pathv[j]);
-
-			select_nanoIO_CommPort->add(gbuf.gl_pathv[j]);
-			select_nanoCW_CommPort->add(gbuf.gl_pathv[j]);
-			select_CW_KEYLINE_CommPort->add(gbuf.gl_pathv[j]);
-			select_FSK_CommPort->add(gbuf.gl_pathv[j]);
-
-			select_USN_FSK_port->add(gbuf.gl_pathv[j]);
-			select_Nav_config_port->add(gbuf.gl_pathv[j]);
-
-			select_WK_CommPort->add(gbuf.gl_pathv[j]);
-			select_WKFSK_CommPort->add(gbuf.gl_pathv[j]);
-		}
-		globfree(&gbuf);
-#endif // __APPLE__
 	}
 
 #if HAVE_UHROUTER
@@ -1055,6 +1094,28 @@ void configuration::testCommPorts()
 		inpTTYdev->add(UHROUTER_FIFO_PREFIX);
 #endif // HAVE_UHROUTER
 }
+
+#  endif
+# endif
+#endif
+
+void configuration::testCommPorts()
+{
+#if defined (__WIN32__)
+	test_Win_COMPorts();
+#else
+# if defined (__APPLE__)
+	test_MAC_COMports();
+# else
+#  if defined(__OpenBSD__) || defined(__NetBSD__) 
+	test_BSD_COMports();
+#  else
+	test_Linux_COMports();
+#  endif
+# endif
+#endif
+}
+
 
 Fl_Font font_number(const char* name)
 {
