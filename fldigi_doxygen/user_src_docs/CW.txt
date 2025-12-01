@@ -166,7 +166,61 @@ If the transceiver is set to full break in you will hear Rx between code element
 
 You will need to modify your operating paridigm to fit the above model.
 
-<br>
+\section cw_macros CW Macros
+
+Macros used for CW should be formated with attention to removing undesireable 
+white space.  White space includes SPACE, CR and LF.<br>
+
+fldigi will send each and every white space encountered in the macro string.  Sending a space in CW takes time and may add undesired delays to the signal generation.<br>
+
+Each space requires 7 dot intervals to complete. At 30 WPM each dot is 1200 / WPM millisecond in duration.  The space character causes an effective pause of 7 x 40 or 280 millisecond at 30 WPM.  Three spaces equals 740 millisecond.  The space occupies a period of time determined by the WPM setting.<br>
+
+WPM  |  SPACE DELAY
+:--: | :------
+10   | 840 msec
+20   | 420 msec
+30   | 280 msec
+40   | 210 msec
+
+Here is an example of a CLEAR-ALL macro that looks inoccuous, but can result in a surprising delay in subsequent text tramission.<br>
+
+"<CLRRX> <CLRTX> <LOCK:off> <AFC:on>"<br>
+
+Each of the macro tags are referred to as immediate execute.  The contents of the macro is parsed by the macro interpreter thusly:<br>
+
+MACRO TAG       |  EFFECT
+:-------------: | :-----------------------
+"<CLRRX> "      | clears the receive screen and deletes the <CLRRX> from the macro string, leaving the space
+" <CLRTX> "     | clears the transmit screen deletes the <CLRTX> from the macro string, leaving two spaces
+"  <LOCK:off> " | unlocks the transmit frequency audio insertion point, deletes the <LOCK:off> from the maro string and leaves three spaces
+"   <AFC:on> "  | turns AFC to ON (useless for CW since AFC is meaningless in the current implementation), deletes the <AFC:on> and leaves three spaces
+
+The macro string is left with three spaces which are then appended to the now clear TX panel.  The next macro you try to execute appends it's text (less any immediate execute tag substitutions).  For example the next macro you press might be the QRL macro.<br>
+
+"<TX>QRL de WA1SXK K<RX>"<br>
+
+The <TX> is immediate, it turns on the transmit processing.  The macro string then becomes<br>
+
+"QRL de WA1SXK K<RX>"<br>
+
+The <RX> is processed by adding the command to restore receive in a first-in, first-out command queue.  A hidden character (no space in transmit timing) is then added to the macro string.<br>
+
+"QRL de WA1SXK K_" where '_' represents the hidden character.<br>
+
+The result is then appended to the transmit buffer, which has the 3 spaces in place:<br>
+
+"   QRL de WA1SXK K_"<br>
+
+and transmit begins with a 3 space delay before the first Q in QRL.<br>
+ 
+Remove the unnecessary spaces from the CLEAR-ALL macro.<br>
+ 
+"<CLRRX><CLRTX><LOCK:off><AFC:on>"<br>
+
+The transmit pending buffer is now left empty and subsequent macro or keyboard entries will not have the bonus 3 space start sequence.<br>
+
+SPACES count!<br>
+
 \ref cw_page "Return to Top of Page"
 <br>
 \ref main_page "Return to Main Page"
