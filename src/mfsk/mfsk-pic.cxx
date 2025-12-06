@@ -67,16 +67,11 @@ void createRxViewer()
 void showRxViewer(int W, int H)
 {
 	if (!picRxWin) createRxViewer();
-	int winW, winH;
-	int picX, picY;
-	winW = W < 136 ? 140 : W + 4;
-	winH = H + 4;
-	picX = (winW - W) / 2;
-	picY = 2;
-	picRxWin->size(winW, winH);
-	picRx->resize(picX, picY, W, H);
+	picRx->size(W, H);
+	picRxWin->size( W < 136 ? 140: W + 4, H + 4);
 	picRx->clear();
-	picRxWin->show();
+	picRxWin->redraw();
+	if (!picRxWin->visible()) picRxWin->show();
 }
 
 int load_image(const char *n) {
@@ -353,8 +348,8 @@ void TxViewerResize(int W, int H)
 	winH = H < 180 ? 210 : H + 30;
 	picX = (winW - W) / 2;
 	picY = (winH - 26 - H) / 2;
-	picTxWin->size(winW, winH);
-	picTx->resize(picX, picY, W, H);
+	picTxWin->size ( winW, winH );
+	picTx->resize ( picX, picY, W, H );
 	picTx->clear();
 	picTxBox->size(winW, winH);
 	btnpicTxSPP->resize(winW/2 - 140, winH - 26, 40, 24);
