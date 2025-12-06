@@ -26,7 +26,7 @@
 // along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
 // ----------------------------------------------------------------------------
 
-#define CW_DEBUG 0
+#define CW_DEBUG 1
 
 #include <config.h>
 
@@ -256,7 +256,7 @@ void cw::rx_init()
 	smpl_ctr = 0;
 	cw_rr_current = 0;
 	cw_ptr = 0;
-	agc_peak = 0;
+	agc_peak = 0.0;
 	set_scope_mode(Digiscope::SCOPE);
 
 	update_Status();
@@ -354,7 +354,7 @@ cw::cw() : modem()
 	lower_threshold = progdefaults.CWlower;
 	for (int i = 0; i < MAX_PIPE_SIZE; clearpipe[i++] = 0.0);
 
-	agc_peak = 1.0;
+	agc_peak = 0.0;
 	in_replay = 0;
 
 	use_matched_filter = progdefaults.CWmfilt;
@@ -377,7 +377,7 @@ cw::cw() : modem()
 	cw_filter->init_bandpass(FIR_FILTER_LEN, FIR_DECIMATE, 1.0*(frequency - bandwidth/2)/samplerate, 1.0*(frequency + bandwidth/2)/samplerate);
 
 
-	int bfv = symbollen / ( 2 * FIR_DECIMATE);
+	int bfv = (symbollen / FIR_DECIMATE ) / 3;
 	if (bfv < 1) bfv = 1;
 
 	bitfilter = new Cmovavg(bfv);
@@ -400,7 +400,7 @@ cw::cw() : modem()
 
 	synchscope = 50;
 	noise_floor = 1.0;
-	sig_avg = 0.0;
+	sig_avg = 0.5;
 
 	cal_wpm = 20;
 
@@ -468,7 +468,7 @@ void cw::reset_rx_filter()
 		symbollen = (int)round(samplerate * 1.2 / progdefaults.CWspeed);
 		fsymlen = (int)round(samplerate * 1.2 / progdefaults.CWfarnsworth);
 
-		int bfv = (symbollen / FIR_DECIMATE) / 4;
+		int bfv = (symbollen / FIR_DECIMATE ) / 3;
 		if (bfv < 1) bfv = 1;
 
 		bitfilter->setLength(bfv);
@@ -664,6 +664,12 @@ cmplx cw::mixer(cmplx in)
 	return z;
 }
 
+/*
+bool header = false;
+bool keydown = false;
+int  data_num = 0;
+*/
+
 void cw::decode_stream(double value)
 {
 	std::string sc;
@@ -684,7 +690,7 @@ void cw::decode_stream(double value)
 		case 2: decay = 500;//250;
 	}
 
-	sig_avg = decayavg(sig_avg, value, decay);
+	sig_avg = decayavg(sig_avg, 0.5 * value, (value > sig_avg ? attack : decay ));
 
 	if (value < sig_avg) {
 		if (value < noise_floor)
@@ -699,38 +705,60 @@ void cw::decode_stream(double value)
 			agc_peak = decayavg(agc_peak, value, decay); 
 	}
 
-	float norm_noise  = noise_floor / agc_peak;
-	float norm_sig    = sig_avg / agc_peak;
-	siglevel = norm_sig;
+	float norm_noise;
+	float norm_sig;
+	float norm_value;
 
-	if (agc_peak)
-		value /= agc_peak;
-	else
-		value = 0;
+	if (agc_peak) {
+		norm_value = value / agc_peak;
+		norm_noise = noise_floor / agc_peak;
+		norm_sig = sig_avg / agc_peak;
+	} 	else {
+		norm_value = noise_floor;
+		norm_noise = noise_floor;
+		norm_sig = noise_floor;
+	}
+	siglevel = norm_sig;
+	progdefaults.CWupper = 1.05 * norm_sig;
+	progdefaults.CWlower = 0.95 * norm_sig;
 
 	metric = 0.8 * metric;
 	if ((noise_floor > 1e-4) && (noise_floor < sig_avg))
-		metric += 0.2 * clamp(2.5 * (20*log10(sig_avg / noise_floor)) , 0, 100);
+		metric += 0.2 * clamp(2.5 * (20*log10(norm_sig / norm_noise)) , 0, 100);
 
-	float diff = (norm_sig - norm_noise);
-
-	progdefaults.CWupper = norm_sig - 0.2 * diff;
-	progdefaults.CWlower = norm_noise + 0.7 * diff;
-
-	pipe[pipeptr] = value;
+	pipe[pipeptr] = norm_value;
 	if (++pipeptr == pipesize) pipeptr = 0;
 
 	if (!progStatus.sqlonoff || metric > progStatus.sldrSquelchValue ) {
 // Power detection using hysterisis detector
 // upward trend means tone starting
-		if ((value > progdefaults.CWupper) && (cw_receive_state != RS_IN_TONE)) {
+		if ((norm_value > progdefaults.CWupper) && (cw_receive_state != RS_IN_TONE)) {
 			handle_event(CW_KEYDOWN_EVENT, sc);
+//			keydown = true;
 		}
 // downward trend means tone stopping
-		if ((value < progdefaults.CWlower) && (cw_receive_state == RS_IN_TONE)) {
+		else if ((norm_value < progdefaults.CWlower) && (cw_receive_state == RS_IN_TONE)) {
 			handle_event(CW_KEYUP_EVENT, sc);
+//			keydown = false;
 		}
 	}
+
+/*
+FILE *data;
+if (!header) {
+	data = fopen("data.txt", "w");
+	fprintf(data,"N, Noise, Norm, Signal, Key\n");
+	header = true;
+	data_num = 0;
+	fclose(data);
+}
+if (data_num >= 1024) {
+	data = fopen("data.txt", "a");
+	fprintf(data, "%d,%f,%f,%f,%d\n", data_num - 1024, norm_noise, norm_sig, norm_value, keydown);
+	fclose(data);
+}
+++data_num;
+*/
 
 //	if (handle_event(CW_QUERY_EVENT, sc) == SC_VALID) {
 	handle_event(CW_QUERY_EVENT, sc);
@@ -768,16 +796,15 @@ void cw::rx_FFTprocess(const double *buf, int len)
 	int n = 0;
 	double fil_in = 0, fil_out = 0, bit_value = 0;
 
-	while ( len-- ) {
-		fil_in = *buf;
+	for (int i = 0; i < len; i++) {
+		fil_in = buf[i];
 		n = cw_filter->Irun(fil_in, fil_out);
-		smpl_ctr++; buf++;
+		smpl_ctr++;
 		if (n) {
 			bit_value = bitfilter->run(abs(fil_out));
 			decode_stream(bit_value);
 		}
 	}
-
 }
 
 static bool cwprocessing = false;
@@ -1469,8 +1496,11 @@ void flrig_cwio_send(char c)
 	std::string s = " ";
 	s[0] = c;
 	flrig_cwio_send_text(s);
-	if (c == '[' || c == ']')
+
+	if (c == '[' || c == ']') {
+		MilliSleep(50);
 		return;
+	}
 
 	int tc = 1200 / progdefaults.CWspeed;
 	if (progdefaults.CWusefarnsworth && (progdefaults.CWspeed > progdefaults.CWfarnsworth))
