@@ -250,7 +250,7 @@ private:
 	int rtty_sleep (double);
 
 	inline void wait_one_byte( double baud, double stopbits) {
-		rtty_sleep( (6.0 + stopbits) / baud + 0.005);
+		rtty_sleep( (6.0 + stopbits) / baud);
 	}
 
 public:

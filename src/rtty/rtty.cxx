@@ -1123,7 +1123,7 @@ int rtty::rtty_sleep (double sleep_time)
 	double start_at = rtty_now();
 	double end_at = start_at + sleep_time;
 
-	double delay = sleep_time - 0.005;
+	double delay = sleep_time;
 
 	tv.tv_sec = (time_t) delay;
 	tv.tv_nsec = (long) ((delay - tv.tv_sec) * 1000000000L);
@@ -1153,9 +1153,18 @@ void rtty::flrig_fsk_send(char c)
 	static std::string s = " ";
 	s[0] = c;
 	flrig_fskio_send_text(s);
-	wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
-	if ( c == '\n' )
+
+	int shift = baudot_enc(c) & 0x300; // test for LETTERS/FIGURES
+	if (shift != shift_state) {
+		shift_state = shift;
 		wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
+	}
+	wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
+	if ( c == '\n' ) {
+		wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);  // FIGURES sent by flrig
+		wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);  // \r      sent by flrig
+		wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);  // LETTERS sent by flrig
+	}
 }
 
 int idles = 8;
@@ -1422,7 +1431,7 @@ int rtty::baudot_enc(unsigned char data)
 			mode |= LETTERS;
 			c = i;
 		}
-		if (data == figures[i]) {
+		else if (data == figures[i]) {
 			mode |= FIGURES;
 			c = i;
 		}
