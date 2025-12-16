@@ -71,6 +71,29 @@ started. You can also manually check for updates from the "Help /
 Check for updates" menu item.
 <br>
 
+\section dialog_resize Reszing Dialog
+
+Dialog resizing (scaling) is supported on all distribution platforms beginning with
+version 4.2.10.  This is a direct result of a change to the user interface library, 
+Fast Light Tool Kit, to Fltk 1.4.4.  The Fltk initialization code attempts to
+make the user experience the same display size on all video hardware.  It is successful most
+of the time, but the code often produces a smaller than useful dialog size. The fldigi main 
+and support dialogs can be scaled from 50% to 300% of the default size.  
+
+Dialog scaling is accomplished using these key combinations:
+
+On Windows & Linux
+<ul><li>Control + : increase size</li>
+<li>Control - : decrease size</li>
+</ul>
+On MacOS
+<ul><li>Command + : increase size</li>
+<li>Command - : decrease size</li>
+</ul>
+
+The screen position (X, Y), dimension (W, H), and scale factor will be 
+remembered and restored between execution sessions.
+
 \section visible_modes Visible Modes
 
 \image html visible_modes.png "Visible Modes"
