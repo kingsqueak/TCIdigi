@@ -1,6 +1,14 @@
-2025-11-16  dave-w1hkj  <w1hkj25@gmail.com>
+2025-12-17  dave-w1hkj  <w1hkj25@gmail.com>
 
-	e8cb9b86e2: Version 4.2.10
+	b9abb13673: Version 4.2.11
+	a1932181ad: Documentation update
+	952b3d1639: flrig rtty timing
+	d5cda5c6c4: MFSK Rx Pic
+	e657b7a396: CW detection
+	ab3c0ce257: CW macros
+	c0b4092730: COM port evaluation
+	628014314e: network debug log
+	3e0da1825b: Version 4.2.10
 	f4d7a2f1d0: screen scale
 	d2f74a648e: screen number
 	5bc74b113c: Control Positions
