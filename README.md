@@ -5,6 +5,8 @@ It is based on fldigi 4.1.23, commit 61b97f41. The license is GPL-3.0-or-later. 
 
 This repository is TCIdigi. It is not the upstream fldigi project.
 
+I have never done anything with github, if this looks like a mess, it is a mess.
+
 ![Example Image](TCIdigi-alpha.png)
 
 
