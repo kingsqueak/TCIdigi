@@ -13,7 +13,7 @@
 #include "icons.h"
 #include "status.h"
 #include "fileselect.h"
-#include "audio_alert.h"
+#include "trx.h"
 
 Fl_Check_Button *btn_mon_xcvr_audio=(Fl_Check_Button *)0;
 
@@ -39,7 +39,6 @@ sldrRxFilt_high->value(progdefaults.RxFilt_high);
 sldrRxFilt_high->redraw();
 
 progdefaults.changed = true;
-audio_alert->init_filter();
 }
 
 Fl_Value_Slider2 *sldrRxFilt_mid=(Fl_Value_Slider2 *)0;
@@ -60,7 +59,6 @@ sldrRxFilt_high->value(progdefaults.RxFilt_high);
 sldrRxFilt_high->redraw();
 
 progdefaults.changed = true;
-audio_alert->init_filter();
 }
 
 Fl_Value_Slider2 *sldrRxFilt_low=(Fl_Value_Slider2 *)0;
@@ -79,7 +77,6 @@ sldrRxFilt_mid->value(mid);
 sldrRxFilt_mid->redraw();
 
 progdefaults.changed = true;
-audio_alert->init_filter();
 }
 
 Fl_Value_Slider2 *sldrRxFilt_high=(Fl_Value_Slider2 *)0;
@@ -98,7 +95,6 @@ sldrRxFilt_mid->value(mid);
 sldrRxFilt_mid->redraw();
 
 progdefaults.changed = true;
-audio_alert->init_filter();
 }
 
 Fl_Check_Button *btn_RxFilt_at_track=(Fl_Check_Button *)0;
@@ -120,6 +116,34 @@ Fl_Check_Button *btn_mon_dsp_audio=(Fl_Check_Button *)0;
 
 static void cb_btn_mon_dsp_audio(Fl_Check_Button* o, void*) {
   progdefaults.mon_dsp_audio = o->value();
+}
+
+void center_rxfilt_at_track()
+{
+	if (!active_modem)
+		return;
+	progdefaults.RxFilt_mid = active_modem->get_freq();
+
+	int bw2 = progdefaults.RxFilt_bw / 2;
+	progdefaults.RxFilt_low = progdefaults.RxFilt_mid - bw2;
+	if (progdefaults.RxFilt_low < 100) progdefaults.RxFilt_low = 100;
+
+	progdefaults.RxFilt_high = progdefaults.RxFilt_mid + bw2;
+	if (progdefaults.RxFilt_high > 4000) progdefaults.RxFilt_high = 4000;
+
+	if (sldrRxFilt_mid) {
+		sldrRxFilt_mid->value(progdefaults.RxFilt_mid);
+		sldrRxFilt_mid->redraw();
+	}
+	if (sldrRxFilt_low) {
+		sldrRxFilt_low->value(progdefaults.RxFilt_low);
+		sldrRxFilt_low->redraw();
+	}
+	if (sldrRxFilt_high) {
+		sldrRxFilt_high->value(progdefaults.RxFilt_high);
+		sldrRxFilt_high->redraw();
+	}
+	progdefaults.changed = true;
 }
 
 Fl_Double_Window* make_rxaudio_dialog() {

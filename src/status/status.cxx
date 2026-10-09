@@ -362,7 +362,7 @@ void status::saveLastState()
 	    mainY = mY;
     }
 	mainW = fl_digi_main->w();
-	mainH = fl_digi_main->h();
+	mainH = fl_digi_main->h() - tci_rx_attenuator_extra();
 
 	carrier = wf->Carrier();
 	mag = wf->Mag();

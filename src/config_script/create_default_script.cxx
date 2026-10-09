@@ -307,14 +307,6 @@ static int create_default_script(char *file_name)
 
 	// AUDIO DEVICE
 	if(add_command(fd, (char *)CMD_AUDIO_DEVICE,       0)) return fclose(fd);
-#if USE_OSS
-	// OSS
-	if(add_command(fd, (char *)CMD_OSS_AUDIO,          (bool)   btnAudioIO[0]->value(), 1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_OSS_AUDIO_DEV_PATH, (char *) menuOSSDev->value(),    1)) return fclose(fd);
-#endif // USE_OSS
-
-#if USE_PORTAUDIO
-	// PORT AUDIO
 	if(add_command(fd, (char *)CMD_PORT_AUDIO,         (bool)   btnAudioIO[1]->value(), 1)) return fclose(fd);
 
 	if(menuPortInDev->value() > -1) {
@@ -332,13 +324,6 @@ static int create_default_script(char *file_name)
 		snprintf(buffer, sizeof(buffer)-1, "%s:%d,\"%s\"", CMD_PORTA_PLAY, index, menuPortOutDev->text());
 		if(add_string(fd, (char *)buffer, 1)) return fclose(fd);
 	}
-#endif // USE_PORTAUDIO
-
-#if USE_PULSEAUDIO
-	// PULSE AUDIO
-	if(add_command(fd, (char *)CMD_PULSEA,         (bool)   btnAudioIO[2]->value(),  1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_PULSEA_SERVER,  (char *) inpPulseServer->value(), 1)) return fclose(fd);
-#endif // USE_PULSEAUDIO
 
 	if(add_command(fd, (char *)CMD_END_CMD,        0)) return fclose(fd);
 

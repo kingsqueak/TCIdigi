@@ -1343,11 +1343,9 @@ int process_antenna_info(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 int process_use_oss_audio_device(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
-#if USE_OSS
-	return assign_bool(btnAudioIO[0], sp, sc);
-#else
+	(void)sp;
+	(void)sc;
 	return script_no_errors;
-#endif // USE_OSS
 }
 
 /** ********************************************************
@@ -1358,49 +1356,9 @@ int process_use_oss_audio_device(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 int process_oss_audio_device_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
-	// Not suitable for assign_xxxx
-#if USE_OSS
-	if(!sp || !sc)
-		return script_function_parameter_error;
-
-	std::string str_data;
-	std::string valid_data;
-
-	str_data.assign(sc->args[0]);
-	if(str_data.empty())
-		return script_invalid_parameter;
-
-	if(!menuOSSDev)
-		return script_no_errors;
-
-	if(sp->check_dev_path(str_data.c_str()))
-		return script_device_path_not_found;
-
-	int index = 0;
-	bool found = false;
-	int count = menuOSSDev->menubutton()->size();
-
-	for (index = 0; index < count; index++ ) {
-		const Fl_Menu_Item &item = menuOSSDev->menubutton()->menu()[index];
-		valid_data.assign(item.label());
-		if(!valid_data.empty()) {
-			if(strncmp(valid_data.c_str(), str_data.c_str(), FL_PATH_MAX) == 0) {
-				found = true;
-				break;
-			}
-		}
-	}
-
-	if(!found)
-		return script_invalid_parameter;
-
-	menuOSSDev->value(index);
-	menuOSSDev->do_callback();
+	(void)sp;
+	(void)sc;
 	return script_no_errors;
-
-#else
-	return script_no_errors;
-#endif // USE_OSS
 }
 
 /** ********************************************************
@@ -1411,11 +1369,7 @@ int process_oss_audio_device_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 int process_use_port_audio_device(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
-#if USE_PORTAUDIO
 	return assign_bool(btnAudioIO[1], sp, sc);
-#else
-	return script_no_errors;
-#endif // USE_PORTAUDIO
 }
 
 /** ********************************************************
@@ -1427,7 +1381,6 @@ int process_use_port_audio_device(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 int process_capture_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
 	// Not suitable for assign_xxxx
-#if USE_PORTAUDIO
 	if(!sp || !sc)
 		return script_function_parameter_error;
 
@@ -1454,8 +1407,6 @@ int process_capture_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 	if(cnt == PA_DEV_NOT_FOUND)
 		return script_invalid_parameter;
 
-#endif // USE_PORTAUDIO
-
 	return script_no_errors;
 }
 
@@ -1468,8 +1419,6 @@ int process_capture_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 int process_playback_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
 	// Not suitable for assign_xxxx
-#if USE_PORTAUDIO
-
 	if(!sp || !sc)
 		return script_function_parameter_error;
 
@@ -1496,8 +1445,6 @@ int process_playback_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 	if(cnt == PA_DEV_NOT_FOUND)
 		return script_invalid_parameter;
 
-#endif
-
 	return script_no_errors;
 }
 
@@ -1509,11 +1456,9 @@ int process_playback_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 int process_use_pulse_audio_device(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
-#if USE_PULSEAUDIO
-	return assign_bool(btnAudioIO[2], sp, sc);
-#else
+	(void)sp;
+	(void)sc;
 	return script_no_errors;
-#endif // USE_PULSEAUDIO
 }
 
 /** ********************************************************
@@ -1524,11 +1469,9 @@ int process_use_pulse_audio_device(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 int process_pulse_audio_device_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
-#if USE_PULSEAUDIO
-	return assign_string(inpPulseServer, sp, sc);
-#else
+	(void)sp;
+	(void)sc;
 	return script_no_errors;
-#endif // USE_PULSEAUDIO
 }
 
 /** ********************************************************

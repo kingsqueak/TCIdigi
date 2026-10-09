@@ -181,35 +181,16 @@ void set_output (void *)
 
 void start_fmt_wav_record()
 {
-	time_t wav_time = time(NULL);
-	struct tm File_Start_Date;
-	gmtime_r(&wav_time, &File_Start_Date);
-
-	static char temp[200];
-	strftime(temp, sizeof(temp), "fmt_%Y.%m.%d.%H.%M.%S", 
-		&File_Start_Date);
-
-	fmt_wav_pathfname.assign(FMTDir).
-		append(temp).
-		append(".").append((progdefaults.myCall.empty() ? "nil" : progdefaults.myCall)).
-		append(".wav");
-
-	if(!RXscard->startCapture(fmt_wav_pathfname, SF_FORMAT_WAV | SF_FORMAT_PCM_16)) {
-		Fl::awake( clear_button, btn_fmt_record_wav);
-		txtout.clear();
-		Fl::awake (set_output);
-		is_recording = false;
-		return;
-	}
-	is_recording = true;
-	txtout = temp;
-	Fl::awake (set_output);
+	LOG_ERROR("FMT wav capture is not available");
+	Fl::awake(clear_button, btn_fmt_record_wav);
+	txtout.clear();
+	Fl::awake(set_output);
+	is_recording = false;
 }
 
 void cb_fmt_record_wav(bool b)
 {
 	if (!b) {
-		RXscard->stopCapture();
 		txtout.clear();
 		Fl::awake (set_output);
 		is_recording = false;
@@ -278,18 +259,9 @@ csv_string.append("\
 	csvrow = 4;
 
 	if (progdefaults.fmt_sync_wav_file && !is_recording) {
-		fmt_wav_pathfname.assign(FMTDir).
-			append(file_datetime_name).
-			append(".").append(call).
-			append(".wav");
-
-		if(!RXscard->startCapture(fmt_wav_pathfname, SF_FORMAT_WAV | SF_FORMAT_PCM_16)) {
-			Fl::awake (noshow);
-			is_recording = false;
-		} else {
-			Fl::awake (show);
-			is_recording = true;
-		}
+		LOG_ERROR("FMT wav capture is not available");
+		Fl::awake(noshow);
+		is_recording = false;
 	}
 #ifdef DEBUG_CSV
 	debug_csv_string = csv_string;

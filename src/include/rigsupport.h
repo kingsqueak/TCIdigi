@@ -71,6 +71,7 @@ extern bool init_Xml_RigDialog();
 extern bool init_NoRig_RigDialog();
 
 extern bool ModeIsLSB(std::string);
+extern void seed_lsb_modes();
 
 #if USE_HAMLIB
 extern bool init_Hamlib_RigDialog();

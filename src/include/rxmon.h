@@ -19,4 +19,5 @@ extern Fl_Check_Button *btn_RxFilt_at_track;
 extern Fl_Value_Slider2 *sldrRxFilt_vol;
 extern Fl_Check_Button *btn_mon_dsp_audio;
 Fl_Double_Window* make_rxaudio_dialog();
+void center_rxfilt_at_track();
 #endif

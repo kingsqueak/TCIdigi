@@ -100,6 +100,10 @@ extern void StatusBar_cb(Fl_Box *bx, void *d);
 
 extern Fl_Counter2		*cntCW_WPM;
 extern Fl_Counter2		*cntTxLevel;
+extern Fl_Counter2		*cntRxLevel;
+// Pixels added under the status line while the TCI receive attenuator is shown.
+int tci_rx_attenuator_extra();
+void place_tci_rx_attenuator();
 extern Fl_Button		*MODEstatus;
 extern Fl_Slider2		*sldrSquelch;
 extern Progress			*pgrsSquelch;

@@ -862,7 +862,7 @@ extern Fl_File_Input *inp_wav_fname_regex;
 extern Fl_Button *btn_select_regex_wav;
 extern Fl_Choice *mnu_regex_alert_menu;
 extern Fl_Check_Button *btn_enable_regex_match_wa;
-#include "audio_alert.h"
+
 extern Fl_Button *btn_test_regex_wav;
 extern Fl_File_Input *inp_wav_fname_mycall;
 extern Fl_Button *btn_select_mycall_wav;

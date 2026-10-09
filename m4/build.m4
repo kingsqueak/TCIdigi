@@ -17,9 +17,9 @@ AC_DEFUN([AC_FLDIGI_BUILD_INFO], [
   fi
 # CXXFLAGS
   FLDIGI_BUILD_CXXFLAGS="\
-$PORTAUDIO_CFLAGS $FLTK_CFLAGS $X_CFLAGS \
-$SNDFILE_CFLAGS $SAMPLERATE_CFLAGS $PULSEAUDIO_CFLAGS \
-$HAMLIB_CFLAGS $PNG_CFLAGS $XMLRPC_CFLAGS $MAC_UNIVERSAL_CFLAGS \
+$FLTK_CFLAGS $X_CFLAGS \
+$SNDFILE_CFLAGS $SAMPLERATE_CFLAGS \
+$PNG_CFLAGS $XMLRPC_CFLAGS $MAC_UNIVERSAL_CFLAGS \
 $LIBMBEDTLS_CFLAGS \
 $INTL_CFLAGS $PTW32_CFLAGS $BFD_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEBUG_CFLAGS"
 
@@ -39,8 +39,8 @@ $INTL_CFLAGS $PTW32_CFLAGS $BFD_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEB
   fi
 
   if test "x$target_darwin" = "xyes"; then
-    FLDIGI_BUILD_CXXFLAGS="$FLDIGI_BUILD_CXXFLAGS -fno-stack-check -mmacosx-version-min=10.11"
-    FLDIGI_BUILD_CPPFLAGS="$FLDIGI_BUILD_CPPFLAGS -fno-stack-check -mmacosx-version-min=10.11"
+    FLDIGI_BUILD_CXXFLAGS="$FLDIGI_BUILD_CXXFLAGS -fno-stack-check -mmacosx-version-min=14.4"
+    FLDIGI_BUILD_CPPFLAGS="$FLDIGI_BUILD_CPPFLAGS -fno-stack-check -mmacosx-version-min=14.4"
   fi
 
 # LDFLAGS
@@ -51,9 +51,9 @@ $INTL_CFLAGS $PTW32_CFLAGS $BFD_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEB
 
 # LDADD
   FLDIGI_BUILD_LDADD="\
-$PORTAUDIO_LIBS $FLTK_LIBS $X_LIBS \
-$SNDFILE_LIBS $SAMPLERATE_LIBS $PULSEAUDIO_LIBS \
-$HAMLIB_LIBS $PNG_LIBS $XMLRPC_LIBS $INTL_LIBS $PTW32_LIBS $BFD_LIBS \
+$FLTK_LIBS $X_LIBS \
+$SNDFILE_LIBS $SAMPLERATE_LIBS \
+$PNG_LIBS $XMLRPC_LIBS $INTL_LIBS $PTW32_LIBS $BFD_LIBS \
 $EXTRA_LIBS $FLXMLRPC_LIBS $LIBMBEDTLS_LIBS $LIBUDEV_LIBS"
 
 # CPPFLAGS
@@ -84,24 +84,38 @@ $BFD_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEBUG_CFLAGS"
   fi
 
   if test "x$target_darwin" = "xyes"; then
-    FLARQ_BUILD_CXXFLAGS="$FLARQ_BUILD_CXXFLAGS -fno-stack-check -mmacosx-version-min=10.11"
-    FLARQ_BUILD_CPPFLAGS="$FLARQ_BUILD_CPPFLAGS -fno-stack-check -mmacosx-version-min=10.11"
+    FLARQ_BUILD_CXXFLAGS="$FLARQ_BUILD_CXXFLAGS -fno-stack-check -mmacosx-version-min=14.4"
+    FLARQ_BUILD_CPPFLAGS="$FLARQ_BUILD_CPPFLAGS -fno-stack-check -mmacosx-version-min=14.4"
   fi
 
-# UDEV SUPPORT
+# C-Media HID PTT is gone, so IOKit, udev, and setupapi are not linked.
+# Modem audio is the TCI socket. No Core Audio, WASAPI, JACK, Pulse, or ALSA.
   if test "x$target_darwin" = "xyes"; then
-    FLDIGI_BUILD_LDADD="$FLDIGI_BUILD_LDADD -framework IOKit -framework CoreFoundation"
-  else if test "x$target_mingw32" = "xyes"; then
-      FLDIGI_BUILD_LDADD="$FLDIGI_BUILD_LDADD -lsetupapi -lhid"
-    else
-      FLDIGI_BUILD_LDADD="$FLDIGI_BUILD_LDADD -ludev"
+    FLDIGI_BUILD_LDFLAGS="$FLDIGI_BUILD_LDFLAGS -mmacosx-version-min=14.4"
+  else if test "x$target_mingw32" != "xyes"; then
+      FLDIGI_BUILD_LDADD="$FLDIGI_BUILD_LDADD -ldl -lpthread -lm"
     fi
   fi
 
 # LDFLAGS
   FLARQ_BUILD_LDFLAGS="$MAC_UNIVERSAL_LDFLAGS"
+  if test "x$target_darwin" = "xyes"; then
+      FLARQ_BUILD_LDFLAGS="$FLARQ_BUILD_LDFLAGS -mmacosx-version-min=14.4"
+  fi
   if test "x$target_mingw32" = "xyes"; then
       FLARQ_BUILD_LDFLAGS="-mthreads $FLARQ_BUILD_LDFLAGS"
+  fi
+
+# fltk-config asks for -ljpeg without a search path. Homebrew and MacPorts
+# keep that library outside the default linker path.
+  if test "x$target_darwin" = "xyes"; then
+    for jpeg_dir in /opt/homebrew/lib /opt/local/lib; do
+      if test -f "$jpeg_dir/libjpeg.dylib"; then
+        FLDIGI_BUILD_LDFLAGS="$FLDIGI_BUILD_LDFLAGS -L$jpeg_dir"
+        FLARQ_BUILD_LDFLAGS="$FLARQ_BUILD_LDFLAGS -L$jpeg_dir"
+        break
+      fi
+    done
   fi
 # LDADD
   FLARQ_BUILD_LDADD="$FLTK_LIBS $X_LIBS $INTL_LIBS $PTW32_LIBS $BFD_LIBS $EXTRA_LIBS $FLXMLRPC_LIBS"

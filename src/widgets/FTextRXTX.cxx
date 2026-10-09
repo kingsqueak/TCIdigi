@@ -47,6 +47,9 @@
 #include "fl_digi.h"
 
 #include "cw.h"
+#include "tcidigi_tx.h"
+
+#include <pthread.h>
 
 #include "fileselect.h"
 #include "font_browser.h"
@@ -2007,11 +2010,199 @@ int FTextTX::handle(int event)
 	return FTextEdit::handle(event);
 }
 
+// The Qt shell's one transmit buffer. It lives in this automake object so
+// both binaries link it, and only the Qt shell turns it on. The FLTK app
+// never calls tcidigi_tx_use, so its FTextTX widget is unchanged.
+namespace {
+
+struct TxLock {
+	pthread_mutex_t* mutex;
+	explicit TxLock(pthread_mutex_t* held) : mutex(held) { pthread_mutex_lock(mutex); }
+	~TxLock() { pthread_mutex_unlock(mutex); }
+};
+
+struct TxQueue {
+	bool on;
+	bool brk;
+	std::string text;
+	size_t sent;
+	int backs;
+	pthread_mutex_t lock;
+
+	TxQueue()
+		: on(false), brk(false), sent(0), backs(0)
+	{
+		pthread_mutex_init(&lock, 0);
+	}
+};
+
+TxQueue g_tx;
+
+bool qt_owns_tx(const FTextTX* self)
+{
+	return self == TransmitText && tcidigi_tx_active();
+}
+
+// One backspace removes one UTF-8 character. A character the modem has
+// already taken is also sent as a backspace so the other station erases it.
+bool erase_end_locked()
+{
+	if (g_tx.text.empty())
+		return false;
+	size_t n = g_tx.text.size();
+	do {
+		--n;
+	} while (n > 0 && (static_cast<unsigned char>(g_tx.text[n]) & 0xC0) == 0x80);
+	const bool sent = g_tx.sent > n;
+	g_tx.text.erase(n);
+	if (sent) {
+		g_tx.sent = n;
+		++g_tx.backs;
+	} else if (g_tx.sent > g_tx.text.size())
+		g_tx.sent = g_tx.text.size();
+	return true;
+}
+
+} // namespace
+
+void tcidigi_tx_use(bool on)
+{
+	TxLock guard(&g_tx.lock);
+	g_tx.on = on;
+	if (!on) {
+		g_tx.text.clear();
+		g_tx.sent = 0;
+		g_tx.backs = 0;
+		g_tx.brk = false;
+	}
+}
+
+bool tcidigi_tx_active()
+{
+	TxLock guard(&g_tx.lock);
+	return g_tx.on;
+}
+
+void tcidigi_tx_clear()
+{
+	TxLock guard(&g_tx.lock);
+	g_tx.text.clear();
+	g_tx.sent = 0;
+	g_tx.backs = 0;
+	g_tx.brk = false;
+}
+
+void tcidigi_tx_clear_sent()
+{
+	TxLock guard(&g_tx.lock);
+	if (g_tx.sent > g_tx.text.size())
+		g_tx.sent = g_tx.text.size();
+	g_tx.text.erase(0, g_tx.sent);
+	g_tx.sent = 0;
+	g_tx.backs = 0;
+	g_tx.brk = false;
+}
+
+void tcidigi_tx_pause()
+{
+	TxLock guard(&g_tx.lock);
+	g_tx.brk = true;
+}
+
+void tcidigi_tx_add(const std::string& text)
+{
+	TxLock guard(&g_tx.lock);
+	for (size_t n = 0; n < text.size(); n++) {
+		const unsigned char byte = static_cast<unsigned char>(text[n]);
+		if (byte == '\b') {
+			erase_end_locked();
+			continue;
+		}
+		g_tx.text.push_back(static_cast<char>(byte));
+	}
+}
+
+void tcidigi_tx_replace(const std::string& text)
+{
+	TxLock guard(&g_tx.lock);
+	g_tx.text = text;
+	g_tx.sent = 0;
+	g_tx.backs = 0;
+	g_tx.brk = false;
+}
+
+int tcidigi_tx_edit(const std::string& want)
+{
+	TxLock guard(&g_tx.lock);
+	if (g_tx.sent > g_tx.text.size())
+		g_tx.sent = g_tx.text.size();
+	if (want == g_tx.text)
+		return 1;
+	if (want.size() > g_tx.text.size()
+		&& want.compare(0, g_tx.text.size(), g_tx.text) == 0) {
+		g_tx.text.append(want, g_tx.text.size(), std::string::npos);
+		return 1;
+	}
+	// Backspace at the end. Characters already sent go out as backspaces.
+	if (want.size() < g_tx.text.size()
+		&& g_tx.text.compare(0, want.size(), want) == 0) {
+		while (g_tx.text.size() > want.size()) {
+			if (!erase_end_locked())
+				break;
+		}
+		return 1;
+	}
+	// An edit of text the modem has not taken yet. The sent prefix stays.
+	if (g_tx.sent <= want.size()
+		&& want.compare(0, g_tx.sent, g_tx.text, 0, g_tx.sent) == 0) {
+		g_tx.text = want;
+		return 1;
+	}
+	return 0;
+}
+
+std::string tcidigi_tx_get()
+{
+	TxLock guard(&g_tx.lock);
+	return g_tx.text;
+}
+
+int tcidigi_tx_next()
+{
+	TxLock guard(&g_tx.lock);
+	if (g_tx.backs) {
+		--g_tx.backs;
+		return '\b';
+	}
+	if (g_tx.brk) {
+		g_tx.brk = false;
+		return GET_TX_CHAR_ETX;
+	}
+	while (g_tx.sent < g_tx.text.size()) {
+		const unsigned char byte = static_cast<unsigned char>(g_tx.text[g_tx.sent]);
+		++g_tx.sent;
+		if (byte == 0)
+			continue;
+		return byte;
+	}
+	return -1;
+}
+
+bool tcidigi_tx_eot()
+{
+	TxLock guard(&g_tx.lock);
+	return g_tx.sent >= g_tx.text.size() && g_tx.backs == 0;
+}
+
 /// Clears the buffer.
 /// Also resets the transmit position, stored backspaces and tx pause flag.
 ///
 void FTextTX::clear(void)
 {
+	if (qt_owns_tx(this)) {
+		tcidigi_tx_clear();
+		return;
+	}
 	FTextEdit::clear();
 	txpos = 0;
 	utf8_txpos = 0;
@@ -2024,6 +2215,10 @@ void FTextTX::clear(void)
 ///
 void FTextTX::clear_sent(void)
 {
+	if (qt_owns_tx(this)) {
+		tcidigi_tx_clear_sent();
+		return;
+	}
  	tbuf->remove(0, utf8_txpos);
  	sbuf->remove(0, utf8_txpos);
 	txpos = 0;
@@ -2040,6 +2235,8 @@ void FTextTX::clear_sent(void)
 ///
 bool FTextTX::eot(void)
 {
+	if (qt_owns_tx(this))
+		return tcidigi_tx_eot();
 	return (insert_position() == txpos);
 }
 
@@ -2050,6 +2247,9 @@ bool FTextTX::eot(void)
 ///
 int FTextTX::nextChar(void)
 {
+	if (qt_owns_tx(this))
+		return tcidigi_tx_next();
+
 	int c;
 
 	if (bkspaces) {
@@ -2079,6 +2279,10 @@ int FTextTX::nextChar(void)
 // called by macro execution
 void FTextTX::add_text(std::string s)
 {
+	if (qt_owns_tx(this)) {
+		tcidigi_tx_add(s);
+		return;
+	}
 	for (size_t n = 0; n < s.length(); n++) {
 		if (s[n] == '\b') {
 			int ipos = insert_position();
@@ -2099,6 +2303,15 @@ void FTextTX::add_text(std::string s)
 			add(s[n] & 0xFF, RECV);
 		}
 	}
+}
+
+void FTextTX::pause(void)
+{
+	if (qt_owns_tx(this)) {
+		tcidigi_tx_pause();
+		return;
+	}
+	PauseBreak = true;
 }
 
 void FTextTX::setFont(Fl_Font f, int attr)

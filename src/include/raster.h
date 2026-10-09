@@ -50,6 +50,11 @@ public:
 	void	resize(int x, int y, int w, int h);
 	unsigned char *buffer() { return vidbuf;}
 	int		size() { return width * height;}
+	// Grayscale copy of the painted image. Returns the byte count, -1 when
+	// cap is too small (width and height are still reported), or 0 when empty.
+	int		copy_gray(unsigned char* dst, int cap, int* w, int* h);
+	// Smallest image height that can hold one character row.
+	int		min_image_height();
 	int		change_rowheight( int rh );
 	void	data(int data[], int len);
 	void	clear();

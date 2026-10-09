@@ -71,8 +71,6 @@
 #include "ICOMkeying.h"
 #include "YAESUkeying.h"
 
-#include "audio_alert.h"
-
 void start_cwio_thread();
 void stop_cwio_thread();
 

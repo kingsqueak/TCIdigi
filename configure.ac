@@ -207,11 +207,6 @@ AC_FLDIGI_HASH
 # Set HAVE_FLUID Makefile conditional
 AC_FLDIGI_FLTK
 
-### OSS
-# Set ac_cv_oss to yes/no
-# Define USE_OSS in config.h
-AC_FLDIGI_OSS
-
 ### libpng
 # Required if $ac_cv_want_fldigi is "yes"
 # Set ac_cv_png to yes/no    (not used)
@@ -240,39 +235,15 @@ if test "x$ac_cv_want_fldigi" = "xyes"; then
                     [enable reading/writing of audio files via libsndfile @<:@autodetect@:>@] )
 fi
 
-### portaudio
-# Set ac_cv_portaudio to yes/no
-# Define USE_PORTAUDIO in config.h
-# Substitute PORTAUDIO_CFLAGS and PORTAUDIO_LIBS in Makefile
-if test "x$ac_cv_want_fldigi" = "xyes"; then
-    AC_FLDIGI_PKG_CHECK([portaudio], [portaudio-2.0 >= 19], [no], [no])
-fi
+### audio
+# Modem audio is SoundTCI. SoundNull is used when TCI audio is off.
+# libsamplerate stays for the waterfall, RSID, and DTMF.
 
-### pulseaudio
-# Set ac_cv_pulseaudio to yes/no
-# Define USE_PULSEAUDIO in config.h
-# Substitute PULSEAUDIO_CFLAGS and PULSEAUDIO_LIBS in Makefile
-AC_FLDIGI_PKG_CHECK([pulseaudio], [libpulse-simple >= 0.9.7], [yes], [yes],
-                    [enable support for PulseAudio @<:@autodetect@:>@] )
-
-if test "x$ac_cv_oss" = "xno" && \
-   test "x$ac_cv_portaudio" = "xno" && \
-   test "x$ac_cv_pulseaudio" = "xno"; then
-    AC_MSG_WARN([*** $PACKAGE will be compiled without audio device support ***])
-fi
-
-### hamlib
-# Set ac_cv_hamlib to yes/no
-# Define USE_HAMLIB in config.h
-# Substitute HAMLIB_CFLAGS and HAMLIB_LIBS in Makefile
-# Set ENABLE_HAMLIB Makefile conditional
-AC_FLDIGI_PKG_CHECK([hamlib], [hamlib >= 1.2.4], [yes], [yes],
-                    [use hamradio control libraries @<:@autodetect@:>@],
-                    [ENABLE_HAMLIB])
-# We compile our own copy of hamlib's locator.c if hamlib is not available
-# or if it is version <= 1.2.9, which has a broken azimuth_long_path function
-AX_COMPARE_VERSION([$pkg_hamlib_version], [le], [1.2.9], [need_locator_c=yes], [need_locator_c=no])
-AM_CONDITIONAL([NEED_HAMLIB_LOCATOR], [test "$need_locator_c" = "yes"])
+### rig control
+# TCI is the only radio-control path. Hamlib is not configured or linked.
+ac_cv_hamlib=no
+AM_CONDITIONAL([ENABLE_HAMLIB], [false])
+AM_CONDITIONAL([NEED_HAMLIB_LOCATOR], [false])
 
 ### X11
 # Set ac_cv_x to yes/no
@@ -372,13 +343,11 @@ fi
 if test "x$ac_cv_want_fldigi" = "xyes"; then
   AC_MSG_RESULT([ fldigi build options:
 
-  oss ......................... $ac_cv_oss
-  portaudio ................... $ac_cv_portaudio
-  pulseaudio .................. $ac_cv_pulseaudio
+  audio ....................... TCI (SoundNull when TCI audio is off)
 
   libmbedtls .................. $ac_mbedtls_report
   flxmlrpc .................... $ac_xmlrpc_report
 
-  hamlib ...................... $ac_cv_hamlib
+  rig control ................. TCI (no hamlib, rigCAT, or flrig)
 ])
 fi

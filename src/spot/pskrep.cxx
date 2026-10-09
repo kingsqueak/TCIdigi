@@ -93,6 +93,7 @@ namespace __gnu_cxx {
 #include "spot.h"
 
 #include "pskrep.h"
+#include "tcidigi_version.h"
 
 LOG_FILE_SOURCE(debug::LOG_SPOTTER);
 
@@ -602,7 +603,7 @@ void pskrep_sender::write_station_info(void)
 	char prog_info[MAX_TEXT_SIZE];
 	size_t prog_len;
 
-	prog_len = snprintf(prog_info, sizeof(prog_info), "%s", PACKAGE_TARNAME "-" PACKAGE_VERSION);
+	prog_len = snprintf(prog_info, sizeof(prog_info), "%s", TCIDIGI_NAME "-" TCIDIGI_VERSION);
 	prog_len = MIN(prog_len, sizeof(prog_info));
 	struct utsname u;
 	if (uname(&u) != -1) {

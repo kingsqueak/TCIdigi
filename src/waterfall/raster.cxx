@@ -103,6 +103,10 @@ void Raster::data(int data[], int len)
 	if (data == NULL || len == 0 || (len > rowheight)) {
 		return;
 	}
+	if (Nrows < 1 || width < 1 || height < 1)
+		return;
+	if (col < 0 || col >= width)
+		col = 0;
 
 	if (marquee) {
 		for (int row = 0; row < Nrows; row++) {
@@ -211,6 +215,8 @@ void Raster::resize(int x, int y, int w, int h)
 	width = Wdest;
 	height = Hdest;
 	Nrows = Ndest;
+	if (col < 0 || col >= width)
+		col = 0;
 	vidbuf = tempbuf;
 
 	delete [] oldbuf;
@@ -228,6 +234,32 @@ void Raster::draw()
 		vidbuf, 
 		x() + 2, y() + 2, 
 		width, height, 1);
+}
+
+int Raster::copy_gray(unsigned char* dst, int cap, int* w, int* h)
+{
+	guard_lock raster_lock(&raster_mutex);
+	if (w)
+		*w = 0;
+	if (h)
+		*h = 0;
+	if (!vidbuf || width < 1 || height < 1)
+		return 0;
+	const int n = width * height;
+	if (w)
+		*w = width;
+	if (h)
+		*h = height;
+	if (!dst || cap < n)
+		return -1;
+	memcpy(dst, vidbuf, (size_t)n);
+	return n;
+}
+
+int Raster::min_image_height()
+{
+	guard_lock raster_lock(&raster_mutex);
+	return rhs > 0 ? rhs + 1 : 2;
 }
 
 int Raster::handle(int event)

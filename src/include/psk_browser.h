@@ -98,11 +98,15 @@ public:
 	std::string freqformat (int i);
 	void set_freq(int i, int freq);
 	void clearline(int i) { bwsrline[i] = ""; }
-	std::string line(int i) { return (i < 1 ? "" : i > MAXCHANNELS ? "" : bwsrline[i - 1]); }
+	std::string line(int i);
 	int  freq(int i);
 	void clear();
 	void clearch(int n, int freq);
 	void swap(int, int);
 };
+
+// The Qt shell keeps each channel's decoded text. The FLTK app leaves this off,
+// so its viewer still follows the on-screen width.
+void psk_browser_keep_text(bool on);
 
 #endif

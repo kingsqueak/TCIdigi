@@ -44,7 +44,7 @@
 
 #include "status.h"
 #include "debug.h"
-#include "audio_alert.h"
+#include "rxmon.h"
 
 modem *null_modem = 0;
 modem *cw_modem = 0;
@@ -688,10 +688,8 @@ int  modem::tx_process ()
 		macro_video_text.clear();
 	}
 	if (play_audio) {
-		disable_modem = true;
-		TXscard->Audio(audio_filename);
+		LOG_INFO("Audio file playback is not available");
 		play_audio = false;
-		disable_modem = false;
 	}
 	return 0;
 }

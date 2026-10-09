@@ -77,7 +77,7 @@
 #include "speak.h"
 #endif
 
-#include "audio_alert.h"
+
 
 #include <float.h>
 #include "re.h"
@@ -871,27 +871,24 @@ static void pFILE(std::string &s, size_t &i, size_t endbracket)
 	}
 }
 
-static notify_dialog *macro_alert_dialog = 0;
-
+// <TIMER:seconds> waits that many seconds after this command runs, then
+// repeats the macro. The wait is the number in the tag. It is not cut
+// short when the transmission already lasted longer than that number.
 static void doTIMER(std::string s)
 {
-	int number;
-	std::string sTime = s.substr(7);
-	if (sTime.length() > 0) {
-		sscanf(sTime.c_str(), "%d", &number);
-		int mtime = stop_macro_time();
-		if (mtime >= number) {
-			if (!macro_alert_dialog) macro_alert_dialog = new notify_dialog;
-			std::ostringstream comment;
-			comment << "Macro timer must be > macro duration of " << mtime << " secs";
-			macro_alert_dialog->notify(comment.str().c_str(), 5.0);
-			REQ(show_notifier, macro_alert_dialog);
-			progStatus.skip_sked_macro = false;
-		} else {
-			progStatus.timer = number - mtime;
-			progStatus.timerMacro = mNbr;
-			progStatus.skip_sked_macro = true;
-		}
+	int number = 0;
+	if (s.size() <= 7) {
+		que_ok = true;
+		return;
+	}
+	const std::string sTime = s.substr(7);
+	if (!sTime.empty() && sscanf(sTime.c_str(), "%d", &number) == 1 && number > 0) {
+		progStatus.timer = number;
+		progStatus.timerMacro = mNbr;
+		progStatus.skip_sked_macro = true;
+		// The transmit loop checks the timer only as it returns to
+		// receive, which is often before this command runs.
+		REQ(startMacroTimer);
 	}
 	que_ok = true;
 }
@@ -2113,12 +2110,6 @@ static void pALERT(std::string &s, size_t &i, size_t endbracket)
 		substitute(s, i, endbracket, "");
 		return;
 	}
-	std::string cmd = s.substr(i+7, endbracket - i - 7);
-	if (audio_alert) 
-		try {
-			audio_alert->alert(cmd);
-		} catch (...) {
-		}
 	substitute(s, i, endbracket, "");
 }
 

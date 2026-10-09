@@ -60,10 +60,10 @@ struct termios;
 #  include "serial.h"
 //#endif
 
+// 2026-10-08: TCIdigi keys the radio through TCI. The enum values stay so
+// the hidden FLTK rig pages still compile. reset() does not open a port.
 class PTT {
 public:
-	// The ptt_t enums must be defined even if the corresponding
-	// code is not compiled.  New tags go to the end of the list.
 	enum ptt_t {
 		PTT_INVALID = -1, PTT_NONE, PTT_HAMLIB,
 		PTT_RIGCAT, PTT_TTY, PTT_PARPORT, PTT_UHROUTER, PTT_GPIO, PTT_CMEDIA
@@ -73,41 +73,11 @@ public:
 	~PTT();
 	void set(bool on);
 	void reset(ptt_t dev);
+	// CW keyline can address this object. This cut never opens it.
 	Cserial serPort;
 private:
 	ptt_t pttdev;
-
-	// tty and parport
-	int pttfd;
-	struct termios* oldtio;
-
-#if HAVE_UHROUTER
-	// uhrouter
-	int uhkfd[2]; // keyer
-	int uhfd[2];  // ptt
-#endif
-
 	void close_all(void);
-
-	void open_tty(void);
-	void set_tty(bool ptt);
-	void close_tty(void);
-
-	void open_gpio(void);
-	void set_gpio(bool ptt);
-	void close_gpio(void);
-
-#if HAVE_PARPORT
-	void open_parport(void);
-	void set_parport(bool ptt);
-	void close_parport(void);
-#endif
-
-#if HAVE_UHROUTER
-	void open_uhrouter(void);
-	void set_uhrouter(bool ptt);
-	void close_uhrouter(void);
-#endif
 };
 
 

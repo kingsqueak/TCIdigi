@@ -47,6 +47,7 @@
 #include "globals.h"
 
 #include "debug.h"
+#include "tci.h"
 
 #include "gettext.h"
 
@@ -332,17 +333,8 @@ void build_frequencies2_list()
 
 int cb_qso_opMODE()
 {
-	if (connected_to_flrig) {
-		set_flrig_mode(qso_opMODE->value());
-		return 0;
-	}
-#if USE_HAMLIB
-	if (progdefaults.chkUSEHAMLIBis)
-		hamlib_setmode(mode_nums[qso_opMODE->value()]);
-	else
-#endif
-	if (progdefaults.chkUSERIGCATis)
-		rigCAT_setmode(qso_opMODE->value());
+	if (tci_is_active())
+		tci_set_mode(qso_opMODE->value());
 	else
 		noCAT_setmode(qso_opMODE->value());
 	return 0;
@@ -350,10 +342,8 @@ int cb_qso_opMODE()
 
 int cb_qso_opBW()
 {
-	if (connected_to_flrig)
-		set_flrig_bw(qso_opBW->index(), -1);
-	else if (progdefaults.chkUSERIGCATis)
-		rigCAT_setwidth(qso_opBW->value());
+	if (tci_is_active())
+		tci_set_filter(qso_opBW->value());
 	else
 		noCAT_setwidth(qso_opBW->value());
 	return 0;
@@ -379,28 +369,18 @@ int cb_qso_btnBW2()
 
 int cb_qso_opBW1()
 {
-//printf("opBW1 %d:%s\n", qso_opBW1->index(), qso_opBW1->value());
-	set_flrig_bw(qso_opBW2->index(), qso_opBW1->index());
 	return 0;
 }
 
 int cb_qso_opBW2()
 {
-//printf("opBW2 %d:%s\n", qso_opBW2->index(), qso_opBW2->value());
-	set_flrig_bw(qso_opBW2->index(), qso_opBW1->index());
 	return 0;
 }
 
 void sendFreq(long int f)
 {
-	if (connected_to_flrig)
-		set_flrig_freq(f);
-#if USE_HAMLIB
-	else if (progdefaults.chkUSEHAMLIBis)
-		hamlib_setfreq(f);
-#endif
-	else if (progdefaults.chkUSERIGCATis)
-		rigCAT_setfreq(f);
+	if (tci_is_active())
+		tci_set_freq((unsigned long)f);
 	else
 		noCAT_setfreq(f);
 
@@ -524,6 +504,31 @@ void setTitle()
 	update_main_title();
 }
 
+void seed_lsb_modes()
+{
+	static const char* names[] = {
+		"LSB", "LSB-D", "LSB-D1", "LSB-D2", "LSB-D3",
+		"CW", "LCW", "CW-N", "CWL", "CW-L",
+		"RTTY", "RTTY-L",
+		"PKTLSB", "PKT-L",
+		"USER-L", "DATA-L", "DATA", "D-LSB",
+		"DIGL"
+	};
+	LSBmodes.clear();
+	for (size_t i = 0; i < sizeof(names)/sizeof(names[0]); i++)
+		LSBmodes.push_back(names[i]);
+}
+
+bool ModeIsLSB(std::string s)
+{
+	for (std::list<std::string>::const_iterator p = LSBmodes.begin();
+	     p != LSBmodes.end(); ++p) {
+		if (*p == s)
+			return true;
+	}
+	return false;
+}
+
 bool init_Xml_RigDialog()
 {
 	LOG_DEBUG("xml rig");
@@ -543,30 +548,10 @@ bool init_NoRig_RigDialog()
 	qso_opBW->deactivate();
 	qso_opMODE->clear();
 
-//printf("init_NoRig_RigDialog()\n");
 	for (size_t i = 0; i < sizeof(modes)/sizeof(modes[0]); i++) {
-//printf("adding %s\n", modes[i].name);
 		qso_opMODE->add(modes[i].name);
 	}
-// list of LSB type modes that various xcvrs report via flrig
-	LSBmodes.clear();
-	LSBmodes.push_back("LSB");
-	LSBmodes.push_back("LSB-D");
-	LSBmodes.push_back("LSB-D1");
-	LSBmodes.push_back("LSB-D2");
-	LSBmodes.push_back("LSB-D3");
-	LSBmodes.push_back("CW");
-	LSBmodes.push_back("LCW");
-	LSBmodes.push_back("CW-N");
-	LSBmodes.push_back("CWL");
-	LSBmodes.push_back("RTTY");
-	LSBmodes.push_back("RTTY-L");
-	LSBmodes.push_back("PKTLSB");
-	LSBmodes.push_back("PKT-L");
-	LSBmodes.push_back("USER-L");
-	LSBmodes.push_back("DATA-L");
-	LSBmodes.push_back("DATA");
-	LSBmodes.push_back("D-LSB");
+	seed_lsb_modes();
 
 	qso_opMODE->index(3);
 	qso_opMODE->activate();
