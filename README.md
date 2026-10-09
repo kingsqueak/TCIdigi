@@ -1,11 +1,12 @@
 # TCIdigi
-![Example Image](TCIdigi-alpha.png)
-
 TCIdigi is a Qt 6 interface on fldigi’s modems. Radio control and modem audio use TCI, the protocol used by ZeusSDR and ExpertSDR3. This build does not include hamlib, rigCAT, flrig, or the sound-card backends.
 
 It is based on fldigi 4.1.23, commit 61b97f41. The license is GPL-3.0-or-later. See `COPYING`. The About box says “Based on fldigi.”
 
 This repository is TCIdigi. It is not the upstream fldigi project.
+
+![Example Image](TCIdigi-alpha.png)
+
 
 ## Build
 
