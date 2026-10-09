@@ -20,9 +20,14 @@
 // along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
 //
 // Please report all bugs and problems to fldigi-devel@lists.sourceforge.net.
+//
+// Modified 2026-10-08: modem audio is TCI. The sound-card stack and the
+// alert player are no longer built.
 // ----------------------------------------------------------------------------
 
 #include <config.h>
+#include <sndfile.h>
+#include "fldigi_start.h"
 
 //++++++++++++++++++
 #include <FL/Fl_Scroll.H>
@@ -92,6 +97,7 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include "fileselect.h"
 #include "timeops.h"
 #include "debug.h"
+#include "tci.h"
 #include "pskrep.h"
 #include "notify.h"
 #include "logbook.h"
@@ -650,7 +656,7 @@ static void auto_start()
 
 	if (!progdefaults.auto_flrig_pathname.empty() &&
 		 progdefaults.flrig_auto_enable)
-		start_process(progdefaults.auto_flrig_pathname);
+		LOG_INFO("%s", "flrig autostart is not available");
 
 	if (run_flamp)
 		start_process(progdefaults.auto_flamp_pathname);
@@ -705,6 +711,7 @@ void delayed_startup(void *)
 	XML_RPC_Server::start(progdefaults.xmlrpc_address.c_str(), progdefaults.xmlrpc_port.c_str());
 
 	FLRIG_start_flrig_thread();
+	tci_start();
 
 	data_io_enabled = DISABLED_IO;
 
@@ -767,27 +774,20 @@ void delayed_startup(void *)
 	if (progdefaults.check_for_updates)
 		cb_mnuCheckUpdate((Fl_Widget *)0, NULL);
 
-#if USE_PORTAUDIO
-	try {
-		audio_alert = 0;
-		audio_alert = new Caudio_alert;
-	} catch (...) {
-		audio_alert = 0;
-		LOG_ERROR("%s", "Failed to create audio alert object");
-	}
-
-	if (audio_alert)
-		LOG_INFO("%s", "Created audio alert object");
-
-	reset_audio_alerts();
-#endif
-
 }
 
 std::string pname = "";
 
+#ifdef FLDIGI_QT_ENTRY
+int fldigi_start(int argc, char** argv, int hide_ui)
+#else
 int main (int argc, char *argv[])
+#endif
 {
+#ifndef FLDIGI_QT_ENTRY
+	const int hide_ui = 0;
+#endif
+
 	pname = argv[0];
 	size_t pn = pname.rfind("/");
 	if (pn != std::string::npos) pname.erase(0, pn + 1);
@@ -1016,7 +1016,12 @@ int main (int argc, char *argv[])
 	if (NBEMS_dir.empty()) NBEMS_dir.assign(BaseDir).append("NBEMS.files/");
 	if (FLMSG_dir.empty()) FLMSG_dir = NBEMS_dir;
 #else
-	if (HomeDir.empty()) HomeDir.assign(BaseDir).append(".fldigi/");
+	if (HomeDir.empty())
+#ifdef FLDIGI_QT_ENTRY
+		HomeDir.assign(BaseDir).append(".tcidigi/");
+#else
+		HomeDir.assign(BaseDir).append(".fldigi/");
+#endif
 	if (PskMailDir.empty()) PskMailDir = BaseDir;
 	if (DATA_dir.empty()) DATA_dir.assign(BaseDir).append("DATA.files/");
 	if (NBEMS_dir.empty()) NBEMS_dir.assign(BaseDir).append(".nbems/");
@@ -1190,20 +1195,7 @@ int main (int argc, char *argv[])
 	progdefaults.initInterface();
 	trx_start();
 
-#if USE_PORTAUDIO
-	try {
-		audio_alert = 0;
-		audio_alert = new Caudio_alert;
-	} catch (...) {
-		audio_alert = 0;
-		LOG_ERROR("%s", "Failed to create audio alert object");
-	}
-
-	if (audio_alert)
-		LOG_INFO("%s", "Created audio alert object");
-#endif
-
-	if (!have_config) {
+	if (!have_config && !hide_ui) {
 		show_wizard(argc, argv);
 		Fl_Window* w;
 		while ((w = Fl::first_window()) && w->visible())
@@ -1236,6 +1228,11 @@ int main (int argc, char *argv[])
 // size *after* it has been shown. With some X11 window managers, OTOH,
 // the main window will not be restored at its exact saved position if
 // we move it *after* it has been shown.
+	if (hide_ui) {
+		progStatus.initLastState();
+		if (fl_digi_main)
+			fl_digi_main->hide();
+	} else {
 #ifndef __APPLE__
 	progStatus.initLastState();
 	fl_digi_main->show(argc, argv);
@@ -1252,6 +1249,7 @@ int main (int argc, char *argv[])
 	if (iconified)
 		for (Fl_Window* w = Fl::first_window(); w; w = Fl::next_window(w))
 			w->iconize();
+	}
 	update_main_title();
 
 	mode_browser = new Mode_Browser;
@@ -1262,6 +1260,8 @@ int main (int argc, char *argv[])
 
 	Fl::set_color(FL_SELECTION_COLOR, 0, 0, 128);
 
+	if (hide_ui)
+		return 0;
 	return  Fl::run();
 }
 
@@ -1546,9 +1546,7 @@ int parse_args(int argc, char **argv, int& idx)
 			   OPT_FONT, OPT_WFALL_HEIGHT,
 			   OPT_WINDOW_WIDTH, OPT_WINDOW_HEIGHT, OPT_WFALL_ONLY,
 			   OPT_RX_ONLY,
-#if USE_PORTAUDIO
 			   OPT_FRAMES_PER_BUFFER,
-#endif
 		   OPT_DEBUG_LEVEL,
 			   OPT_EXIT_AFTER,
 			   OPT_DEPRECATED, OPT_HELP, OPT_VERSION, OPT_BUILD_INFO };
@@ -1605,9 +1603,7 @@ int parse_args(int argc, char **argv, int& idx)
 		{ "rx-only",       0, 0, OPT_RX_ONLY },
 		{ "ro",            0, 0, OPT_RX_ONLY },
 
-#if USE_PORTAUDIO
 		{ "frames-per-buffer",1, 0, OPT_FRAMES_PER_BUFFER },
-#endif
 		{ "exit-after",    1, 0, OPT_EXIT_AFTER },
 
 		{ "debug-level",   1, 0, OPT_DEBUG_LEVEL },
@@ -1820,11 +1816,9 @@ int parse_args(int argc, char **argv, int& idx)
 //			HNOM = strtol(optarg, NULL, 10);
 //			break;
 
-#if USE_PORTAUDIO
 		case OPT_FRAMES_PER_BUFFER:
 			progdefaults.PortFramesPerBuffer = strtol(optarg, 0, 10);
 			break;
-#endif // USE_PORTAUDIO
 
 		case OPT_EXIT_AFTER:
 			Fl::add_timeout(strtod(optarg, 0), exit_cb);
@@ -1905,12 +1899,6 @@ void generate_version_text(void)
 	  << "  libraries      : " "FLTK " FLTK_BUILD_VERSION "\n"
 	  << "                   " "libsamplerate " << SAMPLERATE_BUILD_VERSION "\n";
 	s << "                   " "libsndfile " << SNDFILE_BUILD_VERSION "\n";
-#if USE_PORTAUDIO
-	s << "                   " "PortAudio " << PORTAUDIO_BUILD_VERSION "\n";
-#endif
-#if USE_PULSEAUDIO
-	s << "                   " "PulseAudio " << PULSEAUDIO_BUILD_VERSION "\n";
-#endif
 #if USE_HAMLIB
 	s << "                   " "Hamlib " << HAMLIB_BUILD_VERSION "\n";
 #endif
@@ -1926,12 +1914,6 @@ void generate_version_text(void)
 	char sndfile_version[32];
 	sf_command(NULL, SFC_GET_LIB_VERSION, sndfile_version, sizeof(sndfile_version));
 	s << "                   " << sndfile_version << '\n';
-#if USE_PORTAUDIO
-	s << "                   " << Pa_GetVersionText() << ' ' << Pa_GetVersion() << '\n';
-#endif
-#if USE_PULSEAUDIO
-	s << "                   " << "Pulseaudio " << pa_get_library_version() << '\n';
-#endif
 #if USE_HAMLIB
 	s << "                   " << hamlib_version << '\n';
 #endif

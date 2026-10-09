@@ -87,9 +87,8 @@ void noCAT_setwidth(const std::string &w)
 	show_bw(w);
 }
 
-void noCAT_setPTT(bool val)
+void noCAT_setPTT(bool)
 {
-	rigio.SetPTT(val); // always execute the h/w ptt if enabled
 }
 
 void noCAT_init()

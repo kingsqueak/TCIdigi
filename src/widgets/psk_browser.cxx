@@ -42,7 +42,7 @@
 #include "icons.h"
 #include "Viewer.h"
 
-#include "audio_alert.h"
+
 
 #include <string>
 
@@ -212,6 +212,13 @@ void pskBrowser::makecolors()
 	bkgnd[1] = tempstr;
 }
 
+static bool psk_keep_text = false;
+
+void psk_browser_keep_text(bool on)
+{
+	psk_keep_text = on;
+}
+
 void pskBrowser::addchr(int ch, int freq, unsigned char c, int md, bool signal_alert)
 {
 	if (ch < 0 || ch >= MAXCHANNELS)
@@ -233,6 +240,16 @@ void pskBrowser::addchr(int ch, int freq, unsigned char c, int md, bool signal_a
 		cdistiller[ch].clear();
 	}
 
+	// A hidden viewer is only a few characters wide, so the old width trim
+	// kept a sliding scrap instead of the QSO. Keep the conversation.
+	if (psk_keep_text) {
+		while (bwsrline[ch].size() > 4096 && !bwsrline[ch].empty()) {
+			int drop = fl_utf8len1(bwsrline[ch][0]);
+			if (drop < 1)
+				drop = 1;
+			bwsrline[ch].erase(0, (size_t)drop);
+		}
+	} else {
 	fl_font(fnt, siz);
 	int bX, bY, bW, bH;
 	bbox(bX, bY, bW, bH);
@@ -247,6 +264,7 @@ void pskBrowser::addchr(int ch, int freq, unsigned char c, int md, bool signal_a
 			bwsrline[ch].clear();
 		}
 	}
+	}
 
 	nuline = freqformat(ch);
 
@@ -256,7 +274,6 @@ void pskBrowser::addchr(int ch, int freq, unsigned char c, int md, bool signal_a
 				(alerted[ch].regex_alert == false) &&
 				signal_alert &&
 				progdefaults.ENABLE_BWSR_REGEX_MATCH) {
-				if (audio_alert) audio_alert->alert(progdefaults.BWSR_REGEX_MATCH);
 				alerted[ch].regex_alert = true;
 			}
 			nuline.append(hilite_color_1);
@@ -273,7 +290,6 @@ void pskBrowser::addchr(int ch, int freq, unsigned char c, int md, bool signal_a
 			(alerted[ch].mycall_alert == false) &&
 			signal_alert &&
 			progdefaults.ENABLE_BWSR_MYCALL_MATCH) {
-			if (audio_alert) audio_alert->alert(progdefaults.BWSR_MYCALL_MATCH);
 			alerted[ch].mycall_alert = true;
 		} 
 	} else
@@ -332,6 +348,20 @@ int pskBrowser::freq(int i) { // 1 < i < progdefaults.VIEWERchannels
 			i > progdefaults.VIEWERchannels ? 0 : bwsrfreq[progdefaults.VIEWERchannels - i]); 
 	else
 		return (i < 1 ? 0 : i > MAXCHANNELS ? 0 : bwsrfreq[i - 1]); 
+}
+
+std::string pskBrowser::line(int i)
+{
+	// Display row i is 1-based and uses the same channel as freq().
+	// Ascend puts the lowest audio frequency on the bottom row.
+	if (progdefaults.VIEWERascend) {
+		if (i < 1 || i > progdefaults.VIEWERchannels)
+			return "";
+		return bwsrline[progdefaults.VIEWERchannels - i];
+	}
+	if (i < 1 || i > MAXCHANNELS)
+		return "";
+	return bwsrline[i - 1];
 }
 
 void pskBrowser::set_input_encoding(int encoding_id)

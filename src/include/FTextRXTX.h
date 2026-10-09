@@ -144,7 +144,7 @@ public:
 	int			nextChar(void);
 	bool		eot(void);
 	void		add_text(std::string s);
-	void		pause() { PauseBreak = true; }
+	void		pause(void);
 
 	void		setFont(Fl_Font f, int attr = NATTR);
 

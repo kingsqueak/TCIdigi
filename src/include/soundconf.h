@@ -2,6 +2,9 @@
 // Copyright (C) 2014 David Freese, W1HKJ
 // Copyright (C) 2015 Robert Stiles, KK5VD
 //
+// Modified 2026-10-08: the device picker is gone. sound_init only fills the
+// libsamplerate converter list. sound_update does not open a device.
+//
 // This file is part of fldigi
 //
 // fldigi is free software; you can redistribute it and/or modify
@@ -46,11 +49,11 @@ extern int sample_rate_converters[FLDIGI_NUM_SRC];
 void sound_init(void);
 void sound_close(void);
 void sound_update(unsigned idx);
+void reset_audio_alerts();
 
 #include <string>
 
 class Fl_Choice;
 int pa_set_dev(Fl_Choice *choice, std::string dev_name, int dev_index);
-extern std::string str_pa_devices;
 
 #endif // SOUNDCONF_H

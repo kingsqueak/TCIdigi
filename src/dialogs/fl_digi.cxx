@@ -78,6 +78,7 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include "main.h"
 #include "threads.h"
 #include "trx.h"
+#include "tci.h"
 #if USE_HAMLIB
 	#include "hamlib.h"
 #endif
@@ -190,7 +191,7 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include "winkeyer.h"
 #include "nanoIO.h"
 
-#include "audio_alert.h"
+
 
 #include "spectrum_viewer.h"
 
@@ -344,6 +345,7 @@ status_box			*StatusBar = (status_box *)0;
 Fl_Box				*Status2 = (Fl_Box *)0;
 Fl_Box				*Status1 = (Fl_Box *)0;
 Fl_Counter2			*cntTxLevel = (Fl_Counter2 *)0;
+Fl_Counter2			*cntRxLevel = (Fl_Counter2 *)0;
 Fl_Counter2			*cntCW_WPM=(Fl_Counter2 *)0;
 Fl_Button			*btnCW_Default=(Fl_Button *)0;
 Fl_Box				*WARNstatus = (Fl_Box *)0;
@@ -2523,62 +2525,20 @@ static bool playval = false;
 
 void cb_mnuCapture(Fl_Widget *w, void *d)
 {
-	if (!RXscard) return;
-	Fl_Menu_Item *m = getMenuItem(((Fl_Menu_*)w)->mvalue()->label()); //eek
-	if (playval || genval) {
+	Fl_Menu_Item *m = getMenuItem(((Fl_Menu_*)w)->mvalue()->label());
+	if (m)
 		m->clear();
-		return;
-	}
-	capval = m->value();
-
-	if (!m->value()) {
-		RXscard->stopCapture();
-		return;
-	}
-
-	std::string fname;
-	int format;
-	SND_SUPPORT::get_file_params("capture", fname, format, true);
-	if (fname.empty()) {
-		m->clear();
-		capval = 0;
-		return;
-	}
-
-	if(!RXscard->startCapture(fname, format)) {
-		m->clear();
-		capval = false;
-	}
+	capval = false;
+	put_status(_("Audio file capture is not available"), 5.0);
 }
 
 void cb_mnuGenerate(Fl_Widget *w, void *d)
 {
 	Fl_Menu_Item *m = getMenuItem(((Fl_Menu_*)w)->mvalue()->label());
-	if (capval || playval) {
+	if (m)
 		m->clear();
-		return;
-	}
-	if (!TXscard) return;
-	genval = m->value();
-
-	if (!genval) {
-		TXscard->stopGenerate();
-		return;
-	}
-
-	std::string fname;
-	int format;
-	SND_SUPPORT::get_file_params("generate", fname, format, true);
-	if (fname.empty()) {
-		m->clear();
-		genval = 0;
-		return;
-	}
-
-	if (!TXscard->startGenerate(fname, format)) {
-		m->clear();
-		genval = false;
-	}
+	genval = false;
+	put_status(_("Audio file generation is not available"), 5.0);
 }
 
 Fl_Menu_Item *Playback_menu_item = (Fl_Menu_Item *)0;
@@ -2591,47 +2551,13 @@ void reset_mnuPlayback()
 
 void cb_mnuPlayback(Fl_Widget *w, void *d)
 {
-	if (!RXscard) return;
 	Fl_Menu_Item *m = getMenuItem(((Fl_Menu_*)w)->mvalue()->label());
 	Playback_menu_item = m;
-	if (capval || genval) {
+	if (m)
 		m->clear();
-		bHighSpeed = false;
-		return;
-	}
-	playval = m->value();
-	if (!playval) {
-		bHighSpeed = false;
-		RXscard->stopPlayback();
-		return;
-	}
-
-	std::string fname;
-	int format;
-	SND_SUPPORT::get_file_params("playback", fname, format, false);
-
-	if (fname.empty()) {
-		m->clear();
-		playval = 0;
-		return;
-	}
-
-	progdefaults.loop_playback = fl_choice2(_("Playback continuous loop?"), _("No"), _("Yes"), NULL);
-
-	int err = RXscard->startPlayback(fname, format);
-
-	if(err) {
-		fl_alert2(_("Unsupported audio format"));
-		m->clear();
-		playval = false;
-		bHighSpeed = false;
-		progdefaults.loop_playback = false;
-	}
-	else if (btnAutoSpot->value()) {
-		put_status(_("Spotting disabled"), 3.0);
-		btnAutoSpot->value(0);
-		btnAutoSpot->do_callback();
-	}
+	playval = false;
+	bHighSpeed = false;
+	put_status(_("Audio file playback is not available"), 5.0);
 }
 
 bool first_tab_select = true;
@@ -2877,51 +2803,7 @@ void cb_mnuFun(Fl_Widget*, void*)
 
 void cb_mnuAudioInfo(Fl_Widget*, void*)
 {
-		if (progdefaults.btnAudioIOis != SND_IDX_PORT) {
-				fl_alert2(_("Audio device information is only available for the PortAudio backend"));
-				return;
-		}
-
-#if USE_PORTAUDIO
-	size_t ndev;
-		std::string devtext[2], headers[2];
-	SoundPort::devices_info(devtext[0], devtext[1]);
-	if (devtext[0] != devtext[1]) {
-		headers[0] = _("Capture device");
-		headers[1] = _("Playback device");
-		ndev = 2;
-	}
-	else {
-		headers[0] = _("Capture and playback devices");
-		ndev = 1;
-	}
-
-	std::string audio_info;
-	for (size_t i = 0; i < ndev; i++) {
-		audio_info.append("<center><h4>").append(headers[i]).append("</h4>\n<table border=\"1\">\n");
-
-		std::string::size_type j, n = 0;
-		while ((j = devtext[i].find(": ", n)) != std::string::npos) {
-			audio_info.append("<tr>")
-				  .append("<td align=\"center\">")
-				  .append(devtext[i].substr(n, j-n))
-				  .append("</td>");
-
-			if ((n = devtext[i].find('\n', j)) == std::string::npos) {
-				devtext[i] += '\n';
-				n = devtext[i].length() - 1;
-			}
-
-			audio_info.append("<td align=\"center\">")
-				  .append(devtext[i].substr(j+2, n-j-2))
-				  .append("</td>")
-				  .append("</tr>\n");
-		}
-		audio_info.append("</table></center><br>\n");
-	}
-
-	fldigi_help(audio_info);
-#endif
+	fl_alert2(_("Modem audio is carried by TCI. There is no sound-card device."));
 }
 
 void cb_ShowConfig(Fl_Widget*, void*)
@@ -3055,16 +2937,8 @@ void toggleRSID()
 	cbRSID(NULL, NULL);
 }
 
-static notify_dialog *rx_monitor_alert = 0;
-void cb_mnuRxAudioDialog(Fl_Menu_ *w, void *d) {
-	if (!progdefaults.enable_audio_alerts) {
-		if (!rx_monitor_alert) rx_monitor_alert = new notify_dialog;
-		rx_monitor_alert->notify("Audio-Alert / Rx-Monitor device NOT enabled", 10.0);
-		show_notifier(rx_monitor_alert);
-		return;
-	}
-	if (rxaudio_dialog)
-		rxaudio_dialog->show();
+void cb_mnuRxAudioDialog(Fl_Menu_ *, void *) {
+	put_status(_("Receive audio monitor is not available"), 5.0);
 }
 
 void cb_mnuDigiscope(Fl_Menu_ *w, void *d) {
@@ -4260,9 +4134,19 @@ void startMacroTimer()
 {
 	ENSURE_THREAD(FLMAIN_TID);
 
-	btnMacroTimer->color(fl_rgb_color(240, 240, 0));
-	btnMacroTimer->clear_output();
-	Fl::add_timeout(0.0, macro_timer);
+	if (progStatus.timer <= 0)
+		return;
+	// The countdown is also started from the macro itself. A second request
+	// must not stack another timeout on top of the one already running.
+	Fl::remove_timeout(macro_timer);
+	if (btnMacroTimer) {
+		char buf[16];
+		snprintf(buf, sizeof(buf), "%d", progStatus.timer);
+		btnMacroTimer->copy_label(buf);
+		btnMacroTimer->color(fl_rgb_color(240, 240, 0));
+		btnMacroTimer->clear_output();
+	}
+	Fl::add_timeout(1.0, macro_timer);
 }
 
 void stopMacroTimer()
@@ -4275,6 +4159,8 @@ void stopMacroTimer()
 	Fl::remove_timeout(macro_timer);
 	Fl::remove_timeout(macro_timed_execute);
 
+	if (!btnMacroTimer)
+		return;
 	btnMacroTimer->label(0);
 	btnMacroTimer->color(FL_BACKGROUND_COLOR);
 	btnMacroTimer->set_output();
@@ -4282,21 +4168,28 @@ void stopMacroTimer()
 
 void macro_timer(void*)
 {
-	char buf[8];
-	snprintf(buf, sizeof(buf), "%d", progStatus.timer);
-	btnMacroTimer->copy_label(buf);
-
-	if (progStatus.timer-- == 0) {
+	// The label shows the full interval for one second, then the next lower
+	// second. At 1 the macro runs again.
+	if (progStatus.timer <= 1) {
+		const int which = progStatus.timerMacro;
 		stopMacroTimer();
-		if (active_modem->get_mode() == MODE_IFKP) {
-			ifkp_tx_text->clear();
-		} else {
-			TransmitText->clear();
+		if (which >= 0 && which < MAXMACROS) {
+			if (active_modem && active_modem->get_mode() == MODE_IFKP) {
+				if (ifkp_tx_text)
+					ifkp_tx_text->clear();
+			} else if (TransmitText)
+				TransmitText->clear();
+			macros.execute(which);
 		}
-		macros.execute(progStatus.timerMacro);
+		return;
 	}
-	else
-		Fl::repeat_timeout(1.0, macro_timer);
+	--progStatus.timer;
+	if (btnMacroTimer) {
+		char buf[16];
+		snprintf(buf, sizeof(buf), "%d", progStatus.timer);
+		btnMacroTimer->copy_label(buf);
+	}
+	Fl::repeat_timeout(1.0, macro_timer);
 }
 
 static long mt_xdt, mt_xtm;
@@ -4652,9 +4545,6 @@ LOG_INFO("Close WinKeyer i/o");
 
 LOG_INFO("Stop TOD clock");
 	TOD_close();
-
-LOG_INFO("Delete audio_alert");
-	delete audio_alert;
 
 LOG_INFO("Exit_process");
 	exit_process();
@@ -5210,7 +5100,7 @@ void UI_select()
 		btnPSQL->redraw();
 		StatusBar->redraw();
 
-		status_group->init_sizes();
+		place_tci_rx_attenuator();
 		status_group->redraw();
 
 		fl_digi_main->init_sizes();
@@ -5783,7 +5673,7 @@ UI_return:
 		else
 			btnPSQL->hide();
 
-		status_group->init_sizes();
+		place_tci_rx_attenuator();
 		status_group->redraw();
 
 	}
@@ -6183,6 +6073,7 @@ static Fl_Menu_Item menu_[] = {
 {_("&Configure"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 
 { icons::make_icon_label(_("Config Dialog")), 0, (Fl_Callback*)cb_mnu_config_dialog, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
+{ _("TCI (Zeus / ExpertSDR)"), 0, (Fl_Callback*)cb_mnu_tci, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Save Config"), save_icon), 0, (Fl_Callback*)cb_mnuSaveConfig, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Notifications")), 0,  (Fl_Callback*)cb_mnuConfigNotify, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Test Signals")), 0, (Fl_Callback*)cb_mnuTestSignals, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
@@ -6904,6 +6795,76 @@ static void cb_cntTxLevel(Fl_Counter2* o, void*) {
 	set_mode_txlevel(active_modem->get_mode(), progStatus.txlevel);
 }
 
+static void cb_cntRxLevel(Fl_Counter2* o, void*) {
+	double v = o->value();
+	if (v > 0.0) v = 0.0;
+	if (v < -30.0) v = -30.0;
+	progdefaults.tci_rx_level = v;
+	progdefaults.saveDefaults();
+}
+
+// How far the status line has been extended for the TCI receive attenuator.
+static int rx_atten_extra = 0;
+
+int tci_rx_attenuator_extra()
+{
+	return rx_atten_extra;
+}
+
+// Create the receive attenuator in the current status group, same slot as
+// the transmit attenuator. Hidden until TCI audio is the receive path.
+static void add_tci_rx_level()
+{
+	if (cntRxLevel || !cntTxLevel)
+		return;
+	double v = progdefaults.tci_rx_level;
+	if (v > 0.0) v = 0.0;
+	if (v < -30.0) v = -30.0;
+	progdefaults.tci_rx_level = v;
+	cntRxLevel = new Fl_Counter2(
+		cntTxLevel->x(), cntTxLevel->y(), cntTxLevel->w(), cntTxLevel->h(), "");
+	cntRxLevel->minimum(-30);
+	cntRxLevel->maximum(0);
+	cntRxLevel->precision(1);
+	cntRxLevel->step(1.0);
+	cntRxLevel->lstep(1.0);
+	cntRxLevel->value(v);
+	cntRxLevel->callback((Fl_Callback*)cb_cntRxLevel);
+	cntRxLevel->tooltip(_("TCI receive attenuator (dB)"));
+	cntRxLevel->hide();
+}
+
+void place_tci_rx_attenuator()
+{
+	if (!cntRxLevel || !cntTxLevel || !status_group || !fl_digi_main)
+		return;
+	int want = tci_audio_wanted() ? Hstatus : 0;
+	int delta = want - rx_atten_extra;
+	if (delta != 0) {
+		fl_digi_main->size(fl_digi_main->w(), fl_digi_main->h() + delta);
+		status_group->size(status_group->w(), Hstatus + want);
+		rx_atten_extra = want;
+	}
+	int top = status_group->y();
+	int bottom = top + want;
+	int n = status_group->children();
+	for (int i = 0; i < n; i++) {
+		Fl_Widget* child = status_group->child(i);
+		if (child == cntRxLevel || child->h() > Hstatus + 2)
+			continue;
+		if (child->y() != bottom)
+			child->position(child->x(), bottom);
+	}
+	cntRxLevel->resize(cntTxLevel->x(), top, cntTxLevel->w(), Hstatus);
+	if (want)
+		cntRxLevel->show();
+	else
+		cntRxLevel->hide();
+	status_group->init_sizes();
+	fl_digi_main->init_sizes();
+	status_group->redraw();
+}
+
 static void cb_mainViewer(Fl_Hold_Browser*, void*) {
 	int sel = mainViewer->value();
 	if (sel == 0 || sel > progdefaults.VIEWERchannels)
@@ -7565,13 +7526,10 @@ void cb_CountyQSO(Fl_Widget *)
 
 void cb_meters(Fl_Widget *)
 {
-	if (!rigCAT_active()) return;
-	pwrlevel_grp->show();
 }
 
 void cb_set_pwr_level(void *)
 {
-	rigCAT_set_pwrlevel((int)pwr_level->value());
 }
 
 void cb_exit_pwr_level(void*)
@@ -7795,6 +7753,7 @@ static Fl_Menu_Item alt_menu_[] = {
 
 {_("&Configure"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Config Dialog")), 0, (Fl_Callback*)cb_mnu_config_dialog, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
+{ _("TCI (Zeus / ExpertSDR)"), 0, (Fl_Callback*)cb_mnu_tci, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Test Signals")), 0, (Fl_Callback*)cb_mnuTestSignals, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Notifications")), 0,  (Fl_Callback*)cb_mnuConfigNotify, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Save Config"), save_icon), 0, (Fl_Callback*)cb_mnuSaveConfig, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
@@ -8284,6 +8243,7 @@ void create_fl_digi_main_WF_only() {
 			cntTxLevel->value(progStatus.txlevel);
 			cntTxLevel->lstep(1.0);
 			cntTxLevel->tooltip(_("Tx level attenuator (dB)"));
+			add_tci_rx_level();
 
 			WARNstatus = new Fl_Box(
 				rightof(cntTxLevel), Y,
@@ -8634,8 +8594,6 @@ void add_tx_char(int data)
 //======================================================================
 static void TTY_bell()
 {
-	if (progdefaults.audibleBELL)
-		audio_alert->alert(progdefaults.BELL_RING);
 }
 
 static void display_rx_data(const unsigned char data, int style)
@@ -9458,16 +9416,7 @@ void qsy(long long rfc, int fmid)
 			rfc += (wf->USB() ? adj : -adj);
 	}
 
-	if (connected_to_flrig)
-		REQ(xmlrpc_rig_set_qsy, rfc);
-	else if (progdefaults.chkUSERIGCATis)
-		REQ(rigCAT_set_qsy, rfc);
-#if USE_HAMLIB
-	else if (progdefaults.chkUSEHAMLIBis)
-		REQ(hamlib_set_qsy, rfc);
-#endif
-	else
-		qso_selectFreq((long int) rfc, fmid);
+	qso_selectFreq((long int) rfc, fmid);
 
 	std::string testmode = qso_opMODE->value();
 	bool xcvr_useFSK = (testmode.find("RTTY") != std::string::npos);
@@ -9770,19 +9719,11 @@ int notch_frequency = 0;
 void notch_on(int freq)
 {
 	notch_frequency = freq;
-	if (progdefaults.fldigi_client_to_flrig)
-		set_flrig_notch();
-	else
-		rigCAT_set_notch(notch_frequency);
 }
 
 void notch_off()
 {
 	notch_frequency = 0;
-	if (progdefaults.fldigi_client_to_flrig)
-		set_flrig_notch();
-	else
-		rigCAT_set_notch(notch_frequency);
 }
 
 void enable_kiss(void)

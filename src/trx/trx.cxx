@@ -48,10 +48,10 @@
 #include "nullmodem.h"
 #include "macros.h"
 #include "rigsupport.h"
+#include "tci.h"
 #include "psm/psm.h"
 #include "icons.h"
 #include "fft-monitor.h"
-#include "audio_alert.h"
 
 extern fftmon *fft_modem;
 
@@ -215,15 +215,13 @@ void trx_xmit_wfall_queue(int samplerate, const double* buf, size_t len)
 
 void audio_select_failure(std::string errmsg)
 {
-	progdefaults.btnAudioIOis = SND_IDX_NULL; // file i/o
-	sound_update(progdefaults.btnAudioIOis);
-	btnAudioIO[0]->value(0);
-	btnAudioIO[1]->value(0);
-	btnAudioIO[2]->value(0);
-	btnAudioIO[3]->value(1);
-	delete RXscard;
-	RXscard = 0;
-	fl_alert2("Could not open audio device: %s\nCheck for h/w connection, and restart fldigi", errmsg.c_str());
+	LOG_ERROR("Audio closed: %s", errmsg.c_str());
+	if (RXscard) {
+		delete RXscard;
+		RXscard = 0;
+	}
+	RXscard = new SoundNull;
+	RXsc_is_open = false;
 }
 
 void trx_trx_receive_loop()
@@ -265,10 +263,6 @@ void trx_trx_receive_loop()
 		if (RXscard) RXscard->Close();
 		RXsc_is_open = false;
 		current_RXsamplerate = 0;
-		if (progdefaults.btnAudioIOis == SND_IDX_PORT) {
-			sound_close();
-			sound_init();
-		}
 		REQ(audio_select_failure, e.what());
 		MilliSleep(100);
 		return;
@@ -353,9 +347,6 @@ void trx_trx_receive_loop()
 				if (fft_modem && spectrum_viewer->visible())
 					fft_modem->rx_process(rbvec[0].buf, numread);
 				active_modem->rx_process(rbvec[0].buf, numread);
-
-				if (audio_alert)
-					audio_alert->monitor(rbvec[0].buf, numread, current_RXsamplerate);
 
 				if (progdefaults.rsid)
 					ReedSolomon->receive(fbuf, numread);
@@ -718,18 +709,6 @@ void trx_start_modem(modem* m, int f)
 }
 
 //=============================================================================
-static std::string reset_loop_msg;
-void show_reset_loop_alert()
-{
-//	if (btnAudioIO[0]) {
-	btnAudioIO[0]->value(0);
-	btnAudioIO[1]->value(0);
-	btnAudioIO[2]->value(0);
-	btnAudioIO[3]->value(1);
-	fl_alert2("%s", reset_loop_msg.c_str());
-//	}
-}
-
 void trx_reset_loop()
 {
 	if (RXscard)  {
@@ -745,122 +724,31 @@ void trx_reset_loop()
 		TXscard = 0;
 	}
 
-	switch (progdefaults.btnAudioIOis) {
-#if USE_OSS
-	case SND_IDX_OSS:
+	if (tci_audio_wanted()) {
 		try {
-			RXscard = new SoundOSS(scDevice[0].c_str());
-			if (!RXscard) break;
-
+			RXscard = new SoundTCI();
 			RXscard->Open(O_RDONLY, current_RXsamplerate = 8000);
 			RXsc_is_open = true;
-
-			TXscard = new SoundOSS(scDevice[0].c_str());
-			if (!TXscard) break;
-
+			TXscard = new SoundTCI();
 			TXscard->Open(O_WRONLY, current_TXsamplerate = 8000);
-			TXsc_is_open = true;
-		} catch (...) {
-			reset_loop_msg = "OSS open failure";
-			progdefaults.btnAudioIOis = SND_IDX_NULL; // file i/o
-			sound_update(progdefaults.btnAudioIOis);
-			REQ(show_reset_loop_alert);
-		}
-		break;
-#endif
-#if USE_PORTAUDIO
-/// All of this very convoluted logic is needed to allow a Linux user
-/// to switch from PulseAudio to PortAudio.  PulseAudio does not immediately
-/// release the sound card resources after closing the pulse audio object.
-	case SND_IDX_PORT:
-	{
-		RXscard = new SoundPort(scDevice[0].c_str(), scDevice[1].c_str());
-		TXscard = new SoundPort(scDevice[0].c_str(), scDevice[1].c_str());
-		unsigned long tm1 = zmsec();
-		int RXret = 0, TXret = 0;
-		int i;
-		RXsc_is_open = false;
-		TXsc_is_open = false;
-		for (i = 0; i < 10; i++) { // try 10 times
-			try {
-				if (!RXret)
-					RXret = RXscard->Open(O_RDONLY, current_RXsamplerate = 8000);
-				if (progdefaults.is_full_duplex) {
-					if (!TXret)
-						TXret = TXscard->Open(O_WRONLY, current_TXsamplerate = 8000);
-				}
-				if (RXret) RXsc_is_open = true;
-				if (TXret) TXsc_is_open = true;
-				break;
-			} catch (const SndException& e) {
-				MilliSleep(50);
-				Fl::awake();
-			}
-		}
-		unsigned long tm = zmsec() - tm1;
-		if (tm < 0) tm = 0;
-		if (i == 10) {
-			if (RXscard) delete RXscard;
-			if (TXscard) delete TXscard;
-			RXscard = 0;
-			TXscard = 0;
-			LOG_PERROR("Port Audio device not available");
-			reset_loop_msg = "Port Audio device not available";
-			progdefaults.btnAudioIOis = SND_IDX_NULL; // file i/o
-			sound_update(progdefaults.btnAudioIOis);
-			REQ(show_reset_loop_alert);
-		} else {
-			LOG_INFO ("Port Audio device available after %0.1f seconds", tm / 1000.0 );
-		}
-		break;
-	}
-#endif
-#if USE_PULSEAUDIO
-	case SND_IDX_PULSE:
-		try {
-			RXscard = new SoundPulse(scDevice[0].c_str());
-			if (!RXscard) break;
-
-			RXscard->Open(O_RDONLY, current_RXsamplerate = 8000);
-			RXsc_is_open = true;
-
-			TXscard = new SoundPulse(scDevice[0].c_str());
-			if (!TXscard) break;
-		
-// needed to open playback device in PaVolumeControl
-			TXscard->Open(O_WRONLY, current_TXsamplerate = 8000);
-			double buffer[1024];
-			for (int i = 0; i < 1024; buffer[i++] = 0);
-			TXscard->Write_stereo(buffer, buffer, 1024);
-
 			if (progdefaults.is_full_duplex)
 				TXsc_is_open = true;
-			else {
-				TXscard->Close();
-				TXsc_is_open = false;
-			}
 		} catch (const SndException& e) {
-			LOG_ERROR("%s", e.what());
+			LOG_ERROR("TCI audio: %s", e.what());
 			if (RXscard) delete RXscard;
 			if (TXscard) delete TXscard;
 			RXscard = 0;
 			TXscard = 0;
-			reset_loop_msg = "Pulse Audio error:\n";
-			reset_loop_msg.append(e.what());
-			reset_loop_msg.append("\n\nIs the server running?\nClose fldigi and execute 'pulseaudio --start'");
-			progdefaults.btnAudioIOis = SND_IDX_NULL; // file i/o
-			sound_update(progdefaults.btnAudioIOis);
-			REQ(show_reset_loop_alert);
 		}
-		break;
-#endif
-	case SND_IDX_NULL:
+	}
+	if (!RXscard || !TXscard) {
+		if (RXscard) delete RXscard;
+		if (TXscard) delete TXscard;
 		RXscard = new SoundNull;
 		TXscard = new SoundNull;
 		current_RXsamplerate = current_TXsamplerate = 0;
-		break;
-	default:
-		abort();
+		RXsc_is_open = false;
+		TXsc_is_open = false;
 	}
 
 	trx_state = STATE_RX;
@@ -895,61 +783,12 @@ void trx_start(void)
 	if (dtmf) delete dtmf;
 
 
-	switch (progdefaults.btnAudioIOis) {
-#if USE_OSS
-	case SND_IDX_OSS:
-		RXscard = new SoundOSS(scDevice[0].c_str());
-		TXscard = new SoundOSS(scDevice[0].c_str());
-		break;
-#endif
-#if USE_PORTAUDIO
-	case SND_IDX_PORT:
-		RXscard = new SoundPort(scDevice[0].c_str(), scDevice[1].c_str());
-		TXscard = new SoundPort(scDevice[0].c_str(), scDevice[1].c_str());
-		break;
-#endif
-#if USE_PULSEAUDIO
-	case SND_IDX_PULSE:
-		try {
-			RXscard = new SoundPulse(scDevice[0].c_str());
-			if (!RXscard) break;
-
-			TXscard = new SoundPulse(scDevice[0].c_str());
-			if (!TXscard) break;
-
-// needed to open playback device in PaVolumeControl
-			TXscard->Open(O_WRONLY, current_TXsamplerate = 8000);
-			double buffer[1024];
-			for (int i = 0; i < 1024; buffer[i++] = 0);
-			TXscard->Write_stereo(buffer, buffer, 1024);
-
-			if (progdefaults.is_full_duplex)
-				TXsc_is_open = true;
-			else {
-				TXscard->Close();
-				TXsc_is_open = false;
-			}
-		} catch (const SndException& e) {
-			LOG_ERROR("%s", e.what());
-			if (RXscard) delete RXscard;
-			if (TXscard) delete TXscard;
-			RXscard = 0;
-			TXscard = 0;
-			reset_loop_msg = "Pulse Audio error:\n";
-			reset_loop_msg.append(e.what());
-			reset_loop_msg.append("\n\nIs the server running?");
-			progdefaults.btnAudioIOis = SND_IDX_NULL; // file i/o
-			sound_update(progdefaults.btnAudioIOis);
-			REQ(show_reset_loop_alert);
-		}
-		break;
-#endif
-	case SND_IDX_NULL:
+	if (tci_audio_wanted()) {
+		RXscard = new SoundTCI();
+		TXscard = new SoundTCI();
+	} else {
 		RXscard = new SoundNull;
 		TXscard = new SoundNull;
-		break;
-	default:
-		abort();
 	}
 	current_RXsamplerate = current_TXsamplerate = 0;
 

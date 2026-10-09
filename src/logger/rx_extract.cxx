@@ -42,7 +42,7 @@
 #include "timeops.h"
 #include "xmlrpc.h"
 
-#include "audio_alert.h"
+
 
 static const char *wrap_beg = "[WRAP:beg]";
 static const char *wrap_end = "[WRAP:end]";
@@ -93,8 +93,6 @@ void rx_extract_timer(void *)
 	rx_extract_reset();
 
 	if (trx_state != STATE_RX) return;
-	if (audio_alert && progdefaults.ENABLE_RX_EXTRACT_TIMED_OUT)
-		audio_alert->alert(progdefaults.RX_EXTRACT_TIMED_OUT);
 
 }
 
@@ -133,8 +131,6 @@ void invoke_flmsg()
 	put_status(rx_extract_msg.c_str(), 20, STATUS_CLEAR);
 
 	if (trx_state != STATE_RX) return;
-	if (audio_alert && progdefaults.ENABLE_RX_EXTRACT_MSG_RCVD)
-		audio_alert->alert(progdefaults.RX_EXTRACT_MSG_RCVD);
 
 	if (flmsg_is_online && progdefaults.flmsg_transfer_direct) {
 		guard_lock autolock(server_mutex);

@@ -18,11 +18,4 @@ nsisinst:
 	@(cd src && $(MAKE) $(AM_MAKEFLAGS) $@)
 endif
 
-if WANT_FLDIGI
-if ENABLE_HAMLIB
-hamlib-static:
-	@(cd src && $(MAKE) $(AM_MAKEFLAGS) $@)
-endif
-endif
-
 EXTRA_DIST = build-aux/config.rpath

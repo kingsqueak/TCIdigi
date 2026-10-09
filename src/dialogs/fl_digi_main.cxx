@@ -3020,6 +3020,7 @@ Logging_frame->resizable(NFtabs);
 			cntTxLevel->value(progStatus.txlevel);
 			cntTxLevel->lstep(1.0);
 			cntTxLevel->tooltip(_("Tx level attenuator (dB)"));
+			add_tci_rx_level();
 
 			WARNstatus = new Fl_Box(
 				rightof(cntTxLevel) + pad, Y,

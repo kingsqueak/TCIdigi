@@ -10691,7 +10691,7 @@ initViewer();}
 progdefaults.changed = true;}
         tooltip {Clear channel text after
 \# seconds of inactivity} xywh {278 90 50 24} align 8 value 10
-        code0 {o->minimum(1); o->maximum(180); o->step(1);}
+        code0 {o->minimum(1); o->maximum(600); o->step(1);}
         code1 {o->value(progdefaults.VIEWERtimeout);}
         code2 {o->labelsize(FL_NORMAL_SIZE);}
         class Fl_Spinner2

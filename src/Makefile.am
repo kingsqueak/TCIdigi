@@ -15,7 +15,7 @@ endif
 # The BUILD_* variables are defined in build.m4
 fldigi_CPPFLAGS = -DBUILD_FLDIGI -DLOCALEDIR=\"$(localedir)\" @FLDIGI_BUILD_CPPFLAGS@ -DPKGDATADIR=\"$(pkgdatadir)\"
 fldigi_CXXFLAGS = @FLDIGI_BUILD_CXXFLAGS@
-fldigi_CFLAGS = @FLDIGI_BUILD_CFLAGS@
+fldigi_CFLAGS = @FLDIGI_BUILD_CFLAGS@ -std=gnu89
 fldigi_LDFLAGS = @FLDIGI_BUILD_LDFLAGS@
 fldigi_LDADD = @FLDIGI_BUILD_LDADD@
 
@@ -29,12 +29,6 @@ if WIN32
 fldigi_CPPFLAGS += -fno-var-tracking
 fldigi_CXXFLAGS += -fno-var-tracking
 endif
-
-HAMLIB_SRC = \
-include/hamlib.h \
-rigcontrol/hamlib.cxx \
-include/rigclass.h \
-rigcontrol/rigclass.cxx
 
 XMLRPC_SRC = \
 include/xmlrpc.h \
@@ -245,7 +239,7 @@ LIBMBEDTLS_SRC = \
 
 
 EXTRA_fldigi_SOURCES = \
-	$(HAMLIB_SRC) $(XMLRPC_SRC) $(FLDIGI_WIN32_RES_SRC) \
+	$(XMLRPC_SRC) $(FLDIGI_WIN32_RES_SRC) \
 	$(COMMON_WIN32_RES_SRC) $(BENCHMARK_SRC) $(REGEX_SRC) $(STACK_SRC) \
 	$(MINGW32_SRC) $(NLS_SRC) $(XMLRPCPP_SRC) $(LIBMBEDTLS_SRC)
 
@@ -279,9 +273,6 @@ fldigi_CFLAGS   += @LIBMBEDTLS_CFLAGS@
 fldigi_LDFLAGS  += @LIBMBEDTLS_LIBS@
 endif
 
-if ENABLE_HAMLIB
-  fldigi_SOURCES += $(HAMLIB_SRC)
-endif
 if NEED_HAMLIB_LOCATOR
   fldigi_SOURCES += $(LOCATOR_SRC)
 endif
@@ -325,7 +316,7 @@ FLARQ_VERSION = @FLARQ_VERSION@
 # Define the custom silent rule function
 @SILENT_CMDS@
 
-.EXPORT_ALL_VARIABLES: appbundle nsisinst hamlib-static
+.EXPORT_ALL_VARIABLES: appbundle nsisinst
 
 # Sources that are generated,
 BUILT_SOURCES =
@@ -473,13 +464,6 @@ if USE_NLS
     CLEAN_LOCAL += share
 endif
 
-if WANT_FLDIGI
-if ENABLE_HAMLIB
-hamlib-static: $(fldigi_OBJECTS)
-	$(call silent,HLS   ,fldigi$(EXEEXT))sh $(srcdir)/../scripts/mkhamlibstatic.sh fldigi
-endif
-endif
-
 tmp_srcdir_var=$(srcdir)
 TESTS = $(tmp_srcdir_var)/../scripts/tests/config-h.sh $(tmp_srcdir_var)/../scripts/tests/cr.sh
 
@@ -503,8 +487,6 @@ clean-local:
 
 # Sources that we build. It is OK to have headers here.
 fldigi_SOURCES += \
-	cmedia/cmedia.cxx \
-	cmedia/hid.cxx \
 	combo/combo.cxx \
 	config_script/create_default_script.cxx \
 	config_script/run_script.h \
@@ -643,25 +625,14 @@ fldigi_SOURCES += \
 	qrunner/fqueue.h \
 	qrunner/qrunner.cxx \
 	rigcontrol/FreqControl.cxx \
+	rigcontrol/cat_removed.cxx \
 	rigcontrol/norig.cxx \
 	rigcontrol/ptt.cxx \
-	rigcontrol/rigio.cxx \
 	rigcontrol/rigsupport.cxx \
-	rigcontrol/rigxml.cxx \
 	rigcontrol/serial.cxx \
-	rigcontrol/xmlrpc_rig.cxx \
+	rigcontrol/tci.cxx \
 	rsid/rsid.cxx \
-	soundcard/audio_alert.cxx \
-	soundcard/bark.cxx \
-	soundcard/checkout.cxx \
-	soundcard/diesel.cxx \
-	soundcard/dinnerbell.cxx \
-	soundcard/doesnot.cxx \
-	soundcard/play.pa.cxx \
-	soundcard/soundconf.cxx \
 	soundcard/sound.cxx \
-	soundcard/steam_train.cxx \
-	soundcard/ttybell.cxx \
 	spot/notify.cxx \
 	spot/pskrep.cxx \
 	spot/spot.cxx \
@@ -709,9 +680,6 @@ fldigi_SOURCES += \
 EXTRA_fldigi_SOURCES += \
 	blank/blank.cxx \
 	blank/blank.h \
-	cmedia/hid_lin.cxx \
-	cmedia/hid_mac.cxx \
-	cmedia/hid_win.cxx \
 	dialogs/fl_digi_main.cxx \
 	dxcluster/arc-help.cxx \
 	dxcluster/CCC_Commands.cxx \
@@ -759,7 +727,6 @@ EXTRA_fldigi_SOURCES += \
 	include/analysis.h \
 	include/arq_io.h \
 	include/ascii.h \
-	include/audio_alert.h \
 	include/ax25_decode.h \
 	include/calendar.h \
 	include/charsetdistiller.h \
@@ -814,10 +781,6 @@ EXTRA_fldigi_SOURCES += \
 	include/gettext.h \
 	include/gfft.h \
 	include/globals.h \
-	include/hidapi.h \
-	include/hid_lin.h \
-	include/hid_mac.h \
-	include/hid_win.h \
 	include/htmlstrings.h \
 	include/https.h \
 	include/icons.h \
@@ -874,7 +837,6 @@ EXTRA_fldigi_SOURCES += \
 	include/plot_xy.h \
 	include/pixmaps.h \
 	include/pkg.h \
-	include/play.pa.h \
 	include/progress.h \
 	include/psk_browser.h \
 	include/pskcoeff.h \

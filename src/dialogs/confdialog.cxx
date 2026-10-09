@@ -4832,7 +4832,6 @@ progdefaults.BELL_RING_MENU = o->value();
 Fl_Button *btn_test_bell_ring_wav=(Fl_Button *)0;
 
 static void cb_btn_test_bell_ring_wav(Fl_Button*, void*) {
-  audio_alert->alert(progdefaults.BELL_RING.c_str());
 }
 
 Fl_ListBox *selShift=(Fl_ListBox *)0;
@@ -7778,7 +7777,6 @@ static void cb_btn_enable_regex_match_wa(Fl_Check_Button* o, void*) {
 Fl_Button *btn_test_regex_wav=(Fl_Button *)0;
 
 static void cb_btn_test_regex_wav(Fl_Button*, void*) {
-  audio_alert->alert(progdefaults.BWSR_REGEX_MATCH.c_str());
 }
 
 Fl_File_Input *inp_wav_fname_mycall=(Fl_File_Input *)0;
@@ -7835,7 +7833,7 @@ static void cb_btn_enable_mycall_match_wav(Fl_Check_Button* o, void*) {
 Fl_Button *btn_test_mycall_wav=(Fl_Button *)0;
 
 static void cb_btn_test_mycall_wav(Fl_Button*, void*) {
-  audio_alert->alert(progdefaults.BWSR_MYCALL_MATCH.c_str());
+
 }
 
 Fl_File_Input *inp_wav_fname_rsid=(Fl_File_Input *)0;
@@ -7892,7 +7890,7 @@ static void cb_btn_enable_rsid_match_wav(Fl_Check_Button* o, void*) {
 Fl_Button *btn_test_rsid_wav=(Fl_Button *)0;
 
 static void cb_btn_test_rsid_wav(Fl_Button*, void*) {
-  audio_alert->alert(progdefaults.RSID_MATCH.c_str());
+
 }
 
 Fl_File_Input *inp_wav_flmsg_rcvd=(Fl_File_Input *)0;
@@ -7949,7 +7947,7 @@ static void cb_btn_enable_flmsg_wav(Fl_Check_Button* o, void*) {
 Fl_Button *btn_test_flmsg_extract_wav=(Fl_Button *)0;
 
 static void cb_btn_test_flmsg_extract_wav(Fl_Button*, void*) {
-  audio_alert->alert(progdefaults.RX_EXTRACT_MSG_RCVD.c_str());
+
 }
 
 Fl_File_Input *inp_wav_flmsg_timed_out=(Fl_File_Input *)0;
@@ -8000,7 +7998,7 @@ progdefaults.TIMED_OUT_ALERT_MENU = o->value();
 Fl_Button *btn_test_rx_extract_timed_out=(Fl_Button *)0;
 
 static void cb_btn_test_rx_extract_timed_out(Fl_Button*, void*) {
-  audio_alert->alert(progdefaults.RX_EXTRACT_TIMED_OUT.c_str());
+
 }
 
 Fl_Check_Button *btn_enable_flmsg_time_out_wav=(Fl_Check_Button *)0;
@@ -17963,8 +17961,8 @@ L==\"hidraw*\", SUBSYSTEM==\"hidraw\", MODE=\"0664\", GROUP=\"plugdev\""));
       } // Fl_Group* AudioOSS
       { AudioPort = new Fl_Group(255, 65, 500, 79);
         AudioPort->box(FL_ENGRAVED_FRAME);
-        { btnAudioIO[1] = new Fl_Round_Button(267, 93, 95, 25, _("PortAudio"));
-          btnAudioIO[1]->tooltip(_("Use Port Audio server"));
+        { btnAudioIO[1] = new Fl_Round_Button(267, 93, 95, 25, _("Audio"));
+          btnAudioIO[1]->tooltip(_("WASAPI, Core Audio, JACK, PulseAudio, or ALSA"));
           btnAudioIO[1]->down_box(FL_DOWN_BOX);
           btnAudioIO[1]->selection_color((Fl_Color)1);
           btnAudioIO[1]->callback((Fl_Callback*)cb_btnAudioIO1);
@@ -18410,7 +18408,7 @@ ll with your audio device."));
         cntTimeout->callback((Fl_Callback*)cb_cntTimeout);
         cntTimeout->align(Fl_Align(FL_ALIGN_RIGHT));
         cntTimeout->when(FL_WHEN_RELEASE);
-        o->minimum(1); o->maximum(180); o->step(1);
+        o->minimum(1); o->maximum(600); o->step(1);
         o->value(progdefaults.VIEWERtimeout);
         o->labelsize(FL_NORMAL_SIZE);
       } // Fl_Spinner2* cntTimeout

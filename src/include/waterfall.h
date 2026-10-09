@@ -122,6 +122,17 @@ public:
 	}
 
     double AudioPeak() { return peakaudio; }
+	void publishImage() { update_waterfall(); }
+	const RGBI* imageData() const { return fft_img; }
+	int imageWidth() const { return disp_width; }
+	int imageHeight() const { return image_height; }
+	int pixelHz() const { return step > 0 ? step : 1; }
+	// Time-domain scope. The hidden widget paints this only from draw(),
+	// which does not run under the Qt window.
+	const unsigned char* scopeImage() const { return sig_img; }
+	int scopeOffset() const { return sigoffset; }
+	int scopeHeight() const { return h(); }
+	int scopeStride() const { return IMAGE_WIDTH; }
 
 	WFspeed Speed() { return wfspeed;}
 	void Speed(WFspeed rate) { 
@@ -333,6 +344,21 @@ public:
 	void draw_fmt_marker() { wfdisp->make_fmt_marker(); }
 
 	void movetocenter() { wfdisp->movetocenter();}
+	void slew(int dir) { if (wfdisp) wfdisp->slew(dir); }
+	void publishImage() { if (wfdisp) wfdisp->publishImage(); }
+	const RGBI* imageData() const { return wfdisp ? wfdisp->imageData() : 0; }
+	int imageWidth() const { return wfdisp ? wfdisp->imageWidth() : 0; }
+	int imageHeight() const { return wfdisp ? wfdisp->imageHeight() : 0; }
+	int pixelHz() const { return wfdisp ? wfdisp->pixelHz() : 1; }
+	const unsigned char* scopeImage() const { return wfdisp ? wfdisp->scopeImage() : 0; }
+	int scopeOffset() const { return wfdisp ? wfdisp->scopeOffset() : 0; }
+	int scopeHeight() const { return wfdisp ? wfdisp->scopeHeight() : 0; }
+	int scopeStride() const { return wfdisp ? wfdisp->scopeStride() : 1; }
+	int displayMode() const { return wfdisp ? (int)wfdisp->Mode() : 0; }
+	void setDisplayMode(int m) {
+		if (wfdisp)
+			wfdisp->Mode(static_cast<WFmode>(m));
+	}
 	void redraw_marker() { wfdisp->makeMarker(); }
 	void setPrefilter(int v) {wfdisp->setPrefilter(v);}
 

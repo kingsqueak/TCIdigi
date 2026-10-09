@@ -740,78 +740,26 @@ void configuration::reset(void)
 }
 
 #include "rigio.h"
+#include "tci.h"
 
 void configuration::initInterface()
 {
 	ENSURE_THREAD(FLMAIN_TID);
 
-// close down any possible rig interface threads
-#if USE_HAMLIB
-	hamlib_close();
-//		MilliSleep(100);
-#endif
-	rigCAT_close();
-//		MilliSleep(100);
+	// Hamlib, rigCAT, flrig, and hardware PTT are not opened.
+	chkUSEHAMLIBis = false;
+	chkUSERIGCATis = false;
+	fldigi_client_to_flrig = false;
+	if (chkUSEHAMLIB) chkUSEHAMLIB->value(0);
+	if (chkUSERIGCAT) chkUSERIGCAT->value(0);
+	if (btn_fldigi_client_to_flrig) btn_fldigi_client_to_flrig->value(0);
 
-	RigCatCMDptt = btnRigCatCMDptt->value();
-	TTYptt = btnTTYptt->value();
+	seed_lsb_modes();
 
-	RTSptt = btnRTSptt->value();
-	DTRptt = btnDTRptt->value();
-	RTSplus = btnRTSplusV->value();
-	DTRplus = btnDTRplusV->value();
-
-	PTTdev = inpTTYdev->value();
-
-#if USE_HAMLIB
-	chkUSEHAMLIBis = chkUSEHAMLIB->value();
-     HamlibCMDptt = btnHamlibCMDptt->value();
-#endif
-	chkUSERIGCATis = chkUSERIGCAT->value();
-
-#if USE_HAMLIB
-	if (*cboHamlibRig->value() == '\0') // no selection at start up
-		cboHamlibRig->index(hamlib_get_index(HamRigModel));
-	else
-		HamRigModel = hamlib_get_rig_model(cboHamlibRig->index());
-	HamRigDevice = inpRIGdev->value();
-	HamRigBaudrate = listbox_baudrate->index();
-#else
-	cboHamlibRig->hide();
-	inpRIGdev->hide();
-	listbox_baudrate->hide();
-#endif
-
-	if (connected_to_flrig) {
-		LOG_INFO("%s", "using flrig xcvr control");
+	if (tci_enable) {
+		LOG_INFO("%s", "using TCI xcvr control");
+		wf->USB(true);
 		wf->setQSY(1);
-	} else if (chkUSERIGCATis) { // start the rigCAT thread
-		if (rigCAT_init()) {
-			LOG_INFO("%s", "using rigCAT xcvr control");
-			wf->USB(true);
-			wf->setQSY(1);
-			rigCAT_get_pwrlevel();
-		} else {
-			LOG_INFO("%s", "defaulting to no xcvr control");
-			noCAT_init();
-			wf->USB(true);
-			wf->setQSY(0);
-			chkUSERIGCATis = false;
-		}
-#if USE_HAMLIB
-	} else if (chkUSEHAMLIBis) { // start the hamlib thread
-		if (hamlib_init(HamlibCMDptt)) {
-			LOG_INFO("%s", "using HAMLIB xcvr control");
-			btnInitHAMLIB->deactivate();
-			wf->USB(true);
-			wf->setQSY(1);
-		} else {
-			LOG_INFO("%s", "defaulting to no xcvr control");
-			noCAT_init();
-			wf->USB(true);
-			wf->setQSY(0);
-		}
-#endif
 	} else {
 		LOG_INFO("%s", "No xcvr control selected");
 		noCAT_init();
@@ -820,22 +768,7 @@ void configuration::initInterface()
 	}
 	build_frequencies2_list();
 
-	if (HamlibCMDptt && chkUSEHAMLIBis)
-		push2talk->reset(PTT::PTT_HAMLIB);
-	else if ((RigCatCMDptt || RigCatRTSptt || RigCatDTRptt) && chkUSERIGCATis)
-		push2talk->reset(PTT::PTT_RIGCAT);
-	else if (TTYptt)
-		push2talk->reset(PTT::PTT_TTY);
-	else if (UsePPortPTT)
-		push2talk->reset(PTT::PTT_PARPORT);
-	else if (UseUHrouterPTT)
-		push2talk->reset(PTT::PTT_UHROUTER);
-	else if (cmedia_ptt)
-		push2talk->reset(PTT::PTT_CMEDIA);
-	else if (gpio_ptt)
-		push2talk->reset(PTT::PTT_GPIO);
-	else
-		push2talk->reset(PTT::PTT_NONE);
+	push2talk->reset(PTT::PTT_NONE);
 
 	wf->setRefLevel();
 	wf->setAmpSpan();
