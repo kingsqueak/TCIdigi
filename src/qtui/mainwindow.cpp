@@ -2819,8 +2819,8 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	rigFilter->setObjectName(QStringLiteral("rigFilter"));
 	rigFilter->addItems({
 		QStringLiteral("0-5000"), QStringLiteral("80-3000"), QStringLiteral("80-2000"),
-		QStringLiteral("950-2050"), QStringLiteral("1240-1760"), QStringLiteral("1370-1680"),
-		QStringLiteral("1435-1565"), QStringLiteral("1468-1532")
+		QStringLiteral("950-2050"), QStringLiteral("1200-1800"), QStringLiteral("1325-1675"),
+		QStringLiteral("1450-1550"), QStringLiteral("1460-1540")
 	});
 	rigFilter->setCurrentText(QStringLiteral("0-5000"));
 	rigFilter->setToolTip(QStringLiteral("Filter width (Hz)."));
