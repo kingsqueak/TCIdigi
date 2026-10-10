@@ -1,6 +1,7 @@
 
 
 ======================================
+
 This is now a deprecated repo
 
 I inadvertently built against a deprecated fldigi base
@@ -13,6 +14,7 @@ https://sourceforge.net/projects/tcidigi/
 
 The code at Sourceforge has a number of fixes in it and builds and runs on M silicon Mac and
 should also build for linux but I have not yet tested it.
+
 ======================================== 
 
 
