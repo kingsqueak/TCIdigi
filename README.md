@@ -1,3 +1,35 @@
+
+
+======================================
+This is now a deprecated repo
+
+I inadvertently built against a deprecated fldigi base
+
+I have updated to the latest fldigi base in the new repo
+
+The new repo is now on Sourceforge to be adjacent to the fldigi project.
+
+https://sourceforge.net/projects/tcidigi/
+
+The code at Sourceforge has a number of fixes in it and builds and runs on M silicon Mac and
+should also build for linux but I have not yet tested it.
+======================================== 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # TCIdigi
 TCIdigi is a Qt 6 interface on fldigi’s modems. Radio control and modem audio use TCI, the protocol used by ZeusSDR and ExpertSDR3. 
 
