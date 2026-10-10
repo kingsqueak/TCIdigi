@@ -1,3 +1,54 @@
+TCIdigi is a fork from fldigi https://www.w1hkj.org/
+
+The purpose of TCIdigi is to have a Mac and Linux TCI only version of fldigi in Qt6.
+
+The appearance is modernized and somewhat streamlined.
+
+All the sound card and CAT functionality has been removed from fldigi.
+
+I refer to this as my "daily driver" for chatting over keyboard modes. I enabled the basic functional modems popularly used and the lookup and logging is just QRZ for the moment. I may add eQSL in the future.
+
+I have also submitted patches for fldigi to enable TCI and also QRZ logging to the main project. This will be more useful for people that use the full suite of flmsg flarq etc for NBEMS and other uses.  I didn't want to do that full merge in this client.
+
+This project was done using an AI agent as I have no ability to work this many changes on a code base this size independently.
+
+I am new to git, github and Sourceforge so things will be pretty messy as I figure this all out.
+
+I am intentionally leaving all the legacy fldigi documentation in this repo for now as functionally, with the features I have implemented, the operation and most of the modem capability is the same between the apps.
+
+This should build for linux as it is now, the instructions are in the README.md file
+
+It will be a while before I make any extensive changes as this was a fairly expensive endeavor in tokens and I am not currently working.
+
+========================
+Configuration tips
+========================
+
+There is a Configuration dialog for TCI, if you use ports other than the default 40001 or an IP for the server that is not localhost, make your changes there.
+
+There is a dialogue box to configure QRZ credentials for lookup and logging.
+
+These are not forced on initial startup yet, but will be eventually.
+
+There is an Rx attenuator at the bottom right that allows attenuation of overly strong TCI Rx audio streams. As of right now a SunSDR2dx with ExpertSDR3 defaults to a fixed output level over TCI that is too strong so you can apply 20db or so attenuation to put it in better range for decoding.
+
+The signal strength meter at the bottom will indicate blue if not enough Rx audio is received, green with enough and red when you are reaching the upper limits.
+
+The Ctr button was added to return the tune to the 1500Hz sweet spot, handy when AFC drifts around too much.
+
+I added pre-defined filters centered on 1500 for 80, 100, 250, 500, and 1kHz widths with some padding.
+
+The Browser works in PSK modes and you can undock the browser as a separate window.
+
+There are tooltips for most things if you hover over them.
+
+I hope people find this useful
+
+I can be reached via my email on QRZ.
+
+73 de KC2RGW
+
+===============================================================================
 Fldigi is a software modem for Amateur Radio use. It is a sound card based
 program that is used for both transmitting and receiving data in any of the
 following modes:
