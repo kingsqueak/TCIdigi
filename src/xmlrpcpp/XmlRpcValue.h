@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 //
-// flxmlrpc Copyright (c) 2015 by W1HKJ, Dave Freese <iam_w1hkj@w1hkj.com>
+// flxmlrpc Copyright (c) 2015 by W1HKJ, Dave Freese
 //    
 // XmlRpc++ Copyright (c) 2002-2008 by Chris Morley
 //

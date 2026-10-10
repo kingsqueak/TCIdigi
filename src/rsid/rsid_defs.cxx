@@ -270,6 +270,10 @@ const int cRsId::rsid_ids_size1 = sizeof(rsid_ids_1)/sizeof(*rsid_ids_1) - 1;
         ELEM2_(649, THOR50x1, MODE_THOR50x1)            \
         ELEM2_(653, THOR50x2, MODE_THOR50x2)            \
         ELEM2_(658, THOR100, MODE_THOR100)              \
+        ELEM2_(2119, THOR32, MODE_THOR32)               \
+        ELEM2_(2156, THOR44, MODE_THOR44)               \
+        ELEM2_(2157, THOR56, MODE_THOR56)               \
+        ELEM2_(713, THOR25, MODE_THOR25)                \
                                                         \
         ELEM2_(662, DOMINOEX_44, MODE_DOMINOEX44)       \
         ELEM2_(681, DOMINOEX_88, MODE_DOMINOEX88)       \
@@ -298,8 +302,6 @@ const int cRsId::rsid_ids_size1 = sizeof(rsid_ids_1)/sizeof(*rsid_ids_1) - 1;
                                                         \
         ELEM2_(2053, OFDM500F, MODE_OFDM_500F)          \
         ELEM2_(2094, OFDM7F0F, MODE_OFDM_750F)          \
-        ELEM2_(2118, OFDM2000, MODE_OFDM_2000)          \
-        ELEM2_(2110, OFDM2000F, MODE_OFDM_2000F)        \
                                                         \
         ELEM2_(1171, IFKP, MODE_IFKP)                   \
                                                         \
@@ -315,3 +317,7 @@ const RSIDs cRsId::rsid_ids_2[] = { RSID_LIST2 };
 
 const int cRsId::rsid_ids_size2 = sizeof(rsid_ids_2)/sizeof(*rsid_ids_2) - 1;
 
+/*
+        ELEM2_(2118, OFDM2000, MODE_OFDM_2000)          \
+        ELEM2_(2110, OFDM2000F, MODE_OFDM_2000F)        \ 
+*/

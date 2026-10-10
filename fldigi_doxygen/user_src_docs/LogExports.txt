@@ -31,6 +31,10 @@ fields you want to export with the right panel controls.  Press the OK
 button to continue or Cancel to abort the operation.  A file chooser dialog
 will open which allows you to specify the name and location of the exported
 file.  Use the extension ".adi" on Windows and ".adif" on the other OS's.
+
+You can save and reload the "Defaults".  Left click on the button to load
+the default button state(s).  Right click on the button to save the current
+button state(s) as the new default.
 <br>
 
 \section export_text_csv Export Text / CSV

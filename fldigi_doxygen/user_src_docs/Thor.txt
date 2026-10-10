@@ -50,6 +50,24 @@ not locked on and become very distinct when AFC lock has been achieved.  The
 tone dots will move from bottom to top (opposite the direction of the
 waterfall).
 <br>
+\section THORdatamodes Thor Data Modes
+
+|   MODE    | Tone Range | BW (-26 dB) | # Tones | SR    | baud   | char/sec  | ~wpm |
+:-----------|:-----------|:------------|:--------|:------|:-------|:----------|:-----
+|THOR-MICRO | 36         | 53          | 18      | 8000  | 1.95   | 0.6       | 7
+|THOR-4	    | 70         | 105         | 18      | 8000  | 3.9    | 1.1       | 15
+|THOR-8	    | 140        | 210         | 18      | 8000  | 7.82   | 2.2       | 30
+|THOR-16    | 281        | 420         | 18      | 8000  | 15.625 | 4.5       | 60
+|THOR-25x4  | 1800       | 2022        | 4x18    | 8000  | 25     | 7.2       | 100
+|THOR-50x1  | 900        | 1345        | 18      | 8000  | 50     | 14.5      | 188
+|THOR-50x2  | 1800       | 2245        | 2x18    | 8000  | 50     | 14.5      | 188
+|THOR-100   | 1440       | 2430        | 18      | 8000  | 100    | 28.6      | 372
+|THOR-32    | 563        | 840         | 18      | 8000  | 31.25  | 9         | 120
+|THOR-5     | 194        | 252         | 18      | 11025 | 5.38   | 1.55      | 20
+|THOR-11    | 194        | 290         | 18      | 11025 | 10.77  | 3.1       | 40
+|THOR-22    | 388        | 580         | 18      | 11025 | 21.53  | 6.2       | 80
+|THOR-44    | 775        | 1160        | 18      | 11025 | 43.1   | 12.3      | 160
+|THOR-56    | 993        | 1485        | 18      | 16000 | 55.2   | 16        | 210
 
 \section THORimage Thor Image Mode
 

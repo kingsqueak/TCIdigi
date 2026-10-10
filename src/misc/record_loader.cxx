@@ -569,7 +569,7 @@ void createRecordLoader()
 {
 	if (dlgRecordLoader) return;
 	dlgRecordLoader = make_record_loader_window();
-	fl_input_add("http://www.w1hkj.com/support_files/");
+	fl_input_add("https://www.w1hkj.org/support_files/");
 
 	inpDataSources->value(0);
 }

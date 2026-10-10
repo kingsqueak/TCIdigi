@@ -728,7 +728,7 @@ void cbMenuConfig()
 
 void cbMenuAbout()
 {
-	fl_message2("flarq - ARQ client\nversion: %s\nw1hkj@@w1hkj.com", VERSION);
+	fl_message2("flarq - ARQ client\nversion: %s\nw1hkj25@gmail.com", VERSION);
 }
 
 std::string txhold = "";
@@ -1806,7 +1806,6 @@ int main (int argc, char *argv[] )
 {
 	sscanf(VERSION, "%f", &version);
 
-	std::set_unexpected(handle_unexpected);
 	std::set_terminate(diediedie);
 	setup_signal_handlers();
 
@@ -1965,6 +1964,17 @@ int main (int argc, char *argv[] )
 	start_xml_server(FLARQ_XML_PORT);
 
 	arqwin->show(argc, argv);
+
+#ifdef USE_X
+
+	XWMHints* hints = XGetWMHints(fl_display, fl_xid(arqwin));
+	hints->flags |= IconMaskHint; // ensure transparency mask is enabled for the XPM icon
+	hints->icon_mask |= IconPixmapHint;
+	XSetWMHints(fl_display, fl_xid(arqwin), hints);
+	XFree(hints);
+
+#endif
+
 	return Fl::run();
 }
 

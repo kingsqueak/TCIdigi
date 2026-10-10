@@ -62,8 +62,11 @@ protected:
 	int		samplerate;
 	bool	reverse;
 	int		sigsearch;
+
 	bool	sig_start;
 	bool	sig_stop;
+	int		sig_smpl;
+	int		symlen;
 
 	double	bandwidth;
 	double	freqerr;
@@ -298,6 +301,7 @@ public:
 	virtual std::string fsq_mycall() {return "";}
 	virtual bool		fsq_squelch_open() {return false;}
 	virtual void		fsq_transmit(void *) {}
+	virtual bool		fsq_is_rx() { return false; }
 	
 // modem decode-quality data and statistics
 public:
@@ -419,7 +423,13 @@ extern modem *psk500r_c3_modem;
 extern modem *psk500r_c4_modem;
 
 extern modem *rtty_modem;
-//extern modem *pkt_modem;
+
+extern modem *scampfsk_modem;
+extern modem *scampook_modem;
+extern modem *scfskfst_modem;
+extern modem *scfskslw_modem;
+extern modem *scookslw_modem;
+extern modem *scfskvsl_modem;
 
 extern modem *olivia_modem;
 extern modem *olivia_4_125_modem;
@@ -477,6 +487,12 @@ extern modem *thor8_modem;
 extern modem *thor11_modem;
 extern modem *thor16_modem;
 extern modem *thor22_modem;
+
+extern modem *thor25_modem;
+extern modem *thor32_modem;
+extern modem *thor44_modem;
+extern modem *thor56_modem;
+
 extern modem *thor25x4_modem;
 extern modem *thor50x1_modem;
 extern modem *thor50x2_modem;

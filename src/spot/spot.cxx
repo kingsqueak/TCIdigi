@@ -54,7 +54,16 @@ struct callback_t
 };
 typedef std::list<callback_t> cblist_t;
 
-
+#if ( (__GNUC__ > 11) || ((__GNUC__ == 11) && (__GNUC_MINOR >= 4) ) )
+struct fre_hash
+{
+	size_t operator()(const fre_t* r) const { return r->hash(); }
+};
+struct fre_comp
+{
+	size_t operator()(const fre_t* l, const fre_t* r) const { return *l == *r; }
+};
+#else
 struct fre_hash : std::unary_function<const fre_t*, size_t>
 {
 	size_t operator()(const fre_t* r) const { return r->hash(); }
@@ -63,6 +72,7 @@ struct fre_comp : std::unary_function<const fre_t*, bool>
 {
 	size_t operator()(const fre_t* l, const fre_t* r) const { return *l == *r; }
 };
+#endif
 
 typedef std::list<callback_t*> callback_p_list_t;
 
@@ -124,7 +134,7 @@ void spot_recv(char c, int decoder, int afreq, int md)
 		buf.clear();
 }
 
-static void get_log_details(long long& freq, trx_mode& mode, time_t& rtime)
+static void get_log_details(unsigned long long& freq, trx_mode& mode, time_t& rtime)
 {
 	if (mode == NUM_MODES)
 		mode = active_modem->get_mode();
@@ -141,7 +151,7 @@ static void get_log_details(long long& freq, trx_mode& mode, time_t& rtime)
 		rtime = time(NULL);
 }
 
-void spot_log(const char* callsign, const char* locator, long long freq, trx_mode mode, time_t rtime)
+void spot_log(const char* callsign, const char* locator, unsigned long long freq, trx_mode mode, time_t rtime)
 {
 	get_log_details(freq, mode, rtime);
 std::cout << callsign << ", " << locator << ", " << freq << ", " << mode_info[mode].adif_name << ", " << mode_info[mode].adif_name << std::endl;
@@ -150,7 +160,7 @@ std::cout << callsign << ", " << locator << ", " << freq << ", " << mode_info[mo
 			i->lcb(callsign, locator, freq, mode, rtime, i->data);
 }
 
-void spot_manual(const char* callsign, const char* locator, long long freq, trx_mode mode, time_t rtime)
+void spot_manual(const char* callsign, const char* locator, unsigned long long freq, trx_mode mode, time_t rtime)
 {
 	get_log_details(freq, mode, rtime);
 	for (cblist_t::const_iterator i = cblist.begin(); i != cblist.end(); ++i)

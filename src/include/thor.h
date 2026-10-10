@@ -2,7 +2,7 @@
 //    thor.h  --  thor modem
 //
 // Copyright (C) 2008-2012
-//     David Freese <w1hkj@w1hkj.com>
+//     David Freese <w1hkj25@gmail.com>
 //     John Douyere <vk2eta@gmail.com>
 //     John Phelps  <kl4yfd@gmail.com>
 //
@@ -39,15 +39,16 @@
 #include <FL/Fl_Shared_Image.H>
 
 // NASA coefficients for viterbi encode/decode algorithms
+// Voyager codes
 #define	THOR_K	7
-#define	THOR_POLY1	0x6d
-#define	THOR_POLY2	0x4f
+#define	THOR_POLY1	0x6d  // 109
+#define	THOR_POLY2	0x4f  //  79
 
 //VK2ETA high speed modes
 // IEEE coefficients for viterbi encode/decode algorithms
 #define	THOR_K15	15
-#define	K15_POLY1	044735
-#define	K15_POLY2	063057
+#define	K15_POLY1	044735  // 18909
+#define	K15_POLY2	063057  // 26139
 
 //#include "mfskvaricode.h"
 #include "interleave.h"
@@ -97,7 +98,6 @@ protected:
 // common variables
 	double	phase[THORMAXFFTS + 1];
 	double	txphase;
-	int		symlen;
 	int		doublespaced;
 	double	tonespacing;
 	int		counter;
@@ -138,6 +138,8 @@ protected:
 	double sig;
 	double noise;
 	double s2n;
+	double max;
+	double min;
 
 	int synccounter;
 
@@ -255,5 +257,7 @@ public:
 	void			thor_send_image(std::string s = "", bool gray = false);
 
 };
+
+extern void init_def_thor_avatar(Fl_Group *w);
 
 #endif

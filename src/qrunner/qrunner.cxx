@@ -68,6 +68,8 @@ const char *sztid[] = {
 	"CWIO_TID",
 	"FSK_TID",
 	"FMT_TID",
+	"ACTIVITY_TID",
+	"FSQ_SOUNDER_TID",
 	"FLMAIN_TID"
 };
 

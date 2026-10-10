@@ -42,22 +42,30 @@
 #include "threads.h"
 #include "debug.h"
 
+#include <time.h>
+#include <sys/time.h>
+
 void find_fonts();
 
 Font_Browser* font_browser;
 
+//======================================================================
+// static members
 int		Font_Browser::instance = 0;
 int 	*Font_Browser::fixed = 0;
-int 	Font_Browser::numfonts = 0;
+int 	Font_Browser::numfonts = 100;
+std::list<font_pair> Font_Browser::font_list;
+//======================================================================
 
-Font_Browser::font_pair *Font_Browser::font_pairs = 0;
+static inline std::string ucase(std::string s) {
+	for (size_t n = 0; n < s.length(); n++) s[n] = toupper(s[n]);
+	return s;
+}
 
-
-static int  font_compare(const void *p1, const void *p2)
+static bool font_compare(font_pair &p1, font_pair &p2)
 {
-	std::string s1 = *((const Font_Browser::font_pair *)p1)->name;
-	std::string s2 = *((const Font_Browser::font_pair *)p2)->name;
-	return strcasecmp( s1.c_str(), s2.c_str() );
+	if (ucase(p1.name) > ucase(p2.name)) return false;
+	return true;
 }
 
 // Font Color selected
@@ -197,8 +205,10 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 
 		++instance;
 
-		numfonts =   Fl::set_fonts(0); // Nr of fonts available on the server
-		font_pairs = new font_pair[numfonts];
+		numfonts =   Fl::set_fonts("*"); // Nr of fonts available on the server
+
+		font_list.clear();
+
 		fixed = new int[numfonts];
 
 		int j = 0;
@@ -214,26 +224,35 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 			}
 			if (fntname.empty()) ok = false;
 			if (ok) {
-				font_pairs[j].name = new std::string;
-				*(font_pairs[j].name) = fntname;
-				font_pairs[j].nbr = i;
+				nufont.name = fntname;
+				nufont.nbr = i;
+				font_list.push_back(nufont);
 				j++;
 			}
 		}
 
 		numfonts = j;
 
-		qsort(&font_pairs[0], numfonts, sizeof(font_pair), font_compare);
+		font_list.sort(font_compare);
 
-		for (int i = 0; i < numfonts; i++) {
-			lst_Font->add((*(font_pairs[i].name)).c_str(), reinterpret_cast<void *>(font_pairs[i].nbr));
-			fixed[i] = 0;
+		std::list<font_pair> temp_list = font_list;
+
+		int i = 0;
+		while (!temp_list.empty()) {
+			nufont = temp_list.front();
+			lst_Font->add( nufont.name.c_str(), reinterpret_cast<void *>(nufont.nbr) );
+			temp_list.pop_front();
+			fixed[i++] = 0;
 		}
 		find_fonts();
+
 	} else {
 		++instance;
-		for (int i = 0; i < numfonts; i++) {
-			lst_Font->add((*(font_pairs[i].name)).c_str(), reinterpret_cast<void *>(font_pairs[i].nbr));
+		std::list<font_pair> temp_list = font_list;
+		while (!temp_list.empty()) {
+			nufont = temp_list.front();
+			lst_Font->add( nufont.name.c_str(), reinterpret_cast<void *>(nufont.nbr) );
+			temp_list.pop_front();
 		}
 	}
 
@@ -254,8 +273,7 @@ Font_Browser::~Font_Browser()
 	if (instance == 0) {
 		delete [] fixed;
 		fixed = 0;
-		delete [] font_pairs;
-		font_pairs = 0;
+		font_list.clear();
 	}
 }
 
@@ -343,8 +361,6 @@ void Font_Browser::fontFilter(filter_t filter)
 
 static pthread_t find_font_thread;
 
-//#define FBDEBUG 1
-
 static int is_fixed;
 Fl_Font test_font;
 void font_test(void *)
@@ -355,28 +371,19 @@ void font_test(void *)
 
 void *find_fixed_fonts(void *)
 {
-#ifdef FBDEBUG
-	FILE *sys_fonts = fopen("fonts.txt", "w");
-	fprintf(sys_fonts, "Font #, Type, Name\n");
-#endif
-	for (int i = 0; i < Font_Browser::numfonts; i++) {
-		test_font = Font_Browser::font_pairs[i].nbr;
+	std::list<font_pair> temp_list = Font_Browser::font_list;
+	int i = 0;
+	while (!temp_list.empty()) {
+		test_font = temp_list.front().nbr;
 		is_fixed = -1;
 		Fl::awake(font_test);
-		while (is_fixed == -1) MilliSleep(10);
+		while (is_fixed == -1) {
+			MilliSleep(1);
+		}
 		Font_Browser::fixed[i] = is_fixed;
-#ifdef FBDEBUG
-		fprintf(
-			sys_fonts,
-			"%d, %c, %s\n",
-			Font_Browser::font_pairs[i].nbr,
-			Font_Browser::fixed[i] ? 'F' : 'P',
-			(*(Font_Browser::font_pairs[i].name)).c_str());
-#endif
+		i++;
+		temp_list.pop_front();
 	}
-#ifdef FBDEBUG
-		fclose(sys_fonts);
-#endif
 	return NULL;
 }
 

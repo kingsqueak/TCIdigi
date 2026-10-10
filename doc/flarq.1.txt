@@ -122,13 +122,13 @@ fldigi(1), getaddrinfo(3), getopt(3), X(7)
 
 
 == RESOURCES ==
-Flarq web site: http://www.w1hkj.com/flarq_main.html
+Flarq web site: https://www.w1hkj.org/flarq_main.html
 
-Fldigi web site: http://www.w1hkj.com/Fldigi.html
+Fldigi web site: https://www.w1hkj.org/Fldigi.html
 
 Sourceforge project page: http://sourceforge.net/projects/fldigi/
 
-ARQ specification by Paul Schmidt, K9PS: http://www.w1hkj.com/FlarqHelpFiles/ARQ2.pdf
+ARQ specification by Paul Schmidt, K9PS: https://www.w1hkj.org/FlarqHelpFiles/ARQ2.pdf
 
 == AUTHORS ==
 Flarq was written by David Freese, +W1HKJ+.

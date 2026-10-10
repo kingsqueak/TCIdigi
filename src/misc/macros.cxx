@@ -1343,7 +1343,7 @@ static void setTXATTEN(float v)
 	v = clamp(v, -30.0, 0.0);
 	progStatus.txlevel = v;
 	cntTxLevel->value(progStatus.txlevel);
-	set_mode_txlevel(active_modem->get_mode(), progStatus.txlevel);
+	modeband.set_mode_txlevel(progStatus.txlevel);
 	que_ok = true;
 }
 
@@ -1724,8 +1724,8 @@ static void pQSYPLUS(std::string &s, size_t &i, size_t endbracket)
 		substitute(s, i, endbracket, "");
 		return;
 	}
-	int rf = 0;
-	float rfd = 0;
+	unsigned long long rf = 0;
+	double rfd = 0;
 	std::string sIncrFreq = s.substr(i+6, endbracket - i - 6);
 	// no frequency(s) specified
 	if (sIncrFreq.length() == 0) {
@@ -1733,11 +1733,42 @@ static void pQSYPLUS(std::string &s, size_t &i, size_t endbracket)
 		return;
 	}
 	// rf first value
-	sscanf(sIncrFreq.c_str(), "%f", &rfd);
+	sscanf(sIncrFreq.c_str(), "%lf", &rfd);
 	if (rfd != 0) {
-		rf = wf->rfcarrier() + (int)(1000*rfd);
+		rf = wf->rfcarrier() + (1000.0*rfd);
 		qsy(rf, active_modem ? active_modem->get_freq() : 1500);
 	}
+	substitute(s, i, endbracket, "");
+}
+
+static void doQSYPLUS(std::string s)
+{
+	unsigned long long rf = 0;
+	double rfd = 0;
+
+// no frequency(s) specified
+	if (s.length() < 9) {
+		que_ok = true;
+		return;
+	}
+	// rf first value
+	if (sscanf(s.c_str(), "<!QSY+:%lf>", &rfd)) {
+		if (rfd != 0) {
+			rf = wf->rfcarrier() + (1000.0*rfd);
+			qsy(rf, active_modem ? active_modem->get_freq() : 1500);
+		}
+	}
+	que_ok = true;
+}
+
+static void pRxQueQSYPLUS(std::string &s, size_t &i, size_t endbracket)
+{
+	if (within_exec) {
+		substitute(s, i, endbracket, "");
+		return;
+	}
+	struct CMDS cmd = { s.substr(i, endbracket - i + 1), doQSYPLUS };
+	push_rxcmd(cmd);
 	substitute(s, i, endbracket, "");
 }
 
@@ -1762,7 +1793,12 @@ static void pFREQ(std::string &s, size_t &i, size_t endbracket)
 
 static void pBAND(std::string &s, size_t &i, size_t endbracket)
 {
-        s.replace( i, 6, band_name( band( wf->rfcarrier() ) ) );
+		s.replace( i, 6, band_name( band( wf->rfcarrier() ) ) );
+}
+
+static void pTX_PWR(std::string &s, size_t &i, size_t endbracket)
+{
+		s.replace( i, 8, log_power() );
 }
 
 static void pLOC(std::string &s, size_t &i, size_t endbracket)
@@ -2113,6 +2149,9 @@ static void pALERT(std::string &s, size_t &i, size_t endbracket)
 	substitute(s, i, endbracket, "");
 }
 
+// ---------------------------------------------------------------------
+// AUDIO file playback and record controls
+
 static void doAUDIO(std::string s)
 {
 	s.erase(0, 16);
@@ -2133,13 +2172,104 @@ static void pAUDIO(std::string &s, size_t &i, size_t endbracket)
 	substitute(s, i, endbracket, "^!");
 }
 
+// ---------------------------------------------------------------------
+
+void do_start_generate(std::string s)
+{
+	(void)s;
+	LOG_ERROR("TX audio recording is not available");
+}
+
+static void pTXGEN_START(std::string &s, size_t &i, size_t endbracket)
+{
+	if (within_exec) {
+		substitute(s, i, endbracket, "");
+		return;
+	}
+
+	static char dt_fname[200];
+	static struct tm now;
+	static time_t curr_epoch = time(NULL);
+	gmtime_r(&curr_epoch, &now);
+
+	strftime(
+		(char*)dt_fname, 
+		sizeof(dt_fname),
+		"TX_%Y%m%d%H%M%S.wav",
+		&now);
+
+	std::string fname = "Start TX_recording: ";
+	fname.append(dt_fname);
+	CMDS cmd = {fname, do_start_generate};
+	push_txcmd(cmd);
+	substitute(s, i, endbracket, "^!");
+}
+
+void do_stop_generate(std::string s)
+{
+	(void)s;
+}
+
+static void pTXGEN_STOP(std::string &s, size_t &i, size_t endbracket)
+{
+	CMDS cmd = {"Stop TX recording: ", do_stop_generate};
+	push_txcmd(cmd);
+	substitute (s, i, endbracket, "^!");
+}
+
+void do_pause_generate(std::string s)
+{
+	(void)s;
+}
+
+static void pTXGEN_PAUSE(std::string &s, size_t &i, size_t endbracket)
+{
+	CMDS cmd = {"Stop TX recording: ", do_pause_generate};
+	push_txcmd(cmd);
+	substitute (s, i, endbracket, "^!");
+}
+
+/*
+//----------------------------------------------------------------------
+
+void do_start_capture()
+{
+	static char dt_fname[200];
+
+	struct tm now;
+	gmtime_r(&curr_epoch, &now);
+
+	strftime(
+		(char*)dt_fname, 
+		sizeof(dt_fname),
+		"RX_%Y%m%d%H%M%S.wav",
+		&now);
+
+	std::string fname = dt_fname;
+
+	bool result = TXscard->startCapture(fname, SF_FORMAT_WAV | SF_FORMAT_PCM_16);
+}
+
+void do_stop_capture()
+{
+	TXscard->stopRecord();
+}
+
+void do_pause_capture()
+{
+	TXscard->pauseCapture();
+}
+
+// ---------------------------------------------------------------------
+*/
+
 static void pPAUSE(std::string &s, size_t &i, size_t endbracket)
 {
 	if (within_exec) {
 		substitute(s, i, endbracket, "");
 		return;
 	}
-	substitute(s, i, endbracket, "");
+	substitute(s, i, endbracket, "^p");
 }
 
 static void pRX(std::string &s, size_t &i, size_t endbracket)
@@ -2568,8 +2698,7 @@ static void pLNW(std::string &s, size_t &i, size_t endbracket)
 		msg.append(s.substr(start + 1, endbracket-start-1));
 		inpNotes->value(msg.c_str());
 	}
-	substitute(s, i, endbracket, "");
-	qsoSave_cb(0, 0);
+	substitute(s, i, endbracket, "^L");
 }
 
 static void pCLRLOG(std::string &s, size_t &i, size_t endbracket)
@@ -2578,7 +2707,7 @@ static void pCLRLOG(std::string &s, size_t &i, size_t endbracket)
 		substitute(s, i, endbracket, "");
 		return;
 	}
-	substitute(s, i, endbracket, "");
+	substitute(s, i, endbracket, "^C");
 }
 
 static void pMODEM_COMPSKED(std::string &s, size_t &i, size_t endbracket)
@@ -2637,7 +2766,7 @@ static void doIMAGE(std::string s)
 				active_modem->send_color_image(fname);
 		} else if (active_mode >= MODE_THOR_FIRST && active_mode <= MODE_THOR_LAST) {
 			thor_load_scaled_image(fname, Greyscale);
-        } else if (active_mode == MODE_IFKP) {
+		} else if (active_mode == MODE_IFKP) {
 			ifkp_load_scaled_image(fname, Greyscale);
 		}
 	}
@@ -3201,6 +3330,42 @@ static void pAFC(std::string &s, size_t &i, size_t endbracket)
 	substitute(s, i, endbracket, "");
 }
 
+static void pSQL(std::string &s, size_t &i, size_t endbracket)
+{
+	if (within_exec) {
+		substitute(s, i, endbracket, "");
+		return;
+	}
+	std::string sVal = s.substr(i+5, endbracket - i - 5);
+	if (sVal.length() > 0) {
+		// sVal = on|off|t   [ON, OFF or Toggle]
+		if (sVal.compare(0,2,"on") == 0)
+			btnSQL->value(1);
+		else if (sVal.compare(0,3,"off") == 0)
+			btnSQL->value(0);
+		else if (sVal.compare(0,1,"t") == 0)
+			btnSQL->value(!btnSQL->value());
+		btnSQL->do_callback();
+	}
+	substitute(s, i, endbracket, "");
+}
+
+static void pSQLCH(std::string &s, size_t &i, size_t endbracket)
+{
+	if (within_exec) {
+		substitute(s, i, endbracket, "");
+		return;
+	}
+	std::string sVal = s.substr(i+7, endbracket - i - 7);
+	if (sVal.length() > 0) {
+		int val;
+		sscanf(sVal.c_str(), "%d", &val);
+		sldrSquelch->value(val);
+		sldrSquelch->do_callback();
+	}
+	substitute(s, i, endbracket, "");
+}
+
 static void pREV(std::string &s, size_t &i, size_t endbracket)
 {
 	if (within_exec) {
@@ -3561,9 +3726,9 @@ static void pQSYFM(std::string &s, size_t &i, size_t endbracket)
 	do_qsy(false);
 }
 
-struct rfafmd { int rf; int af; std::string mdname;
-	rfafmd(int a, int b, std::string nm) { rf = a; af = b; mdname = nm;}
-	rfafmd(int a, int b) {rf = a; af = b; mdname = active_modem->get_mode_name();}
+struct rfafmd { unsigned long long rf; int af; std::string mdname;
+	rfafmd(unsigned long long a, int b, std::string nm) { rf = a; af = b; mdname = nm;}
+	rfafmd(unsigned long long a, int b) {rf = a; af = b; mdname = active_modem->get_mode_name();}
 	rfafmd(){rf = af = 0; mdname = active_modem->get_mode_name();}
 };
 static std::queue<rfafmd> fpairs;
@@ -3576,9 +3741,9 @@ static void pQSY(std::string &s, size_t &i, size_t endbracket)
 	}
 
 	std::string mdname = active_modem->get_mode_name();
-	int rf = 0;
+	unsigned long long rf = 0;
 	int af = 0;
-	float rfd = 0;
+	double rfd = 0;
 	std::string sGoFreq = s.substr(i+5, endbracket - i - 5);
 	// no frequency(s) specified
 	if (sGoFreq.length() == 0) {
@@ -3594,8 +3759,8 @@ static void pQSY(std::string &s, size_t &i, size_t endbracket)
 			if (pos == std::string::npos) triad = sGoFreq;
 			else  triad = sGoFreq.substr(0, pos);
 			sGoFreq.erase(0, triad.length()+1);
-			sscanf(triad.c_str(), "%f", &rfd);
-			if (rfd > 0) rf = (int)(1000*rfd);
+			sscanf(triad.c_str(), "%lf", &rfd);
+			if (rfd > 0) rf = (unsigned long long)(1000*rfd);
 			if ((pos = triad.find(":")) != std::string::npos) {
 				triad.erase(0,pos+1);
 				if (triad.length())
@@ -3639,9 +3804,9 @@ static void pQSY(std::string &s, size_t &i, size_t endbracket)
 
 static void doQSY(std::string s)
 {
-	int rf = 0;
+	unsigned long long rf = 0;
 	int audio = 0;
-	float rfd = 0;
+	double rfd = 0;
 	std::string sGoFreq;
 	sGoFreq = s.substr(6, s.length() - 7);
 	// no frequency(s) specified
@@ -3650,9 +3815,9 @@ static void doQSY(std::string s)
 		return;
 	}
 	// rf first value
-	sscanf(sGoFreq.c_str(), "%f", &rfd);
+	sscanf(sGoFreq.c_str(), "%lf", &rfd);
 	if (rfd > 0)
-		rf = (int)(1000*rfd);
+		rf = (unsigned long long)(1000.0*rfd);
 	size_t pos;
 	if ((pos = sGoFreq.find(":")) != std::string::npos) {
 		// af second value
@@ -3668,7 +3833,7 @@ static void doQSY(std::string s)
 	if (rf && rf != wf->rfcarrier())
 		qsy(rf, audio);
 	else
-		active_modem->set_freq(audio);
+		active_modem->set_freq((double)audio);
 	que_ok = true;
 }
 
@@ -3935,6 +4100,7 @@ void set_macro_env(void)
 		FLDIGI_DIAL_FREQUENCY,
 		FLDIGI_AUDIO_FREQUENCY,
 		FLDIGI_FREQUENCY,
+		FLDIGI_TX_PWR,
 
 		FLDIGI_MACRO_FILE,
 
@@ -4032,6 +4198,7 @@ void set_macro_env(void)
 		{ "FLDIGI_DIAL_FREQUENCY", "" },
 		{ "FLDIGI_AUDIO_FREQUENCY", "" },
 		{ "FLDIGI_FREQUENCY", "" },
+		{ "FLDIGI_TX_PWR", log_power() },
 
 		// logging frame
 		{ "FLDIGI_MACRO_FILE", progStatus.LastMacroFile.c_str() },
@@ -4086,7 +4253,7 @@ void set_macro_env(void)
 		{ "FLDIGI_LOGBOOK_LOCATOR", inpLoc_log->value() },
 		{ "FLDIGI_LOGBOOK_QSL_R", inpQSLrcvddate_log->value() },
 		{ "FLDIGI_LOGBOOK_QSL_S", inpQSLsentdate_log->value() },
-		{ "FLDIGI_LOGBOOK_TX_PWR", inpTX_pwr_log->value() },
+		{ "FLDIGI_LOGBOOK_TX_PWR", log_power() },
 		{ "FLDIGI_LOGBOOK_COUNTY", inpCNTY_log->value() },
 		{ "FLDIGI_LOGBOOK_IOTA", inpIOTA_log->value() },
 		{ "FLDIGI_LOGBOOK_DXCC", inpDXCC_log->value() },
@@ -4126,15 +4293,15 @@ void set_macro_env(void)
 
 	// frequencies
 	char dial_freq[20];
-	snprintf(dial_freq, sizeof(dial_freq), "%ld", (long)wf->rfcarrier());
+	snprintf(dial_freq, sizeof(dial_freq), "%llu", wf->rfcarrier());
 	env[FLDIGI_DIAL_FREQUENCY].val = dial_freq;
 	char audio_freq[6];
 	snprintf(audio_freq, sizeof(audio_freq), "%d", active_modem->get_freq());
 	env[FLDIGI_AUDIO_FREQUENCY].val = audio_freq;
 	char freq[20];
-	snprintf(freq, sizeof(freq), "%ld", (long)(wf->rfcarrier() + (wf->USB()
-																  ? active_modem->get_freq()
-																  : -active_modem->get_freq())));
+	snprintf(freq, sizeof(freq), "%llu", (wf->rfcarrier() + (wf->USB()
+															  ? active_modem->get_freq()
+															  : -active_modem->get_freq())));
 	env[FLDIGI_FREQUENCY].val = freq;
 
 	// debugging vars
@@ -4255,6 +4422,64 @@ static void pEXEC(std::string &s, size_t &i, size_t endbracket)
 }
 #else // !__MINGW32__
 
+HANDLE g_hChildStd_IN_Rd = NULL;
+HANDLE g_hChildStd_IN_Wr = NULL;
+HANDLE g_hChildStd_OUT_Rd = NULL;
+HANDLE g_hChildStd_OUT_Wr = NULL;
+HANDLE g_hInputFile = NULL;
+
+#define PIPESIZE 4096
+void WriteToPipe(void) 
+
+
+// Read from a file and write its contents to the pipe for the child's STDIN.
+// Stop when there is no more data. 
+{ 
+	DWORD dwRead, dwWritten; 
+	CHAR chBuf[PIPESIZE];
+	BOOL bSuccess = FALSE;
+ 
+	for (;;) { 
+		bSuccess = ReadFile(g_hInputFile, chBuf, PIPESIZE, &dwRead, NULL);
+		if ( ! bSuccess || dwRead == 0 ) break; 
+	  
+		bSuccess = WriteFile(g_hChildStd_IN_Wr, chBuf, dwRead, &dwWritten, NULL);
+		if ( ! bSuccess ) break; 
+	} 
+ 
+// Close the pipe handle so the child process stops reading. 
+ 
+	if ( ! CloseHandle(g_hChildStd_IN_Wr) ) 
+		LOG_ERROR("StdInWr CloseHandle"); 
+} 
+ 
+std::string ReadFromPipe(void) 
+// Read output from the child process's pipe for STDOUT
+// and write to the parent process's pipe for STDOUT. 
+// Stop when there is no more data. 
+{
+	DWORD dwRead;
+//	DWORD dwWritten; 
+	CHAR chBuf[PIPESIZE]; 
+	BOOL bSuccess = FALSE;
+//	HANDLE hParentStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	std::string sbuffer;
+LOG_INFO("Child std::cout handle: %p", g_hChildStd_OUT_Rd);
+
+	for (;;) {
+		memset(chBuf, 0, PIPESIZE);
+LOG_INFO("Read pipe");
+		bSuccess = ReadFile( g_hChildStd_OUT_Rd, chBuf, PIPESIZE, &dwRead, NULL);
+LOG_INFO("bSuccess: %d, dwRead %ld", bSuccess, dwRead);
+		if( ! bSuccess || dwRead == 0 ) break; 
+		sbuffer.append(chBuf);
+//		bSuccess = WriteFile(hParentStdOut, chBuf, 
+//							dwRead, &dwWritten, NULL);
+//		if (! bSuccess ) break; 
+	}
+	return sbuffer; 
+}
+
 static void pEXEC(std::string& s, size_t& i, size_t endbracket)
 {
 	if (within_exec) {
@@ -4275,20 +4500,91 @@ static void pEXEC(std::string& s, size_t& i, size_t endbracket)
 	execstr = m.expandMacro(execstr, true);
 	within_exec = false;
 
-	char* cmd = strdup(execstr.c_str());
+	SECURITY_ATTRIBUTES saAttr; 
+ 
+	LOG_INFO("Start of macro <EXEC> execution.");
+
+// Set the bInheritHandle flag so pipe handles are inherited. 
+ 
+	saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
+	saAttr.bInheritHandle = TRUE; 
+	saAttr.lpSecurityDescriptor = NULL; 
+
+// Create a pipe for the child process's STDOUT. 
+ 
+	if ( ! CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0) )  {
+		LOG_ERROR("StdoutRd CreatePipe failes"); 
+		return;
+	}
+
+// Ensure the read handle to the pipe for STDOUT is not inherited.
+
+	if ( ! SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0) ) {
+		LOG_ERROR("Stdout SetHandleInformation failed");
+		return;
+	}
+
+// Create a pipe for the child process's STDIN. 
+ 
+	if (! CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0)) {
+		LOG_ERROR("Stdin CreatePipe failed");
+		return;
+	}
+
+// Ensure the write handle to the pipe for STDIN is not inherited. 
+ 
+	if ( ! SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0) ) {
+		LOG_ERROR("Stdin SetHandleInformation failed");
+		return;
+	}
 
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	memset(&si, 0, sizeof(si));
 	si.cb = sizeof(si);
 	memset(&pi, 0, sizeof(pi));
-	if (!CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+
+	char* cmd = strdup(execstr.c_str());
+
+LOG_INFO("CMD %s", cmd);
+
+	if (!CreateProcess(
+			NULL, 
+			cmd, 
+			NULL, 
+			NULL, 
+			TRUE, //FALSE, 
+			CREATE_NO_WINDOW, 
+			NULL, 
+			NULL, 
+			&si, &pi)) {
 		LOG_ERROR("CreateProcess failed with error code %ld", GetLastError());
-	CloseHandle(pi.hProcess);
+		free(cmd);
+		return;
+	}
+
+	unsigned int waitret = WaitForSingleObject( pi.hProcess, 1000);  //INFINITE );
+ 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
+
 	free(cmd);
 
-	s.erase(i, end + strlen("</EXEC>") - i);
+// Read from pipe that is the standard output for child process. 
+
+	if (waitret == WAIT_ABANDONED ||
+		waitret == WAIT_TIMEOUT ||
+		waitret == WAIT_FAILED ) {
+		LOG_INFO("%s", "Process SIGNAL return failed.");
+		substitute(s, i, endbracket, "");
+	} else {
+		std::string read_from_pipe = ReadFromPipe(); 
+		LOG_INFO("%s", "End of MACRO <EXEC> execution.");
+		LOG_INFO("Process returned %s", (read_from_pipe.empty() ? "" : read_from_pipe.c_str()));
+		if (!read_from_pipe.empty())
+			substitute(s, i, endbracket, read_from_pipe);
+		else
+			substitute(s, i, endbracket, "");
+	}
 }
 #endif // !__MINGW32__
 
@@ -4688,6 +4984,7 @@ static const MTAGS mtags[] = {
 	{"<CALL>",		pCALL},
 	{"<FREQ>",		pFREQ},
 	{"<BAND>",		pBAND},
+	{"<TX_PWR>",	pTX_PWR},
 	{"<LOC>",		pLOC},
 	{"<MODE>",		pMODE},
 	{"<NAME>",		pNAME},
@@ -4776,6 +5073,8 @@ static const MTAGS mtags[] = {
 	{"<POST:",		pPOST},
 	{"<AFC:",		pAFC},
 	{"<LOCK:",		pLOCK},
+	{"<SQL:",		pSQL},
+	{"<SQLCH:",		pSQLCH},
 	{"<REV:",		pREV},
 	{"<HS:",		pHS},
 	{"<RXRSID:",	pRX_RSID},
@@ -4805,6 +5104,10 @@ static const MTAGS mtags[] = {
 	{"<DIGI>",		pDIGI},
 	{"<ALERT:",		pALERT},
 	{"<AUDIO:",		pAUDIO},
+	{"<GEN_START>",	pTXGEN_START},
+	{"<GEN_STOP>",	pTXGEN_STOP},
+	{"<GEN_PAUSE>",	pTXGEN_PAUSE},
+
 	{"<BUFFERED>",	pBUFFERED},
 #ifdef __WIN32__
 	{"<TALK:",		pTALK},
@@ -4828,8 +5131,8 @@ static const MTAGS mtags[] = {
 	{"<!MODEM:",	pTxQueMODEM},
 	{"<!RIGMODE:",	pTxQueRIGMODE},
 	{"<!FILWID:",	pTxQueFILWID},
-    {"<!RIGHI:",    pTxQueRIGHI},
-    {"<!RIGLO:",    pTxQueRIGLO},
+	{"<!RIGHI:",    pTxQueRIGHI},
+	{"<!RIGLO:",    pTxQueRIGLO},
 	{"<!TXATTEN:",	pTxQueTXATTEN},
 	{"<!RIGCAT:",	pTxQueRIGCAT},
 	{"<!FLRIG:",	pTxQueFLRIG},
@@ -4847,8 +5150,9 @@ static const MTAGS mtags[] = {
 	{"<@GOHOME>",	pRxQueGOHOME},
 	{"<@RIGMODE:",	pRxQueRIGMODE},
 	{"<@FILWID:",	pRxQueFILWID},
-    {"<@RIGHI:",    pRxQueRIGHI},
-    {"<@RIGLO:",    pRxQueRIGLO},
+	{"<@QSY+:",		pRxQueQSYPLUS},
+	{"<@RIGHI:",    pRxQueRIGHI},
+	{"<@RIGLO:",    pRxQueRIGLO},
 	{"<@TXRSID:",	pRxQueTXRSID},
 	{"<@LOCK:",		pRxQueLOCK},
 	{"<@WAIT:",     pRxQueWAIT},

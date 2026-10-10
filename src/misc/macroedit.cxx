@@ -70,7 +70,7 @@ void loadBrowser(Fl_Widget *widget) {
 	w->add(_("<MYCALL>\tmy call"));
 	w->add(_("<MYLOC>\tmy locator"));
 	w->add(_("<MYNAME>\tmy name"));
-	w->add(_("<MYQTH>\tmy QTH"));
+	w->add(_("<MYQTH>\tmy QTH (city)"));
 	w->add(_("<MYRST>\tmy RST"));
 	w->add(_("<MYCLASS>\tmy FD class"));
 	w->add(_("<MYSECTION>\tmy FD section"));
@@ -80,6 +80,7 @@ void loadBrowser(Fl_Widget *widget) {
 	w->add(_("<MYCNTY>\tmy CNTY"));
 	w->add(_("<ANTENNA>\tmy antenna"));
 	w->add(_("<BAND>\toperating band"));
+	w->add(_("<TX_PWR>\ttransmit power"));
 	w->add(_("<VER>\tFldigi version"));
 	w->add(_("<DIGI>\tdigital mode (adif)"));
 
@@ -129,7 +130,7 @@ void loadBrowser(Fl_Widget *widget) {
 	w->add(LINE_SEP);
 	w->add(_("<QSOTIME>\tQSO time (HHMM))"));
 	w->add(_("<ILDT[:fmt]>\tLDT default '%Y-%m-%d %H:%M%z'"));
-	w->add(_("<LDT[[fmt]>\tLocal datetime, default '%x %H:%M %Z'"));
+	w->add(_("<LDT[fmt]>\tLocal datetime, default '%x %H:%M %Z'"));
 	w->add(_("<IZDT[:fmt]>\tZDT default '%Y-%m-%d %H:%MZ'"));
 	w->add(_("<ZDT[:fmt]>\tUTC datetime, default '%x %H:%MZ'"));
 	w->add(_("<LT[:fmt]>\tlocal time, default %H%M"));
@@ -200,7 +201,7 @@ void loadBrowser(Fl_Widget *widget) {
 	w->add(_("<CWID>\tCW identifier"));
 	w->add(_("<ID>\tsend mode ID; TX start only"));
 	w->add(_("<TEXT>\ttext at start of TX"));
-	w->add(_("<VIDEO:\tvideo text in TX stream"));
+	w->add(_("<VIDEO:>\tvideo text in TX stream"));
 	w->add(_("<TXRSID:on|off|t>\tTx RSID on,off,toggle"));
 	w->add(_("<RXRSID:on|off|t>\tRx RSID on,off,toggle"));
 	w->add(_("<NRSID:NN>\tTransmit |NN| successive RsID bursts"));
@@ -208,6 +209,9 @@ void loadBrowser(Fl_Widget *widget) {
 
 	w->add(LINE_SEP);
 	w->add(_("<AUDIO:>\tXmt audio wav file"));
+	w->add(_("<GEN_START>\tStart recording TX audio"));
+	w->add(_("<GEN_STOP>\tStop recording TX audio"));
+	w->add(_("<GEN_PAUSE>\tPause recording TX audio"));
 
 	w->add(LINE_SEP);
 	w->add(_("<ALERT:[bark][checkout][doesnot][phone][beeboo][diesel][steam_train][dinner_bell][standard_tone]>"));
@@ -227,6 +231,8 @@ void loadBrowser(Fl_Widget *widget) {
 	w->add(_("<AFC:on|off|t>\tAFC  on,off,toggle"));
 	w->add(_("<LOCK:on|off|t>\tLOCK on,off,toggle"));
 	w->add(_("<REV:on|off|t>\tRev on,off,toggle"));
+	w->add(_("<SQL:on|off|t>\tDigital Squelch on, off,toggle"));
+	w->add(_("<SQLCH:nnn>\tDigital Squelch level, 0..100"));
 
 	w->add(LINE_SEP);
 	w->add(_("<MACROS:>\tchange macro defs file"));
@@ -254,7 +260,7 @@ void loadBrowser(Fl_Widget *widget) {
 
 	w->add(LINE_SEP);
 	w->add(_("<PUSH>\tpush current mode to stack"));
-	w->add(_("<PUSH:m|f\tpush current mode / audio freq to stack"));
+	w->add(_("<PUSH:m|f>\tpush current mode / audio freq to stack"));
 	w->add(_("<POP>\tpop current mode/freq from stack"));
 	w->add(LINE_SEP);
 	assert(MODE_CONTESTIA < MODE_OLIVIA);
@@ -316,7 +322,7 @@ void loadBrowser(Fl_Widget *widget) {
 
 		const char* p;
 		if ((p = strrchr(gbuf.gl_pathv[i], '/'))) {
-			snprintf(s, sizeof(s), "<EXEC>%s</EXEC>", p+1);
+			snprintf(s, sizeof(s), "<EXEC>%s</EXEC>", p+1); 
 			w->add(s);
 		}
 	}
@@ -512,6 +518,8 @@ Fl_Double_Window* make_macroeditor(void)
 	w->xclass(PACKAGE_NAME);
 
 	loadBrowser(macroDefs);
+
+	w->set_non_modal();
 
 	return w;
 }

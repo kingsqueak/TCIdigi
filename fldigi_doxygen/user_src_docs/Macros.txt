@@ -180,6 +180,7 @@ Macro       | Description
 \<IMAGE:\>             | insert image file; a file selection box will open when this <br> tag is selected during editing
 \<IMAGE:G,\>           | insert image file; transmit in grey scale
 \<VIDEO:text\>         | transmit video text
+\<AUDIO:filename\>     | transmit the audio file (wav, mp3) given by full pathname 'filename'
 <br>
 
 Macro                    | Description

@@ -636,7 +636,7 @@ void engine_set_afc(int on)
 {
 	progStatus.afconoff = on ? true : false;
 	if (active_modem)
-		set_mode_afc(active_modem->get_mode(), progStatus.afconoff);
+		modeband.set_mode_afc(progStatus.afconoff);
 	if (btnAFC)
 		btnAFC->value(on ? 1 : 0);
 }
@@ -645,7 +645,7 @@ void engine_set_sql(int on)
 {
 	progStatus.sqlonoff = on ? true : false;
 	if (active_modem)
-		set_mode_squelch_onoff(active_modem->get_mode(), progStatus.sqlonoff);
+		modeband.set_mode_squelch_onoff(progStatus.sqlonoff);
 	if (btnSQL)
 		btnSQL->value(on ? 1 : 0);
 }
@@ -923,7 +923,7 @@ void engine_set_tx_db(double db)
 		db = -30.0;
 	progStatus.txlevel = db;
 	if (progdefaults.txlevel_by_mode && active_modem)
-		set_mode_txlevel(active_modem->get_mode(), db);
+		modeband.set_mode_txlevel(db);
 }
 
 void engine_set_rx_db(double db)
@@ -967,7 +967,7 @@ void engine_set_squelch(int value)
 		value = 100;
 	progStatus.sldrSquelchValue = value;
 	if (active_modem)
-		set_mode_squelch(active_modem->get_mode(), value);
+		modeband.set_mode_squelch(value);
 	if (sldrSquelch)
 		sldrSquelch->value(value);
 }
@@ -1025,7 +1025,7 @@ void engine_set_reverse(int on)
 	if (!active_modem)
 		return;
 	active_modem->set_reverse(on ? true : false);
-	set_mode_reverse(active_modem->get_mode(), on ? 1 : 0);
+	modeband.set_mode_reverse(on ? 1 : 0);
 }
 
 void engine_set_lock(int on)

@@ -21,6 +21,8 @@
 #ifndef _status_H
 #define _status_H
 
+#ifndef BUILD_FLARQ
+
 #include <string>
 
 #include "globals.h"
@@ -29,6 +31,8 @@
 struct status {
 	trx_mode	lastmode;
 	std::string	mode_name;
+	int		screen_number;
+	double	screen_scale;
 	int		mainX;
 	int		mainY;
 	int		mainW;
@@ -39,6 +43,7 @@ struct status {
 	bool	Rig_Contest_UI;
 	bool	DOCKEDSCOPE;
 	bool	tbar_is_docked;
+	bool	EnableVideo_ID;
 
 //	int		RxTextHeight;
 	int		tiled_group_x;
@@ -49,7 +54,7 @@ struct status {
 	int		rigW;
 	int		rigH;
 	int		carrier;
-	int		noCATfreq;
+	unsigned long long	noCATfreq;
 	std::string	noCATmode;
 	std::string noCATwidth;
 	int		mag;
@@ -92,6 +97,7 @@ struct status {
 	bool	afconoff;
 	bool	sqlonoff;
 	bool	reverse;
+	bool	tx_lock;
 	double	txlevel;
 	int		scopeX;
 	int		scopeY;
@@ -113,6 +119,9 @@ struct status {
 	int		timerMacro;
 	bool	skip_sked_macro;
 	std::string	LastMacroFile;
+
+	std::string default_frequencies_filename;
+
 	int		n_rsids;
 
 	bool	spot_recv;
@@ -266,6 +275,9 @@ struct status {
 
 	bool	useCW_KEYLINE;
 
+// THOR debug state
+	bool	thordebug;
+
 //----------------------------------------------------------------------
 // FMT saved controls
 	double	FMT_ref_freq;
@@ -292,5 +304,7 @@ struct status {
 };
 
 extern status progStatus;
+
+#endif // BUILD_FLARQ
 
 #endif

@@ -44,6 +44,7 @@ class wefax : public modem {
 	wefax ();
 	wefax ( const wefax & );
 	wefax & operator=( const wefax & );
+
 public:
 	wefax (trx_mode md);
 	virtual ~wefax ();
@@ -60,6 +61,7 @@ public:
 	void skip_apt(void);
 	void skip_phasing(bool auto_center);
 	void end_reception(void);
+	void lpm_set();
 
 	void set_tx_parameters(
 		int the_lpm,
@@ -83,7 +85,7 @@ public:
 	/// Set by the GUI.
 	void set_rx_filter( int idx_filter );
 
-	void set_lpm( int the_lpm );
+	void set_lpm();
 
 	/// Restores the window label by taking into account wefax state mode.
 	void update_rx_label(void) const ;

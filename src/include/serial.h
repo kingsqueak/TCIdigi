@@ -103,6 +103,8 @@ private:
 	//char	bfr[2048];
 //Methods
 	bool	IOselect();
+
+	int		bytes_written;
 };
 
 #else //__MINGW32__
@@ -117,6 +119,7 @@ public:
 		rtscts = false;
 		baud = CBR_9600;
 		stopbits = 2;
+		timeout = 50;
 	};
 	Cserial( std::string portname) {
 		device = portname;

@@ -122,6 +122,21 @@ QRZ *qCall = 0;
 
 static notify_dialog *announce = 0;
 
+std::string percent_encode (std::string str) {
+	std::string chars = " !#$&'()*+,/:;=?@[]{}";
+	std::string out;
+	char chrstr[10];
+
+	for (size_t n = 0; n < str.length(); n++) {
+		if (chars.find(str[n]) != std::string::npos) {
+			snprintf(chrstr, sizeof(chrstr), "%%%2X", str[n]);
+			out.append(chrstr);
+		} else
+			out += str[n];
+	}
+	return out;
+}
+
 void print_query(const std::string &name, const std::string &s)
 {
 //	LOG_WARN("%s query:\n%s", name.c_str(), s.c_str());
@@ -335,9 +350,9 @@ bool getSessionKey(std::string& sessionpage)
 	std::string html = "http://";
 	html.append(qrzhost);
 	html.append(" /xml/current/?username=");
-	html.append(progdefaults.QRZusername);
+	html.append(percent_encode(progdefaults.QRZusername));
 	html.append(";password=");
-	html.append(progdefaults.QRZuserpassword);
+	html.append(percent_encode(progdefaults.QRZuserpassword));
 	html.append(";agent=");
 	html.append(PACKAGE_NAME);
 	html.append("-");
@@ -396,17 +411,29 @@ void QRZ_disp_result()
 	}
 
 	inpQth->value(lookup_qth.c_str());
+#if FLDIGI_FLTK_API_MINOR < 4
 	inpQth->position (0);
-
+#else
+	inpQth->insert_position (0);
+#endif
 	inpState->value(lookup_state.c_str());
+#if FLDIGI_FLTK_API_MINOR < 4
 	inpState->position (0);
-
+#else
+	inpState->insert_position (0);
+#endif
 	inpVEprov->value(lookup_province.c_str());
+#if FLDIGI_FLTK_API_MINOR < 4
 	inpVEprov->position (0);
-
+#else
+	inpVEprov->insert_position (0);
+#endif
 	inpLoc->value(lookup_grid.c_str());
+#if FLDIGI_FLTK_API_MINOR < 4
 	inpLoc->position (0);
-
+#else
+	inpLoc->insert_position (0);
+#endif
 	if (!lookup_country.empty()) {
 		cboCountry->value(lookup_country.c_str());
 	}
@@ -420,10 +447,18 @@ void QRZ_disp_result()
 		    QRB::qrb(lon[0], lat[0], lon[1], lat[1], &distance, &azimuth) == QRB::QRB_OK)
 			snprintf(buf, sizeof(buf), "%03.0f", round(azimuth));
 		inpAZ->value(buf);
+#if FLDIGI_FLTK_API_MINOR < 4
 		inpAZ->position (0);
+#else
+		inpAZ->insert_position (0);
+#endif
 	}
 	inpNotes->value(lookup_notes.c_str());
+#if FLDIGI_FLTK_API_MINOR < 4
 	inpNotes->position (0);
+#else
+	inpNotes->insert_position (0);
+#endif
 
 }
 
@@ -692,9 +727,7 @@ void parse_callook(std::string& xmlpage)
 bool CALLOOKGetXML(std::string& xmlpage)
 {
 	std::string url = progdefaults.callookurl;
-	size_t p = 0;
-	if ((p = url.find("https")) != std::string::npos)
-		url.erase(p+4,1);
+
 	url.append(callsign).append("/xml");
 	bool res = get_http(url, xmlpage, 5.0);
 	LOG_VERBOSE("result = %d", res);
@@ -774,9 +807,9 @@ bool HAMCALLget(std::string& htmlpage)
 		html.erase(p1+4,1);
 	if (html[html.length()-1] != '/') html += '/';
 	html.append("/call?username=");
-	html.append(progdefaults.QRZusername);
+	html.append(percent_encode(progdefaults.QRZusername));
 	html.append("&password=");
-	html.append(progdefaults.QRZuserpassword);
+	html.append(percent_encode(progdefaults.QRZuserpassword));
 	html.append("&rawlookup=1&callsign=");
 	html.append(callsign);
 	html.append("&program=fldigi-");
@@ -878,8 +911,8 @@ bool HAMQTH_get_session_id()
 	if ((p1 = url.find("https")) != std::string::npos)
 		url.erase(p1+4,1);
 	if (url[url.length()-1] != '/') url += '/';
-	url.append("xml.php?u=").append(progdefaults.QRZusername);
-	url.append("&p=").append(progdefaults.QRZuserpassword);
+	url.append("xml.php?u=").append(percent_encode(progdefaults.QRZusername));
+	url.append("&p=").append(percent_encode(progdefaults.QRZuserpassword));
 
 	HAMQTH_session_id.clear();
 

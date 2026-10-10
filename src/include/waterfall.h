@@ -163,14 +163,14 @@ public:
 	void processFFT();
 	void sig_data(double *sig, int len);
 	void handle_sig_data();
-	void rfcarrier(long long f) {
+	void rfcarrier(unsigned long long f) {
 		rfc = f;
 	}
 	void USB(bool b) {
 		usb = b;
 	}
 	bool USB() {return usb;};
-	long long rfcarrier() { return rfc;};
+	unsigned long long rfcarrier() { return rfc;};
 
 	void updateMarker() {
 		drawMarker();};
@@ -197,7 +197,7 @@ private:
 	WFmode	mode;
 	bool	overload;
 	bool	usb;
-	long long	rfc;
+	unsigned long long	rfc;
 	int		offset;
 	int		sigoffset;
 	int		step;
@@ -301,8 +301,8 @@ public:
 		return wfdisp->carrier();
 	}
 	void carrier(int f);
-	void rfcarrier(long long cf);
-	long long rfcarrier();
+	void rfcarrier(unsigned long long cf);
+	unsigned long long rfcarrier();
 	bool tmp_carrier(void) { return wfdisp->tmp_carrier; }
 	void set_XmtRcvBtn(bool val);
 	void USB(bool b);

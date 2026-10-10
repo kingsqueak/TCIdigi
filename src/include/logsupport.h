@@ -38,6 +38,7 @@
 #endif
 
 enum savetype {ADIF, CSV, TEXT, LOTW, LO};
+enum sorttype {NONE, SORTCALL, SORTDATE, SORTFREQ, SORTMODE};
 
 enum logtype {
   LOG_QSO, 			// No Contest
@@ -56,6 +57,7 @@ enum logtype {
   LOG_CQ_WPX,		// CQ WPX
   LOG_CQWW_DX,		// CQ WW Dx
   LOG_CQWW_RTTY,	// CQ WW RTTY
+  LOG_DARC_HELL_SPRINT,	// DARC Hell Sprint
   LOG_IARI,			// Italian ARI International DX
   LOG_NAQP,			// North American QSO Party
   LOG_NAS,			// North American Sprint
@@ -136,5 +138,23 @@ extern std::string adif_record(cQsoRec *rec);
 extern std::string last_adif_record();
 extern std::string all_adif_records();
 extern void writeLog(std::string fname, cQsoDb *db);
+
+extern const char* log_power();
+
+//======================================================================
+// eQSL
+extern void submit_eQSL(cQsoRec &rec, std::string msg);
+//======================================================================
+
+//======================================================================
+// Cloudlog
+extern void submit_cloudlog(cQsoRec &rec);
+//======================================================================
+
+//======================================================================
+// UDP log
+extern void post_udp_log(cQsoRec &rec);
+extern void udp_test();
+//======================================================================
 
 #endif

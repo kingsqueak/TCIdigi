@@ -131,8 +131,14 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 
 #include "cmedia.h"
 
+#include "scripts.h"
+
 #if BENCHMARK_MODE
 	#include "benchmark.h"
+#endif
+
+#if USE_LIBGPIOD
+	#include "gpio_common.h"
 #endif
 
 using namespace std;
@@ -185,6 +191,8 @@ string FLMSG_WRAP_auto_dir = "";
 string FLMSG_ICS_dir = "";
 string FLMSG_ICS_msg_dir = "";
 string FLMSG_ICS_tmp_dir = "";
+
+string RUN_SCRIPT = "";
 
 string PskMailFile;
 string ArqFilename;
@@ -774,6 +782,12 @@ void delayed_startup(void *)
 	if (progdefaults.check_for_updates)
 		cb_mnuCheckUpdate((Fl_Widget *)0, NULL);
 
+	if (!RUN_SCRIPT.empty()) {
+		Fl::lock();
+		script_execute(RUN_SCRIPT.c_str(), false);
+		Fl::unlock();
+	}
+
 }
 
 std::string pname = "";
@@ -807,6 +821,10 @@ int main (int argc, char *argv[])
 	HomeDir.clear();
 	NBEMS_dir.clear();
 	FLMSG_dir.clear();
+
+#if USE_LIBGPIOD
+	gpio_common_init();
+#endif
 
 #ifdef __WOE32__
 	size_t p = appdir.rfind("fldigi.exe");
@@ -961,6 +979,10 @@ int main (int argc, char *argv[])
 				cbq[i]->attach(i, "WKEY_TID");
 				break;
 
+			case ACTIVITY_TID:
+				cbq[i]->attach(i, "ACTIVITY_TID");
+				break;
+
 			case FLMAIN_TID:
 				cbq[i]->attach(i, "FLMAIN_TID");
 				break;
@@ -970,7 +992,6 @@ int main (int argc, char *argv[])
 		}
 	}
 
-	set_unexpected(handle_unexpected);
 	set_terminate(diediedie);
 	setup_signal_handlers();
 
@@ -1117,11 +1138,16 @@ int main (int argc, char *argv[])
 
 	Fl::lock();  // start the gui thread!!
 	Fl::visual(FL_RGB); // insure 24 bit color operation
+	// DST This call highly recommended by fltk 31.26.1 to enable
+	// Xdbe on servers where double buffering does not exist for every visual.
+	Fl::visual(FL_DOUBLE|FL_INDEX);
 
 	fl_register_images();
 	Fl::set_fonts(0);
 
 	Fl::scheme(progdefaults.ui_scheme.c_str());
+
+	font_browser = new Font_Browser;
 	progdefaults.initFonts();
 
 	if (progdefaults.cty_dat_pathname.empty())
@@ -1224,6 +1250,9 @@ int main (int argc, char *argv[])
 		KmlServer::GetInstance()->Reset();
 	}
 
+	wf->setcolors();
+	setColorButtons();
+
 // OS X will prevent the main window from being resized if we change its
 // size *after* it has been shown. With some X11 window managers, OTOH,
 // the main window will not be restored at its exact saved position if
@@ -1237,13 +1266,14 @@ int main (int argc, char *argv[])
 	progStatus.initLastState();
 	fl_digi_main->show(argc, argv);
 #else
-#  if FLDIGI_FLTK_API_MAJOR == 1 && FLDIGI_FLTK_API_MINOR < 4
+#	if FLDIGI_FLTK_API_MAJOR == 1 && FLDIGI_FLTK_API_MINOR < 4
 	fl_digi_main->show(argc, argv);
 	progStatus.initLastState();
-#  else
+#	else
 	progStatus.initLastState();
 	fl_digi_main->show(argc, argv);
-#  endif
+#	endif
+
 #endif
 
 	if (iconified)
@@ -1286,9 +1316,7 @@ LOG_INFO("Stop KISS processing");
 	kiss_close(false);
 LOG_INFO("Stop MacLogger i/o");
 	maclogger_close();
-LOG_INFO("Send shutdown signal to flrig");
-	if (progdefaults.flrig_auto_shutdown)
-		xmlrpc_shutdown_flrig();
+
 LOG_INFO("Stop xmlrpc processing");
 	XML_RPC_Server::stop();
 LOG_INFO("Stop PSK reporter processing");
@@ -1398,6 +1426,11 @@ void generate_option_help(void) {
 		 << "    Allow only the methods whose names don't match REGEX\n\n"
 		 << "  --xmlrpc-list\n"
 		 << "    List all available methods\n\n"
+
+		 << "  --script FILENAME\n"
+		 << "    Execute the script file FILENAME\n"
+		 << "    where FILENAME is fully qualified pathname to the\n"
+		 << "    desired script file\n\n"
 
 #if BENCHMARK_MODE
 		 << "  --benchmark-modem ID\n"
@@ -1520,36 +1553,43 @@ int parse_args(int argc, char **argv, int& idx)
 		return 0;
 	}
 
-		enum { OPT_ZERO,
+	enum { OPT_ZERO,
 #ifndef __WOE32__
-		   OPT_RX_IPC_KEY, OPT_TX_IPC_KEY,
+	   OPT_RX_IPC_KEY, OPT_TX_IPC_KEY,
 #endif
-		   OPT_HOME_DIR,
-		   OPT_CONFIG_DIR,
-		   OPT_ARQ_ADDRESS, OPT_ARQ_PORT,
-		   OPT_SHOW_CPU_CHECK,
-		   OPT_FLMSG_DIR,
-		   OPT_NBEMS_DIR,
-		   OPT_AUTOSEND_DIR,
+	   OPT_HOME_DIR,
+	   OPT_CONFIG_DIR,
+	   OPT_ARQ_ADDRESS, OPT_ARQ_PORT,
+	   OPT_SHOW_CPU_CHECK,
+	   OPT_FLMSG_DIR,
+	   OPT_NBEMS_DIR,
+	   OPT_AUTOSEND_DIR,
 
-		   OPT_CONFIG_XMLRPC_ADDRESS, OPT_CONFIG_XMLRPC_PORT,
-		   OPT_CONFIG_XMLRPC_ALLOW, OPT_CONFIG_XMLRPC_DENY, OPT_CONFIG_XMLRPC_LIST,
-		   OPT_CONFIG_KISS_ADDRESS, OPT_CONFIG_KISS_PORT_IO, OPT_CONFIG_KISS_PORT_O,
-		   OPT_CONFIG_KISS_DUAL_PORT, OPT_ENABLE_IO_PORT,
+	   OPT_SCRIPT,
+
+	   OPT_CONFIG_XMLRPC_ADDRESS, OPT_CONFIG_XMLRPC_PORT,
+	   OPT_CONFIG_XMLRPC_ALLOW, OPT_CONFIG_XMLRPC_DENY, OPT_CONFIG_XMLRPC_LIST,
+	   OPT_CONFIG_KISS_ADDRESS, OPT_CONFIG_KISS_PORT_IO, OPT_CONFIG_KISS_PORT_O,
+	   OPT_CONFIG_KISS_DUAL_PORT, OPT_ENABLE_IO_PORT,
 
 #if BENCHMARK_MODE
-		   OPT_BENCHMARK_MODEM, OPT_BENCHMARK_AFC, OPT_BENCHMARK_SQL, OPT_BENCHMARK_SQLEVEL,
-		   OPT_BENCHMARK_FREQ, OPT_BENCHMARK_INPUT, OPT_BENCHMARK_OUTPUT,
-		   OPT_BENCHMARK_SRC_RATIO, OPT_BENCHMARK_SRC_TYPE,
+	   OPT_BENCHMARK_MODEM, OPT_BENCHMARK_AFC, OPT_BENCHMARK_SQL, OPT_BENCHMARK_SQLEVEL,
+	   OPT_BENCHMARK_FREQ, OPT_BENCHMARK_INPUT, OPT_BENCHMARK_OUTPUT,
+	   OPT_BENCHMARK_SRC_RATIO, OPT_BENCHMARK_SRC_TYPE,
 #endif
 
-			   OPT_FONT, OPT_WFALL_HEIGHT,
-			   OPT_WINDOW_WIDTH, OPT_WINDOW_HEIGHT, OPT_WFALL_ONLY,
-			   OPT_RX_ONLY,
-			   OPT_FRAMES_PER_BUFFER,
-		   OPT_DEBUG_LEVEL,
-			   OPT_EXIT_AFTER,
-			   OPT_DEPRECATED, OPT_HELP, OPT_VERSION, OPT_BUILD_INFO };
+	   OPT_FONT, OPT_WFALL_HEIGHT,
+	   OPT_WINDOW_WIDTH, OPT_WINDOW_HEIGHT, OPT_WFALL_ONLY,
+	   OPT_RX_ONLY,
+	   OPT_FRAMES_PER_BUFFER,
+	   OPT_DEBUG_LEVEL,
+	   OPT_EXIT_AFTER,
+	   OPT_DEPRECATED,
+	   OPT_HELP,
+	   OPT_VERSION,
+	   OPT_BUILD_INFO,
+	   OPT_UI_DEBUG,
+	};
 
 	static const char shortopts[] = ":";
 	static const struct option longopts[] = {
@@ -1595,11 +1635,14 @@ int parse_args(int argc, char **argv, int& idx)
 
 		{ "font",	   1, 0, OPT_FONT },
 
+		{ "script",  1, 0, OPT_SCRIPT },
+
 		{ "wfall-height",  1, 0, OPT_WFALL_HEIGHT },
 		{ "window-width",  1, 0, OPT_WINDOW_WIDTH },
 		{ "window-height", 1, 0, OPT_WINDOW_HEIGHT },
 		{ "wfall-only",    0, 0, OPT_WFALL_ONLY },
 		{ "wo",            0, 0, OPT_WFALL_ONLY },
+
 		{ "rx-only",       0, 0, OPT_RX_ONLY },
 		{ "ro",            0, 0, OPT_RX_ONLY },
 
@@ -1611,6 +1654,7 @@ int parse_args(int argc, char **argv, int& idx)
 		{ "help",	   0, 0, OPT_HELP },
 		{ "version",	   0, 0, OPT_VERSION },
 		{ "build-info",	   0, 0, OPT_BUILD_INFO },
+		{ "ui-debug", 0, 0, OPT_UI_DEBUG },
 		{ 0 }
 	};
 
@@ -1678,6 +1722,10 @@ int parse_args(int argc, char **argv, int& idx)
 
 		case OPT_AUTOSEND_DIR:
 			FLMSG_WRAP_auto_dir = optarg;
+			break;
+
+		case OPT_SCRIPT:
+			RUN_SCRIPT = optarg;
 			break;
 
 		case OPT_ENABLE_IO_PORT:
@@ -1859,6 +1907,10 @@ int parse_args(int argc, char **argv, int& idx)
 		case OPT_BUILD_INFO:
 			cout << build_text;
 			exit(EXIT_SUCCESS);
+
+		case OPT_UI_DEBUG:
+			ui_debug = true;
+			break;
 
 		case '?': case ':': default:
 			arg_error(argv[0], argv[idx], (c == ':'));

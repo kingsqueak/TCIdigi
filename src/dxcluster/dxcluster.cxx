@@ -41,6 +41,7 @@
 #include "modem.h"
 #include "trx.h"
 #include "configuration.h"
+#include "ui_colors.h"
 #include "main.h"
 #include "waterfall.h"
 #include "macros.h"
@@ -221,13 +222,13 @@ static void odd_even()
 	reports_header->redraw();
 
 	snprintf(odd, sizeof(odd), "@B%u@C%u@F%d@S%d@.",
-			progdefaults.DXC_odd_color,
-			FL_BLACK,
-			progdefaults.DXC_textfont,
-			progdefaults.DXC_textsize);
+		RGBCOLOR( DXC_odd_color ),
+		FL_BLACK,
+		progdefaults.DXC_textfont,
+		progdefaults.DXC_textsize);
 
 	snprintf(even, sizeof(even), "@B%u@C%u@F%d@S%d@.",
-		progdefaults.DXC_even_color,
+		RGBCOLOR( DXC_even_color ),
 		FL_BLACK,
 		progdefaults.DXC_textfont,
 		progdefaults.DXC_textsize);
@@ -325,13 +326,13 @@ void parse_dxline(std::string buffer)
 	guard_lock dxcc_lock(&dxc_line_mutex);
 
 	snprintf(odd, sizeof(odd), "@B%u@C%u@F%d@S%d@.",
-			progdefaults.DXC_odd_color,
+			RGBCOLOR( DXC_odd_color ),
 			FL_BLACK,
 			progdefaults.DXC_textfont,
 			progdefaults.DXC_textsize);
 
 	snprintf(even, sizeof(even), "@B%u@C%u@F%d@S%d@.",
-		progdefaults.DXC_even_color,
+		RGBCOLOR( DXC_even_color ),
 		FL_BLACK,
 		progdefaults.DXC_textfont,
 		progdefaults.DXC_textsize);
@@ -1103,46 +1104,30 @@ void DXcluster_init(void)
 	reports_header->add(hdr);
 	reports_header->has_scrollbar(0);
 
-	brws_tcpip_stream->color(fl_rgb_color(
-		progdefaults.DX_Color.R,
-		progdefaults.DX_Color.G,
-		progdefaults.DX_Color.B));
+	brws_tcpip_stream->color( RGBCOLOR( DX_Color ) );
 	brws_tcpip_stream->setFont(progdefaults.DXfontnbr);
 	brws_tcpip_stream->setFontSize(progdefaults.DXfontsize);
-	brws_tcpip_stream->setFontColor(progdefaults.DXfontcolor, FTextBase::RECV);
-	brws_tcpip_stream->setFontColor(progdefaults.DXalt_color, FTextBase::XMIT);
+	brws_tcpip_stream->setFontColor( RGBCOLOR( DXfontcolor ), FTextBase::RECV);
+	brws_tcpip_stream->setFontColor( RGBCOLOR( DXalt_color ), FTextBase::XMIT);
 	brws_tcpip_stream->setFontColor(
-		fl_contrast(progdefaults.DXfontcolor,
-			fl_rgb_color(	progdefaults.DX_Color.R,
-				progdefaults.DX_Color.G,
-				progdefaults.DX_Color.B) ),
-		FTextBase::CTRL);
+		fl_contrast( RGBCOLOR( DXfontcolor ), RGBCOLOR( DX_Color) ), FTextBase::CTRL);
 
-	ed_telnet_cmds->color(fl_rgb_color(
-		progdefaults.DX_Color.R,
-		progdefaults.DX_Color.G,
-		progdefaults.DX_Color.B));
+	ed_telnet_cmds->color( RGBCOLOR( DX_Color ) );
 	ed_telnet_cmds->setFont(progdefaults.DXfontnbr);
 	ed_telnet_cmds->setFontSize(progdefaults.DXfontsize);
-	ed_telnet_cmds->setFontColor(progdefaults.DXfontcolor);
+	ed_telnet_cmds->setFontColor( RGBCOLOR( DXfontcolor ) );
 
-	brws_dxc_help->color(fl_rgb_color(
-		progdefaults.DX_Color.R,
-		progdefaults.DX_Color.G,
-		progdefaults.DX_Color.B));
-	brws_dxc_help->setFontColor(progdefaults.DXfontcolor, FTextBase::RECV);
+	brws_dxc_help->color( RGBCOLOR( DX_Color ) );
+	brws_dxc_help->setFontColor( RGBCOLOR( DXfontcolor ), FTextBase::RECV);
 	brws_dxc_help->setFont(progdefaults.DXfontnbr);
 	brws_dxc_help->setFontSize(progdefaults.DXfontsize);
 
-	brws_dxcluster_hosts->color(fl_rgb_color(
-		progdefaults.DX_Color.R,
-		progdefaults.DX_Color.G,
-		progdefaults.DX_Color.B));
-	brws_dxcluster_hosts->textcolor(progdefaults.DXfontcolor);
+	brws_dxcluster_hosts->color( RGBCOLOR( DX_Color ) );
+	brws_dxcluster_hosts->textcolor( RGBCOLOR( DXfontcolor ) );
 	brws_dxcluster_hosts->textfont(progdefaults.DXfontnbr);
 	brws_dxcluster_hosts->textsize(progdefaults.DXfontsize);
 
-	cluster_tabs->selection_color(progdefaults.TabsColor);
+	cluster_tabs->selection_color( RGBCOLOR( TabsColor ) );
 
 	if (progdefaults.dxc_auto_connect) {
 		DXcluster_connect(true);
@@ -1215,11 +1200,8 @@ void dxcluster_hosts_save()
 
 void dxcluster_hosts_load()
 {
-	brws_dxcluster_hosts->color(fl_rgb_color(
-		progdefaults.DX_Color.R,
-		progdefaults.DX_Color.G,
-		progdefaults.DX_Color.B));
-	brws_dxcluster_hosts->textcolor(progdefaults.DXfontcolor);
+	brws_dxcluster_hosts->color( RGBCOLOR( DX_Color ) );
+	brws_dxcluster_hosts->textcolor( RGBCOLOR( DXfontcolor ));
 	brws_dxcluster_hosts->textfont(progdefaults.DXfontnbr);
 	brws_dxcluster_hosts->textsize(progdefaults.DXfontsize);
 
@@ -1312,11 +1294,8 @@ void dxcluster_hosts_clear(Fl_Button*, void*)
 
 void dxcluster_hosts_add(Fl_Button*, void*)
 {
-	brws_dxcluster_hosts->color(fl_rgb_color(
-		progdefaults.DX_Color.R,
-		progdefaults.DX_Color.G,
-		progdefaults.DX_Color.B));
-	brws_dxcluster_hosts->textcolor(progdefaults.DXfontcolor);
+	brws_dxcluster_hosts->color( RGBCOLOR( DX_Color ) );
+	brws_dxcluster_hosts->textcolor( RGBCOLOR( DXfontcolor ) );
 	brws_dxcluster_hosts->textfont(progdefaults.DXfontnbr);
 	brws_dxcluster_hosts->textsize(progdefaults.DXfontsize);
 

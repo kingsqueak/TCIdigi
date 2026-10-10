@@ -39,7 +39,7 @@ const char* szAbout =
 Fast and Light DIGItal modem program\n\
 </CENTER>\n\
 <P>\n\
-Copyright \251 2008-2014\n\
+Copyright \251 2008-2025\n\
 <P>\n\
 Distributed under the GNU General Public License version 3 or later.<br>\n\
 This is free software: you are free to change and redistribute it.<br>\n\
@@ -47,6 +47,7 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 <H4>Programmers:</H4>\n\
 <pre>\
 Dave Freese        W1HKJ\n\
+Mike Black         W9MDB\n\
 Stelios Bounanos   M0GLD\n\
 Rem\355 Chateauneu    F4ECW\n\
 John Douyere       VK2ETA\n\
@@ -66,12 +67,13 @@ Murray Greenman      ZL1BPU<br>\n\
 Espa\361ol     Spanish      Pavel Milanes Costa CO7WT\n\
                          Christian W. Correa HK4QWC\n\
 Deutsch     German       Marc Richter        DF2MR\n\
+Catalan     Catalan      Xavi Pérez          EA3W\n\
+Nederlands  Dutch        Peter van der Post  PA1POS\n\
 Fran\347ais    French       Bernard Seront      F4GAR\n\
+Ελληνικά    Greek        Haris Andrianos     SV1GRB\n\
 Italiano    Italian      Emanuale Repetto    IZ1UKX\n\
 Język       Polish       Roman Bagiński      SP4JEU\n\
-Nederlands  Dutch        Peter van der Post  PA1POS\n\
 Pусский     Russian      Alexandr Kalugin    RX9CDR\n\
-Ελληνικά    Greek        Haris Andrianos     SV1GRB\n\
 </pre>\
 </body>\n\
 </html>\n\

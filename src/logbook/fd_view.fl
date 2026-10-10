@@ -1,8 +1,10 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0305
+version 1.0404
 i18n_type 1
-i18n_include "gettext.h"
-i18n_function _
+i18n_include {"gettext.h"}
+i18n_conditional {}
+i18n_gnu_function gettext
+i18n_gnu_static_function gettext_noop
 header_name {.h}
 code_name {.cxx}
 decl {\#include "configuration.h"} {private local
@@ -347,7 +349,7 @@ if (progdefaults.connect_to_fdserver) {
 	listbox_contest->index(LOG_QSO);
 	progdefaults.logging = LOG_QSO;
 }
-UI_select();}
+UI_select(__func__);}
         tooltip {Connect / Disconnect^jAddr/Port/OP required} xywh {502 236 70 20} down_box DOWN_BOX
         code0 {o->value(progdefaults.connect_to_fdserver);}
         code1 {\#include "confdialog.h"}

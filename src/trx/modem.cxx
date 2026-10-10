@@ -206,6 +206,14 @@ modem *contestia_64_1000_modem = 0;
 modem *contestia_64_2000_modem = 0;
 
 modem *rtty_modem = 0;
+
+modem *scampfsk_modem = 0;
+modem *scampook_modem = 0;
+modem *scfskfst_modem = 0;
+modem *scfskslw_modem = 0;
+modem *scookslw_modem = 0;
+modem *scfskvsl_modem = 0;
+
 modem *pkt_modem = 0;
 
 modem *thormicro_modem = 0;
@@ -215,6 +223,10 @@ modem *thor8_modem = 0;
 modem *thor11_modem = 0;
 modem *thor16_modem = 0;
 modem *thor22_modem = 0;
+modem *thor25_modem = 0;
+modem *thor32_modem = 0;
+modem *thor44_modem = 0;
+modem *thor56_modem = 0;
 modem *thor25x4_modem = 0;
 modem *thor50x1_modem = 0;
 modem *thor50x2_modem = 0;
@@ -286,12 +298,16 @@ modem::modem()
 
 	CW_EOT = false;
 	sig_start = sig_stop = false;
+	sig_smpl = 0;
+	symlen = 1;
 }
 
 // modem types CW and RTTY do not use the base init()
 void modem::init()
 {
 	stopflag = false;
+	reverse = false;
+
 	if (!wf) return;
 
 	bool wfrev = wf->Reverse();
@@ -320,6 +336,7 @@ void modem::set_freqlock(bool on)
 {
 	freqlock = on;
 	set_freq(frequency);
+	progStatus.tx_lock = on;
 }
 
 
@@ -335,14 +352,10 @@ double modem::get_txfreq(void) const
 
 double modem::get_txfreq_woffset(void) const
 {
-	if (mailserver && progdefaults.PSKmailSweetSpot)
-		return (progdefaults.PSKsweetspot - progdefaults.TxOffset);
-	if (get_mode() == MODE_FSQ) return (1500 - progdefaults.TxOffset);
-
-	if (test_signal_window && test_signal_window->visible() && btnOffsetOn->value())
-		return tx_frequency + ctrl_freq_offset->value();
-
-	return (tx_frequency - progdefaults.TxOffset);
+	double temp = tx_frequency;
+	if (mailserver && progdefaults.PSKmailSweetSpot) temp = progdefaults.PSKsweetspot;
+	if (get_mode() == MODE_FSQ) temp = 1500;
+	return (temp - progdefaults.TxOffset);
 }
 
 void modem::set_bandwidth(double bw)
@@ -582,6 +595,8 @@ int modem::update_quality(int value, int mode)
 bool disable_modem = false;
 #define SIGLIMIT 0.95
 
+//double tx_mon_buffer[16384];
+
 void modem::ModulateXmtr(double *buffer, int len)
 {
 	if (unlikely(!TXscard)) return;
@@ -589,17 +604,32 @@ void modem::ModulateXmtr(double *buffer, int len)
 
 	tx_sample_count += len;
 
-	if (sig_start) {
-		int num = len / 2;
-		for (int i = 0; i < num; i++)
-			buffer[i] *= (0.5 * (1.0 - cos (M_PI * i / num)));
-		sig_start = false;
+	int num = ( (samplerate * progdefaults.SoftStart / 1000) / symlen + 1) * symlen;
+
+	if (sig_start && sig_smpl < num) {
+		for (int i = 0; i < len; i++) {
+			double coeff = (0.5 * (1.0 - cos (M_PI * sig_smpl / num)));;
+			buffer[i] *= coeff;
+			++sig_smpl;
+			if (sig_smpl >= num) {
+				sig_smpl = 0;
+				sig_start = false;
+				break;
+			}
+		}
 	}
-	if (sig_stop) {
-		int num = len / 2;
-		for (int i = 0; i < num; i++)
-			buffer[len - i - 1] *= (0.5 * (1.0 - cos (M_PI * i / num)));
-		sig_stop = false;
+
+	if (sig_stop && sig_smpl < num) {
+		for (int i = 0; i < len; i++) {
+			double coeff = 1.0 - (0.5 * (1.0 - cos (M_PI * sig_smpl / num)));;
+			buffer[i] *= coeff;
+			++sig_smpl;
+			if (sig_smpl >= num) {
+				sig_smpl = 0;
+				sig_stop = false;
+				break;
+			}
+		}
 	}
 
 	if (progdefaults.PTTrightchannel) {
@@ -699,6 +729,8 @@ int  modem::tx_process ()
 //------------------------------------------------------------------------------
 void modem::ModulateVideoStereo(double *left, double *right, int len, bool sample_flag)
 {
+	if (!progStatus.EnableVideo_ID) return;
+
 	if (unlikely(!TXscard)) return;
 
 	if(sample_flag)
@@ -736,6 +768,8 @@ void modem::ModulateVideoStereo(double *left, double *right, int len, bool sampl
 
 void modem::ModulateVideo(double *buffer, int len)
 {
+	if (!progStatus.EnableVideo_ID) return;
+
 	if (unlikely(!TXscard)) return;
 
 	tx_sample_count += len;
@@ -778,6 +812,8 @@ void modem::ModulateVideo(double *buffer, int len)
 //------------------------------------------------------------------------------
 void modem::videoText()
 {
+	if (!progStatus.EnableVideo_ID) return;
+
 	if (trx_state == STATE_TUNE)
 		return;
 

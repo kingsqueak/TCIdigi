@@ -24,7 +24,7 @@ $LIBMBEDTLS_CFLAGS \
 $INTL_CFLAGS $PTW32_CFLAGS $BFD_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEBUG_CFLAGS"
 
 # CFLAGS
-  FLDIGI_BUILD_CFLAGS="$LIBMBEDTLS_CFLAGS -pipe -Wall -fexceptions"
+  FLDIGI_BUILD_CFLAGS="$LIBMBEDTLS_CFLAGS $LIBGPIOD_CFLAGS -pipe -Wall -fexceptions"
  
   if test "x$target_darwin" = "xno"; then
     FLDIGI_BUILD_CXXFLAGS="$FLDIGI_BUILD_CXXFLAGS --param=max-vartrack-size=0"
@@ -88,10 +88,11 @@ $BFD_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEBUG_CFLAGS"
     FLARQ_BUILD_CPPFLAGS="$FLARQ_BUILD_CPPFLAGS -fno-stack-check -mmacosx-version-min=14.4"
   fi
 
-# C-Media HID PTT is gone, so IOKit, udev, and setupapi are not linked.
 # Modem audio is the TCI socket. No Core Audio, WASAPI, JACK, Pulse, or ALSA.
+# IOKit stays for the Mac serial-port list used by CW, RTTY FSK, and nanoIO.
   if test "x$target_darwin" = "xyes"; then
     FLDIGI_BUILD_LDFLAGS="$FLDIGI_BUILD_LDFLAGS -mmacosx-version-min=14.4"
+    FLDIGI_BUILD_LDADD="$FLDIGI_BUILD_LDADD -framework IOKit -framework CoreFoundation"
   else if test "x$target_mingw32" != "xyes"; then
       FLDIGI_BUILD_LDADD="$FLDIGI_BUILD_LDADD -ldl -lpthread -lm"
     fi
@@ -109,7 +110,7 @@ $BFD_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEBUG_CFLAGS"
 # fltk-config asks for -ljpeg without a search path. Homebrew and MacPorts
 # keep that library outside the default linker path.
   if test "x$target_darwin" = "xyes"; then
-    for jpeg_dir in /opt/homebrew/lib /opt/local/lib; do
+    for jpeg_dir in /opt/homebrew/opt/jpeg-turbo/lib /opt/homebrew/lib /opt/local/lib; do
       if test -f "$jpeg_dir/libjpeg.dylib"; then
         FLDIGI_BUILD_LDFLAGS="$FLDIGI_BUILD_LDFLAGS -L$jpeg_dir"
         FLARQ_BUILD_LDFLAGS="$FLARQ_BUILD_LDFLAGS -L$jpeg_dir"

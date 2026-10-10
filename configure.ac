@@ -3,18 +3,18 @@
 
 AC_COPYRIGHT([Copyright (C) 2007, 2008, 2009 Stelios Bounanos, M0GLD (m0gld AT enotty DOT net)])
 
-AC_PREREQ(2.61)
+AC_PREREQ([2.71])
 
 dnl major and minor must be integers; patch may
 dnl contain other characters or be empty
 m4_define(FLDIGI_MAJOR, [4])
-m4_define(FLDIGI_MINOR, [1])
-m4_define(FLDIGI_PATCH, [.23])
+m4_define(FLDIGI_MINOR, [2])
+m4_define(FLDIGI_PATCH, [.13])
 m4_define(FLARQ_MAJOR,  [4])
 m4_define(FLARQ_MINOR,  [3])
-m4_define(FLARQ_PATCH,  [.8])
+m4_define(FLARQ_PATCH,  [.9])
 
-AC_INIT([fldigi], FLDIGI_MAJOR.FLDIGI_MINOR[]FLDIGI_PATCH, [fldigi-devel@sourceforge.net])
+AC_INIT([fldigi],[FLDIGI_MAJOR.FLDIGI_MINOR[]FLDIGI_PATCH],[fldigi-devel@sourceforge.net])
 
 # substitute in Makefiles
 AC_SUBST([FLDIGI_VERSION_MAJOR], [FLDIGI_MAJOR])
@@ -50,19 +50,19 @@ AM_INIT_AUTOMAKE([-Wall -Wno-portability foreign std-options subdir-objects 1.9.
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([src/main.cxx])
-AC_CONFIG_HEADER([src/config.h])
+AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 
 FLDIGI_AUTHORS="Dave Freese, Stelios Bounanos, and others"
 FLARQ_AUTHORS="Dave Freese, Robert Stiles, and others"
-PACKAGE_HOME="http://www.w1hkj.com/Fldigi.html"
-PACKAGE_DL="http://www.w1hkj.com/download.html"
+PACKAGE_HOME="https://www.w1hkj.org/Fldigi.html"
+PACKAGE_DL="https://www.w1hkj.org/download.html"
 PACKAGE_PROJ="http://sourceforge.net/projects/fldigi/files/"
-PACKAGE_NEWBUG="https://fedorahosted.org/fldigi/newticket"
-PACKAGE_DOCS="http://www.w1hkj.com/FldigiHelp/index.html"
-PACKAGE_GUIDE="http://www.w1hkj.com/beginners.html"
-FLARQ_DOCS="http://www.w1hkj.com/FlarqHelpFiles/flarq.html"
+PACKAGE_NEWBUG=
+PACKAGE_DOCS="https://www.w1hkj.org/FldigiHelp/index.html"
+PACKAGE_GUIDE="https://www.w1hkj.org/beginners.html"
+FLARQ_DOCS="https://www.w1hkj.org/FlarqHelpFiles/flarq.html"
 AC_DEFINE_UNQUOTED([FLDIGI_AUTHORS], ["$FLDIGI_AUTHORS"], [Fldigi authors])
 AC_DEFINE_UNQUOTED([FLARQ_AUTHORS], ["$FLARQ_AUTHORS"], [Flarq authors])
 AC_DEFINE_UNQUOTED([PACKAGE_HOME], ["$PACKAGE_HOME"], [Home page])
@@ -92,7 +92,8 @@ AC_USE_SYSTEM_EXTENSIONS
 AX_CXX_COMPILE_STDCXX_11(, optional)
 
 # Checks for header files.
-AC_HEADER_STDC
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
 AC_HEADER_DIRENT
 AC_CHECK_HEADERS([arpa/inet.h execinfo.h fcntl.h limits.h memory.h netdb.h netinet/in.h regex.h stdint.h stdlib.h string.h strings.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h sys/utsname.h termios.h unistd.h values.h linux/ppdev.h dev/ppbus/ppi.h])
 
@@ -106,7 +107,6 @@ AC_TYPE_INT64_T
 AC_TYPE_INT8_T
 AC_C_RESTRICT
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
 AC_STRUCT_TM
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
@@ -117,11 +117,7 @@ AC_C_VOLATILE
 # Checks for library functions.
 AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_ERROR_AT_LINE
-AC_PROG_GCC_TRADITIONAL
-dnl AC_FUNC_MALLOC
-dnl AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
-AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([getaddrinfo gethostbyname hstrerror gmtime_r localtime_r memmove memset mkdir select setenv snprintf socket socketpair strcasecmp strcasestr strchr strdup strerror strlcpy strncpy strncmp strnlen strncasecmp strrchr strstr strtol uname unsetenv vsnprintf])
@@ -133,6 +129,7 @@ AC_PRESERVE_HELP_ORDER
 
 ### Internationalization
 AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.21])
 AM_CONDITIONAL([USE_NLS], [test "x$USE_NLS" = "xyes"])
 
 ### Programs
@@ -214,6 +211,14 @@ AC_FLDIGI_FLTK
 # Substitute PNG_CFLAGS and PNG_LIBS in Makefile
 if test "x$ac_cv_want_fldigi" = "xyes"; then
     AC_FLDIGI_PKG_CHECK([png], [libpng >= 1.2.8], [no], [no])
+fi
+
+### libgpiod
+# Set ac_cv_libgpiod to yes/no
+# Define USE_LIBGPIOD in config.h
+# Substitute LIBGPIOD_CFLAGS and LIBGPIOD_LIBS in Makefile
+if test "x$ac_cv_want_fldigi" = "xyes"; then
+    AC_FLDIGI_PKG_CHECK([libgpiod], [libgpiod >= 2.2.1], [no], [yes])
 fi
 
 ### libsamplerate

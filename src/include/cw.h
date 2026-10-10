@@ -31,6 +31,8 @@
 #include <cstring>
 #include <string>
 
+#include <config.h>
+
 #include "modem.h"
 #include "filters.h"
 #include "fftfilt.h"
@@ -43,10 +45,6 @@
 #define	CWMaxSymLen		4096		// AG1LE: - was 4096 
 
 #define MAX_MORSE_ELEMENTS 6 // maximum of 6 elements in a Morse character 256
-
-// CW function return status codes. 
-#define	CW_SUCCESS	0
-#define	CW_ERROR	-1
 
 #define	ASC_NUL		'\0'	// End of string 
 #define	ASC_SPACE	' '	// ASCII space char 
@@ -110,7 +108,7 @@ protected:
 	double		upper_threshold;
 	double		lower_threshold;
 
-	fftfilt			*cw_FFT_filter; // sinc / matched filter
+	C_FIR_filter	*cw_filter;		// decimate in time Finite Impulse Response (FIR) filters
 
 	Cmovavg		*bitfilter;
 	Cmovavg		*trackingfilter;
@@ -178,11 +176,11 @@ protected:
 	inline double nco(double freq);
 	inline double qsknco();
 	void	update_syncscope();
-	void    clear_syncscope();
+	void  clear_syncscope();
 	void	update_Status();
 	void	sync_parameters();
 	void	reset_rx_filter();
-	int		handle_event(int cw_event, std::string &sc);
+	void	handle_event(int cw_event, std::string &sc);
 	inline	int usec_diff(unsigned int earlier, unsigned int later);
 	void	send_symbol(int symbol, int len, int state);
 	void	send_ch(int c);
@@ -223,6 +221,10 @@ protected:
 	void	flush_audio();
 
 	void send_CW(int);
+
+#if USE_LIBGPIOD
+	void send_gpio_CW(int c);
+#endif
 
 	view_cw	viewcw;
 

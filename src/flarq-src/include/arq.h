@@ -124,7 +124,7 @@ extern char *ARQASCII[];
 class Ccrc16 {
 private:
 	unsigned int crcval;
-	char ss[5];
+	char ss[10];
 public:
 	Ccrc16() { crcval = 0xFFFF; }
 	~Ccrc16() {};

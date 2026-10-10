@@ -1,4 +1,4 @@
-## Copyright (C) 2007-2009 Stelios Bounanos, M0GLD (m0gld AT enotty DOT net)
+# Copyright (C) 2007-2009 Stelios Bounanos, M0GLD (m0gld AT enotty DOT net)
 # Copyright (c) 2008 Dave Freese, W1HKJ (w1hkj AT w1hkj DOT com)
 # Copyright (c) 2012 Remi Chateauneu, F4ECW (remi dot chateauneu AT gmail DOT com)
 # License: GPLv3+: GNU GPL version 3 or later.
@@ -405,6 +405,7 @@ endif
 FLDIGI_FL_SRC = \
 		debug/debug_dialog.fl \
 		dialogs/confdialog.fl \
+		dialogs/gpio_conf.fl \
 		dialogs/notifydialog.fl \
 		dialogs/record_browse.fl \
 		dialogs/rxmon.fl \
@@ -494,21 +495,25 @@ fldigi_SOURCES += \
 	config_script/script_parsing.cxx \
 	config_script/script_parsing.h \
 	contestia/contestia.cxx \
-	cw_rtty/cw.cxx \
-	cw_rtty/fsk.cxx \
-	cw_rtty/morse.cxx \
-	cw_rtty/nanoIO.cxx \
-	cw_rtty/ICOMkeying.cxx \
-	cw_rtty/KYkeying.cxx  \
-	cw_rtty/YAESUkeying.cxx \
-	cw_rtty/Nav.cxx \
-	cw_rtty/rtty.cxx \
-	cw_rtty/view_cw.cxx \
-	cw_rtty/view_rtty.cxx \
-	cw_rtty/winkeyer.cxx \
+	cw/cw.cxx \
+	cw/ICOMkeying.cxx \
+	cw/KYkeying.cxx  \
+	cw/morse.cxx \
+	cw/nanoIO.cxx \
+	cw/Nav.cxx \
+	cw/view_cw.cxx \
+	cw/winkeyer.cxx \
+	cw/YAESUkeying.cxx \
+	rtty/fsk.cxx \
+	rtty/rtty.cxx \
+	rtty/view_rtty.cxx \
+	scamp/scamp.cxx \
+	scamp/scamp_protocol.cxx \
+	scamp/view_scamp.cxx \
 	debug/debug.cxx \
 	debug/debug_dialog.cxx \
 	dialogs/confdialog.cxx \
+	dialogs/gpio_conf.cxx \
 	dialogs/fl_digi.cxx \
 	dialogs/font_browser.cxx \
 	dialogs/htmlstrings.cxx \
@@ -537,6 +542,7 @@ fldigi_SOURCES += \
 	fsq/fsq.cxx \
 	fsq/fsq_monitor.cxx \
 	globals/globals.cxx \
+	gpio_common/gpio_common.cxx \
 	ifkp/ifkp.cxx \
 	ifkp/tux.cxx \
 	irrxml/CXMLReaderImpl.h \
@@ -557,6 +563,7 @@ fldigi_SOURCES += \
 	logbook/county_lists.cxx \
 	logbook/cty-dat.cxx \
 	logbook/date.cxx \
+	logbook/export_prefs.cxx \
 	logbook/fd_logger.cxx \
 	logbook/fd_view.cxx \
 	logbook/lgbook.cxx \
@@ -639,6 +646,7 @@ fldigi_SOURCES += \
 	ssb/ssb.cxx \
 	status/squelch_status.cxx \
 	status/status.cxx \
+	status/ui_colors.cxx \
 	synop-src/synop.cxx \
 	thor/thor.cxx \
 	thor/thorvaricode.cxx \
@@ -736,6 +744,8 @@ EXTRA_fldigi_SOURCES += \
 	include/combo.h \
 	include/complex.h \
 	include/confdialog.h \
+	include/gpio_conf.h \
+	include/gpio_common.h \
 	include/configuration.h \
 	include/contest.h \
 	include/contestia.h \
@@ -756,6 +766,7 @@ EXTRA_fldigi_SOURCES += \
 	include/dx_cluster.h \
 	include/dx_dialog.h \
 	include/estrings.h \
+	include/export_prefs.h \
 	include/fd_logger.h \
 	include/fd_view.h \
 	include/feld.h \
@@ -861,12 +872,16 @@ EXTRA_fldigi_SOURCES += \
 	include/ringbuffer.h \
 	include/rsid.h \
 	include/rtty.h \
+	include/scamp.h \
+	include/scamp_protocol.h \
 	include/rx_extract.h \
 	include/rxmon.h \
 	include/serial.h \
 	include/smeter.h \
 	include/squelch_status.h \
+	include/ui_colors.h \
 	include/vumeter.h \
+	include/scripts.h \
 	include/socket.h \
 	include/soundconf.h \
 	include/sound.h \
@@ -898,6 +913,7 @@ EXTRA_fldigi_SOURCES += \
 	include/Viewer.h \
 	include/viewpsk.h \
 	include/view_rtty.h \
+	include/view_scamp.h \
 	include/viterbi.h \
 	include/waterfall.h \
 	include/weather.h \

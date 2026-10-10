@@ -235,6 +235,7 @@ static const SCRIPT_COMMANDS default_id_rsid_command_table[] = {
 	{ CMD_ID_RSID_SQL_OPEN,     SCRIPT_COMMAND, 0,  1, {0}, { p_int      }, 0, 0, 0, process_rsid_sql_open,     0, 0},
 	{ CMD_ID_RSID_PRETONE,      SCRIPT_COMMAND, 0,  1, {0}, { p_double   }, 0, 0, 0, process_rsid_pretone,      0, 0},
 	{ CMD_ID_RSID_END_XMT_ID,   SCRIPT_COMMAND, 0,  1, {0}, { p_bool     }, 0, 0, 0, process_rsid_end_xmt_id,   0, 0},
+	{ CMD_ID_RSID_MIN_BW,       SCRIPT_COMMAND, 0,  1, {0}, { p_int      }, 0, 0, 0, process_rsid_min_bw,       0, 0},
 	{ CMD_END_CMD,              SCRIPT_COMMAND, 0,  0, {0}, { p_list_end }, 0, 0, 0, 0, 0, 0},
 	{ {0} }
 };
@@ -274,6 +275,7 @@ static const SCRIPT_COMMANDS default_top_level_command_table[] = {
 	{ CMD_AUDIO_RT_CHANNEL, SCRIPT_COMMAND, 0,  0, {0}, { p_list   }, 0, 0, 0, 0, (struct script_cmds *) &default_audio_rt_channel_command_table, sizeof(default_audio_rt_channel_command_table)/sizeof(SCRIPT_COMMANDS)},
 	{ CMD_AUDIO_WAVE,       SCRIPT_COMMAND, 0,  0, {0}, { p_list   }, 0, 0, 0, 0, (struct script_cmds *) &default_audio_wave_command_table,       sizeof(default_audio_wave_command_table)/sizeof(SCRIPT_COMMANDS)},
 	{ CMD_HRDWR_PTT,        SCRIPT_COMMAND, 0,  0, {0}, { p_list   }, 0, 0, 0, 0, (struct script_cmds *) &default_rig_hrdwr_ptt_command_table,    sizeof(default_rig_hrdwr_ptt_command_table)/sizeof(SCRIPT_COMMANDS)},
+	{ CMD_CMEDIA_PTT,       SCRIPT_COMMAND, 0,  0, {0}, { p_list   }, 0, 0, 0, 0, (struct script_cmds *) &default_cmedia_ptt_command_table,       sizeof(default_cmedia_ptt_command_table)/sizeof(SCRIPT_COMMANDS)},
 	{ CMD_RIGCAT,           SCRIPT_COMMAND, 0,  0, {0}, { p_list   }, 0, 0, 0, 0, (struct script_cmds *) &default_rigcat_command_table,           sizeof(default_rigcat_command_table)/sizeof(SCRIPT_COMMANDS)},
 	{ CMD_HAMLIB,           SCRIPT_COMMAND, 0,  0, {0}, { p_list   }, 0, 0, 0, 0, (struct script_cmds *) &default_hamlib_command_table,           sizeof(default_hamlib_command_table)/sizeof(SCRIPT_COMMANDS)},
 	{ CMD_IO,               SCRIPT_COMMAND, 0,  0, {0}, { p_list   }, 0, 0, 0, 0, (struct script_cmds *) &default_io_command_table,               sizeof(default_io_command_table)/sizeof(SCRIPT_COMMANDS)},

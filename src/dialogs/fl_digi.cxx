@@ -39,10 +39,15 @@
 
 #include <cstdlib>
 #include <cstdarg>
+#include <cctype>
+#include <cstdio>
 #include <string>
 #include <fstream>
 #include <algorithm>
 #include <map>
+#include <set>
+#include <sstream>
+#include <vector>
 
 #ifndef __WOE32__
 #include <sys/wait.h>
@@ -66,8 +71,9 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include <FL/Fl_Progress.H>
 #include <FL/Fl_Tooltip.H>
 #include <FL/Fl_Tabs.H>
+#include <FL/Fl_Input.H>
+#include <FL/Fl_Output.H>
 #include <FL/Fl_Multiline_Input.H>
-#include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_Pack.H>
 
 #include "waterfall.h"
@@ -95,6 +101,7 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include "view_rtty.h"
 #include "olivia.h"
 #include "contestia.h"
+#include "scamp.h"
 #include "thor.h"
 #include "dominoex.h"
 #include "feld.h"
@@ -120,8 +127,14 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include "FTextRXTX.h"
 
 #include "confdialog.h"
+
+#if USE_LIBGPIOD
+#include "gpio_conf.h"
+#endif
+
 #include "configuration.h"
 #include "status.h"
+#include "ui_colors.h"
 
 #include "macros.h"
 #include "macroedit.h"
@@ -158,10 +171,12 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include "locator.h"
 #include "notify.h"
 #include "strutil.h"
+#include "util.h"
 
 #include "test_signal.h"
 
 #include "logbook.h"
+#include "export_prefs.h"
 
 #include "rx_extract.h"
 #include "speak.h"
@@ -190,8 +205,6 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 
 #include "winkeyer.h"
 #include "nanoIO.h"
-
-
 
 #include "spectrum_viewer.h"
 
@@ -250,21 +263,24 @@ void set599();
 fre_t seek_re("CQ", REG_EXTENDED | REG_ICASE | REG_NOSUB);
 
 bool bWF_only = false;
+bool ui_debug = true;//false;
 
 Fl_Double_Window	*fl_digi_main				= (Fl_Double_Window *)0;
 Fl_Double_Window	*scopeview					= (Fl_Double_Window *)0;
 Fl_Double_Window	*field_day_viewer			= (Fl_Double_Window *)0;
 Fl_Double_Window	*dxcluster_viewer			= (Fl_Double_Window *)0;
 Fl_Double_Window	*rxaudio_dialog				= (Fl_Double_Window *)0;
+Fl_Double_Window	*dlgGPIO_config				= (Fl_Double_Window *)0;
 
 Fl_Help_Dialog 		*help_dialog       = (Fl_Help_Dialog *)0;
 
 Fl_Button			*btnDockMacro[48];
 
-static Fl_Group		*mnuFrame;
+ Fl_Group		*mnuFrame;
 Fl_Menu_Bar 		*mnu;
 
 Fl_Box				*tx_timer = (Fl_Box *)0;
+Fl_Light_Button		*btn_EnableVideo_ID = (Fl_Light_Button *)0;
 Fl_Light_Button		*btnAutoSpot = (Fl_Light_Button *)0;
 Fl_Light_Button		*btnTune = (Fl_Light_Button *)0;
 Fl_Light_Button		*btnRSID = (Fl_Light_Button *)0;
@@ -347,7 +363,6 @@ Fl_Box				*Status1 = (Fl_Box *)0;
 Fl_Counter2			*cntTxLevel = (Fl_Counter2 *)0;
 Fl_Counter2			*cntRxLevel = (Fl_Counter2 *)0;
 Fl_Counter2			*cntCW_WPM=(Fl_Counter2 *)0;
-Fl_Button			*btnCW_Default=(Fl_Button *)0;
 Fl_Box				*WARNstatus = (Fl_Box *)0;
 Fl_Button			*MODEstatus = (Fl_Button *)0;
 Fl_Button 			*btnMacro[NUMMACKEYS * NUMKEYROWS];
@@ -428,9 +443,12 @@ Fl_Button			*btnQRZ;
 Fl_Group			*Logging_frame = (Fl_Group *)0;
 Fl_Group			*Logging_frame_1 = (Fl_Group *)0;
 
+Fl_Group			*NFtabs_group = (Fl_Group *)0;
 Fl_Tabs				*NFtabs = (Fl_Tabs *)0;
+
 Fl_Group			*gGEN_QSO_1 = (Fl_Group *)0;
 Fl_Group			*NotesFrame = (Fl_Group *)0;
+
 Fl_Group			*Ccframe = (Fl_Group *)0;
 Fl_Group			*TopFrame1 = (Fl_Group *)0;
 Fl_Input2			*inpFreq1 = (Fl_Input2 *)0;
@@ -722,6 +740,16 @@ Fl_Button		*opUsageEnter = (Fl_Button *)0;
 Fl_Group	 	*wf_group = (Fl_Group *)0;
 Fl_Group		*status_group = (Fl_Group *)0;
 
+Fl_Group		*status_group_A = (Fl_Group *)0;
+Fl_Group		*svu = (Fl_Group *)0;
+Fl_Group		*cws_group = (Fl_Group *)0;
+
+Fl_Check_Button		*btncwsrcvTrack = (Fl_Check_Button *)0;
+Fl_Counter2			*cntcwsrange = (Fl_Counter2 *)0;
+Fl_Check_Button		*btncwsuseSOMdecoding = (Fl_Check_Button *)0;
+Fl_Check_Button		*btncwsmfilt = (Fl_Check_Button *)0;
+Fl_Counter2			*cntcwsbandwidth = (Fl_Counter2 *)0;
+
 Fl_Value_Slider2	*mvsquelch = (Fl_Value_Slider2 *)0;
 Fl_Button		*btnClearMViewer = 0;
 
@@ -729,11 +757,12 @@ static const int pad = 1;
 static const int Hentry		= 24;
 static const int Wbtn		= Hentry;
 static int x_qsoframe	= Wbtn;
-int Hmenu		= 22;
+int Hmenu		= 24;
 static const int Hqsoframe	= 2*pad + 3 * (Hentry + pad);
 
 int Hstatus = 20;
 int Hmacros = 20;
+int Hcws_group = 20;
 
 #define TB_HEIGHT 20
 #define MACROBAR_MIN 18
@@ -802,7 +831,7 @@ static CharsetDistiller echo_chd;
 static OutputEncoder    tx_encoder;
 
 Fl_Menu_Item *getMenuItem(const char *caption, Fl_Menu_Item* submenu = 0);
-void UI_select();
+
 bool clean_exit(bool ask);
 
 void cb_init_mode(Fl_Widget *, void *arg);
@@ -839,9 +868,9 @@ void set_colors();
 //void cb_pkt2400(Fl_Widget *w, void *arg);
 
 Fl_Widget *modem_config_tab;
-static const Fl_Menu_Item *quick_change;
+static Fl_Menu_Item *quick_change;
 
-static const Fl_Menu_Item quick_change_psk[] = {
+static Fl_Menu_Item quick_change_psk[] = {
 	{ mode_info[MODE_PSK31].name, 0, cb_init_mode, (void *)MODE_PSK31 },
 	{ mode_info[MODE_PSK63].name, 0, cb_init_mode, (void *)MODE_PSK63 },
 	{ mode_info[MODE_PSK63F].name, 0, cb_init_mode, (void *)MODE_PSK63F },
@@ -852,7 +881,7 @@ static const Fl_Menu_Item quick_change_psk[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_qpsk[] = {
+static Fl_Menu_Item quick_change_qpsk[] = {
 	{ mode_info[MODE_QPSK31].name, 0, cb_init_mode, (void *)MODE_QPSK31 },
 	{ mode_info[MODE_QPSK63].name, 0, cb_init_mode, (void *)MODE_QPSK63 },
 	{ mode_info[MODE_QPSK125].name, 0, cb_init_mode, (void *)MODE_QPSK125 },
@@ -861,7 +890,7 @@ static const Fl_Menu_Item quick_change_qpsk[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_8psk[] = {
+static Fl_Menu_Item quick_change_8psk[] = {
 	{ mode_info[MODE_8PSK125].name, 0, cb_init_mode, (void *)MODE_8PSK125 },
 	{ mode_info[MODE_8PSK250].name, 0, cb_init_mode, (void *)MODE_8PSK250 },
 	{ mode_info[MODE_8PSK500].name, 0, cb_init_mode, (void *)MODE_8PSK500 },
@@ -876,7 +905,8 @@ static const Fl_Menu_Item quick_change_8psk[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_ofdm[] = {
+/* Commented out pending development work by KL4YFD
+static Fl_Menu_Item quick_change_ofdm[] = {
 	{ mode_info[MODE_OFDM_500F].name, 0, cb_init_mode, (void *)MODE_OFDM_500F },
 	{ mode_info[MODE_OFDM_750F].name, 0, cb_init_mode, (void *)MODE_OFDM_750F },
 //	{ mode_info[MODE_OFDM_2000F].name, 0, cb_init_mode, (void *)MODE_OFDM_2000F },
@@ -884,8 +914,9 @@ static const Fl_Menu_Item quick_change_ofdm[] = {
 	{ mode_info[MODE_OFDM_3500].name, 0, cb_init_mode, (void *)MODE_OFDM_3500 },
 	{ 0 }
 };
+*/
 
-static const Fl_Menu_Item quick_change_pskr[] = {
+static Fl_Menu_Item quick_change_pskr[] = {
 	{ mode_info[MODE_PSK125R].name, 0, cb_init_mode, (void *)MODE_PSK125R },
 	{ mode_info[MODE_PSK250R].name, 0, cb_init_mode, (void *)MODE_PSK250R },
 	{ mode_info[MODE_PSK500R].name, 0, cb_init_mode, (void *)MODE_PSK500R },
@@ -893,7 +924,7 @@ static const Fl_Menu_Item quick_change_pskr[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_psk_multiR[] = {
+static Fl_Menu_Item quick_change_psk_multiR[] = {
 	{ mode_info[MODE_4X_PSK63R].name, 0, cb_init_mode, (void *)MODE_4X_PSK63R },
 	{ mode_info[MODE_5X_PSK63R].name, 0, cb_init_mode, (void *)MODE_5X_PSK63R },
 	{ mode_info[MODE_10X_PSK63R].name, 0, cb_init_mode, (void *)MODE_10X_PSK63R },
@@ -922,7 +953,7 @@ static const Fl_Menu_Item quick_change_psk_multiR[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_psk_multi[] = {
+static Fl_Menu_Item quick_change_psk_multi[] = {
 	{ mode_info[MODE_12X_PSK125].name, 0, cb_init_mode, (void *)MODE_12X_PSK125 },
 	{ mode_info[MODE_6X_PSK250].name, 0, cb_init_mode, (void *)MODE_6X_PSK250 },
 	{ mode_info[MODE_2X_PSK500].name, 0, cb_init_mode, (void *)MODE_2X_PSK500 },
@@ -932,7 +963,7 @@ static const Fl_Menu_Item quick_change_psk_multi[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_mfsk[] = {
+static Fl_Menu_Item quick_change_mfsk[] = {
 	{ mode_info[MODE_MFSK4].name, 0, cb_init_mode, (void *)MODE_MFSK4 },
 	{ mode_info[MODE_MFSK8].name, 0, cb_init_mode, (void *)MODE_MFSK8 },
 	{ mode_info[MODE_MFSK16].name, 0, cb_init_mode, (void *)MODE_MFSK16 },
@@ -947,19 +978,19 @@ static const Fl_Menu_Item quick_change_mfsk[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_wefax[] = {
+static Fl_Menu_Item quick_change_wefax[] = {
 	{ mode_info[MODE_WEFAX_576].name, 0, cb_init_mode, (void *)MODE_WEFAX_576 },
 	{ mode_info[MODE_WEFAX_288].name, 0, cb_init_mode, (void *)MODE_WEFAX_288 },
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_navtex[] = {
+static Fl_Menu_Item quick_change_navtex[] = {
 	{ mode_info[MODE_NAVTEX].name, 0, cb_init_mode, (void *)MODE_NAVTEX },
 	{ mode_info[MODE_SITORB].name, 0, cb_init_mode, (void *)MODE_SITORB },
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_mt63[] = {
+static Fl_Menu_Item quick_change_mt63[] = {
 	{ mode_info[MODE_MT63_500S].name, 0, cb_init_mode, (void *)MODE_MT63_500S },
 	{ mode_info[MODE_MT63_500L].name, 0, cb_init_mode, (void *)MODE_MT63_500L },
 	{ mode_info[MODE_MT63_1000S].name, 0, cb_init_mode, (void *)MODE_MT63_1000S },
@@ -969,7 +1000,17 @@ static const Fl_Menu_Item quick_change_mt63[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_thor[] = {
+static Fl_Menu_Item quick_change_scamp[] = {
+	{ mode_info[MODE_SCAMPFSK].name, 0, cb_init_mode, (void *)MODE_SCAMPFSK },
+	{ mode_info[MODE_SCAMPOOK].name, 0, cb_init_mode, (void *)MODE_SCAMPOOK },
+	{ mode_info[MODE_SCFSKFST].name, 0, cb_init_mode, (void *)MODE_SCFSKFST },
+	{ mode_info[MODE_SCFSKSLW].name, 0, cb_init_mode, (void *)MODE_SCFSKSLW },
+	{ mode_info[MODE_SCOOKSLW].name, 0, cb_init_mode, (void *)MODE_SCOOKSLW },
+	{ mode_info[MODE_SCFSKVSL].name, 0, cb_init_mode, (void *)MODE_SCFSKVSL },
+	{ 0 }
+};
+
+static Fl_Menu_Item quick_change_thor[] = {
 	{ mode_info[MODE_THORMICRO].name, 0, cb_init_mode, (void *)MODE_THORMICRO },
 	{ mode_info[MODE_THOR4].name, 0, cb_init_mode, (void *)MODE_THOR4 },
 	{ mode_info[MODE_THOR5].name, 0, cb_init_mode, (void *)MODE_THOR5 },
@@ -977,6 +1018,12 @@ static const Fl_Menu_Item quick_change_thor[] = {
 	{ mode_info[MODE_THOR11].name, 0, cb_init_mode, (void *)MODE_THOR11 },
 	{ mode_info[MODE_THOR16].name, 0, cb_init_mode, (void *)MODE_THOR16 },
 	{ mode_info[MODE_THOR22].name, 0, cb_init_mode, (void *)MODE_THOR22 },
+
+	{ mode_info[MODE_THOR25].name, 0, cb_init_mode, (void *)MODE_THOR25 },
+	{ mode_info[MODE_THOR32].name, 0, cb_init_mode, (void *)MODE_THOR32 },
+	{ mode_info[MODE_THOR44].name, 0, cb_init_mode, (void *)MODE_THOR44 },
+	{ mode_info[MODE_THOR56].name, 0, cb_init_mode, (void *)MODE_THOR56 },
+
 	{ mode_info[MODE_THOR25x4].name, 0, cb_init_mode, (void *)MODE_THOR25x4 },
 	{ mode_info[MODE_THOR50x1].name, 0, cb_init_mode, (void *)MODE_THOR50x1 },
 	{ mode_info[MODE_THOR50x2].name, 0, cb_init_mode, (void *)MODE_THOR50x2 },
@@ -984,7 +1031,7 @@ static const Fl_Menu_Item quick_change_thor[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_domino[] = {
+static Fl_Menu_Item quick_change_domino[] = {
 	{ mode_info[MODE_DOMINOEXMICRO].name, 0, cb_init_mode, (void *)MODE_DOMINOEXMICRO },
 	{ mode_info[MODE_DOMINOEX4].name, 0, cb_init_mode, (void *)MODE_DOMINOEX4 },
 	{ mode_info[MODE_DOMINOEX5].name, 0, cb_init_mode, (void *)MODE_DOMINOEX5 },
@@ -997,7 +1044,7 @@ static const Fl_Menu_Item quick_change_domino[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_feld[] = {
+static Fl_Menu_Item quick_change_feld[] = {
 	{ mode_info[MODE_FELDHELL].name, 0, cb_init_mode, (void *)MODE_FELDHELL },
 	{ mode_info[MODE_SLOWHELL].name, 0, cb_init_mode, (void *)MODE_SLOWHELL },
 	{ mode_info[MODE_HELLX5].name,   0, cb_init_mode, (void *)MODE_HELLX5 },
@@ -1008,7 +1055,7 @@ static const Fl_Menu_Item quick_change_feld[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_throb[] = {
+static Fl_Menu_Item quick_change_throb[] = {
 	{ mode_info[MODE_THROB1].name, 0, cb_init_mode, (void *)MODE_THROB1 },
 	{ mode_info[MODE_THROB2].name, 0, cb_init_mode, (void *)MODE_THROB2 },
 	{ mode_info[MODE_THROB4].name, 0, cb_init_mode, (void *)MODE_THROB4 },
@@ -1018,7 +1065,7 @@ static const Fl_Menu_Item quick_change_throb[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_olivia[] = {
+static Fl_Menu_Item quick_change_olivia[] = {
 	{ mode_info[MODE_OLIVIA_4_125].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_125 },
 	{ mode_info[MODE_OLIVIA_4_250].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_250 },
 	{ mode_info[MODE_OLIVIA_4_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_500 },
@@ -1046,7 +1093,7 @@ static const Fl_Menu_Item quick_change_olivia[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_contestia[] = {
+static Fl_Menu_Item quick_change_contestia[] = {
 	{ mode_info[MODE_CONTESTIA_4_125].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_125 },
 	{ mode_info[MODE_CONTESTIA_4_250].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_250 },
 	{ mode_info[MODE_CONTESTIA_4_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_500 },
@@ -1075,7 +1122,7 @@ static const Fl_Menu_Item quick_change_contestia[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_rtty[] = {
+static Fl_Menu_Item quick_change_rtty[] = {
 	{ "RTTY-45", 0, cb_rtty45, (void *)MODE_RTTY },
 	{ "RTTY-50", 0, cb_rtty50, (void *)MODE_RTTY },
 	{ "RTTY-75N", 0, cb_rtty75N, (void *)MODE_RTTY },
@@ -1085,7 +1132,7 @@ static const Fl_Menu_Item quick_change_rtty[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_fsq[] = {
+static Fl_Menu_Item quick_change_fsq[] = {
 	{ "FSQ1.5", 0, cb_fsq1p5, (void *)MODE_FSQ },
         { "FSQ2", 0, cb_fsq2, (void *)MODE_FSQ },
 	{ "FSQ3", 0, cb_fsq3, (void *)MODE_FSQ },
@@ -1094,7 +1141,7 @@ static const Fl_Menu_Item quick_change_fsq[] = {
 	{ 0 }
 };
 
-static const Fl_Menu_Item quick_change_ifkp[] = {
+static Fl_Menu_Item quick_change_ifkp[] = {
 	{ "IFKP 0.5", 0, cb_ifkp0p5a, (void *)MODE_IFKP },
 	{ "IFKP 1.0", 0, cb_ifkp1p0a, (void *)MODE_IFKP },
 	{ "IFKP 2.0", 0, cb_ifkp2p0a, (void *)MODE_IFKP },
@@ -1422,9 +1469,15 @@ void set_dominoex_tab_widgets()
 void set_mode_controls(trx_mode id)
 {
 	if (id == MODE_CW) {
-		cntCW_WPM->show();
-		btnCW_Default->show();
 		Status1->hide();
+		cntCW_WPM->show();
+		if (progdefaults.show_CW_controls) {
+			status_group_A->hide();
+			cws_group->show();
+		} else {
+			cws_group->hide();
+			status_group_A->show();
+		}
 		if (mvsquelch) {
 			mvsquelch->value(progStatus.VIEWER_cwsquelch);
 			mvsquelch->range(0, 40.0);
@@ -1436,10 +1489,13 @@ void set_mode_controls(trx_mode id)
 			sldrViewerSquelch->redraw();
 		}
 	} else {
+		cws_group->hide();
 		cntCW_WPM->hide();
-		btnCW_Default->hide();
 		Status1->show();
+		status_group_A->show();
 	}
+	place_tci_rx_attenuator();
+	status_group->redraw();
 
 	if (id == MODE_RTTY) {
 		if (mvsquelch) {
@@ -1511,23 +1567,24 @@ void set_mode_controls(trx_mode id)
 		thor_avatar->hide();
 		std::string call = inpCall->value();
 		if (id == MODE_IFKP) {
-			ifkp_avatar->resize(fl_digi_main->w() - 59 - pad, NFtabs->y(), 59, 74);
-			thor_avatar->resize(fl_digi_main->w() - pad - 1, NFtabs->y(), 1, 74);
-			NFtabs->resize(
-				NFtabs->x(), NFtabs->y(),
-				fl_digi_main->w() - NFtabs->x() - ifkp_avatar->w() - 2 * pad, NFtabs->h());
+			ifkp_avatar->resize(fl_digi_main->w() - 59 - pad, NFtabs_group->y(), 59, 74);
+			thor_avatar->resize(fl_digi_main->w() - pad - 1, NFtabs_group->y(), 1, 74);
+
+			NFtabs_group->resize(
+				NFtabs_group->x(), NFtabs_group->y(),
+				fl_digi_main->w() - NFtabs_group->x() - ifkp_avatar->w() - 2 * pad, NFtabs_group->h());
 			ifkp_avatar->show();
 			thor_avatar->hide();
 			if (!call.empty())
 				ifkp_load_avatar(inpCall->value());
 			else
 				ifkp_load_avatar();
-		} else if ( ((id >= MODE_THOR11) && (id <= MODE_THOR22))) {
-			thor_avatar->resize(fl_digi_main->w() - 59 - pad, NFtabs->y(), 59, 74);
-			ifkp_avatar->resize(fl_digi_main->w() - pad - 1, NFtabs->y(), 1, 74);
-			NFtabs->resize(
-				NFtabs->x(), NFtabs->y(),
-				fl_digi_main->w() - NFtabs->x() - thor_avatar->w() - 2 * pad, NFtabs->h());
+		} else if ( ((id >= MODE_THOR11) && (id <= MODE_THOR56))) {
+			thor_avatar->resize(fl_digi_main->w() - 59 - pad, NFtabs_group->y(), 59, 74);
+			ifkp_avatar->resize(fl_digi_main->w() - pad - 1, NFtabs_group->y(), 1, 74);
+			NFtabs_group->resize(
+				NFtabs_group->x(), NFtabs_group->y(),
+				fl_digi_main->w() - NFtabs_group->x() - thor_avatar->w() - 2 * pad, NFtabs_group->h());
 			thor_avatar->show();
 			ifkp_avatar->hide();
 			if (!call.empty())
@@ -1536,18 +1593,19 @@ void set_mode_controls(trx_mode id)
 				thor_load_avatar();
 		}
 		else {
-			ifkp_avatar->resize(fl_digi_main->w() - pad - 1, NFtabs->y(), 1, 74);
-			thor_avatar->resize(fl_digi_main->w() - pad - 1, NFtabs->y(), 1, 74);
-			NFtabs->resize(
-				NFtabs->x(), NFtabs->y(),
-				fl_digi_main->w() - NFtabs->x() - pad - 1, NFtabs->h());
+			ifkp_avatar->resize(fl_digi_main->w() - pad - 1, NFtabs_group->y(), 1, 74);
+			thor_avatar->resize(fl_digi_main->w() - pad - 1, NFtabs_group->y(), 1, 74);
+
+			NFtabs_group->resize(
+				NFtabs_group->x(), NFtabs_group->y(),
+				fl_digi_main->w() - NFtabs_group->x() - pad - 1, NFtabs_group->h());
 			ifkp_avatar->hide();
 			thor_avatar->hide();
 		}
 		ifkp_avatar->redraw();
 		thor_avatar->redraw();
-		NFtabs->init_sizes();
-		NFtabs->redraw();
+		NFtabs_group->init_sizes();
+		NFtabs_group->redraw();
 
 	}
 
@@ -1570,34 +1628,6 @@ void startup_modem(modem* m, int f)
 		m->set_sigsearch(SIGSEARCH);
 	}
 
-	if (progdefaults.sqlch_by_mode) {
-		progStatus.sldrSquelchValue = get_mode_squelch(mode);
-		progStatus.sqlonoff = get_mode_squelch_onoff(mode);
-		sldrSquelch->value(progStatus.sldrSquelchValue);
-		btnSQL->value(progStatus.sqlonoff);
-	}
-
-	if (progdefaults.txlevel_by_mode)
-		progStatus.txlevel = get_mode_txlevel(mode);
-	cntTxLevel->value(progStatus.txlevel);
-
-	if (progdefaults.afc_by_mode)
-		progStatus.afconoff = get_mode_afc(mode);
-
-	if (m->get_cap() & modem::CAP_AFC) {
-		btnAFC->value(progStatus.afconoff);
-		btnAFC->activate();
-	}
-	else {
-		btnAFC->value(0);
-		btnAFC->deactivate();
-	}
-
-	if (progdefaults.reverse_by_mode)
-		progStatus.reverse = get_mode_reverse(mode);
-	else
-		progStatus.reverse = wf->Reverse();
-
 	if (m->get_cap() & modem::CAP_REV) {
 		wf->btnRev->value(progStatus.reverse);
 		wf->btnRev->activate();
@@ -1606,8 +1636,11 @@ void startup_modem(modem* m, int f)
 		wf->btnRev->value(0);
 		wf->btnRev->deactivate();
 	}
-	
 
+	wf->xmtlock->value(progStatus.tx_lock);
+	wf->xmtlock->do_callback();
+
+//	UI_select(__func__);
 }
 
 void cb_mnuOpenMacro(Fl_Menu_*, void*) {
@@ -1632,13 +1665,33 @@ void cb_mnuSaveMacro(Fl_Menu_*, void*) {
 	restoreFocus(3);
 }
 
+void redraw_windows()
+{
+	Fl_Double_Window *w[] = {
+		fl_digi_main,
+		scopeview, dlgRecordLoader,
+		dxcluster_viewer, dxcc_window,
+		dlgViewer, dlgLogbook, lotw_review_dialog,  
+		wExport, wCabrillo, wUDPfields,
+		dlgConfig, notify_window, dlgGPIO_config,
+		picRxWin, picTxWin,
+		thorpicRxWin, thorpicTxWin,
+		fsqMonitor, fsqpicRxWin, fsqpicTxWin,
+		ifkppicRxWin, ifkppicTxWin,
+		MacroEditDialog,
+		test_signal_window,
+		rxaudio_dialog, wefax_pic_tx_win };
+	for (size_t n = 0; n < sizeof(w) / sizeof(*w); n++)
+		if (w[n]) w[n]->redraw();
+}
+
 void remove_windows()
 {
 	std::string titles[] = {
 		"scope view", "record loader", "cluster viewer", "dxcc window",
 		"viewer", "logbook", "lotw review",
-		"export", "cabrillo",
-		"config", "notify",
+		"export", "cabrillo", "UDP fields",
+		"config", "notify", "GPIO config",
 		"mfsk rxwin", "mfsk txwin",
 		"thor rxwin", "thor txwin",
 		"fsq monitor", "fsq rxwin", "fsq txwin",
@@ -1650,8 +1703,8 @@ void remove_windows()
 		scopeview, dlgRecordLoader,
 		dxcluster_viewer, dxcc_window,
 		dlgViewer, dlgLogbook, lotw_review_dialog,  
-		wExport, wCabrillo,
-		dlgConfig, notify_window,
+		wExport, wCabrillo, wUDPfields,
+		dlgConfig, notify_window, dlgGPIO_config,
 		picRxWin, picTxWin,
 		thorpicRxWin, thorpicTxWin,
 		fsqMonitor, fsqpicRxWin, fsqpicTxWin,
@@ -1703,7 +1756,7 @@ static int squelch_val;
 void rsid_squelch_timer(void*)
 {
 	progStatus.sqlonoff = squelch_val;
-	set_mode_squelch_onoff(active_modem->get_mode(), squelch_val);
+	modeband.set_mode_squelch_onoff(squelch_val);
 	if (progStatus.sqlonoff) {
 		btnSQL->value(1);
 	}
@@ -1722,7 +1775,7 @@ void init_modem_squelch(trx_mode mode, int freq)
 void rsid_eot_squelch()
 {
 	progStatus.sqlonoff = squelch_val;
-	set_mode_squelch_onoff(active_modem->get_mode(), squelch_val);
+	modeband.set_mode_squelch_onoff(squelch_val);
 	if (progStatus.sqlonoff)
 		btnSQL->value(1);
 	Fl::remove_timeout(rsid_squelch_timer);
@@ -1804,8 +1857,17 @@ void init_modem(trx_mode mode, int freq)
 //		modem_config_tab = tabCW;
 		break;
 
+    case MODE_SCAMPFSK: case MODE_SCAMPOOK: case MODE_SCFSKFST:
+    case MODE_SCFSKSLW: case MODE_SCOOKSLW: case MODE_SCFSKVSL:
+		startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
+				  *mode_info[mode].modem = new scamp(mode), freq);
+		quick_change = quick_change_scamp;
+//		modem_config_tab = tabSCAMP;
+		break;
+        
 	case MODE_THORMICRO: case MODE_THOR4: case MODE_THOR5: case MODE_THOR8:
 	case MODE_THOR11:case MODE_THOR16: case MODE_THOR22:
+	case MODE_THOR25: case MODE_THOR32: case MODE_THOR44: case MODE_THOR56:
 	case MODE_THOR25x4: case MODE_THOR50x1: case MODE_THOR50x2: case MODE_THOR100:
 		startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
 				  *mode_info[mode].modem = new thor(mode), freq);
@@ -1906,20 +1968,20 @@ void init_modem(trx_mode mode, int freq)
 		quick_change = quick_change_8psk;
 //		modem_config_tab = tabPSK;
 		break;
-		
-		
+
+/* Commented out pending development work by KL4YFD
 	case MODE_OFDM_500F:
 	case MODE_OFDM_750F:
-	case MODE_OFDM_2000F:
-	case MODE_OFDM_2000:
+//	case MODE_OFDM_2000F:
+//	case MODE_OFDM_2000:
 	case MODE_OFDM_3500:
 		startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
 		*mode_info[mode].modem = new psk(mode), freq);
 		quick_change = quick_change_ofdm;
 		//		modem_config_tab = tabPSK;
 		break;
-		
-		
+*/
+
 	case MODE_PSK125R: case MODE_PSK250R: case MODE_PSK500R:
 	case MODE_PSK1000R:
 		startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
@@ -2086,6 +2148,8 @@ void init_modem(trx_mode mode, int freq)
 	clear_StatusMessages();
 	progStatus.lastmode = mode;
 
+	UI_select(std::string(__func__).append("\n").append(mode_info[mode].sname));
+
 	if (wf->xmtlock->value() == 1 && !mailserver) {
 		if(!progdefaults.retain_freq_lock) {
 			wf->xmtlock->value(0);
@@ -2102,6 +2166,7 @@ void init_modem_sync(trx_mode m, int f)
 	ENSURE_THREAD(FLMAIN_TID);
 
 	int count = 2000;
+
 	if (trx_state != STATE_RX) {
 		LOG_INFO("Waiting for %s", mode_info[active_modem->get_mode()].name);
 		abort_tx();
@@ -2235,26 +2300,13 @@ void colorize_48macros(int i)
 	if (progdefaults.useGroupColors == true) {
 		int k = i / 4;
 		if (k == 0 || k == 3 || k == 6 || k == 9)
-			btnDockMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup1.R,
-				progdefaults.btnGroup1.G,
-				progdefaults.btnGroup1.B));
+			btnDockMacro[i]->color( RGBCOLOR(btnGroup1) );
 		else if (k == 1 || k == 4 || k == 7 || k == 10)
-			btnDockMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup2.R,
-				progdefaults.btnGroup2.G,
-				progdefaults.btnGroup2.B));
+			btnDockMacro[i]->color( RGBCOLOR(btnGroup2 ) );
 		else
-			btnDockMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup3.R,
-				progdefaults.btnGroup3.G,
-				progdefaults.btnGroup3.B));
-		btnDockMacro[i]->labelcolor(
-			fl_rgb_color(
-				progdefaults.btnFkeyTextColor.R,
-				progdefaults.btnFkeyTextColor.G,
-				progdefaults.btnFkeyTextColor.B ));
-		btnDockMacro[i]->labelcolor(progdefaults.MacroBtnFontcolor);
+			btnDockMacro[i]->color( RGBCOLOR(btnGroup3) );
+		btnDockMacro[i]->labelcolor( RGBCOLOR(btnFkeyTextColor) );
+		btnDockMacro[i]->labelcolor(RGBCOLOR(MacroBtnFontcolor));
 		btnDockMacro[i]->labelfont(progdefaults.MacroBtnFontnbr);
 		btnDockMacro[i]->labelsize(progdefaults.MacroBtnFontsize);
 	} else {
@@ -2270,27 +2322,14 @@ void colorize_macro(int i)
 	int j = i % NUMMACKEYS;
 	if (progdefaults.useGroupColors == true) {
 		if (j < 4) {
-			btnMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup1.R,
-				progdefaults.btnGroup1.G,
-				progdefaults.btnGroup1.B));
+			btnMacro[i]->color( RGBCOLOR(btnGroup1 ) );
 		} else if (j < 8) {
-			btnMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup2.R,
-				progdefaults.btnGroup2.G,
-				progdefaults.btnGroup2.B));
+			btnMacro[i]->color( RGBCOLOR(btnGroup2  ));
 		} else {
-			btnMacro[i]->color(fl_rgb_color(
-				progdefaults.btnGroup3.R,
-				progdefaults.btnGroup3.G,
-				progdefaults.btnGroup3.B));
+			btnMacro[i]->color( RGBCOLOR(btnGroup3  ));
 		}
-		btnMacro[i]->labelcolor(
-			fl_rgb_color(
-				progdefaults.btnFkeyTextColor.R,
-				progdefaults.btnFkeyTextColor.G,
-				progdefaults.btnFkeyTextColor.B ));
-		btnMacro[i]->labelcolor(progdefaults.MacroBtnFontcolor);
+		btnMacro[i]->labelcolor( RGBCOLOR(btnFkeyTextColor) );
+		btnMacro[i]->labelcolor(RGBCOLOR(MacroBtnFontcolor));
 		btnMacro[i]->labelfont(progdefaults.MacroBtnFontnbr);
 		btnMacro[i]->labelsize(progdefaults.MacroBtnFontsize);
 	} else {
@@ -2349,6 +2388,14 @@ void cb_mnuConfigNotify(Fl_Menu_*, void*)
 	notify_show();
 }
 
+#if USE_LIBGPIOD
+void cb_mnuConfigGPIO(Fl_Menu_*, void*)
+{
+	if (!dlgGPIO_config) dlgGPIO_config	= make_gpio_conf_dialog();
+	dlgGPIO_config->show();
+}
+#endif
+
 void cb_mnuTestSignals(Fl_Menu_*, void*)
 {
 	show_testdialog();
@@ -2359,8 +2406,13 @@ void cb_mnuConfigModems(Fl_Menu_*, void*) {
 		case MODE_CW:
 			open_config(TAB_CW);
 			break;
+	    case MODE_SCAMPFSK: case MODE_SCAMPOOK: case MODE_SCFSKFST:
+	    case MODE_SCFSKSLW: case MODE_SCOOKSLW: case MODE_SCFSKVSL:
+			open_config(TAB_SCAMP);
+			break;
 		case MODE_THORMICRO: case MODE_THOR4: case MODE_THOR5: case MODE_THOR8:
-		case MODE_THOR11:case MODE_THOR16: case MODE_THOR22:
+		case MODE_THOR11: case MODE_THOR16: case MODE_THOR22:
+		case MODE_THOR25: case MODE_THOR32: case MODE_THOR44: case MODE_THOR56:
 		case MODE_THOR25x4: case MODE_THOR50x1: case MODE_THOR50x2: case MODE_THOR100:
 			open_config(TAB_THOR);
 			break;
@@ -2378,6 +2430,19 @@ void cb_mnuConfigModems(Fl_Menu_*, void*) {
 			break;
 		case MODE_NAVTEX: case MODE_SITORB:
 			open_config(TAB_NAVTEX);
+			break;
+		case MODE_MFSK4:
+		case MODE_MFSK11:
+		case MODE_MFSK22:
+		case MODE_MFSK31:
+		case MODE_MFSK64:
+		case MODE_MFSK8:
+		case MODE_MFSK16:
+		case MODE_MFSK32:
+		case MODE_MFSK128:
+		case MODE_MFSK64L:
+		case MODE_MFSK128L:
+			open_config(TAB_MFSK);
 			break;
 		case MODE_MT63_500S: case MODE_MT63_1000S: case MODE_MT63_2000S :
 		case MODE_MT63_500L: case MODE_MT63_1000L: case MODE_MT63_2000L :
@@ -2514,7 +2579,7 @@ void cb_view_hide_channels(Fl_Menu_ *w, void *d)
 		progStatus.tile_y = ReceiveText->h();
 		progStatus.tile_y_ratio = 1.0 * ReceiveText->h() / text_panel->h();
 	}
-	UI_select();
+	UI_select(__func__);
 	return;
 }
 
@@ -2660,7 +2725,7 @@ void cb_mnuBeginnersURL(Fl_Widget*, void*)
 void cb_mnuOnLineDOCS(Fl_Widget *, void *)
 {
 	std::string helpfile = HelpDir;
-	helpfile.append("fldigi-help/index.html");
+	helpfile.append("FldigiHelp/index.html");
 	std::ifstream f(helpfile.c_str());
 	if (!f) {
 		cb_mnuVisitURL(0, (void *)PACKAGE_DOCS);
@@ -2697,16 +2762,34 @@ inline int version_check(std::string v1, std::string v2) {
 static notify_dialog *latest_dialog = 0;
 void cb_mnuCheckUpdate(Fl_Widget *, void *)
 {
-	const char *url = "http://www.w1hkj.com/files/fldigi/";
+	const char *url = "https://www.w1hkj.org/files/fldigi/";
 
 	std::string version_str;
 	std::string reply;
+	std::string probable;
+	if (!latest_dialog) latest_dialog = new notify_dialog;
 
 	put_status(_("Checking for updates..."));
 
-	int ret = get_http(url, reply, 20.0);
-	if (!ret) {
-		put_status(_("Update site not available"), 10);
+	get_http(url, reply, 20.0);
+
+	if (reply.empty()) {
+		probable.assign(_("\
+Internet not available.\n\
+Please check your connection.\n"));
+		latest_dialog->notify(probable.c_str(), 30.0);
+		REQ(show_notifier, latest_dialog);
+		put_status("");
+		return;
+	}
+
+	if (reply.find("Index of /files/fldigi") == std::string::npos) {
+		probable.assign(_("\
+Update site not availabe.\n\
+Please check https://www.w1hkj.org/files/ with your browser.\n"));
+		latest_dialog->notify(probable.c_str(), 30.0);
+		REQ(show_notifier, latest_dialog);
+		put_status("");
 		return;
 	}
 
@@ -2716,21 +2799,23 @@ void cb_mnuCheckUpdate(Fl_Widget *, void *)
 	version_str = reply.substr(p2, p - p2);
 	int is_ok = version_check(std::string(PACKAGE_VERSION), version_str);
 
-	if (!latest_dialog) latest_dialog = new notify_dialog;
 	if (is_ok == 0) {
-		latest_dialog->notify(_("You are running the latest version"), 5.0);
+		latest_dialog->notify(_("You are running the latest version"), 15.0);
 		REQ(show_notifier, latest_dialog);
 	} else if (is_ok > 0) {
-		std::string probable;
-		probable.assign(_("You are probably running an alpha version "));
-		probable.append( PACKAGE_VERSION ).append(_("\nPosted version: "));
-		probable.append(version_str);
-		latest_dialog->notify(probable.c_str(), 5.0);
+		probable.assign(_("\
+You are probably using a development test version.\n\n\
+   In use: ")).append( PACKAGE_VERSION ).append(_("\n\
+   Posted: ")).append(version_str).append("\n");
+		latest_dialog->notify(probable.c_str(), 30.0);
 		REQ(show_notifier, latest_dialog);
-	} else
-		fl_message2(_("Version %s is available at Source Forge"),
-				  version_str.c_str());
-
+	} else {
+		probable.assign(_("Version ")).
+			append(version_str.c_str()).append(" ").
+			append(_("is available at Source Forge"));
+		latest_dialog->notify(probable.c_str(), 30.0);
+		REQ(show_notifier, latest_dialog);
+	}
 	put_status("");
 }
 
@@ -2909,7 +2994,7 @@ void cbRSID(Fl_Widget *w, void *)
 		break;
 	}
 
-	Fl_Color clr = progdefaults.rsidWideSearch ? progdefaults.RxIDwideColor : progdefaults.RxIDColor;
+	Fl_Color clr = progdefaults.rsidWideSearch ? RGBCOLOR(RxIDwideColor) : RGBCOLOR(RxIDColor);
 	btnRSID->selection_color(clr);
 	btnRSID->redraw();
 	restoreFocus(11);
@@ -2929,6 +3014,10 @@ void cbTxRSID(Fl_Widget *w, void*)
 void cbAutoSpot(Fl_Widget* w, void*)
 {
 	progStatus.spot_recv = static_cast<Fl_Light_Button*>(w)->value();
+}
+
+void cbEnableVideo_ID(Fl_Widget* w, void*)
+{	progStatus.EnableVideo_ID = static_cast<Fl_Light_Button*>(w)->value();
 }
 
 void toggleRSID()
@@ -3011,7 +3100,7 @@ void cb_sldrSquelch(Fl_Slider* o, void*) {
 		progStatus.sldrPwrSquelchValue = o->value();
 	} else {
 		progStatus.sldrSquelchValue = o->value();
-		set_mode_squelch( active_modem->get_mode(), progStatus.sldrSquelchValue );
+		modeband.set_mode_squelch( progStatus.sldrSquelchValue );
 	}
 
 	restoreFocus(13);
@@ -3196,8 +3285,8 @@ Fl_Input2* qso_fields[] = {
 		for (size_t i = 0; i < num_fields; i++) {
 			qso_fields[i]->textsize(progdefaults.LOGGINGtextsize);
 			qso_fields[i]->textfont(progdefaults.LOGGINGtextfont);
-			qso_fields[i]->textcolor(progdefaults.LOGGINGtextcolor);
-			qso_fields[i]->color(progdefaults.LOGGINGcolor);
+			qso_fields[i]->textcolor(RGBCOLOR(LOGGINGtextcolor));
+			qso_fields[i]->color(RGBCOLOR(LOGGINGcolor));
 			qso_fields[i]->labelfont(progdefaults.LOGGINGtextfont);
 			qso_fields[i]->redraw_label();
 		}
@@ -3249,8 +3338,8 @@ Fl_Input2* log_fields[] = {
 		log_fields[i]->value("");
 		log_fields[i]->textsize(progdefaults.LOGGINGtextsize);
 		log_fields[i]->textfont(progdefaults.LOGGINGtextfont);
-		log_fields[i]->textcolor(progdefaults.LOGGINGtextcolor);
-		log_fields[i]->color(progdefaults.LOGGINGcolor);
+		log_fields[i]->textcolor(RGBCOLOR(LOGGINGtextcolor));
+		log_fields[i]->color(RGBCOLOR(LOGGINGcolor));
 		log_fields[i]->labelfont(progdefaults.LOGGINGtextfont);
 		log_fields[i]->show();
 		log_fields[i]->redraw_label();
@@ -3327,8 +3416,8 @@ Fl_Input2* log_fields[] = {
 		log_fields[i]->value("");
 		log_fields[i]->textsize(progdefaults.LOGGINGtextsize);
 		log_fields[i]->textfont(progdefaults.LOGGINGtextfont);
-		log_fields[i]->textcolor(progdefaults.LOGGINGtextcolor);
-		log_fields[i]->color(progdefaults.LOGGINGcolor);
+		log_fields[i]->textcolor(RGBCOLOR(LOGGINGtextcolor));
+		log_fields[i]->color(RGBCOLOR(LOGGINGcolor));
 		log_fields[i]->labelfont(progdefaults.LOGGINGtextfont);
 		log_fields[i]->show();
 		log_fields[i]->redraw_label();
@@ -3395,7 +3484,7 @@ Fl_Input2* log_fields[] = {
 
 void clearQSO()
 {
-if (bWF_only) return;
+	if (bWF_only) return;
 
 	Fl_Input2* call_fields[] = { inpCall1, inpCall2, inpCall3, inpCall4 };
 	size_t num_fields = sizeof(call_fields)/sizeof(*call_fields);
@@ -3403,8 +3492,8 @@ if (bWF_only) return;
 		call_fields[i]->value("");
 		call_fields[i]->textsize(progdefaults.LOGGINGtextsize);
 		call_fields[i]->textfont(progdefaults.LOGGINGtextfont);
-		call_fields[i]->textcolor(progdefaults.LOGGINGtextcolor);
-		call_fields[i]->color(progdefaults.LOGGINGcolor);
+		call_fields[i]->textcolor(RGBCOLOR(LOGGINGtextcolor));
+		call_fields[i]->color(RGBCOLOR(LOGGINGcolor));
 		call_fields[i]->labelfont(progdefaults.LOGGINGtextfont);
 		call_fields[i]->show();
 		call_fields[i]->redraw_label();
@@ -3512,7 +3601,7 @@ void cb_loc(Fl_Widget* w, void*)
 
 void cb_call(Fl_Widget* w, void*)
 {
-if (bWF_only) return;
+	if (bWF_only) return;
 
 	qsodb.isdirty(1);
 
@@ -3587,7 +3676,7 @@ if (bWF_only) return;
 		ifkp_load_avatar(inpCall->value());
 
 	if (active_modem->get_mode() >= MODE_THOR11 &&
-		active_modem->get_mode() <= MODE_THOR22)
+		active_modem->get_mode() <= MODE_THOR56)
 		thor_load_avatar(inpCall->value());
 
 	const struct dxcc* e = dxcc_lookup(inpCall->value());
@@ -4002,7 +4091,7 @@ void qsoClear_cb(Fl_Widget *b, void *)
 	if (active_modem->get_mode() == MODE_IFKP)
 		ifkp_clear_avatar();
 	if (active_modem->get_mode() >= MODE_THOR11 &&
-		active_modem->get_mode() <= MODE_THOR22)
+		active_modem->get_mode() <= MODE_THOR56)
 		thor_clear_avatar();
 	qsodb.isdirty(0);
 }
@@ -4070,7 +4159,9 @@ void status_cb(Fl_Widget *b, void *arg)
 		else if (md == MODE_CW) open_config(TAB_CW);
 		else if (md == MODE_IFKP) open_config(TAB_IFKP);
 		else if (md == MODE_FSQ) open_config(TAB_FSQ);
+		else if (md >= MODE_MFSK_FIRST && md <= MODE_MFSK_LAST) open_config(TAB_MFSK);
 		else if (md == MODE_RTTY) open_config(TAB_RTTY);
+		else if (md >= MODE_SCAMP_FIRST && md <= MODE_SCAMP_LAST) open_config(TAB_SCAMP);
 		else if (md >= MODE_THOR_FIRST && md <= MODE_THOR_LAST) open_config(TAB_THOR);
 		else if (md >= MODE_OLIVIA_FIRST && md <= MODE_OLIVIA_LAST) open_config(TAB_OLIVIA);
 		else if (md >= MODE_PSK_FIRST && md <= MODE_PSK_LAST) open_config(TAB_PSK);
@@ -4099,21 +4190,35 @@ void cbAFC(Fl_Widget *w, void *vi)
 	Fl_Button *b = (Fl_Button *)w;
 	int v = b->value();
 	progStatus.afconoff = v;
-	set_mode_afc(active_modem->get_mode(), progStatus.afconoff);
+	modeband.set_mode_afc(progStatus.afconoff);
 }
 
 void cbSQL(Fl_Widget *w, void *vi)
 {
+	if (((Fl::event_state() & (FL_SHIFT)) == FL_SHIFT) &&
+	    ((Fl::event_state() & (FL_CTRL)) == FL_CTRL)) {
+			btnSQL->hide();
+			btnPSQL->show();
+			return;
+	}
+
 	Fl_Button *b = (Fl_Button *)w;
 	int v = b->value();
 	progStatus.sqlonoff = v ? true : false;
-	set_mode_squelch_onoff(active_modem->get_mode(), progStatus.sqlonoff);
+	modeband.set_mode_squelch_onoff( progStatus.sqlonoff );
 }
 
 extern void set_wf_mode(void);
 
 void cbPwrSQL(Fl_Widget *w, void *vi)
 {
+	if (((Fl::event_state() & (FL_SHIFT)) == FL_SHIFT) &&
+	    ((Fl::event_state() & (FL_CTRL)) == FL_CTRL)) {
+			btnPSQL->hide();
+			btnSQL->show();
+			return;
+	}
+
 	Fl_Button *b = (Fl_Button *)w;
 	int v = b->value();
 	if(!v) {
@@ -4298,6 +4403,10 @@ void cb_btnClearMViewer(Fl_Widget *w, void *d)
 	active_modem->clear_viewer();
 }
 
+#ifdef __APPLE__
+static int handle_macos_command_shortcut(int event);
+#endif
+
 int default_handler(int event)
 {
 	if (bWF_only) {
@@ -4305,6 +4414,15 @@ int default_handler(int event)
 			return 1;
 		return 0;
 	}
+
+	if (event != FL_SHORTCUT && event != FL_KEYBOARD)
+		return 0;
+
+	int key = Fl::event_key();
+#ifdef __APPLE__
+	if (handle_macos_command_shortcut(event))
+		return 1;
+#endif
 
 	if (event != FL_SHORTCUT)
 		return 0;
@@ -4317,7 +4435,6 @@ int default_handler(int event)
 
 	Fl_Widget* w = Fl::focus();
 
-	int key = Fl::event_key();
 	if ((key == FL_F + 4) && Fl::event_alt()) clean_exit(true);
 
 	if (fl_digi_main->contains(w)) {
@@ -4336,7 +4453,7 @@ int default_handler(int event)
 			progStatus.txlevel += 0.1;
 			if (progStatus.txlevel > 0) progStatus.txlevel = 0;
 			cntTxLevel->value(progStatus.txlevel);
-			set_mode_txlevel(active_modem->get_mode(), progStatus.txlevel);
+			modeband.set_mode_txlevel(progStatus.txlevel);
 			return 1;
 		}
 #ifdef __APPLE__
@@ -4348,7 +4465,7 @@ int default_handler(int event)
 			progStatus.txlevel -= 0.1;
 			if (progStatus.txlevel < -30) progStatus.txlevel = -30;
 			cntTxLevel->value(progStatus.txlevel);
-			set_mode_txlevel(active_modem->get_mode(), progStatus.txlevel);
+			modeband.set_mode_txlevel(progStatus.txlevel);
 			return 1;
 		}
 	}
@@ -4367,6 +4484,15 @@ int default_handler(int event)
 
 int wo_default_handler(int event)
 {
+	if (event != FL_SHORTCUT && event != FL_KEYBOARD)
+		return 0;
+
+	int key = Fl::event_key();
+#ifdef __APPLE__
+	if (handle_macos_command_shortcut(event))
+		return 1;
+#endif
+
 	if (event != FL_SHORTCUT)
 		return 0;
 
@@ -4377,7 +4503,6 @@ int wo_default_handler(int event)
 	}
 
 	Fl_Widget* w = Fl::focus();
-	int key = Fl::event_key();
 
 	if ((key == FL_F + 4) && Fl::event_alt()) clean_exit(true);
 
@@ -4395,7 +4520,7 @@ int wo_default_handler(int event)
 			progStatus.txlevel += 0.1;
 			if (progStatus.txlevel > 0) progStatus.txlevel = 0;
 			cntTxLevel->value(progStatus.txlevel);
-			set_mode_txlevel(active_modem->get_mode(), progStatus.txlevel);
+			modeband.set_mode_txlevel(progStatus.txlevel);
 			return 1;
 		}
 #ifdef __APPLE__
@@ -4492,7 +4617,7 @@ bool clean_exit(bool ask) {
 
 	saveFreqList();
 
-	progStatus.saveLastState();
+	progStatus.saveLastState();//(true);
 
 	if (scopeview) scopeview->hide();
 	if (dlgViewer) dlgViewer->hide();
@@ -4530,6 +4655,10 @@ LOG_INFO("Close T/R processing");
 LOG_INFO("Close logbook");
 	close_logbook();
 	MilliSleep(50);
+
+LOG_INFO("Send shutdown signal to flrig");
+	if (progdefaults.flrig_auto_shutdown)
+		xmlrpc_shutdown_flrig();
 
 LOG_INFO("Stop flrig i/o");
 	stop_flrig_thread();
@@ -4751,7 +4880,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += HTh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
+			status_group->position(status_group->x(), y1);
+			status_group_A->position(status_group_A->x(), y1);
+			cws_group->position(cws_group->x(), y1);
 		} else {
 			int htbar = 4 * TB_HEIGHT;
 
@@ -4774,7 +4905,9 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
+			status_group->position(status_group->x(), y1);
+			status_group_A->position(status_group_A->x(), y1);
+			cws_group->position(cws_group->x(), y1);
 		}
 		fl_digi_main->init_sizes();
 		return;
@@ -4801,7 +4934,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += HTh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
 			break;
 		default:
 		case 1:
@@ -4810,10 +4942,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			btnAltMacros2->deactivate();
 			HTh -= mh;
 			center_group->resize(x, y1, w, HTh);
-//			text_panel->resize(x, y1, w, HTh);
-//			wefax_group->resize(x, y1, w, HTh);
-//			fsq_group->resize(x, y1, w, HTh);
-//			ifkp_group->resize(x, y1, w, HTh);
 			UI_select_central_frame(y1, HTh);
 			y1 += HTh;
 			resize_macroframe_1(x, y1, w, mh);
@@ -4822,7 +4950,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
 			break;
 		case 2:
 			resize_macroframe_2(x,y1,w,mh);
@@ -4843,7 +4970,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			macroFrame1->show();
 			btnAltMacros1->activate();
 			y1 += mh;
-			status_group->position(x, y1);
 			break;
 		case 3:
 			resize_macroframe_1(x, y1, w, mh);
@@ -4866,7 +4992,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += HTh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
 			break;
 		case 4:
 			resize_macroframe_2(x, y1, w, mh);
@@ -4889,7 +5014,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += HTh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
 			break;
 		case 5:
 			HTh -= 2*mh;
@@ -4911,7 +5035,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
 			break;
 		case 6:
 			HTh -= 2*mh;
@@ -4932,7 +5055,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
 			break;
 		case 7:
 			HTh -= 2*mh;
@@ -4953,7 +5075,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			resize_macroframe_2(x, y1, w, mh);
 			macroFrame2->show();
 			y1 += mh;
-			status_group->position(x, y1);
 			break;
 		case 8:
 			HTh -= 2*mh;
@@ -4973,7 +5094,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			macroFrame1->show();
 			btnAltMacros1->deactivate();
 			y1 += mh;
-			status_group->position(x, y1);
 			break;
 		case 9:
 			HTh -= 2*mh;
@@ -4995,7 +5115,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			macroFrame2->show();
 			btnAltMacros2->activate();
 			y1 += mh;
-			status_group->position(x, y1);
 			break;
 		case 10:
 			HTh -= 2*mh;
@@ -5017,7 +5136,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			macroFrame1->show();
 			btnAltMacros1->deactivate();
 			y1 += mh;
-			status_group->position(x, y1);
 			break;
 		case 11:
 			resize_macroframe_2(x, y1, w, mh);
@@ -5039,7 +5157,6 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
 			break;
 		case 12:
 			resize_macroframe_1(x, y1, w, mh);
@@ -5061,57 +5178,85 @@ void UI_position_macros(int x, int y1, int w, int HTh)
 			y1 += mh;
 			wf_group->position(x, y1);
 			y1 += wf_group->h();
-			status_group->position(x, y1);
 			break;
 	}
+	status_group->position(status_group->x(), y1);
+	status_group_A->position(status_group_A->x(), y1);
+	cws_group->position(cws_group->x(), y1);
 	fl_digi_main->init_sizes();
+
 	return;
 }
 
 bool UI_first = true;
-void UI_select()
+
+void UI_select(std::string parent)
 {
+// WATERFALL ONLY UI
 	if (bWF_only) {
-		int Y = cntTxLevel->y();
-		int psm_width = progdefaults.show_psm_btn ? bwSqlOnOff : 0;
-		int X = rightof(Status2);
-		int W = fl_digi_main->w() - X - bwTxLevel - Wwarn - bwAfcOnOff -
-			bwSqlOnOff - psm_width;
+		if (progStatus.lastmode == MODE_CW) {
+			Status1->hide();
+			cntCW_WPM->show();
+			if (progdefaults.show_CW_controls) {
+				status_group_A->hide();
+				cws_group->show();
+			} else {
+				cws_group->hide();
+				status_group_A->show();
+			}
+			if (mvsquelch) {
+				mvsquelch->value(progStatus.VIEWER_cwsquelch);
+				mvsquelch->range(0, 40.0);
+				mvsquelch->redraw();
+			}
+			if (sldrViewerSquelch) {
+				sldrViewerSquelch->value(progStatus.VIEWER_cwsquelch);
+				sldrViewerSquelch->range(0, 40.0);
+				sldrViewerSquelch->redraw();
+			}
+		} else {
+			cws_group->hide();
+			cntCW_WPM->hide();
+			Status1->show();
+			status_group_A->show();
+		}
 
-		StatusBar->resize( X, Y, W, StatusBar->h());
-		VuMeter->resize( X, Y, W, VuMeter->h());
+//		int y = status_group->y();
+//		int h = status_group->h();
+//		int x = fl_digi_main->w() - cntTxLevel->w() - WARNstatus->w() - btnAFC->w() - btnSQL->w();
 
-		cntTxLevel->position(rightof(VuMeter), Y);
+//		x -= (progdefaults.show_psm_btn ? bwSqlOnOff : 1);
+//		btnPSQL->size( (progdefaults.show_psm_btn ? bwSqlOnOff : 1), h);
 
-		WARNstatus->position(rightof(cntTxLevel), Y);
-		btnAFC->position(rightof(WARNstatus), Y);
-		btnSQL->position(rightof(btnAFC), Y);
-		btnPSQL->resize(rightof(btnSQL), Y, psm_width, btnPSQL->h());
+//		cntTxLevel->position(x, y);
+//		x += cntTxLevel->w();
+//		WARNstatus->position(x, y);
+//		x += WARNstatus->w();
+//		btnAFC->position(x, y);
+//		x += btnAFC->w();
+//		btnSQL->position(x, y);
+//		x += btnSQL->w();
+//		btnPSQL->position(x, y);
 
-		if (progdefaults.show_psm_btn)
+		if (progdefaults.show_psm_btn) {
+			btnSQL->hide();
 			btnPSQL->show();
-		else
+		} else {
 			btnPSQL->hide();
+			btnSQL->show();
+		}
 
-		cntTxLevel->redraw();
-		WARNstatus->redraw();
-		btnAFC->redraw();
-		btnSQL->redraw();
-		btnPSQL->redraw();
-		StatusBar->redraw();
-
-		place_tci_rx_attenuator();
-		status_group->redraw();
-
-		fl_digi_main->init_sizes();
+//		fl_digi_main->init_sizes();
 		fl_digi_main->redraw();
+
+		int WF_only_height = Hmenu + Hwfall + Hstatus + 4 * pad;
+		fl_digi_main->size_range(WMIN, WF_only_height, 0, WF_only_height);
+
+		UI_STATS(std::string(__func__).append("/").append(parent));
+
 		return;
 	}
-
-	int x =   0;
-	int y1 =  Hmenu;
-	int w =   fl_digi_main->w();
-	int HTh = fl_digi_main->h() - y1;
+// END WATERFALL ONLY
 
 	if (cnt_macro_height) {
 		cnt_macro_height->minimum(MACROBAR_MIN);
@@ -5122,8 +5267,40 @@ void UI_select()
 		cnt_macro_height->value(progdefaults.macro_height);
 	}
 
-	HTh -= wf_group->h();
-	HTh -= status_group->h();
+	int x =   0;
+	int y1 =  Hmenu;
+	int w =   fl_digi_main->w();
+
+	int HTh = fl_digi_main->h() - mnu->h() - wf_group->h() - status_group->h();
+
+	if (progStatus.lastmode == MODE_CW) {
+		Status1->hide();
+		cntCW_WPM->show();
+		if (progdefaults.show_CW_controls) {
+			status_group_A->hide();
+			cws_group->show();
+		} else {
+			cws_group->hide();
+			status_group_A->show();
+		}
+		if (mvsquelch) {
+			mvsquelch->value(progStatus.VIEWER_cwsquelch);
+			mvsquelch->range(0, 40.0);
+			mvsquelch->redraw();
+		}
+		if (sldrViewerSquelch) {
+			sldrViewerSquelch->value(progStatus.VIEWER_cwsquelch);
+			sldrViewerSquelch->range(0, 40.0);
+			sldrViewerSquelch->redraw();
+		}
+	} else {
+		cws_group->hide();
+		cntCW_WPM->hide();
+		Status1->show();
+		status_group_A->show();
+	}
+	place_tci_rx_attenuator();
+	status_group->redraw();
 
 	if (progStatus.NO_RIGLOG && !restore_minimize) {
 		TopFrame1->hide();
@@ -5334,6 +5511,7 @@ void UI_select()
 //				gWAE->show();
 //				break;
 			case LOG_BART:
+			case LOG_DARC_HELL_SPRINT:
 			case LOG_GENERIC:
 				gGEN_CONTEST->show();
 				break;
@@ -5610,6 +5788,7 @@ void UI_select()
 //				cboCountry = cboCountryWAE2;
 //				break;
 			case LOG_BART:
+			case LOG_DARC_HELL_SPRINT:
 			case LOG_GENERIC:
 			default:
 				log_generic_frame->show();
@@ -5643,36 +5822,30 @@ UI_return:
 	}
 
 	{
-		int Y = status_group->y();
-		int psm_width = progdefaults.show_psm_btn ? bwSqlOnOff : 0;
+//		int y = status_group->y();
+//		int h = status_group->h();
+//		int x = fl_digi_main->w() - cntTxLevel->w() - WARNstatus->w() - btnAFC->w() - btnSQL->w();
 
-		int vuw = 
-			fl_digi_main->w() - Status2->x() - Status2->w() - 2 -
-			bwTxLevel -  // tx level control
-			Wwarn -      // Warn indicator
-			bwAfcOnOff - // afc button
-			bwSqlOnOff - // sql button
-			psm_width -  // psm button, bwSqlOnOff / 0
-			corner_box->w();
+//		x -= (progdefaults.show_psm_btn ? bwSqlOnOff : 1);
+//		btnPSQL->size( (progdefaults.show_psm_btn ? bwSqlOnOff : 1), h);
 
-		StatusBar->resize( 
-			Status2->x() + Status2->w() + 2, Y, vuw, StatusBar->h());
+//		cntTxLevel->position(x, y);
+//		x += cntTxLevel->w();
+//		WARNstatus->position(x, y);
+//		x += WARNstatus->w();
+//		btnAFC->position(x, y);
+//		x += btnAFC->w();
+//		btnSQL->position(x, y);
+//		x += btnSQL->w();
+//		btnPSQL->position(x, y);
 
-		VuMeter->resize(
-			Status2->x() + Status2->w() + 2, Y, vuw, VuMeter->h());
-
-		cntTxLevel->position(rightof(VuMeter), Y);
-
-		WARNstatus->position(rightof(cntTxLevel), Y);
-		btnAFC->position(rightof(WARNstatus), Y);
-		btnSQL->position(rightof(btnAFC), Y);
-
-		btnPSQL->resize(rightof(btnSQL), Y, psm_width, btnPSQL->h());
-		if (progdefaults.show_psm_btn)
+		if (progdefaults.show_psm_btn){
 			btnPSQL->show();
-		else
+			btnSQL->hide();
+		} else {
+			btnSQL->show();
 			btnPSQL->hide();
-
+		}
 		place_tci_rx_attenuator();
 		status_group->redraw();
 
@@ -5698,9 +5871,151 @@ UI_return:
 	LOGBOOK_colors_font();
 	fl_digi_main->redraw();
 
-Fl::flush();
+	Fl::flush();
+
+	UI_STATS(std::string(__func__).append("/").append(parent));
+
 }
 
+void UI_STATS(std::string parent)
+{
+	if (!ui_debug) return;
+
+	static char ui_stats[2000];
+
+	if (bWF_only) {
+
+		snprintf( ui_stats, sizeof(ui_stats),"\n\
+==========================================\n\
+UI stat at:\n\
+ %s\n\
+      CONTROL        X     Y     W     H\n\
+ ----------------- ----- ----- ----- -----\n\
+ Main ............ %5d %5d %5d %5d\n\
+ Menu ............ %5d %5d %5d %5d\n\
+ Wfall ........... %5d %5d %5d %5d\n\
+ Status  ......... %5d %5d %5d %5d\n\
+ MODEstatus ...... %5d %5d %5d %5d\n\
+ Status1 ......... %5d %5d %5d %5d\n\
+ Group A ......... %5d %5d %5d %5d\n\
+ Cws ............. %5d %5d %5d %5d\n\
+   cntcwsrange ... %5d %5d %5d %5d\n\
+   cwsrcvTrack ... %5d %5d %5d %5d\n\
+   useSOMdecoding  %5d %5d %5d %5d\n\
+   btncwsmfilt ... %5d %5d %5d %5d\n\
+   cntbandwidth .. %5d %5d %5d %5d\n\
+ cntTxLevel ...... %5d %5d %5d %5d\n\
+ WARNstatus ...... %5d %5d %5d %5d\n\
+ btnAFC .......... %5d %5d %5d %5d\n\
+ btnSQL .......... %5d %5d %5d %5d\n\
+ btnPSQL ......... %5d %5d %5d %5d\n\
+",
+			parent.c_str(),
+			fl_digi_main->x(), fl_digi_main->y(), fl_digi_main->w(), fl_digi_main->h(),
+			mnuFrame->x(), mnuFrame->y(), mnuFrame->w(), mnuFrame->h(),
+			wf_group->x(), wf_group->y(), wf_group->w(), wf_group->h(),
+			status_group->x(), status_group->y(), status_group->w(), status_group->h(),
+			MODEstatus->x(), MODEstatus->y(), MODEstatus->w(), MODEstatus->h(),
+			Status1->x(), Status1->y(), Status1->w(), Status1->h(),
+			status_group_A->x(), status_group_A->y(), status_group_A->w(), status_group_A->h(),
+			cws_group->x(), cws_group->y(), cws_group->w(), cws_group->h(),
+			cntcwsrange->x(), cntcwsrange->y(), cntcwsrange->w(), cntcwsrange->h(),
+			btncwsrcvTrack->x(), btncwsrcvTrack->y(), btncwsrcvTrack->w(), btncwsrcvTrack->h(),
+			btncwsuseSOMdecoding->x(), btncwsuseSOMdecoding->y(), btncwsuseSOMdecoding->w(), btncwsuseSOMdecoding->h(),
+			btncwsmfilt->x(), btncwsmfilt->y(), btncwsmfilt->w(), btncwsmfilt->h(),
+			cntcwsbandwidth->x(), cntcwsbandwidth->y(), cntcwsbandwidth->w(), cntcwsbandwidth->h(),
+			cntTxLevel->x(), cntTxLevel->y(), cntTxLevel->w(), cntTxLevel->h(),
+			WARNstatus->x(), WARNstatus->y(), WARNstatus->w(), WARNstatus->h(),
+			btnAFC->x(), btnAFC->y(), btnAFC->w(), btnAFC->h(),
+			btnSQL->x(), btnSQL->y(), btnSQL->w(), btnSQL->h(),
+			btnPSQL->x(), btnPSQL->y(), btnPSQL->w(), btnPSQL->h()
+		);
+
+	} else {
+
+		snprintf( ui_stats, sizeof(ui_stats),"\
+==========================================\n\
+Control positions at:\n\
+ %s\n\
+      CONTROL        X     Y     W     H\n\
+ ----------------- ----- ----- ----- -----\n\
+ Main ............ %5d %5d %5d %5d\n\
+ Main hmin .......                   %5d\n\
+ Menu ............ %5d %5d %5d %5d\n\
+ Qsoframe ........ %5d %5d %5d %5d\n\
+ Center group .... %5d %5d %5d %5d\n\
+ Text group ...... %5d %5d %5d %5d\n\
+ Text panel ...... %5d %5d %5d %5d\n\
+ mv group ........ %5d %5d %5d %5d\n\
+ main viewer ..... %5d %5d %5d %5d\n\
+ Receive text .... %5d %5d %5d %5d\n\
+ FH display ...... %5d %5d %5d %5d\n\
+ Transmit text ... %5d %5d %5d %5d\n\
+ Wefax group ..... %5d %5d %5d %5d\n\
+ FSQ group ....... %5d %5d %5d %5d\n\
+ IFKP group ...... %5d %5d %5d %5d\n\
+ Macro frame ..... %5d %5d %5d %5d\n\
+ Wfall ........... %5d %5d %5d %5d\n\
+ Status  ......... %5d %5d %5d %5d\n\
+ MODEstatus ...... %5d %5d %5d %5d\n\
+ Status1 ......... %5d %5d %5d %5d\n\
+ Group A ......... %5d %5d %5d %5d\n\
+ Cws ............. %5d %5d %5d %5d\n\
+   cntcwsrange ... %5d %5d %5d %5d\n\
+   cwsrcvTrack ... %5d %5d %5d %5d\n\
+   useSOMdecoding  %5d %5d %5d %5d\n\
+   btncwsmfilt ... %5d %5d %5d %5d\n\
+   cntbandwidth .. %5d %5d %5d %5d\n\
+ cntTxLevel ...... %5d %5d %5d %5d\n\
+ WARNstatus ...... %5d %5d %5d %5d\n\
+ btnAFC .......... %5d %5d %5d %5d\n\
+ btnSQL .......... %5d %5d %5d %5d\n\
+ btnPSQL ......... %5d %5d %5d %5d\n\
+",
+			parent.c_str(),
+			fl_digi_main->x(), fl_digi_main->y(), fl_digi_main->w(), fl_digi_main->h(),
+			main_hmin,
+			mnuFrame->x(), mnuFrame->y(), mnuFrame->w(), mnuFrame->h(),
+			TopFrame1->x(), TopFrame1->y(), TopFrame1->w(), TopFrame1->h(),
+			center_group->x(), center_group->y(), center_group->w(), center_group->h(),
+			text_group->x(), text_group->y(),text_group->w(), text_group->h(),
+			text_panel->x(), text_panel->y(), text_panel->w(), text_panel->h(),
+			mvgroup->x(), mvgroup->y(), mvgroup->w(), mvgroup->h(),
+			mainViewer->x(), mainViewer->y(), mainViewer->w(), mainViewer->h(),
+			ReceiveText->x(), ReceiveText->y(), ReceiveText->w(), ReceiveText->h(),
+			FHdisp->x(), FHdisp->y(), FHdisp->w(), FHdisp->h(),
+			TransmitText->x(), TransmitText->y(), TransmitText->w(), TransmitText->h(),
+			wefax_group->x(), wefax_group->y(), wefax_group->w(), wefax_group->h(),
+			fsq_group->x(), fsq_group->y(), fsq_group->w(), fsq_group->h(),
+			ifkp_group->x(), ifkp_group->y(), ifkp_group->w(), ifkp_group->h(),
+			macroFrame1->x(), macroFrame1->y(), macroFrame1->w(), macroFrame1->h(),
+			wf_group->x(), wf_group->y(), wf_group->w(), wf_group->h(),
+			status_group->x(), status_group->y(), status_group->w(), status_group->h(),
+			MODEstatus->x(), MODEstatus->y(), MODEstatus->w(), MODEstatus->h(),
+			Status1->x(), Status1->y(), Status1->w(), Status1->h(),
+			status_group_A->x(), status_group_A->y(), status_group_A->w(), status_group_A->h(),
+			cws_group->x(), cws_group->y(), cws_group->w(), cws_group->h(),
+			cntcwsrange->x(), cntcwsrange->y(), cntcwsrange->w(), cntcwsrange->h(),
+			btncwsrcvTrack->x(), btncwsrcvTrack->y(), btncwsrcvTrack->w(), btncwsrcvTrack->h(),
+			btncwsuseSOMdecoding->x(), btncwsuseSOMdecoding->y(), btncwsuseSOMdecoding->w(), btncwsuseSOMdecoding->h(),
+			btncwsmfilt->x(), btncwsmfilt->y(), btncwsmfilt->w(), btncwsmfilt->h(),
+			cntcwsbandwidth->x(), cntcwsbandwidth->y(), cntcwsbandwidth->w(), cntcwsbandwidth->h(),
+			cntTxLevel->x(), cntTxLevel->y(), cntTxLevel->w(), cntTxLevel->h(),
+			WARNstatus->x(), WARNstatus->y(), WARNstatus->w(), WARNstatus->h(),
+			btnAFC->x(), btnAFC->y(), btnAFC->w(), btnAFC->h(),
+			btnSQL->x(), btnSQL->y(), btnSQL->w(), btnSQL->h(),
+			btnPSQL->x(), btnPSQL->y(), btnPSQL->w(), btnPSQL->h()
+		);
+	}
+
+	std::string stat_fname = HomeDir;
+	stat_fname.append("/ui_stats.txt");
+	FILE *stat_file = fopen( stat_fname.c_str(), "a" );
+	fprintf(stat_file, "%s", ui_stats);
+	fclose(stat_file);
+
+//	std::cout << ui_stats;
+}
 
 void cb_mnu_wf_all(Fl_Menu_* w, void *d)
 {
@@ -5713,7 +6028,7 @@ void cb_mnu_riglog_all(Fl_Menu_* w, void *d)
 	progStatus.Rig_Log_UI = false;
 	progStatus.NO_RIGLOG = false;
 
-	UI_select();
+	UI_select(__func__);
 }
 
 void cb_mnu_riglog_partial(Fl_Menu_* w, void *d)
@@ -5722,7 +6037,8 @@ void cb_mnu_riglog_partial(Fl_Menu_* w, void *d)
 	progStatus.Rig_Log_UI = true;
 	progStatus.NO_RIGLOG = false;
 
-	UI_select();
+	UI_select(__func__);
+
 }
 
 void cb_mnu_riglog_none(Fl_Menu_* w, void *d)
@@ -5731,7 +6047,8 @@ void cb_mnu_riglog_none(Fl_Menu_* w, void *d)
 	progStatus.NO_RIGLOG = true;
 	progStatus.Rig_Log_UI = false;
 
-	UI_select();
+	UI_select(__func__);
+
 }
 
 void cb_mnuDockedscope(Fl_Menu_ *w, void *d)
@@ -5781,12 +6098,1065 @@ void cb_menu_make_default_scripts(Fl_Widget*, void*)
 void cb_48macros(Fl_Widget*, void*)
 {
 	progdefaults.display_48macros = !progdefaults.display_48macros;
-	UI_select();
+	UI_select(__func__);
 }
 
 static void cb_opmode_show(Fl_Widget* w, void*);
 
-static Fl_Menu_Item menu_[] = {
+struct qtc_dialog_item {
+	std::string date;
+	std::string freq;
+	std::string mode;
+	std::string time;
+	std::string call;
+	std::string nr;
+	int log_index;
+
+	qtc_dialog_item() : log_index(-1) {}
+};
+
+static Fl_Double_Window *qtc_dialog = 0;
+static Fl_Input *qtc_partner = 0;
+static Fl_Input *qtc_series = 0;
+static Fl_Input *qtc_time[10] = { 0 };
+static Fl_Input *qtc_call[10] = { 0 };
+static Fl_Input *qtc_nr[10] = { 0 };
+static Fl_Button *qtc_tx_one[10] = { 0 };
+static int qtc_tx_one_index[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+//static Fl_Multiline_Input *qtc_paste = 0;
+static Fl_Output *qtc_status = 0;
+static std::vector<qtc_dialog_item> qtc_loaded_items;
+static Fl_Double_Window *qtc_rx_dialog = 0;
+static Fl_Input *qtc_rx_partner = 0;
+static Fl_Input *qtc_rx_series = 0;
+static Fl_Input *qtc_rx_time[10] = { 0 };
+static Fl_Input *qtc_rx_call[10] = { 0 };
+static Fl_Input *qtc_rx_nr[10] = { 0 };
+static Fl_Output *qtc_rx_status = 0;
+static Fl_Double_Window *qtc_view_dialog = 0;
+static Fl_Browser *qtc_view_browser = 0;
+static Fl_Output *qtc_view_status = 0;
+static int qtc_next_tx_series = 0;
+static bool qtc_tx_pos_saved = false;
+static int qtc_tx_x = 0;
+static int qtc_tx_y = 0;
+static bool qtc_rx_pos_saved = false;
+static int qtc_rx_x = 0;
+static int qtc_rx_y = 0;
+
+static void qtc_remember_position(Fl_Double_Window *dlg, bool &saved, int &x, int &y)
+{
+	if (!dlg)
+		return;
+
+	x = dlg->x();
+	y = dlg->y();
+	saved = true;
+}
+
+static void qtc_position_for_show(Fl_Double_Window *dlg, bool saved, int x, int y)
+{
+	if (!dlg || dlg->visible())
+		return;
+
+	if (saved) {
+		dlg->position(x, y);
+		return;
+	}
+
+	if (!fl_digi_main)
+		return;
+
+	dlg->position(
+		fl_digi_main->x() + (fl_digi_main->w() - dlg->w()) / 2,
+		fl_digi_main->y() + (fl_digi_main->h() - dlg->h()) / 2);
+}
+
+static std::string qtc_trim(std::string s)
+{
+	while (!s.empty() && std::isspace(static_cast<unsigned char>(s[0])))
+		s.erase(0, 1);
+	while (!s.empty() && std::isspace(static_cast<unsigned char>(s[s.length() - 1])))
+		s.erase(s.length() - 1);
+	return s;
+}
+
+static std::string qtc_upper(std::string s)
+{
+	for (size_t i = 0; i < s.length(); i++)
+		s[i] = std::toupper(static_cast<unsigned char>(s[i]));
+	return s;
+}
+
+static std::string qtc_main_window_call()
+{
+	return qtc_upper(qtc_trim(inpCall && inpCall->value() ? inpCall->value() : ""));
+}
+
+static std::string qtc_state_file()
+{
+	std::string fn = LogsDir.empty() ? HomeDir : LogsDir;
+	if (!fn.empty() && *fn.rbegin() != PATH_SEP[0])
+		fn.append(PATH_SEP);
+	fn.append("qtc-sent.log");
+	return fn;
+}
+
+static std::string qtc_key(const qtc_dialog_item& q)
+{
+	return q.date + "|" + q.time + "|" + q.call + "|" + q.nr;
+}
+
+static std::set<std::string> qtc_read_sent_keys()
+{
+	std::set<std::string> keys;
+	std::ifstream in(qtc_state_file().c_str());
+	std::string line;
+	while (std::getline(in, line)) {
+		size_t tab = line.find('\t');
+		keys.insert(tab == std::string::npos ? line : line.substr(0, tab));
+	}
+	return keys;
+}
+
+static bool qtc_parse_series_number(const std::string& s, int& nr)
+{
+	std::string series = qtc_trim(s);
+	size_t slash = series.find('/');
+	if (slash == std::string::npos || slash == 0)
+		return false;
+	std::string first = series.substr(0, slash);
+	for (size_t i = 0; i < first.length(); i++)
+		if (!std::isdigit(static_cast<unsigned char>(first[i])))
+			return false;
+	nr = atoi(first.c_str());
+	return nr > 0;
+}
+
+static std::string qtc_traffic_file();
+
+static int qtc_next_tx_series_number()
+{
+	if (qtc_next_tx_series > 0)
+		return qtc_next_tx_series;
+
+	int highest = 0;
+	std::ifstream in(qtc_state_file().c_str());
+	std::string line;
+	while (std::getline(in, line)) {
+		std::istringstream ls(line);
+		std::vector<std::string> fields;
+		std::string tok;
+		while (std::getline(ls, tok, '\t'))
+			fields.push_back(tok);
+		if (fields.size() < 3)
+			continue;
+		int nr = 0;
+		if (qtc_parse_series_number(fields[2], nr) && nr > highest)
+			highest = nr;
+	}
+
+	std::ifstream traffic(qtc_traffic_file().c_str());
+	while (std::getline(traffic, line)) {
+		if (line.empty() || line[0] == '#')
+			continue;
+		std::istringstream ls(line);
+		std::vector<std::string> fields;
+		std::string tok;
+		while (std::getline(ls, tok, '\t'))
+			fields.push_back(tok);
+		if (fields.size() < 7 || qtc_upper(qtc_trim(fields[0])) != "TX")
+			continue;
+		int nr = 0;
+		if (qtc_parse_series_number(fields[6], nr) && nr > highest)
+			highest = nr;
+	}
+
+	qtc_next_tx_series = highest + 1;
+	if (qtc_next_tx_series < 1)
+		qtc_next_tx_series = 1;
+	return qtc_next_tx_series;
+}
+
+static void qtc_remember_tx_series()
+{
+	int nr = 0;
+	std::string series = qtc_series && qtc_series->value() ? qtc_series->value() : "";
+	if (qtc_parse_series_number(series, nr) && nr >= qtc_next_tx_series_number())
+		qtc_next_tx_series = nr + 1;
+}
+
+static std::string qtc_traffic_file()
+{
+	std::string fn = LogsDir.empty() ? HomeDir : LogsDir;
+	if (!fn.empty() && *fn.rbegin() != PATH_SEP[0])
+		fn.append(PATH_SEP);
+	fn.append("qtc-log.tsv");
+	return fn;
+}
+
+static std::string qtc_backup_stamp()
+{
+	std::string stamp = zdate();
+	stamp.append("-");
+	std::string raw_time = ztime();
+	for (size_t i = 0; i < raw_time.length(); i++)
+		if (std::isdigit(static_cast<unsigned char>(raw_time[i])))
+			stamp += raw_time[i];
+	return stamp;
+}
+
+static bool qtc_backup_and_reset_file(const std::string& path, const std::string& stamp)
+{
+	std::ifstream in(path.c_str());
+	bool exists = in.good();
+	in.close();
+
+	if (exists) {
+		std::string backup = path + "." + stamp + ".bak";
+		if (rename(path.c_str(), backup.c_str()) != 0)
+			return false;
+	}
+
+	std::ofstream out(path.c_str(), std::ios::trunc);
+	return static_cast<bool>(out);
+}
+
+static std::string qtc_current_freq_khz()
+{
+	const char *v = inpFreq && inpFreq->value() ? inpFreq->value() : "";
+	int khz = static_cast<int>(atof(v) + 0.5);
+	std::ostringstream ss;
+	ss << khz;
+	return ss.str();
+}
+
+static std::string qtc_current_mode()
+{
+	std::string mode = active_modem ? mode_info[active_modem->get_mode()].export_mode : "";
+	if (mode == "USB" || mode == "LSB" || mode == "FM" || mode == "SSB" || mode == "PH")
+		return "PH";
+	if (mode == "RTTY")
+		return "RY";
+	return mode.empty() ? "DIGI" : mode;
+}
+
+static std::string qtc_log_freq_khz(cQsoRec *rec)
+{
+	std::string freq = qtc_trim(rec->getField(FREQ));
+	if (freq.empty())
+		return qtc_current_freq_khz();
+
+	int khz = static_cast<int>(1000.0 * atof(freq.c_str()) + 0.5);
+	std::ostringstream ss;
+	ss << khz;
+	return ss.str();
+}
+
+static std::string qtc_log_mode(cQsoRec *rec)
+{
+	std::string mode = qtc_upper(qtc_trim(rec->getField(ADIF_MODE)));
+	return mode.empty() ? qtc_current_mode() : mode;
+}
+
+static std::string qtc_item_label(const qtc_dialog_item& q)
+{
+	std::string label = q.time;
+	if (!label.empty()) label.append(" ");
+	label.append(q.call);
+	if (!q.nr.empty()) label.append(" #").append(q.nr);
+	return label;
+}
+
+static bool qtc_sent_conflict(const std::vector<qtc_dialog_item>& items, std::string& label)
+{
+	std::set<std::string> sent = qtc_read_sent_keys();
+	for (size_t i = 0; i < items.size(); i++) {
+		if (sent.find(qtc_key(items[i])) != sent.end()) {
+			label = qtc_item_label(items[i]);
+			return true;
+		}
+	}
+	return false;
+}
+
+static std::string qtc_traffic_key(
+	const std::string& direction,
+	const std::string& received_by,
+	const std::string& group,
+	const std::string& sent_by,
+	const qtc_dialog_item& q)
+{
+	return direction + "|" + received_by + "|" + group + "|" + sent_by + "|" +
+		q.time + "|" + q.call + "|" + q.nr;
+}
+
+static std::set<std::string> qtc_read_traffic_keys()
+{
+	std::set<std::string> keys;
+	std::ifstream in(qtc_traffic_file().c_str());
+	std::string line;
+	while (std::getline(in, line)) {
+		if (line.empty() || line[0] == '#')
+			continue;
+		std::istringstream ls(line);
+		std::vector<std::string> f;
+		std::string tok;
+		while (std::getline(ls, tok, '\t'))
+			f.push_back(tok);
+		if (f.size() >= 11)
+			keys.insert(f[0] + "|" + f[5] + "|" + f[6] + "|" + f[7] + "|" +
+				f[8] + "|" + f[9] + "|" + f[10]);
+	}
+	return keys;
+}
+
+static bool qtc_write_traffic_for(
+	const std::vector<qtc_dialog_item>& items,
+	const std::string& direction,
+	const std::string& partner,
+	const std::string& series)
+{
+	std::string mycall = qtc_upper(qtc_trim(progdefaults.myCall));
+	std::string date = zdate();
+	std::string time;
+	std::string raw_time = ztime();
+	for (size_t i = 0; i < raw_time.length(); i++)
+		if (std::isdigit(static_cast<unsigned char>(raw_time[i])))
+			time += raw_time[i];
+	if (time.length() > 4)
+		time.erase(4);
+	std::string received_by = direction == "TX" ? partner : mycall;
+	std::string sent_by = direction == "TX" ? mycall : partner;
+
+	std::set<std::string> keys = qtc_read_traffic_keys();
+	std::ofstream out(qtc_traffic_file().c_str(), std::ios::app);
+	if (!out)
+		return false;
+
+	for (size_t i = 0; i < items.size(); i++) {
+		std::string key = qtc_traffic_key(direction, received_by, series, sent_by, items[i]);
+		if (keys.find(key) != keys.end())
+			continue;
+		out << direction << "\t"
+			<< (items[i].freq.empty() ? qtc_current_freq_khz() : items[i].freq) << "\t"
+			<< (items[i].mode.empty() ? qtc_current_mode() : items[i].mode) << "\t"
+			<< date << "\t"
+			<< time << "\t"
+			<< received_by << "\t"
+			<< series << "\t"
+			<< sent_by << "\t"
+			<< items[i].time << "\t"
+			<< qtc_upper(items[i].call) << "\t"
+			<< items[i].nr << "\n";
+		keys.insert(key);
+	}
+	return true;
+}
+
+static bool qtc_write_traffic(const std::vector<qtc_dialog_item>& items, const std::string& direction)
+{
+	std::string partner = qtc_upper(qtc_trim(qtc_partner && qtc_partner->value() ? qtc_partner->value() : ""));
+	std::string series = qtc_trim(qtc_series && qtc_series->value() ? qtc_series->value() : "");
+	return qtc_write_traffic_for(items, direction, partner, series);
+}
+
+static bool qtc_write_sent(const std::vector<qtc_dialog_item>& items)
+{
+	std::set<std::string> sent = qtc_read_sent_keys();
+	std::ofstream out(qtc_state_file().c_str(), std::ios::app);
+	if (!out)
+		return false;
+
+	std::string partner = qtc_upper(qtc_trim(qtc_partner && qtc_partner->value() ? qtc_partner->value() : ""));
+	std::string series = qtc_trim(qtc_series && qtc_series->value() ? qtc_series->value() : "");
+	for (size_t i = 0; i < items.size(); i++) {
+		std::string key = qtc_key(items[i]);
+		if (sent.find(key) == sent.end()) {
+			out << key << "\t" << partner << "\t" << series << "\n";
+			sent.insert(key);
+		}
+	}
+	qtc_remember_tx_series();
+	return true;
+}
+
+static void qtc_status_text(const std::string& s)
+{
+	if (qtc_status) {
+		qtc_status->value(s.c_str());
+		qtc_status->redraw();
+	}
+}
+
+static void qtc_rx_status_text(const std::string& s)
+{
+	if (qtc_rx_status) {
+		qtc_rx_status->value(s.c_str());
+		qtc_rx_status->redraw();
+	}
+}
+
+static void qtc_clear_rows()
+{
+	qtc_loaded_items.clear();
+	for (int i = 0; i < 10; i++) {
+		if (qtc_time[i]) qtc_time[i]->value("");
+		if (qtc_call[i]) qtc_call[i]->value("");
+		if (qtc_nr[i]) qtc_nr[i]->value("");
+		if (qtc_tx_one[i]) qtc_tx_one[i]->hide();
+	}
+}
+
+static void qtc_rx_clear_rows()
+{
+	for (int i = 0; i < 10; i++) {
+		if (qtc_rx_time[i]) qtc_rx_time[i]->value("");
+		if (qtc_rx_call[i]) qtc_rx_call[i]->value("");
+		if (qtc_rx_nr[i]) qtc_rx_nr[i]->value("");
+	}
+}
+
+static void qtc_fill_rows(const std::vector<qtc_dialog_item>& items)
+{
+	qtc_clear_rows();
+	qtc_loaded_items = items;
+	for (size_t i = 0; i < items.size() && i < 10; i++) {
+		qtc_time[i]->value(items[i].time.c_str());
+		qtc_call[i]->value(items[i].call.c_str());
+		qtc_nr[i]->value(items[i].nr.c_str());
+		if (qtc_tx_one[i]) {
+			qtc_tx_one[i]->activate();
+			qtc_tx_one[i]->show();
+		}
+	}
+	std::ostringstream ss;
+	ss << items.size() << " QTC entries ready";
+	qtc_status_text(ss.str());
+}
+
+static std::string qtc_normalize_time(std::string s)
+{
+	std::string out;
+	for (size_t i = 0; i < s.length(); i++)
+		if (std::isdigit(static_cast<unsigned char>(s[i])))
+			out += s[i];
+	if (out.length() >= 4)
+		out.erase(4);
+	return out;
+}
+
+static bool qtc_looks_like_call(const std::string& s)
+{
+	bool has_alpha = false;
+	bool has_digit = false;
+	for (size_t i = 0; i < s.length(); i++) {
+		unsigned char c = static_cast<unsigned char>(s[i]);
+		if (std::isalpha(c)) has_alpha = true;
+		else if (std::isdigit(c)) has_digit = true;
+		else if (s[i] != '/' && s[i] != '-') return false;
+	}
+	return has_alpha && has_digit;
+}
+
+static std::vector<qtc_dialog_item> qtc_collect_rows()
+{
+	std::vector<qtc_dialog_item> items;
+	for (int i = 0; i < 10; i++) {
+		qtc_dialog_item q;
+		if (i < static_cast<int>(qtc_loaded_items.size())) {
+			q.date = qtc_loaded_items[i].date;
+			q.freq = qtc_loaded_items[i].freq;
+			q.mode = qtc_loaded_items[i].mode;
+			q.log_index = qtc_loaded_items[i].log_index;
+		}
+		q.time = qtc_normalize_time(qtc_time[i]->value() ? qtc_time[i]->value() : "");
+		q.call = qtc_upper(qtc_trim(qtc_call[i]->value() ? qtc_call[i]->value() : ""));
+		q.nr = qtc_trim(qtc_nr[i]->value() ? qtc_nr[i]->value() : "");
+		if (!q.time.empty() || !q.call.empty() || !q.nr.empty())
+			items.push_back(q);
+	}
+	return items;
+}
+
+static std::vector<qtc_dialog_item> qtc_rx_collect_rows()
+{
+	std::vector<qtc_dialog_item> items;
+	for (int i = 0; i < 10; i++) {
+		qtc_dialog_item q;
+		q.time = qtc_normalize_time(qtc_rx_time[i]->value() ? qtc_rx_time[i]->value() : "");
+		q.call = qtc_upper(qtc_trim(qtc_rx_call[i]->value() ? qtc_rx_call[i]->value() : ""));
+		q.nr = qtc_trim(qtc_rx_nr[i]->value() ? qtc_rx_nr[i]->value() : "");
+		if (!q.time.empty() || !q.call.empty() || !q.nr.empty())
+			items.push_back(q);
+	}
+	return items;
+}
+
+static bool qtc_validate_rows(const std::vector<qtc_dialog_item>& items, std::string& reason)
+{
+	if (items.empty()) {
+		reason = "No QTC rows";
+		return false;
+	}
+	if (items.size() > 10) {
+		std::ostringstream ss;
+		ss << "Too many QTC rows, found " << items.size();
+		reason = ss.str();
+		return false;
+	}
+	for (size_t i = 0; i < items.size(); i++) {
+		if (items[i].time.length() != 4 || !qtc_looks_like_call(items[i].call) || items[i].nr.empty()) {
+			std::ostringstream ss;
+			ss << "Incomplete QTC row " << (i + 1);
+			reason = ss.str();
+			return false;
+		}
+	}
+	return true;
+}
+
+static bool qtc_collect_one_row(int row, qtc_dialog_item& q)
+{
+	if (row < 0 || row >= 10)
+		return false;
+	if (row < static_cast<int>(qtc_loaded_items.size())) {
+		q.date = qtc_loaded_items[row].date;
+		q.freq = qtc_loaded_items[row].freq;
+		q.mode = qtc_loaded_items[row].mode;
+		q.log_index = qtc_loaded_items[row].log_index;
+	}
+	q.time = qtc_normalize_time(qtc_time[row]->value() ? qtc_time[row]->value() : "");
+	q.call = qtc_upper(qtc_trim(qtc_call[row]->value() ? qtc_call[row]->value() : ""));
+	q.nr = qtc_trim(qtc_nr[row]->value() ? qtc_nr[row]->value() : "");
+	return !q.time.empty() || !q.call.empty() || !q.nr.empty();
+}
+
+static void qtc_update_default_series(size_t n, bool force = false)
+{
+	if (!qtc_series) return;
+	std::string cur = qtc_trim(qtc_series->value() ? qtc_series->value() : "");
+	int cur_nr = 0;
+	bool parsed_series = qtc_parse_series_number(cur, cur_nr);
+	int next_series = qtc_next_tx_series_number();
+	bool auto_series = parsed_series && (cur_nr == 1 || cur_nr < next_series);
+	if (force || cur.empty() || auto_series) {
+		std::ostringstream ss;
+		ss << next_series << "/" << n;
+		qtc_series->value(ss.str().c_str());
+	}
+}
+
+static void qtc_load_from_log_cb(Fl_Widget*, void*)
+{
+	std::string partner = qtc_upper(qtc_trim(qtc_partner && qtc_partner->value() ? qtc_partner->value() : ""));
+	std::set<std::string> sent = qtc_read_sent_keys();
+	std::vector<qtc_dialog_item> items;
+
+	for (int i = 0; i < qsodb.nbrRecs() && items.size() < 10; i++) {
+		cQsoRec *rec = qsodb.getRec(i);
+		qtc_dialog_item q;
+		q.date = qtc_trim(rec->getField(QSO_DATE));
+		q.freq = qtc_log_freq_khz(rec);
+		q.mode = qtc_log_mode(rec);
+		q.time = qtc_normalize_time(rec->getField(TIME_ON));
+		q.call = qtc_upper(qtc_trim(rec->getField(CALL)));
+		q.nr = qtc_trim(rec->getField(SRX));
+		if (q.nr.empty()) q.nr = qtc_trim(rec->getField(STX));
+		if (q.nr.empty()) q.nr = qtc_trim(rec->getField(XCHG1));
+		q.log_index = i;
+		if (q.time.empty() || q.call.empty() || q.nr.empty())
+			continue;
+		if (!partner.empty() && q.call == partner)
+			continue;
+		if (sent.find(qtc_key(q)) != sent.end())
+			continue;
+		items.push_back(q);
+	}
+
+	qtc_fill_rows(items);
+	qtc_next_tx_series = 0;
+	qtc_update_default_series(items.size(), true);
+}
+
+static std::string qtc_make_text(const std::vector<qtc_dialog_item>& items)
+{
+	std::ostringstream out;
+	std::string partner = qtc_upper(qtc_trim(qtc_partner && qtc_partner->value() ? qtc_partner->value() : ""));
+	std::string series = qtc_trim(qtc_series && qtc_series->value() ? qtc_series->value() : "");
+	if (series.empty()) {
+		std::ostringstream ss;
+		ss << items.size();
+		series = ss.str();
+	}
+	if (!partner.empty())
+		out << partner << " " << partner << " ";
+	out << "Series: " << series << " " << series << "\n";
+	for (size_t i = 0; i < items.size(); i++)
+		out << items[i].time << " " << qtc_upper(items[i].call) << " " << items[i].nr << "\n";
+	out << "All QSL?\n^r";
+	return out.str();
+}
+
+static std::string qtc_make_one_text(const qtc_dialog_item& item)
+{
+	std::ostringstream out;
+	out << item.time << " " << qtc_upper(item.call) << " " << item.nr << "\n^r";
+	return out.str();
+}
+
+/*
+static void qtc_add_to_tx_cb(Fl_Widget*, void*)
+{
+	std::vector<qtc_dialog_item> items = qtc_collect_rows();
+	std::string reason;
+	if (!qtc_validate_rows(items, reason)) {
+		qtc_status_text(reason);
+		return;
+	}
+	std::string sent_label;
+	if (qtc_sent_conflict(items, sent_label)) {
+		qtc_status_text("Already sent: " + sent_label);
+		return;
+	}
+	TransmitText->add_text(qtc_make_text(items));
+	qtc_status_text("QTC text added to TX pane");
+}
+*/
+
+static void qtc_mark_sent_cb(Fl_Widget*, void*)
+{
+	std::vector<qtc_dialog_item> items = qtc_collect_rows();
+	std::string reason;
+	if (!qtc_validate_rows(items, reason)) {
+		qtc_status_text(reason);
+		return;
+	}
+	if (!qtc_write_sent(items)) {
+		qtc_status_text("Could not open qtc-sent.log");
+		return;
+	}
+	if (!qtc_write_traffic(items, "TX")) {
+		qtc_status_text("Could not open qtc-log.tsv");
+		return;
+	}
+	qtc_status_text("Marked QTC rows as sent");
+}
+
+/*
+static void qtc_mark_rx_cb(Fl_Widget*, void*)
+{
+	std::vector<qtc_dialog_item> items = qtc_collect_rows();
+	std::string reason;
+	if (!qtc_validate_rows(items, reason)) {
+		qtc_status_text(reason);
+		return;
+	}
+	if (!qtc_write_traffic(items, "RX")) {
+		qtc_status_text("Could not open qtc-log.tsv");
+		return;
+	}
+	std::ostringstream ss;
+	ss << items.size() << " RX QTCs logged";
+	qtc_status_text(ss.str());
+}
+*/
+
+static void qtc_send_series(bool allow_resend)
+{
+	std::vector<qtc_dialog_item> items = qtc_collect_rows();
+	std::string reason;
+	if (!qtc_validate_rows(items, reason)) {
+		qtc_status_text(reason);
+		return;
+	}
+	std::string sent_label;
+	if (!allow_resend && qtc_sent_conflict(items, sent_label)) {
+		qtc_status_text("Already sent: " + sent_label);
+		return;
+	}
+	if (!active_modem || !(active_modem->get_cap() & modem::CAP_TX)) {
+		qtc_status_text("Current mode cannot transmit");
+		return;
+	}
+
+	TransmitText->clear();
+	TransmitText->add_text(qtc_make_text(items));
+	if (!qtc_write_sent(items)) {
+		qtc_status_text("Could not open qtc-sent.log");
+		return;
+	}
+	if (!qtc_write_traffic(items, "TX")) {
+		qtc_status_text("Could not open qtc-log.tsv");
+		return;
+	}
+	start_tx();
+	std::ostringstream ss;
+	ss << items.size() << (allow_resend ? " QTCs resent" : " QTCs sent and marked");
+	qtc_status_text(ss.str());
+}
+
+static void qtc_send_one_cb(Fl_Widget*, void *d)
+{
+	int row = d ? *static_cast<int *>(d) : -1;
+	qtc_dialog_item item;
+	if (!qtc_collect_one_row(row, item)) {
+		qtc_status_text("No QTC row");
+		return;
+	}
+	std::vector<qtc_dialog_item> items;
+	items.push_back(item);
+	std::string reason;
+	if (!qtc_validate_rows(items, reason)) {
+		qtc_status_text(reason);
+		return;
+	}
+	if (!active_modem || !(active_modem->get_cap() & modem::CAP_TX)) {
+		qtc_status_text("Current mode cannot transmit");
+		return;
+	}
+
+	TransmitText->clear();
+	TransmitText->add_text(qtc_make_one_text(item));
+	if (!qtc_write_sent(items)) {
+		qtc_status_text("Could not open qtc-sent.log");
+		return;
+	}
+	if (!qtc_write_traffic(items, "TX")) {
+		qtc_status_text("Could not open qtc-log.tsv");
+		return;
+	}
+	start_tx();
+	std::ostringstream ss;
+	ss << "QTC row " << (row + 1) << " sent";
+	qtc_status_text(ss.str());
+}
+
+static void qtc_send_cb(Fl_Widget*, void*)
+{
+	qtc_send_series(false);
+}
+
+static void qtc_resend_cb(Fl_Widget*, void*)
+{
+	qtc_send_series(true);
+}
+
+/*
+static void qtc_parse_paste_cb(Fl_Widget*, void*)
+{
+	std::vector<qtc_dialog_item> items;
+	std::istringstream in(qtc_paste && qtc_paste->value() ? qtc_paste->value() : "");
+	std::string line;
+	while (std::getline(in, line) && items.size() < 10) {
+		line = qtc_trim(line);
+		if (line.empty()) continue;
+
+		std::istringstream ls(line);
+		std::vector<std::string> tok;
+		std::string t;
+		while (ls >> t) tok.push_back(t);
+		if (tok.empty()) continue;
+
+		if (qtc_upper(tok[0]) == "QTC") {
+			if (tok.size() > 1 && qtc_series)
+				qtc_series->value(tok[1].c_str());
+			continue;
+		}
+
+		size_t p = 0;
+		if (tok.size() >= 4 && qtc_normalize_time(tok[0]).length() < 4)
+			p = 1;
+		if (tok.size() < p + 3)
+			continue;
+
+		qtc_dialog_item q;
+		q.time = qtc_normalize_time(tok[p]);
+		q.call = qtc_upper(qtc_trim(tok[p + 1]));
+		q.nr = qtc_trim(tok[p + 2]);
+		if (q.time.length() == 4 && qtc_looks_like_call(q.call) && !q.nr.empty())
+			items.push_back(q);
+	}
+	qtc_fill_rows(items);
+}
+*/
+
+static void qtc_close_cb(Fl_Widget*, void*)
+{
+	qtc_remember_position(qtc_dialog, qtc_tx_pos_saved, qtc_tx_x, qtc_tx_y);
+	qtc_clear_rows();
+	if (qtc_series) qtc_series->value("");
+	if (qtc_partner) qtc_partner->value("");
+	if (qtc_dialog) qtc_dialog->hide();
+}
+
+static void qtc_make_dialog()
+{
+	if (qtc_dialog) return;
+
+	qtc_dialog = new Fl_Double_Window(650, 500, _("QTC Manager TX"));
+	qtc_dialog->callback(qtc_close_cb);
+	qtc_dialog->begin();
+
+	qtc_partner = new Fl_Input(90, 15, 140, 24, _("To Call"));
+	qtc_partner->tooltip(_("Station receiving or sending the QTC series"));
+	qtc_series = new Fl_Input(320, 15, 80, 24, _("Series"));
+	qtc_series->tooltip(_("Series identifier, for example 1/10"));
+
+	Fl_Button *load = new Fl_Button(505, 14, 130, 26, _("Load from Log"));
+	load->callback(qtc_load_from_log_cb);
+	Fl_Button *clear = new Fl_Button(505, 44, 130, 26, _("Clear All"));
+	clear->callback([](Fl_Widget*, void*) {
+		qtc_clear_rows();
+		if (qtc_series) qtc_series->value("");
+		qtc_status_text("Rows cleared");
+	});
+
+	int y = 82;
+	Fl_Box *qtc_hdr_idx = new Fl_Box(15, y, 35, 18, _("QTC-#"));
+	qtc_hdr_idx->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+	Fl_Box *qtc_hdr_time = new Fl_Box(60, y, 80, 18, _("Time"));
+	qtc_hdr_time->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+	Fl_Box *qtc_hdr_call = new Fl_Box(150, y, 190, 18, _("QTC-Call"));
+	qtc_hdr_call->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+	Fl_Box *qtc_hdr_nr = new Fl_Box(350, y, 100, 18, _("Serial-#"));
+	qtc_hdr_nr->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+	Fl_Box *qtc_hdr_tx = new Fl_Box(465, y, 80, 18, _("TX"));
+	qtc_hdr_tx->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+	y += 24;
+
+	for (int i = 0; i < 10; i++) {
+		char nr[8];
+		snprintf(nr, sizeof(nr), "%d", i + 1);
+		Fl_Box *idx = new Fl_Box(15, y, 35, 24);
+		idx->copy_label(nr);
+		idx->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+		qtc_time[i] = new Fl_Input(60, y, 80, 24);
+		qtc_call[i] = new Fl_Input(150, y, 190, 24);
+		qtc_nr[i] = new Fl_Input(350, y, 100, 24);
+		qtc_tx_one[i] = new Fl_Button(465, y, 80, 24, _("TX QTC"));
+		qtc_tx_one[i]->callback(qtc_send_one_cb, &qtc_tx_one_index[i]);
+		qtc_tx_one[i]->hide();
+		y += 28;
+	}
+
+	Fl_Button *send = new Fl_Button(15, 410, 130, 28, _("Send all QTC"));
+	send->callback(qtc_send_cb);
+	Fl_Button *resend = new Fl_Button(155, 410, 130, 28, _("Resent all QTCs"));
+	resend->callback(qtc_resend_cb);
+	Fl_Button *mark = new Fl_Button(295, 410, 130, 28, _("Mark sent"));
+	mark->callback(qtc_mark_sent_cb);
+	Fl_Button *close = new Fl_Button(540, 410, 95, 28, _("Close"));
+	close->callback(qtc_close_cb);
+
+	qtc_status = new Fl_Output(15, 455, 620, 24);
+	qtc_status->value(_("Ready"));
+
+	qtc_dialog->end();
+}
+
+static void cb_mnuQTC(Fl_Menu_*, void*)
+{
+	qtc_make_dialog();
+	if (qtc_partner) qtc_partner->value(qtc_main_window_call().c_str());
+	qtc_position_for_show(qtc_dialog, qtc_tx_pos_saved, qtc_tx_x, qtc_tx_y);
+	qtc_dialog->show();
+}
+
+static void qtc_rx_save_cb(Fl_Widget*, void*)
+{
+	std::vector<qtc_dialog_item> items = qtc_rx_collect_rows();
+	std::string reason;
+	if (!qtc_validate_rows(items, reason)) {
+		qtc_rx_status_text(reason);
+		return;
+	}
+
+	std::string partner = qtc_upper(qtc_trim(qtc_rx_partner && qtc_rx_partner->value() ? qtc_rx_partner->value() : ""));
+	std::string series = qtc_trim(qtc_rx_series && qtc_rx_series->value() ? qtc_rx_series->value() : "");
+	if (!qtc_write_traffic_for(items, "RX", partner, series)) {
+		qtc_rx_status_text("Could not open qtc-log.tsv");
+		return;
+	}
+
+	std::ostringstream ss;
+	ss << items.size() << " RX QTCs saved";
+	qtc_rx_status_text(ss.str());
+}
+
+static void qtc_rx_close_cb(Fl_Widget*, void*)
+{
+	qtc_remember_position(qtc_rx_dialog, qtc_rx_pos_saved, qtc_rx_x, qtc_rx_y);
+	qtc_rx_clear_rows();
+	if (qtc_rx_series) qtc_rx_series->value("");
+	if (qtc_rx_partner) qtc_rx_partner->value("");
+	if (qtc_rx_dialog) qtc_rx_dialog->hide();
+}
+
+static void qtc_view_refresh()
+{
+	if (!qtc_view_browser)
+		return;
+	qtc_view_browser->clear();
+	qtc_view_browser->add("Dir Date     Time Freq     Mode Station      QTC-Series QTC by       QTC Time QTC-Call       QTC-Serial");
+	qtc_view_browser->add("--- -------- ---- -------- ---- ------------ ---------- ------------ -------- -------------- ----------");
+
+	std::ifstream in(qtc_traffic_file().c_str());
+	if (!in) {
+		if (qtc_view_status) qtc_view_status->value("No QTC log found");
+		return;
+	}
+
+	int count = 0;
+	std::string line;
+	while (std::getline(in, line)) {
+		if (line.empty() || line[0] == '#')
+			continue;
+		std::istringstream ls(line);
+		std::vector<std::string> f;
+		std::string tok;
+		while (std::getline(ls, tok, '\t'))
+			f.push_back(tok);
+		if (f.size() < 11)
+			continue;
+
+		char row[512];
+		snprintf(row, sizeof(row), "%-3.3s %-8.8s %-4.4s %-8.8s %-4.4s %-12.12s %-10.10s %-12.12s %-8.8s %-14.14s %-10.10s",
+			f[0].c_str(), f[3].c_str(), f[4].c_str(), f[1].c_str(), f[2].c_str(),
+			f[5].c_str(), f[6].c_str(), f[7].c_str(), f[8].c_str(), f[9].c_str(),
+			f[10].c_str());
+		qtc_view_browser->add(row);
+		count++;
+	}
+
+	std::ostringstream ss;
+	ss << count << " QTC entries";
+	if (qtc_view_status) qtc_view_status->value(ss.str().c_str());
+}
+
+static void qtc_view_refresh_cb(Fl_Widget*, void*)
+{
+	qtc_view_refresh();
+}
+
+static void qtc_view_close_cb(Fl_Widget*, void*)
+{
+	if (qtc_view_dialog) qtc_view_dialog->hide();
+}
+
+static void qtc_make_view_dialog()
+{
+	if (qtc_view_dialog) return;
+
+	qtc_view_dialog = new Fl_Double_Window(920, 460, _("View QTCs"));
+	qtc_view_dialog->begin();
+
+	qtc_view_browser = new Fl_Browser(10, 10, 900, 365);
+	qtc_view_browser->textfont(FL_COURIER);
+	qtc_view_browser->textsize(12);
+
+	Fl_Button *refresh = new Fl_Button(10, 392, 110, 28, _("Refresh"));
+	refresh->callback(qtc_view_refresh_cb);
+	Fl_Button *close = new Fl_Button(800, 392, 110, 28, _("Close"));
+	close->callback(qtc_view_close_cb);
+	qtc_view_status = new Fl_Output(10, 430, 900, 24);
+	qtc_view_status->value(_("Ready"));
+
+	qtc_view_dialog->end();
+}
+
+static void qtc_make_rx_dialog()
+{
+	if (qtc_rx_dialog) return;
+
+	qtc_rx_dialog = new Fl_Double_Window(650, 500, _("QTC Manager RX"));
+	qtc_rx_dialog->callback(qtc_rx_close_cb);
+	qtc_rx_dialog->begin();
+
+	qtc_rx_partner = new Fl_Input(90, 15, 140, 24, _("From Call"));
+	qtc_rx_partner->tooltip(_("Station sending the QTC series"));
+	qtc_rx_series = new Fl_Input(320, 15, 80, 24, _("Series"));
+	qtc_rx_series->tooltip(_("Series identifier, for example 1/10"));
+
+	int y = 58;
+	Fl_Box *qtc_hdr_idx = new Fl_Box(15, y, 35, 18, _("QTC-#"));
+	qtc_hdr_idx->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+	Fl_Box *qtc_hdr_time = new Fl_Box(60, y, 80, 18, _("Time"));
+	qtc_hdr_time->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+	Fl_Box *qtc_hdr_call = new Fl_Box(150, y, 190, 18, _("QTC-Call"));
+	qtc_hdr_call->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+	Fl_Box *qtc_hdr_nr = new Fl_Box(350, y, 100, 18, _("Serial-#"));
+	qtc_hdr_nr->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+	y += 24;
+
+	for (int i = 0; i < 10; i++) {
+		char nr[8];
+		snprintf(nr, sizeof(nr), "%d", i + 1);
+		Fl_Box *idx = new Fl_Box(15, y, 35, 24);
+		idx->copy_label(nr);
+		idx->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+		qtc_rx_time[i] = new Fl_Input(60, y, 80, 24);
+		qtc_rx_call[i] = new Fl_Input(150, y, 190, 24);
+		qtc_rx_nr[i] = new Fl_Input(350, y, 100, 24);
+		y += 28;
+	}
+
+	Fl_Button *save = new Fl_Button(15, 370, 130, 28, _("Save"));
+	save->callback(qtc_rx_save_cb);
+	Fl_Button *clear = new Fl_Button(155, 370, 95, 28, _("Clear"));
+	clear->callback([](Fl_Widget*, void*) {
+		qtc_rx_clear_rows();
+		if (qtc_rx_series) qtc_rx_series->value("");
+		qtc_rx_status_text("Rows cleared");
+	});
+	Fl_Button *close = new Fl_Button(525, 370, 95, 28, _("Close"));
+	close->callback(qtc_rx_close_cb);
+
+	qtc_rx_status = new Fl_Output(15, 420, 605, 24);
+	qtc_rx_status->value(_("Ready"));
+
+	qtc_rx_dialog->end();
+}
+
+static void cb_mnuQTCRX(Fl_Menu_*, void*)
+{
+	qtc_make_rx_dialog();
+	if (qtc_rx_partner) qtc_rx_partner->value(qtc_main_window_call().c_str());
+	qtc_position_for_show(qtc_rx_dialog, qtc_rx_pos_saved, qtc_rx_x, qtc_rx_y);
+	qtc_rx_dialog->show();
+}
+
+static void cb_mnuQTCView(Fl_Menu_*, void*)
+{
+	qtc_make_view_dialog();
+	qtc_view_refresh();
+	qtc_view_dialog->show();
+}
+
+static void cb_mnuQTCReset(Fl_Menu_*, void*)
+{
+	if (fl_choice2(_("Reset QTC logs?"), _("Cancel"), _("Reset"), NULL) != 1)
+		return;
+
+	std::string stamp = qtc_backup_stamp();
+	if (!qtc_backup_and_reset_file(qtc_traffic_file(), stamp) ||
+		!qtc_backup_and_reset_file(qtc_state_file(), stamp)) {
+		if (qtc_status)
+			qtc_status_text("Could not reset QTC logs");
+		if (qtc_rx_status)
+			qtc_rx_status_text("Could not reset QTC logs");
+		return;
+	}
+
+	qtc_next_tx_series = 0;
+
+	if (qtc_status)
+		qtc_status_text("QTC logs reset");
+	if (qtc_rx_status)
+		qtc_rx_status_text("QTC logs reset");
+}
+
+Fl_Menu_Item menu_[] = {
 {_("&File"), 0,  0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 
 { icons::make_icon_label(_("Folders")), 0, 0, 0, FL_SUBMENU, _FL_MULTI_LABEL, 0, 14, 0},
@@ -5910,6 +7280,7 @@ static Fl_Menu_Item menu_[] = {
 { mode_info[MODE_MT63_2000L].name, 0,  cb_init_mode, (void *)MODE_MT63_2000L, 0, FL_NORMAL_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
 
+/* Commented out pending development work by KL4YFD
 {"OFDM", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OFDM_500F].name, 0,  cb_init_mode, (void *)MODE_OFDM_500F, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OFDM_750F].name, 0,  cb_init_mode, (void *)MODE_OFDM_750F, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
@@ -5917,6 +7288,7 @@ static Fl_Menu_Item menu_[] = {
 //{ mode_info[MODE_OFDM_2000].name, 0,  cb_init_mode, (void *)MODE_OFDM_2000, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OFDM_3500].name, 0,  cb_init_mode, (void *)MODE_OFDM_3500, 0, FL_NORMAL_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
+*/
 
 { OLIVIA_MLABEL, 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_OLIVIA_4_125].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -6029,10 +7401,25 @@ static Fl_Menu_Item menu_[] = {
 { mode_info[MODE_THOR11].name, 0, cb_init_mode, (void *)MODE_THOR11, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR16].name, 0, cb_init_mode, (void *)MODE_THOR16, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR22].name, 0, cb_init_mode, (void *)MODE_THOR22, 0, FL_NORMAL_LABEL, 0, 14, 0},
+
+{ mode_info[MODE_THOR25].name, 0, cb_init_mode, (void *)MODE_THOR25, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_THOR32].name, 0, cb_init_mode, (void *)MODE_THOR32, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_THOR44].name, 0, cb_init_mode, (void *)MODE_THOR44, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_THOR56].name, 0, cb_init_mode, (void *)MODE_THOR56, 0, FL_NORMAL_LABEL, 0, 14, 0},
+
 { mode_info[MODE_THOR25x4].name, 0,  cb_init_mode, (void *)MODE_THOR25x4, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR50x1].name, 0,  cb_init_mode, (void *)MODE_THOR50x1, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR50x2].name, 0,  cb_init_mode, (void *)MODE_THOR50x2, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_THOR100].name, 0,  cb_init_mode, (void *)MODE_THOR100, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{0,0,0,0,0,0,0,0,0},
+
+{"SCAMP", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_SCAMPFSK].name, 0, cb_init_mode, (void *)MODE_SCAMPFSK, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_SCAMPOOK].name, 0, cb_init_mode, (void *)MODE_SCAMPOOK, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_SCFSKFST].name, 0, cb_init_mode, (void *)MODE_SCFSKFST, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_SCFSKSLW].name, 0, cb_init_mode, (void *)MODE_SCFSKSLW, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_SCOOKSLW].name, 0, cb_init_mode, (void *)MODE_SCOOKSLW, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_SCFSKVSL].name, 0, cb_init_mode, (void *)MODE_SCFSKVSL, 0, FL_NORMAL_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
 
 {"Throb", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
@@ -6075,14 +7462,17 @@ static Fl_Menu_Item menu_[] = {
 { icons::make_icon_label(_("Config Dialog")), 0, (Fl_Callback*)cb_mnu_config_dialog, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
 { _("TCI (Zeus / ExpertSDR)"), 0, (Fl_Callback*)cb_mnu_tci, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Save Config"), save_icon), 0, (Fl_Callback*)cb_mnuSaveConfig, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
+#if USE_LIBGPIOD
+{ icons::make_icon_label(_("GPIO Config")), 0,  (Fl_Callback*)cb_mnuConfigGPIO, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
+#endif
 { icons::make_icon_label(_("Notifications")), 0,  (Fl_Callback*)cb_mnuConfigNotify, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Test Signals")), 0, (Fl_Callback*)cb_mnuTestSignals, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
 
 { VIEW_MLABEL, 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-
+#if USE_PORTAUDIO
 { icons::make_icon_label(_("Rx Audio Dialog")), 'a', (Fl_Callback*)cb_mnuRxAudioDialog, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-
+#endif
 { icons::make_icon_label(_("View/Hide Channels")), 'c', (Fl_Callback*)cb_view_hide_channels, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Signal browser")), 'b', (Fl_Callback*)cb_mnuViewer, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
 
@@ -6115,6 +7505,12 @@ static Fl_Menu_Item menu_[] = {
 
 { _("&Logbook"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("View")), 'l', (Fl_Callback*)cb_mnuShowLogbook, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
+{ icons::make_icon_label(_("QTC Manager")), 0, 0, 0, FL_SUBMENU | FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
+{ _("RX"), 'r', (Fl_Callback*)cb_mnuQTCRX, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ _("TX"), 't', (Fl_Callback*)cb_mnuQTC, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ _("View QTCs"), 0, (Fl_Callback*)cb_mnuQTCView, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ _("Reset QTCs"), 0, (Fl_Callback*)cb_mnuQTCReset, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
+{0,0,0,0,0,0,0,0,0},
 
 { icons::make_icon_label(_("Files")), 0, 0, 0, FL_SUBMENU | FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
 { icons::make_icon_label(_("Open...")), 0, (Fl_Callback*)cb_mnuOpenLogbook, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
@@ -6141,8 +7537,7 @@ static Fl_Menu_Item menu_[] = {
 
 {0,0,0,0,0,0,0,0,0},
 
-{"     ", 0, 0, 0, FL_MENU_INACTIVE, FL_NORMAL_LABEL, 0, 14, 0},
-{_("&Help"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
+{_("  &Help"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
 #ifndef NDEBUG
 // settle the gmfsk vs fldigi argument once and for all
 { icons::make_icon_label(_("Create sunspots"), weather_clear_icon), 0, cb_mnuFun, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
@@ -6162,6 +7557,8 @@ static Fl_Menu_Item menu_[] = {
 {"  ", 0, 0, 0, FL_MENU_INACTIVE, FL_NORMAL_LABEL, 0, 14, 0},
 {0,0,0,0,0,0,0,0,0},
 };
+
+int main_menu_size = sizeof(menu_)/sizeof(menu_[0]);
 
 static int count_visible_items(Fl_Menu_Item* menu)
 {
@@ -6444,7 +7841,7 @@ void CloseQsoView()
 	if (restore_minimize) {
 		restore_minimize = false;
 
-		UI_select();
+	UI_select(__func__);
 	}
 }
 
@@ -6452,7 +7849,7 @@ void showOpBrowserView2(Fl_Widget *w, void *)
 {
 	restore_minimize = true;
 
-	UI_select();
+	UI_select(__func__);
 	showOpBrowserView(w, NULL);
 }
 
@@ -6473,6 +7870,14 @@ void cb_qso_btnAddFreq(Fl_Widget *, void *)
 
 void cb_qso_btnClearList(Fl_Widget *, void *)
 {
+	if ((Fl::event_state() & (FL_SHIFT)) == FL_SHIFT) {
+		readFreqList(true);
+		return;
+	}
+	if ((Fl::event_state() & FL_CTRL) == FL_CTRL) {
+		saveFreqList(true);
+		return;
+	}
 	if (quick_choice(_("Clear list?"), 2, _("Confirm"), _("Cancel"), NULL) == 1)
 		clearList();
 }
@@ -6514,14 +7919,16 @@ void do_pskreporter_popup()
 
 void *do_pskreporter_lookup(void *)  // thread action
 {
+	SET_THREAD_ID(ACTIVITY_TID);
+
 	pskrep_working = true;
 	pskrep_data.clear();
 	pskrep_url.assign("https://pskreporter.info/cgi-bin/psk-freq.pl");
 	pskrep_url.append("?mode=").append(mode_info[active_modem->get_mode()].export_mode);
 	if (qso_inpAct->size())
-		pskrep_url.append("&?grid=").append(qso_inpAct->value());
+		pskrep_url.append("&grid=").append(qso_inpAct->value());
 	else if (progdefaults.myLocator.length() > 2)
-		pskrep_url.append("&?grid=").append(progdefaults.myLocator, 0, 2);
+		pskrep_url.append("&grid=").append(progdefaults.myLocator, 0, 2);
 
 	if (get_http(pskrep_url, pskrep_data, 20.0) != MBEDTLS_EXIT_SUCCESS) {
 		LOG_ERROR("Error while fetching \"%s\": %s", pskrep_url.c_str(), pskrep_data.c_str());
@@ -6658,17 +8065,16 @@ void cb_qso_opBrowser(Fl_Browser*, void*)
 	}
 }
 
-void _show_frequency(long long freq)
+void _show_frequency(unsigned long long freq)
 {
 	if (!qsoFreqDisp1 || !qsoFreqDisp2 || !qsoFreqDisp3)
 		return;
 	qsoFreqDisp1->value(freq);
 	qsoFreqDisp2->value(freq);
 	qsoFreqDisp3->value(freq);
-//	if (FD_logged_on) FD_band_check();
 }
 
-void show_frequency(long long freq)
+void show_frequency(unsigned long long freq)
 {
 	REQ(_show_frequency, freq);
 }
@@ -6695,7 +8101,7 @@ void show_bw2(const std::string sVal)
 
 void show_spot(bool v)
 {
-//if (bWF_only) return;
+	if (bWF_only) return;
 	static bool oldval = false;
 	if (v) {
 		mnu->size(btnAutoSpot->x(), mnu->h());
@@ -6719,7 +8125,7 @@ void setTabColors()
 	if (dlgConfig->visible()) dlgConfig->redraw();
 
 	if (dxcluster_viewer) {
-		cluster_tabs->selection_color(progdefaults.TabsColor);
+		cluster_tabs->selection_color(RGBCOLOR(TabsColor));
 		if (dxcluster_viewer->visible()) dxcluster_viewer->redraw();
 	}
 }
@@ -6740,6 +8146,9 @@ void setwfrange() {
 
 void sync_cw_parameters()
 {
+	WK_set_wpm();
+	flrig_set_wpm();
+
 	active_modem->sync_parameters();
 	active_modem->update_Status();
 }
@@ -6758,22 +8167,15 @@ void cb_cntCW_WPM(Fl_Widget * w, void *v)
 
 	progdefaults.CWspeed = (int)cnt->value();
 LOG_INFO("%f WPM", progdefaults.CWspeed);
+
 	sldrCWxmtWPM->value(progdefaults.CWspeed);
 	cntr_nanoCW_WPM->value(progdefaults.CWspeed);
 
 	progdefaults.changed = true;
+
 	sync_cw_parameters();
 
-	if (progStatus.WK_online) WK_set_wpm();
-	flrig_set_wpm();
-
 	restoreFocus(25);
-}
-
-void cb_btnCW_Default(Fl_Widget *w, void *v)
-{
-	active_modem->toggleWPM();
-	restoreFocus(26);
 }
 
 static void cb_mainViewer_Seek(Fl_Input *, void *)
@@ -6792,7 +8194,7 @@ static void cb_mainViewer_Seek(Fl_Input *, void *)
 
 static void cb_cntTxLevel(Fl_Counter2* o, void*) {
 	progStatus.txlevel = o->value();
-	set_mode_txlevel(active_modem->get_mode(), progStatus.txlevel);
+	modeband.set_mode_txlevel(progStatus.txlevel);
 }
 
 static void cb_cntRxLevel(Fl_Counter2* o, void*) {
@@ -6907,8 +8309,8 @@ void widget_color_font(Fl_Widget *widget)
 {
 	widget->labelsize(progdefaults.LOGGINGtextsize);
 	widget->labelfont(progdefaults.LOGGINGtextfont);
-	widget->labelcolor(progdefaults.LOGGINGtextcolor);
-	widget->color(progdefaults.LOGGINGcolor);
+	widget->labelcolor(RGBCOLOR(LOGGINGtextcolor));
+	widget->color(RGBCOLOR(LOGGINGcolor));
 	widget->redraw_label();
 	widget->redraw();
 }
@@ -6917,8 +8319,8 @@ void input_color_font(Fl_Input *input)
 {
 	input->textsize(progdefaults.LOGGINGtextsize);
 	input->textfont(progdefaults.LOGGINGtextfont);
-	input->textcolor(progdefaults.LOGGINGtextcolor);
-	input->color(progdefaults.LOGGINGcolor);
+	input->textcolor(RGBCOLOR(LOGGINGtextcolor));
+	input->color(RGBCOLOR(LOGGINGcolor));
 	input->redraw();
 }
 
@@ -6926,18 +8328,18 @@ void counter_color_font(Fl_Counter2 * cntr)
 {
 	cntr->textsize(progdefaults.LOGGINGtextsize);
 	cntr->textfont(progdefaults.LOGGINGtextfont);
-	cntr->textcolor(progdefaults.LOGGINGtextcolor);
-	cntr->textbkcolor(progdefaults.LOGGINGcolor);
+	cntr->textcolor(RGBCOLOR(LOGGINGtextcolor));
+	cntr->textbkcolor(RGBCOLOR(LOGGINGcolor));
 	cntr->redraw();
 }
 
 void combo_color_font(Fl_ComboBox *cbo)
 {
-	cbo->color(progdefaults.LOGGINGcolor);
-	cbo->selection_color(progdefaults.LOGGINGcolor);
+	cbo->color(RGBCOLOR(LOGGINGcolor));
+	cbo->selection_color(RGBCOLOR(LOGGINGcolor));
 	cbo->textfont(progdefaults.LOGGINGtextfont);
 	cbo->textsize(progdefaults.LOGGINGtextsize);
-	cbo->textcolor(progdefaults.LOGGINGtextcolor);
+	cbo->textcolor(RGBCOLOR(LOGGINGtextcolor));
 	cbo->redraw();
 	cbo->redraw_label();
 }
@@ -6999,13 +8401,18 @@ void LOGGING_colors_font()
 
 // buttons, boxes
 	Fl_Widget *wid[] = {
-		MODEstatus, Status1, Status2, StatusBar, WARNstatus };
+		MODEstatus, Status1, Status2, StatusBar, WARNstatus,
+		btncwsrcvTrack, btncwsuseSOMdecoding, btncwsmfilt,
+		btnAFC, btnSQL, btnPSQL };
 	for (size_t i = 0; i < sizeof(wid)/sizeof(*wid); i++)
 		widget_color_font(wid[i]);
 
 // counters
 	counter_color_font(cntCW_WPM);
 	counter_color_font(cntTxLevel);
+	counter_color_font(cntcwsrange);
+	counter_color_font(cntcwsbandwidth);
+
 	counter_color_font(wf->wfRefLevel);
 	counter_color_font(wf->wfAmpSpan);
 	counter_color_font(wf->wfcarrier);
@@ -7034,8 +8441,8 @@ inline void inp_font_pos(Fl_Input2* inp, int x, int y, int w, int h)
 {
 	inp->textsize(progdefaults.LOGBOOKtextsize);
 	inp->textfont(progdefaults.LOGBOOKtextfont);
-	inp->textcolor(progdefaults.LOGBOOKtextcolor);
-	inp->color(progdefaults.LOGBOOKcolor);
+	inp->textcolor(RGBCOLOR(LOGBOOKtextcolor));
+	inp->color(RGBCOLOR(LOGBOOKcolor));
 	inp->labelfont(progdefaults.LOGBOOKtextfont);
 	int ls = progdefaults.LOGBOOKtextsize - 1;
 	ls = ls < 12 ? 12 : (ls > 14 ? 14 : ls);
@@ -7049,8 +8456,8 @@ inline void date_font_pos(Fl_DateInput* inp, int x, int y, int w, int h)
 {
 	inp->textsize(progdefaults.LOGBOOKtextsize);
 	inp->textfont(progdefaults.LOGBOOKtextfont);
-	inp->textcolor(progdefaults.LOGBOOKtextcolor);
-	inp->color(progdefaults.LOGBOOKcolor);
+	inp->textcolor(RGBCOLOR(LOGBOOKtextcolor));
+	inp->color(RGBCOLOR(LOGBOOKcolor));
 	inp->labelfont(progdefaults.LOGBOOKtextfont);
 	int ls = progdefaults.LOGBOOKtextsize - 1;
 	ls = ls < 10 ? 10 : (ls > 14 ? 14 : ls);
@@ -7207,7 +8614,7 @@ void LOGBOOK_colors_font()
 	int tab_h = wh * 14 / progdefaults.LOGBOOKtextsize;
 	int tab_grp_h = 4 * wh + 4;
 //	Tabs->resize(2, ypos, dlg_width - 6 - inpSearchString->w(), tab_grp_h + tab_h);
-	Tabs->selection_color(progdefaults.TabsColor);
+	Tabs->selection_color(RGBCOLOR(TabsColor));
 
 	tab_font_pos(tab_log_qsl, 2, ypos + tab_h, Tabs->w(), tab_grp_h, 14);
 	tab_font_pos(tab_log_contest, 2, ypos + tab_h, Tabs->w(), tab_grp_h, 14);
@@ -7253,14 +8660,14 @@ void LOGBOOK_colors_font()
 
 	txtLogFile->textsize(ls);
 	txtLogFile->textfont(progdefaults.LOGBOOKtextfont);
-	txtLogFile->textcolor(progdefaults.LOGBOOKtextcolor);
-	txtLogFile->color(progdefaults.LOGBOOKcolor);
+	txtLogFile->textcolor(RGBCOLOR(LOGBOOKtextcolor));
+	txtLogFile->color(RGBCOLOR(LOGBOOKcolor));
 
 	ypos += grpFileButtons->h() + 2;
 
 	wBrowser->font(progdefaults.LOGBOOKtextfont);
 	wBrowser->fontsize(progdefaults.LOGBOOKtextsize);
-	wBrowser->color(progdefaults.LOGBOOKcolor);
+	wBrowser->color(RGBCOLOR(LOGBOOKcolor));
 	wBrowser->selection_color(FL_SELECTION_COLOR);
 
 	int datewidth = wBrowser->columnWidth(0);
@@ -7300,46 +8707,15 @@ void LOGBOOK_colors_font()
 
 void set_smeter_colors()
 {
-	Fl_Color clr = fl_rgb_color(
-					progdefaults.Smeter_bg_color.R,
-					progdefaults.Smeter_bg_color.G,
-					progdefaults.Smeter_bg_color.B);
-	smeter->set_background(clr);
-
-	clr = fl_rgb_color(
-			progdefaults.Smeter_meter_color.R,
-			progdefaults.Smeter_meter_color.G,
-			progdefaults.Smeter_meter_color.B);
-	smeter->set_metercolor(clr);
-
-	clr = fl_rgb_color(
-			progdefaults.Smeter_scale_color.R,
-			progdefaults.Smeter_scale_color.G,
-			progdefaults.Smeter_scale_color.B);
-	smeter->set_scalecolor(clr);
-
+	smeter->set_background(RGBCOLOR(Smeter_bg_color));
+	smeter->set_metercolor(RGBCOLOR(Smeter_meter_color));
+	smeter->set_scalecolor(RGBCOLOR(Smeter_scale_color));
 	smeter->redraw();
 
-	clr = fl_rgb_color(
-			progdefaults.PWRmeter_bg_color.R,
-			progdefaults.PWRmeter_bg_color.G,
-			progdefaults.PWRmeter_bg_color.B);
-	pwrmeter->set_background(clr);
-
-	clr = fl_rgb_color(
-			progdefaults.PWRmeter_meter_color.R,
-			progdefaults.PWRmeter_meter_color.G,
-			progdefaults.PWRmeter_meter_color.B);
-	pwrmeter->set_metercolor(clr);
-
-	clr = fl_rgb_color(
-			progdefaults.PWRmeter_scale_color.R,
-			progdefaults.PWRmeter_scale_color.G,
-			progdefaults.PWRmeter_scale_color.B);
-	pwrmeter->set_scalecolor(clr);
-
+	pwrmeter->set_background(RGBCOLOR(PWRmeter_bg_color));
+	pwrmeter->set_metercolor(RGBCOLOR(PWRmeter_meter_color));
+	pwrmeter->set_scalecolor(RGBCOLOR(PWRmeter_scale_color));
 	pwrmeter->select(progdefaults.PWRselect);
-
 	pwrmeter->redraw();
 }
 
@@ -7537,812 +8913,141 @@ void cb_exit_pwr_level(void*)
 	pwrlevel_grp->hide();
 }
 
-#include "fl_digi_main.cxx"
+#ifdef __APPLE__
+static int handle_macos_command_shortcut(int event)
+{
+	if (event != FL_KEYBOARD && event != FL_SHORTCUT)
+		return 0;
+	if (!Fl::event_command())
+		return 0;
 
-void cb_mnuAltDockedscope(Fl_Menu_ *w, void *d);
+	switch (Fl::event_key()) {
+#if USE_PORTAUDIO
+	case 'a':
+	case 'A':
+		cb_mnuRxAudioDialog(0, 0);
+		return 1;
+#endif
+	case 'b':
+	case 'B':
+		cb_mnuViewer(0, 0);
+		return 1;
+	case 'c':
+	case 'C':
+		cb_view_hide_channels(0, 0);
+		return 1;
+	case 'd':
+	case 'D':
+		cb_dxc_viewer(0, 0);
+		return 1;
+	case 'f':
+	case 'F':
+		cb_mnuDigiscope(0, 0);
+		return 1;
+//	case 'h':
+//	case 'H':
+//		cb_mnuHWfallViewer(0, 0);
+//		return 1;
+	case 'l':
+	case 'L':
+		cb_mnuShowLogbook(0, 0);
+		return 1;
+	case 'm':
+	case 'M':
+		cb_48macros(0, 0);
+		return 1;
+	case 'r':
+	case 'R':
+		cb_mnuQTCRX(0, 0);
+		return 1;
+	case 's':
+	case 'S':
+		cb_mnuSpectrum(0, 0);
+		return 1;
+	case 't':
+	case 'T':
+		cb_mnuQTC(0, 0);
+		return 1;
+	default:
+		return 0;
+	}
+}
 
-static Fl_Menu_Item alt_menu_[] = {
-{_("&File"), 0,  0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Exit"), log_out_icon), 'x',  (Fl_Callback*)cb_E, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
+static Fl_Event_Dispatch previous_macos_event_dispatch = 0;
 
-{_("Op &Mode"), 0,  0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
+static int macos_command_event_dispatch(int event, Fl_Window *w)
+{
+	if (handle_macos_command_shortcut(event))
+		return 1;
+	if (previous_macos_event_dispatch)
+		return previous_macos_event_dispatch(event, w);
+	return Fl::handle_(event, w);
+}
 
-{ mode_info[MODE_CW].name, 0, cb_init_mode, (void *)MODE_CW, 0, FL_NORMAL_LABEL, 0, 14, 0},
+static void install_macos_command_event_dispatch()
+{
+	if (Fl::event_dispatch() == macos_command_event_dispatch)
+		return;
+	previous_macos_event_dispatch = Fl::event_dispatch();
+	Fl::event_dispatch(macos_command_event_dispatch);
+}
 
-{"Contestia", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_125].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_250].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_4_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_4_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
+class Fldigi_Main_Window : public Fl_Double_Window
+{
+public:
+	Fldigi_Main_Window(int X, int Y, int W, int H) : Fl_Double_Window(X, Y, W, H)
+	{
+		install_macos_command_event_dispatch();
+	}
 
-{ mode_info[MODE_CONTESTIA_8_125].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_8_250].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_8_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_8_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_8_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_8_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
+	Fldigi_Main_Window(int W, int H) : Fl_Double_Window(W, H)
+	{
+		install_macos_command_event_dispatch();
+	}
 
-{ mode_info[MODE_CONTESTIA_16_250].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_16_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_16_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_16_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_16_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_16_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_16_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_16_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_CONTESTIA_32_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_32_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_32_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_32_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_CONTESTIA_64_500].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_64_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_64_1000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_64_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_CONTESTIA_64_2000].name, 0, cb_init_mode, (void *)MODE_CONTESTIA_64_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ _("Custom..."), 0, cb_contestiaCustom, (void *)MODE_CONTESTIA, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"DominoEX", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEXMICRO].name, 0, cb_init_mode, (void *)MODE_DOMINOEXMICRO, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX4].name, 0, cb_init_mode, (void *)MODE_DOMINOEX4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX5].name, 0, cb_init_mode, (void *)MODE_DOMINOEX5, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX8].name, 0, cb_init_mode, (void *)MODE_DOMINOEX8, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX11].name, 0, cb_init_mode, (void *)MODE_DOMINOEX11, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX16].name, 0, cb_init_mode, (void *)MODE_DOMINOEX16, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX22].name, 0, cb_init_mode, (void *)MODE_DOMINOEX22, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX44].name, 0,  cb_init_mode, (void *)MODE_DOMINOEX44, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_DOMINOEX88].name, 0,  cb_init_mode, (void *)MODE_DOMINOEX88, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"MFSK", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK4].name, 0,  cb_init_mode, (void *)MODE_MFSK4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK8].name, 0,  cb_init_mode, (void *)MODE_MFSK8, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK11].name, 0,  cb_init_mode, (void *)MODE_MFSK11, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK16].name, 0,  cb_init_mode, (void *)MODE_MFSK16, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK22].name, 0,  cb_init_mode, (void *)MODE_MFSK22, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK31].name, 0,  cb_init_mode, (void *)MODE_MFSK31, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK32].name, 0,  cb_init_mode, (void *)MODE_MFSK32, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK64].name, 0,  cb_init_mode, (void *)MODE_MFSK64, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK128].name, 0,  cb_init_mode, (void *)MODE_MFSK128, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK64L].name, 0,  cb_init_mode, (void *)MODE_MFSK64L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MFSK128L].name, 0,  cb_init_mode, (void *)MODE_MFSK128L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"MT63", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_500S].name, 0,  cb_init_mode, (void *)MODE_MT63_500S, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_500L].name, 0,  cb_init_mode, (void *)MODE_MT63_500L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_1000S].name, 0,  cb_init_mode, (void *)MODE_MT63_1000S, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_1000L].name, 0,  cb_init_mode, (void *)MODE_MT63_1000L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_2000S].name, 0,  cb_init_mode, (void *)MODE_MT63_2000S, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_MT63_2000L].name, 0,  cb_init_mode, (void *)MODE_MT63_2000L, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"OFDM", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OFDM_500F].name, 0,  cb_init_mode, (void *)MODE_OFDM_500F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OFDM_750F].name, 0,  cb_init_mode, (void *)MODE_OFDM_750F, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-//{ mode_info[MODE_OFDM_2000F].name, 0,  cb_init_mode, (void *)MODE_OFDM_2000F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-//{ mode_info[MODE_OFDM_2000].name, 0,  cb_init_mode, (void *)MODE_OFDM_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OFDM_3500].name, 0,  cb_init_mode, (void *)MODE_OFDM_3500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"Olivia", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_125].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_250].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_4_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_4_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_OLIVIA_8_125].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_8_250].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_8_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_8_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_8_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_8_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_OLIVIA_16_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_16_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_16_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_16_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_16_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_16_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_OLIVIA_32_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_32_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_32_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_32_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ mode_info[MODE_OLIVIA_64_500].name, 0, cb_init_mode, (void *)MODE_OLIVIA_64_500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_64_1000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_64_1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_OLIVIA_64_2000].name, 0, cb_init_mode, (void *)MODE_OLIVIA_64_2000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ _("Custom..."), 0, cb_oliviaCustom, (void *)MODE_OLIVIA, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"PSK", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK31].name, 0, cb_init_mode, (void *)MODE_PSK31, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK63].name, 0, cb_init_mode, (void *)MODE_PSK63, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK63F].name, 0, cb_init_mode, (void *)MODE_PSK63F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK125].name, 0, cb_init_mode, (void *)MODE_PSK125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK250].name, 0, cb_init_mode, (void *)MODE_PSK250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK500].name, 0, cb_init_mode, (void *)MODE_PSK500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK1000].name, 0, cb_init_mode, (void *)MODE_PSK1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{"MultiCarrier", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_12X_PSK125].name, 0, cb_init_mode, (void *)MODE_12X_PSK125, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_6X_PSK250].name, 0, cb_init_mode, (void *)MODE_6X_PSK250, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK500].name, 0, cb_init_mode, (void *)MODE_2X_PSK500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_4X_PSK500].name, 0, cb_init_mode, (void *)MODE_4X_PSK500, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK800].name, 0, cb_init_mode, (void *)MODE_2X_PSK800, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK1000].name, 0, cb_init_mode, (void *)MODE_2X_PSK1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0},
-
-{"QPSK", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK31].name, 0, cb_init_mode, (void *)MODE_QPSK31, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK63].name, 0, cb_init_mode, (void *)MODE_QPSK63, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK125].name, 0, cb_init_mode, (void *)MODE_QPSK125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK250].name, 0, cb_init_mode, (void *)MODE_QPSK250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_QPSK500].name, 0, cb_init_mode, (void *)MODE_QPSK500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"8PSK", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK125].name, 0, cb_init_mode, (void *)MODE_8PSK125, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK250].name, 0, cb_init_mode, (void *)MODE_8PSK250, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK500].name, 0, cb_init_mode, (void *)MODE_8PSK500, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK1000].name, 0, cb_init_mode, (void *)MODE_8PSK1000, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK125FL].name, 0, cb_init_mode, (void *)MODE_8PSK125FL, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK125F].name, 0, cb_init_mode, (void *)MODE_8PSK125F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK250FL].name, 0, cb_init_mode, (void *)MODE_8PSK250FL, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK250F].name, 0, cb_init_mode, (void *)MODE_8PSK250F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK500F].name, 0, cb_init_mode, (void *)MODE_8PSK500F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK1000F].name, 0, cb_init_mode, (void *)MODE_8PSK1000F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_8PSK1200F].name, 0, cb_init_mode, (void *)MODE_8PSK1200F, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"PSKR", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK125R].name, 0, cb_init_mode, (void *)MODE_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK250R].name, 0, cb_init_mode, (void *)MODE_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK500R].name, 0, cb_init_mode, (void *)MODE_PSK500R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_PSK1000R].name, 0, cb_init_mode, (void *)MODE_PSK1000R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{"MultiCarrier", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_4X_PSK63R].name, 0, cb_init_mode, (void *)MODE_4X_PSK63R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_5X_PSK63R].name, 0, cb_init_mode, (void *)MODE_5X_PSK63R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_10X_PSK63R].name, 0, cb_init_mode, (void *)MODE_10X_PSK63R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_20X_PSK63R].name, 0, cb_init_mode, (void *)MODE_20X_PSK63R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_32X_PSK63R].name, 0, cb_init_mode, (void *)MODE_32X_PSK63R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_4X_PSK125R].name, 0, cb_init_mode, (void *)MODE_4X_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_5X_PSK125R].name, 0, cb_init_mode, (void *)MODE_5X_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_10X_PSK125R].name, 0, cb_init_mode, (void *)MODE_10X_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_12X_PSK125R].name, 0, cb_init_mode, (void *)MODE_12X_PSK125R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_16X_PSK125R].name, 0, cb_init_mode, (void *)MODE_16X_PSK125R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK250R].name, 0, cb_init_mode, (void *)MODE_2X_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_3X_PSK250R].name, 0, cb_init_mode, (void *)MODE_3X_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_5X_PSK250R].name, 0, cb_init_mode, (void *)MODE_5X_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_6X_PSK250R].name, 0, cb_init_mode, (void *)MODE_6X_PSK250R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_7X_PSK250R].name, 0, cb_init_mode, (void *)MODE_7X_PSK250R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK500R].name, 0, cb_init_mode, (void *)MODE_2X_PSK500R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_3X_PSK500R].name, 0, cb_init_mode, (void *)MODE_3X_PSK500R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_4X_PSK500R].name, 0, cb_init_mode, (void *)MODE_4X_PSK500R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK800R].name, 0, cb_init_mode, (void *)MODE_2X_PSK800R, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_2X_PSK1000R].name, 0, cb_init_mode, (void *)MODE_2X_PSK1000R, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0},
-
-{ RTTY_MLABEL, 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ "RTTY-45", 0, cb_rtty45, (void *)MODE_RTTY, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ "RTTY-50", 0, cb_rtty50, (void *)MODE_RTTY, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ "RTTY-75N", 0, cb_rtty75N, (void *)MODE_RTTY, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ "RTTY-75W", 0, cb_rtty75W, (void *)MODE_RTTY, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ _("Custom..."), 0, cb_rttyCustom, (void *)MODE_RTTY, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"THOR", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THORMICRO].name, 0, cb_init_mode, (void *)MODE_THORMICRO, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR4].name, 0, cb_init_mode, (void *)MODE_THOR4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR5].name, 0, cb_init_mode, (void *)MODE_THOR5, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR8].name, 0, cb_init_mode, (void *)MODE_THOR8, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR11].name, 0, cb_init_mode, (void *)MODE_THOR11, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR16].name, 0, cb_init_mode, (void *)MODE_THOR16, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR22].name, 0, cb_init_mode, (void *)MODE_THOR22, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR25x4].name, 0,  cb_init_mode, (void *)MODE_THOR25x4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR50x1].name, 0,  cb_init_mode, (void *)MODE_THOR50x1, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR50x2].name, 0,  cb_init_mode, (void *)MODE_THOR50x2, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THOR100].name, 0,  cb_init_mode, (void *)MODE_THOR100, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{"Throb", 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROB1].name, 0, cb_init_mode, (void *)MODE_THROB1, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROB2].name, 0, cb_init_mode, (void *)MODE_THROB2, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROB4].name, 0, cb_init_mode, (void *)MODE_THROB4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROBX1].name, 0, cb_init_mode, (void *)MODE_THROBX1, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROBX2].name, 0, cb_init_mode, (void *)MODE_THROBX2, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_THROBX4].name, 0, cb_init_mode, (void *)MODE_THROBX4, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{ mode_info[MODE_WWV].name, 0, cb_init_mode, (void *)MODE_WWV, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_NULL].name, 0, cb_init_mode, (void *)MODE_NULL, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{ mode_info[MODE_SSB].name, 0, cb_init_mode, (void *)MODE_SSB, 0, FL_NORMAL_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{_("&Configure"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Config Dialog")), 0, (Fl_Callback*)cb_mnu_config_dialog, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ _("TCI (Zeus / ExpertSDR)"), 0, (Fl_Callback*)cb_mnu_tci, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Test Signals")), 0, (Fl_Callback*)cb_mnuTestSignals, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Notifications")), 0,  (Fl_Callback*)cb_mnuConfigNotify, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Save Config"), save_icon), 0, (Fl_Callback*)cb_mnuSaveConfig, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{ VIEW_MLABEL, 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Rx Audio Dialog")), 'a', (Fl_Callback*)cb_mnuRxAudioDialog, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Signal Browser")), 0, (Fl_Callback*)cb_mnuViewer, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Spectrum scope")), 0, (Fl_Callback*)cb_mnuSpectrum, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Floating scope"), utilities_system_monitor_icon), 'f', (Fl_Callback*)cb_mnuDigiscope, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{ DOCKEDSCOPE_MLABEL, 0, (Fl_Callback*)cb_mnuAltDockedscope, 0, FL_MENU_TOGGLE, FL_NORMAL_LABEL, 0, 14, 0},
-
-{ icons::make_icon_label(MFSK_IMAGE_MLABEL, image_icon), 0, (Fl_Callback*)cb_mnuPicViewer, 0, FL_MENU_INACTIVE, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(THOR_IMAGE_MLABEL, image_icon), 0, (Fl_Callback*)cb_mnuThorViewRaw,0, FL_MENU_INACTIVE, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(IFKP_IMAGE_MLABEL, image_icon), 0, (Fl_Callback*)cb_mnuIfkpViewRaw,0, FL_MENU_INACTIVE | FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(WEFAX_TX_IMAGE_MLABEL, image_icon), 0, (Fl_Callback*)wefax_pic::cb_mnu_pic_viewer_tx,0, FL_MENU_INACTIVE | FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{_("&Help"), 0, 0, 0, FL_SUBMENU, FL_NORMAL_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Online documentation..."), help_browser_icon), 0, cb_mnuOnLineDOCS, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Event log"), dialog_information_icon), 0, cb_mnuDebug, 0, FL_MENU_DIVIDER, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("Check for updates..."), system_software_update_icon), 0, cb_mnuCheckUpdate, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{ icons::make_icon_label(_("&About"), help_about_icon), 'a', cb_mnuAboutURL, 0, 0, _FL_MULTI_LABEL, 0, 14, 0},
-{0,0,0,0,0,0,0,0,0},
-
-{0,0,0,0,0,0,0,0,0},
+	int handle(int event)
+	{
+		if (handle_macos_command_shortcut(event))
+			return 1;
+		return Fl_Double_Window::handle(event);
+	}
 };
+#endif
 
-void cb_mnuAltDockedscope(Fl_Menu_ *w, void *d) {
-	Fl_Menu_Item *m = getMenuItem(((Fl_Menu_*)w)->mvalue()->label(), alt_menu_);
-	progStatus.DOCKEDSCOPE = m->value();
-	wf->show_scope(progStatus.DOCKEDSCOPE);
-}
-
-
-#define defwidget 0, 0, 10, 10, ""
-
-void noop_controls() // create and then hide all controls not being used
-{
-	Fl_Double_Window *dummywindow = new Fl_Double_Window(0,0,100,100,"");
-
-	btnMacroTimer = new Fl_Button(defwidget); btnMacroTimer->hide();
-
-	ReceiveText = new FTextRX(0,0,100,100); ReceiveText->hide();
-	TransmitText = new FTextTX(0,0,100,100); TransmitText->hide();
-	FHdisp = new Raster(0,0,10,100); FHdisp->hide();
-
-	for (int i = 0; i < NUMMACKEYS * NUMKEYROWS; i++) {
-		btnMacro[i] = new Fl_Button(defwidget); btnMacro[i]->hide();
-	}
-	for (int i = 0; i < 48; i++) {
-		btnDockMacro[i] = new Fl_Button(defwidget); btnDockMacro[i]->hide();
-	}
-
-	inpQth = new Fl_Input2(defwidget); inpQth->hide();
-	inpLoc1 = new Fl_Input2(defwidget); inpLoc1->hide();
-	inpState1 = new Fl_Input2(defwidget); inpState1->hide();
-	cboCountryQSO = new Fl_ComboBox(defwidget); cboCountryQSO->end();
-	cboCountryQSO->hide();
-	cboCountyQSO = new Fl_ComboBox(defwidget); cboCountyQSO->hide();
-	cboCountyQSO->hide();
-	inpSerNo = new Fl_Input2(defwidget); inpSerNo->hide();
-	outSerNo = new Fl_Input2(defwidget); outSerNo->hide();
-	inpXchgIn = new Fl_Input2(defwidget); inpXchgIn->hide();
-	inpVEprov = new Fl_Input2(defwidget); inpVEprov->hide();
-	inpNotes = new Fl_Input2(defwidget); inpNotes->hide();
-	inpAZ = new Fl_Input2(defwidget); inpAZ->hide();
-
-	qsoTime = new Fl_Button(defwidget); qsoTime->hide();
-	btnQRZ = new Fl_Button(defwidget); btnQRZ->hide();
-	qsoClear = new Fl_Button(defwidget); qsoClear->hide();
-	qsoSave = new Fl_Button(defwidget); qsoSave->hide();
-
-	qsoFreqDisp = new cFreqControl(0,0,80,20,""); qsoFreqDisp->hide();
-	qso_opMODE = new Fl_ListBox(defwidget); qso_opMODE->hide();
-	qso_opBW = new Fl_ListBox(defwidget); qso_opBW->hide();
-	qso_opPICK = new Fl_Button(defwidget); qso_opPICK->hide();
-	qso_opGROUP = new Fl_Group(defwidget); qso_opGROUP->hide();
-
-	inpFreq = new Fl_Input2(defwidget); inpFreq->hide();
-	inpTimeOff = new Fl_Input2(defwidget); inpTimeOff->hide();
-	inpTimeOn = new Fl_Input2(defwidget); inpTimeOn->hide();
-	btnTimeOn = new Fl_Button(defwidget); btnTimeOn->hide();
-	inpCall = new Fl_Input2(defwidget); inpCall->hide();
-	inpName = new Fl_Input2(defwidget); inpName->hide();
-	inpRstIn = new Fl_Input2(defwidget); inpRstIn->hide();
-	inpRstOut = new Fl_Input2(defwidget); inpRstOut->hide();
-
-	inpFreq1 = new Fl_Input2(defwidget); inpFreq1->hide();
-	inpTimeOff1 = new Fl_Input2(defwidget); inpTimeOff1->hide();
-	inpTimeOn1 = new Fl_Input2(defwidget); inpTimeOn1->hide();
-	btnTimeOn1 = new Fl_Button(defwidget); btnTimeOn1->hide();
-	inpCall1 = new Fl_Input2(defwidget); inpCall1->hide();
-	inpName1 = new Fl_Input2(defwidget); inpName1->hide();
-	inpRstIn1 = new Fl_Input2(defwidget); inpRstIn1->hide();
-	inpRstOut1 = new Fl_Input2(defwidget); inpRstOut1->hide();
-	inpXchgIn1 = new Fl_Input2(defwidget); inpXchgIn1->hide();
-	outSerNo1 = new Fl_Input2(defwidget); outSerNo1->hide();
-	inpSerNo1 = new Fl_Input2(defwidget); inpSerNo1->hide();
-	qsoFreqDisp1 = new cFreqControl(0,0,80,20,""); qsoFreqDisp1->hide();
-
-	inp_FD_class1 = new Fl_Input2(defwidget); inp_FD_class1->hide();
-	inp_FD_class2 = new Fl_Input2(defwidget); inp_FD_class2->hide();
-	inp_FD_section1 = new Fl_Input2(defwidget); inp_FD_section1->hide();
-	inp_FD_section2 = new Fl_Input2(defwidget); inp_FD_section2->hide();
-
-	inp_KD_name2 = new Fl_Input2(defwidget); inp_KD_name2->hide();
-	inp_KD_age1 = new  Fl_Input2(defwidget); inp_KD_age1->hide();
-	inp_KD_age2 = new  Fl_Input2(defwidget); inp_KD_age2->hide();
-	inp_KD_state1 = new  Fl_Input2(defwidget); inp_KD_state1->hide();
-	inp_KD_state2 = new  Fl_Input2(defwidget); inp_KD_state2->hide();
-	inp_KD_VEprov1 = new Fl_Input2(defwidget); inp_KD_VEprov1->hide();
-	inp_KD_VEprov2 = new Fl_Input2(defwidget); inp_KD_VEprov2->hide();
-	inp_KD_XchgIn1 = new  Fl_Input2(defwidget); inp_KD_XchgIn1->hide();
-	inp_KD_XchgIn2 = new  Fl_Input2(defwidget); inp_KD_XchgIn2->hide();
-
-	inp_1010_XchgIn1 = new Fl_Input2(defwidget); inp_1010_XchgIn1->hide();
-	inp_1010_XchgIn2 = new Fl_Input2(defwidget); inp_1010_XchgIn2->hide();
-	inp_1010_nr1 = new Fl_Input2(defwidget); inp_1010_nr1->hide();
-	inp_1010_nr2 = new Fl_Input2(defwidget); inp_1010_nr2->hide();
-	inp_1010_name2 = new Fl_Input2(defwidget); inp_1010_name2->hide();
-
-	inp_ARR_Name2 = new Fl_Input2(defwidget); inp_ARR_Name2->hide();
-	inp_ARR_XchgIn1 = new Fl_Input2(defwidget); inp_ARR_XchgIn1->hide();
-	inp_ARR_XchgIn2 = new Fl_Input2(defwidget); inp_ARR_XchgIn2->hide();
-	inp_ARR_check1 = new Fl_Input2(defwidget); inp_ARR_check1->hide();
-	inp_ARR_check2 = new Fl_Input2(defwidget); inp_ARR_check2->hide();
-
-	inp_vhf_Loc1 = new Fl_Input2(defwidget); inp_vhf_Loc1->hide();
-	inp_vhf_Loc2 = new Fl_Input2(defwidget); inp_vhf_Loc2->hide();
-	inp_vhf_RSTin1 = new Fl_Input2(defwidget); inp_vhf_RSTin1->hide();
-	inp_vhf_RSTin2 = new Fl_Input2(defwidget); inp_vhf_RSTin2->hide();
-	inp_vhf_RSTout1 = new Fl_Input2(defwidget); inp_vhf_RSTout1->hide();
-	inp_vhf_RSTout2 = new Fl_Input2(defwidget); inp_vhf_RSTout2->hide();
-
-	inp_CQ_RSTin2 = new Fl_Input2(defwidget); inp_CQ_RSTin2->hide();
-	inp_CQ_RSTout2 = new Fl_Input2(defwidget); inp_CQ_RSTout2->hide();
-	inp_CQstate1 = new Fl_Input2(defwidget); inp_CQstate1->hide();
-	inp_CQstate2 = new Fl_Input2(defwidget); inp_CQstate2->hide();
-	inp_CQzone1 = new Fl_Input2(defwidget); inp_CQzone1->hide();
-	inp_CQzone2 = new Fl_Input2(defwidget); inp_CQzone2->hide();
-	cboCountryCQ2 = new Fl_ComboBox(defwidget); cboCountryCQ2->end();
-	cboCountryCQ2->hide();
-	inp_CQDX_RSTin2 = new Fl_Input2(defwidget); inp_CQDX_RSTin2->hide();
-	inp_CQDX_RSTout2 = new Fl_Input2(defwidget); inp_CQDX_RSTout2->hide();
-	cboCountryCQDX2 = new Fl_ComboBox(defwidget); cboCountryCQDX2->end();
-	cboCountryCQDX2->hide();
-	inp_CQDXzone1 = new Fl_Input2(defwidget); inp_CQDXzone1->hide();
-	inp_CQDXzone2 = new Fl_Input2(defwidget); inp_CQDXzone2->hide();
-
-	inpTimeOff2 = new Fl_Input2(defwidget); inpTimeOff2->hide();
-	inpTimeOn2 = new Fl_Input2(defwidget); inpTimeOn2->hide();
-	btnTimeOn2 = new Fl_Button(defwidget); btnTimeOn2->hide();
-	inpCall2 = new Fl_Input2(defwidget); inpCall2->hide();
-	inpName2 = new Fl_Input2(defwidget); inpName2->hide();
-	inpRstIn2 = new Fl_Input2(defwidget); inpRstIn2->hide();
-	inpRstOut2 = new Fl_Input2(defwidget); inpRstOut2->hide();
-	qsoFreqDisp2 = new cFreqControl(0,0,80,20,""); qsoFreqDisp2->hide();
-
-	qso_opPICK2 = new Fl_Button(defwidget); qso_opPICK2->hide();
-	qsoClear2 = new Fl_Button(defwidget); qsoClear2->hide();
-	qsoSave2 = new Fl_Button(defwidget); qsoSave2->hide();
-	btnQRZ2 = new Fl_Button(defwidget); btnQRZ2->hide();
-
-	inpTimeOff3 = new Fl_Input2(defwidget); inpTimeOff3->hide();
-	inpTimeOn3 = new Fl_Input2(defwidget); inpTimeOn3->hide();
-	btnTimeOn3 = new Fl_Button(defwidget); btnTimeOn3->hide();
-	inpCall3 = new Fl_Input2(defwidget); inpCall3->hide();
-	outSerNo2 = new Fl_Input2(defwidget); outSerNo2->hide();
-	inpSerNo2 = new Fl_Input2(defwidget); inpSerNo2->hide();
-	inpXchgIn2 = new Fl_Input2(defwidget); inpXchgIn2->hide();
-	qsoFreqDisp3 = new cFreqControl(0,0,80,20,""); qsoFreqDisp3->hide();
-
-	inpTimeOff4 = new Fl_Input2(defwidget); inpTimeOff4->hide();
-	inpTimeOn4 = new Fl_Input2(defwidget); inpTimeOn4->hide();
-	btnTimeOn4 = new Fl_Button(defwidget); btnTimeOn4->hide();
-	inpTimeOff5 = new Fl_Input2(defwidget); inpTimeOff5->hide();
-	inpTimeOn5 = new Fl_Input2(defwidget); inpTimeOn5->hide();
-	btnTimeOn5 = new Fl_Button(defwidget); btnTimeOn5->hide();
-
-	outSerNo3 = new Fl_Input2(defwidget); outSerNo3->hide();
-	inp_SS_SerialNoR1 = new Fl_Input2(defwidget); inp_SS_SerialNoR1->hide();
-	inp_SS_Precedence1 = new Fl_Input2(defwidget); inp_SS_Precedence1->hide();
-	inp_SS_Check1 = new Fl_Input2(defwidget); inp_SS_Check1->hide();
-	inp_SS_Section1 = new Fl_Input2(defwidget); inp_SS_Section1->hide();
-	outSerNo4 = new Fl_Input2(defwidget); outSerNo4->hide();
-	inp_SS_SerialNoR2 = new Fl_Input2(defwidget); inp_SS_SerialNoR2->hide();
-	inp_SS_Precedence2 = new Fl_Input2(defwidget); inp_SS_Precedence2->hide();
-	inp_SS_Check2 = new Fl_Input2(defwidget); inp_SS_Check2->hide();
-	inp_SS_Section2 = new Fl_Input2(defwidget); inp_SS_Section2->hide();
-
-	inp_ASCR_class1 = new Fl_Input2(defwidget); inp_ASCR_class1->hide();
-	inp_ASCR_XchgIn1 = new Fl_Input2(defwidget); inp_ASCR_XchgIn1->hide();
-	inp_ASCR_name2 = new Fl_Input2(defwidget); inp_ASCR_name2->hide();
-	inp_ASCR_class2 = new Fl_Input2(defwidget); inp_ASCR_class2->hide();
-	inp_ASCR_XchgIn2 = new Fl_Input2(defwidget); inp_ASCR_XchgIn2->hide();
-	inp_ASCR_RSTin2 = new Fl_Input2(defwidget); inp_ASCR_RSTin2->hide();
-	inp_ASCR_RSTout2 = new Fl_Input2(defwidget); inp_ASCR_RSTout2->hide();
-
-	inpNAQPname2 = new Fl_Input2(defwidget); inpNAQPname2->hide();
-	inpSPCnum_NAQP1 =  new Fl_Input2(defwidget); inpSPCnum_NAQP1->hide();
-	inpSPCnum_NAQP2 =  new Fl_Input2(defwidget); inpSPCnum_NAQP2->hide();
-
-	inpRTU_stpr1 = new Fl_Input2(defwidget); inpRTU_stpr1->hide();
-	inpRTU_serno1 = new Fl_Input2(defwidget); inpRTU_serno1->hide();
-	inpRTU_RSTin2 = new Fl_Input2(defwidget); inpRTU_RSTin2->hide();
-	inpRTU_RSTout2 = new Fl_Input2(defwidget); inpRTU_RSTout2->hide();
-	inpRTU_stpr2 = new Fl_Input2(defwidget); inpRTU_stpr2->hide();
-	inpRTU_serno2 = new Fl_Input2(defwidget); inpRTU_serno2->hide();
-	cboCountryRTU2 = new Fl_ComboBox(defwidget); cboCountryRTU2->end();
-	cboCountryRTU2->hide();
-
-	inp_IARI_PR1 = new Fl_Input2(defwidget); inp_IARI_PR1->hide();
-	inp_IARI_RSTin2 = new Fl_Input2(defwidget); inp_IARI_RSTin2->hide();
-	inp_IARI_RSTout2 = new Fl_Input2(defwidget); inp_IARI_RSTout2->hide();
-	out_IARI_SerNo1 = new Fl_Input2(defwidget); out_IARI_SerNo1->hide();
-	inp_IARI_SerNo1 = new Fl_Input2(defwidget); inp_IARI_SerNo1->hide();
-	out_IARI_SerNo2 = new Fl_Input2(defwidget); out_IARI_SerNo2->hide();
-	inp_IARI_SerNo2 = new Fl_Input2(defwidget); inp_IARI_SerNo2->hide();
-	inp_IARI_PR2 = new Fl_Input2(defwidget); inp_IARI_PR2->hide();
-	cboCountryIARI2 = new Fl_ComboBox(defwidget); cboCountryIARI2->end();
-	cboCountryIARI2->hide();
-
-	outSerNo5 = new Fl_Input2(defwidget); outSerNo4->hide();
-	inp_ser_NAS1 = new Fl_Input2(defwidget); inp_ser_NAS1->hide();
-	inpSPCnum_NAS1 = new Fl_Input2(defwidget); inpSPCnum_NAS1->hide();
-	outSerNo6 = new Fl_Input2(defwidget); outSerNo5->hide();
-	inp_ser_NAS2 = new Fl_Input2(defwidget); inp_ser_NAS2->hide();
-	inpSPCnum_NAS2 = new Fl_Input2(defwidget); inpSPCnum_NAS2->hide();
-	inp_name_NAS2 = new Fl_Input2(defwidget); inp_name_NAS2->hide();
-
-	outSerNo7 = new Fl_Input2(defwidget); outSerNo7->hide();
-	inpSerNo3 = new Fl_Input2(defwidget); inpSerNo3->hide();
-	cboCountryAIDX2 = new Fl_ComboBox(defwidget); cboCountryAIDX2->end();
-	cboCountryAIDX2->hide();
-
-	inpRstIn3 = new Fl_Input2(defwidget); inpRstIn3->hide();
-	inpRstOut3 = new Fl_Input2(defwidget); inpRstOut3->hide();
-	outSerNo8 = new Fl_Input2(defwidget); outSerNo8->hide();
-	inpSerNo4 = new Fl_Input2(defwidget); inpSerNo4->hide();
-
-	inp_JOTA_troop1 = new Fl_Input2(defwidget); inp_JOTA_troop1->hide();
-	inp_JOTA_troop2 = new Fl_Input2(defwidget); inp_JOTA_troop2->hide();
-	inp_JOTA_scout1 = new Fl_Input2(defwidget); inp_JOTA_scout1->hide();
-	inp_JOTA_scout2 = new Fl_Input2(defwidget); inp_JOTA_scout2->hide();
-	inp_JOTA_spc1 = new Fl_Input2(defwidget); inp_JOTA_spc1->hide();
-	inp_JOTA_spc2 = new Fl_Input2(defwidget); inp_JOTA_spc2->hide();
-
-	inpSPCnum_AICW1 = new Fl_Input2(defwidget); inpSPCnum_AICW1->hide();
-	inpSPCnum_AICW2 = new Fl_Input2(defwidget); inpSPCnum_AICW2->hide();
-	inpRstIn_AICW2 = new Fl_Input2(defwidget); inpRstIn_AICW2->hide();
-	inpRstOut_AICW2 = new Fl_Input2(defwidget); inpRstOut_AICW2->hide();
-
-	inpSQSO_state1 = new Fl_Input2(defwidget); inpSQSO_state1->hide();
-	inpSQSO_state2 = new Fl_Input2(defwidget); inpSQSO_state2->hide();
-	inpSQSO_county1 = new Fl_Input2(defwidget); inpSQSO_county1->hide();
-	inpSQSO_county2 = new Fl_Input2(defwidget); inpSQSO_county2->hide();
-	inpSQSO_serno1 = new Fl_Input2(defwidget); inpSQSO_serno1->hide();
-	inpSQSO_serno2 = new Fl_Input2(defwidget); inpSQSO_serno2->hide();
-	outSQSO_serno1 = new Fl_Input2(defwidget); outSQSO_serno1->hide();
-	outSQSO_serno2 = new Fl_Input2(defwidget); outSQSO_serno2->hide();
-	inpSQSO_name2 = new Fl_Input2(defwidget); inpSQSO_name2->hide();
-	inpRstIn_SQSO2 = new Fl_Input2(defwidget); inpRstIn_SQSO2->hide();
-	inpRstOut_SQSO2 = new Fl_Input2(defwidget); inpRstOut_SQSO2->hide();
-	inpSQSO_category1 = new Fl_Input2(defwidget); inpSQSO_category1->hide();
-	inpSQSO_category2 = new Fl_Input2(defwidget); inpSQSO_category2->hide();
-
-	inpSerNo_WPX1 = new Fl_Input2(defwidget); inpSerNo_WPX1->hide();
-	outSerNo_WPX1 = new Fl_Input2(defwidget); outSerNo_WPX1->hide();
-	inpSerNo_WPX2 = new Fl_Input2(defwidget); inpSerNo_WPX2->hide();
-	outSerNo_WPX2 = new Fl_Input2(defwidget); outSerNo_WPX2->hide();
-	inpRstIn_WPX2 = new Fl_Input2(defwidget); inpRstIn_WPX2->hide();
-	inpRstOut_WPX2 = new Fl_Input2(defwidget); inpRstOut_WPX2->hide();
-
-	inpSerNo_WAE1 = new Fl_Input2(defwidget); inpSerNo_WAE1->hide();
-	inpSerNo_WAE2 = new Fl_Input2(defwidget); inpSerNo_WAE2->hide();
-	outSerNo_WAE1 = new Fl_Input2(defwidget); outSerNo_WAE1->hide();
-	outSerNo_WAE2 = new Fl_Input2(defwidget); outSerNo_WAE2->hide();
-	inpRstIn_WAE2 = new Fl_Input2(defwidget); inpRstIn_WAE2->hide();
-	inpRstOut_WAE2 = new Fl_Input2(defwidget); inpRstOut_WAE2->hide();
-	cboCountryWAE2 = new Fl_ComboBox(defwidget); cboCountryWAE2->end();
-	cboCountryWAE2->hide();
-
-	qso_opPICK3 = new Fl_Button(defwidget); qso_opPICK3->hide();
-	qsoClear3 = new Fl_Button(defwidget); qsoClear3->hide();
-	qsoSave3 = new Fl_Button(defwidget); qsoSave3->hide();
-
-	inpCall4 = new Fl_Input2(defwidget); inpCall4->hide();
-
-	qso_opBrowser = new Fl_Browser(defwidget); qso_opBrowser->hide();
-	qso_btnAddFreq = new Fl_Button(defwidget); qso_btnAddFreq->hide();
-	qso_btnSelFreq = new Fl_Button(defwidget); qso_btnSelFreq->hide();
-	qso_btnDelFreq = new Fl_Button(defwidget); qso_btnDelFreq->hide();
-	qso_btnClearList = new Fl_Button(defwidget); qso_btnClearList->hide();
-	qso_btnAct = new Fl_Button(defwidget); qso_btnAct->hide();
-	qso_inpAct = new Fl_Input2(defwidget); qso_inpAct->hide();
-
-	pwrmeter = new PWRmeter(defwidget); pwrmeter->hide();
-	smeter = new Smeter(defwidget); smeter->hide();
-	pwr_level = new Fl_Value_Slider2(defwidget); pwr_level->hide();
-	set_pwr_level = new Fl_Button(defwidget); set_pwr_level->hide();
-
-	dummywindow->end();
-	dummywindow->hide();
-
-}
-
-void make_scopeviewer()
-{
-	scopeview = new Fl_Double_Window(0,0,140,140, _("Scope"));
-	scopeview->xclass(PACKAGE_NAME);
-	digiscope = new Digiscope (0, 0, 140, 140);
-	scopeview->resizable(digiscope);
-	scopeview->size_range(SCOPEWIN_MIN_WIDTH, SCOPEWIN_MIN_HEIGHT);
-	scopeview->end();
-	scopeview->hide();
-}
-
-static int WF_only_height = 0;
-
-void create_fl_digi_main_WF_only() {
-
-	int fnt = fl_font();
-	int fsize = fl_size();
-	int freqheight = Hentry + 2 * pad;
-	int Y = 0;
-	int W = progStatus.mainW;
-
-	fl_font(fnt, freqheight);
-	fl_font(fnt, fsize);
-
-
-	IMAGE_WIDTH = 4000;
-	Hwfall = progdefaults.wfheight;
-	Wwfall = W - 2 * DEFAULT_SW - 2 * pad;
-	WF_only_height = Hmenu + Hwfall + Hstatus + 4 * pad;
-
-	fl_digi_main = new Fl_Double_Window(W, WF_only_height);
-
-		mnuFrame = new Fl_Group(0, 0, W, Hmenu);
-
-			mnu = new Fl_Menu_Bar(0, 0, W - 275 - pad, Hmenu);
-// do some more work on the menu
-			for (size_t i = 0; i < sizeof(alt_menu_)/sizeof(alt_menu_[0]); i++) {
-// FL_NORMAL_SIZE may have changed; update the menu items
-				if (alt_menu_[i].text) {
-					alt_menu_[i].labelsize_ = FL_NORMAL_SIZE;
-				}
-// set the icon label for items with the multi label type
-				if (alt_menu_[i].labeltype() == _FL_MULTI_LABEL)
-					icons::set_icon_label(&alt_menu_[i]);
-			}
-			mnu->menu(alt_menu_);
-
-			tx_timer = new Fl_Box(W - 275 - pad, 0, 75 - pad, Hmenu, "");
-			tx_timer->box(FL_UP_BOX);
-			tx_timer->color(FL_BACKGROUND_COLOR);
-			tx_timer->labelcolor(FL_BACKGROUND_COLOR);
-
-			btnAutoSpot = new Fl_Light_Button(W - 200 - pad, 0, 50, Hmenu, "Spot");
-			btnAutoSpot->selection_color(progdefaults.SpotColor);
-			btnAutoSpot->callback(cbAutoSpot, 0);
-			btnAutoSpot->deactivate();
-
-			btnRSID = new Fl_Light_Button(W - 150 - pad, 0, 50, Hmenu, "RxID");
-			btnRSID->tooltip("Receive RSID");
-			btnRSID->value(progdefaults.rsid);
-			btnRSID->callback(cbRSID, 0);
-
-			btnTxRSID = new Fl_Light_Button(W - 100 - pad, 0, 50, Hmenu, "TxID");
-			btnTxRSID->selection_color(progdefaults.TxIDColor);
-			btnTxRSID->tooltip("Transmit RSID");
-			btnTxRSID->callback(cbTxRSID, 0);
-
-			btnTune = new Fl_Light_Button(W - 50 - pad, 0, 50, Hmenu, "TUNE");
-			btnTune->selection_color(progdefaults.TuneColor);
-			btnTune->callback(cbTune, 0);
-
-		mnuFrame->resizable(mnu);
-		mnuFrame->end();
-
-		Y = Hmenu + pad;
-
-		wf_group = new Fl_Group(0, Y, W, Hwfall);
-
-			wf = new waterfall(0, Y, Wwfall, Hwfall);
-			wf->end();
-
-			pgrsSquelch = new Progress(
-				rightof(wf), Y + pad,
-				DEFAULT_SW, Hwfall - 2 * pad,
-				"");
-			pgrsSquelch->color(FL_BACKGROUND2_COLOR, FL_DARK_GREEN);
-			pgrsSquelch->type(Progress::VERTICAL);
-			pgrsSquelch->tooltip(_("Detected signal level"));
-
-			sldrSquelch = new Fl_Slider2(
-				rightof(pgrsSquelch), Y + pad,
-				DEFAULT_SW, Hwfall - 2 * pad,
-				"");
-			sldrSquelch->minimum(100);
-			sldrSquelch->maximum(0);
-			sldrSquelch->step(1);
-			sldrSquelch->value(progStatus.sldrSquelchValue);
-			sldrSquelch->callback((Fl_Callback*)cb_sldrSquelch);
-			sldrSquelch->color(FL_INACTIVE_COLOR);
-			sldrSquelch->tooltip(_("Squelch level"));
-			Fl_Group::current()->resizable(wf);
-		wf_group->end();
-
-		Y += (Hwfall + pad);
-
-		status_group = new Fl_Group(0, Y, W, Hstatus);
-
-			MODEstatus = new Fl_Button(
-				0, Y,
-				Wmode, Hstatus, "");
-			MODEstatus->box(FL_DOWN_BOX);
-			MODEstatus->color(FL_BACKGROUND2_COLOR);
-			MODEstatus->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-			MODEstatus->callback(status_cb, (void *)0);
-			MODEstatus->when(FL_WHEN_CHANGED);
-			MODEstatus->tooltip(_("Left click: change mode\nRight click: configure"));
-
-			cntCW_WPM = new Fl_Counter2(
-				rightof(MODEstatus), Y,
-				Ws2n - Hstatus, Hstatus, "");
-			cntCW_WPM->callback(cb_cntCW_WPM);
-			cntCW_WPM->minimum(progdefaults.CWlowerlimit);
-			cntCW_WPM->maximum(progdefaults.CWupperlimit);
-			cntCW_WPM->value(progdefaults.CWspeed);
-			cntCW_WPM->tooltip(_("CW transmit WPM"));
-			cntCW_WPM->type(1);
-			cntCW_WPM->step(1);
-			cntCW_WPM->hide();
-
-			btnCW_Default = new Fl_Button(
-				rightof(cntCW_WPM), Y,
-				Hstatus, Hstatus, "*");
-			btnCW_Default->callback(cb_btnCW_Default);
-			btnCW_Default->tooltip(_("Default WPM"));
-			btnCW_Default->hide();
-
-			Status1 = new Fl_Box(
-				rightof(MODEstatus), Y,
-				Ws2n, Hstatus, "");
-			Status1->box(FL_DOWN_BOX);
-			Status1->color(FL_BACKGROUND2_COLOR);
-			Status1->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-
-			Status2 = new Fl_Box(
-				rightof(Status1), Y,
-				Wimd, Hstatus, "");
-			Status2->box(FL_DOWN_BOX);
-			Status2->color(FL_BACKGROUND2_COLOR);
-			Status2->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-
-			StatusBar = new status_box(
-				rightof(Status2), Y,
-				W - rightof(Status2)
-				- bwAfcOnOff - bwSqlOnOff
-				- Wwarn - bwTxLevel
-				- bwSqlOnOff
-				- cbwidth,
-				Hstatus, "");
-			StatusBar->box(FL_DOWN_BOX);
-			StatusBar->color(FL_BACKGROUND2_COLOR);
-			StatusBar->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-			StatusBar->callback((Fl_Callback *)StatusBar_cb);
-			StatusBar->when(FL_WHEN_RELEASE_ALWAYS);
-			StatusBar->tooltip(_("Left click to toggle VuMeter"));
-			StatusBar->show();
-
-			VuMeter = new vumeter(StatusBar->x(), StatusBar->y(), StatusBar->w(), StatusBar->h(), "" );
-			VuMeter->align(Fl_Align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE));
-			VuMeter->when(FL_WHEN_RELEASE_ALWAYS);
-			VuMeter->tooltip(_("Left click to toggle Status Bar"));
-			VuMeter->callback((Fl_Callback *)VuMeter_cb);
-
-			cntTxLevel = new Fl_Counter2(
-				rightof(StatusBar), Y,
-				bwTxLevel, Hstatus, "");
-			cntTxLevel->minimum(-30);
-			cntTxLevel->maximum(0);
-			cntTxLevel->value(-6);
-			cntTxLevel->callback((Fl_Callback*)cb_cntTxLevel);
-			cntTxLevel->value(progStatus.txlevel);
-			cntTxLevel->lstep(1.0);
-			cntTxLevel->tooltip(_("Tx level attenuator (dB)"));
-			add_tci_rx_level();
-
-			WARNstatus = new Fl_Box(
-				rightof(cntTxLevel), Y,
-				Wwarn, Hstatus, "");
-			WARNstatus->box(FL_DIAMOND_DOWN_BOX);
-			WARNstatus->color(FL_BACKGROUND_COLOR);
-			WARNstatus->labelcolor(FL_RED);
-			WARNstatus->align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE);
-
-			btnAFC = new Fl_Light_Button(
-				rightof(WARNstatus), Y,
-				bwAfcOnOff, Hstatus, "AFC");
-			btnAFC->selection_color(progdefaults.AfcColor);
-
-			btnSQL = new Fl_Light_Button(
-				rightof(btnAFC), Y,
-				bwSqlOnOff, Hstatus, "SQL");
-
-// btnPSQL will be resized later depending on the state of the
-// configuration parameter to show that widget
-
-			btnPSQL = new Fl_Light_Button(
-				rightof(btnSQL), Y,
-				bwSqlOnOff, Hstatus, "PSM");
-
-			btnAFC->callback(cbAFC, 0);
-			btnAFC->value(1);
-			btnAFC->tooltip(_("Automatic Frequency Control"));
-
-			btnSQL->callback(cbSQL, 0);
-			btnSQL->selection_color(progdefaults.Sql1Color);
-			btnSQL->value(1);
-			btnSQL->tooltip(_("Squelch"));
-
-			btnPSQL->selection_color(progdefaults.Sql1Color);
-			btnPSQL->callback(cbPwrSQL, 0);
-			btnPSQL->value(progdefaults.kpsql_enabled);
-			btnPSQL->tooltip(_("Power Signal Monitor"));
-
-			Fl_Group::current()->resizable(VuMeter);
-
-		status_group->end();
-
-	Fl::add_handler(wo_default_handler);
-
-	fl_digi_main->end();
-	fl_digi_main->callback(cb_wMain);
-	fl_digi_main->resizable(wf);
-
-	const struct {
-		bool var; const char* label;
-	} toggles[] = {
-		{ progStatus.DOCKEDSCOPE, DOCKEDSCOPE_MLABEL }
-	};
-	Fl_Menu_Item* toggle;
-	for (size_t i = 0; i < sizeof(toggles)/sizeof(*toggles); i++) {
-		if (toggles[i].var && (toggle = getMenuItem(toggles[i].label, alt_menu_))) {
-			toggle->set();
-			if (toggle->callback()) {
-				mnu->value(toggle);
-				toggle->do_callback(reinterpret_cast<Fl_Widget*>(mnu));
-			}
-		}
-	}
-
-	make_scopeviewer();
-	noop_controls();
-
-	progdefaults.WF_UIwfcarrier =
-	progdefaults.WF_UIwfreflevel =
-	progdefaults.WF_UIwfampspan =
-	progdefaults.WF_UIwfmode =
-	progdefaults.WF_UIx1 =
-	progdefaults.WF_UIwfshift =
-	progdefaults.WF_UIrev =
-	progdefaults.WF_UIwfstore =
-	progdefaults.WF_UIxmtlock =
-	progdefaults.WF_UIwfdrop =
-	progdefaults.WF_UIqsy = true;
-	wf->UI_select(true);
-
-	load_counties();
-
-	createConfig();
-
-	createRecordLoader();
-
-	if (rx_only) {
-		btnTune->deactivate();
-		wf->xmtrcv->deactivate();
-	}
-
-	UI_select();
-
-}
-
+#include "fl_digi_main.cxx"
 
 void create_fl_digi_main(int argc, char** argv)
 {
+#ifdef UI_debug
+	time_t currentTime;
+	char* timestring;
+
+	currentTime = time(NULL);
+	if (currentTime == ((time_t)-1)) {
+		fprintf(stderr, "Error: Could not obtain current time.\n");
+	} else {
+		timestring = ctime(&currentTime);
+		if (timestring == NULL) {
+			fprintf(stderr, "Error: Could not convert time to string.\n");
+		} else {
+			std::string stat_fname = HomeDir;
+			stat_fname.append("/ui_stats.txt");
+			FILE *stat_file = fopen( stat_fname.c_str(), "a" );
+			if (stat_file == NULL) {
+				fprintf(stderr, "Error: Could not open 'ui_stats.txt' file.\n");
+			} else {
+				fprintf(stat_file, "\
+\n\
+##########################################\n\
+        %s\
+##########################################\n",
+					timestring);
+				fclose(stat_file);
+			}
+		}
+	}
+#endif
+
 	if (bWF_only)
 		create_fl_digi_main_WF_only();
 	else
@@ -8392,17 +9097,17 @@ void callback_set_metric(double metric)
 
 	if (progdefaults.show_psm_btn && progStatus.kpsql_enabled) {
 		if ((metric >= progStatus.sldrPwrSquelchValue) || inhibit_tx_seconds)
-			btnPSQL->selection_color(progdefaults.Sql2Color);
+			btnPSQL->selection_color(RGBCOLOR(Sql2Color));
 		else
-			btnPSQL->selection_color(progdefaults.Sql1Color);
+			btnPSQL->selection_color(RGBCOLOR(Sql1Color));
 
 		btnPSQL->redraw_label();
 
 	} else if(progStatus.sqlonoff) {
 		if (metric < progStatus.sldrSquelchValue)
-			btnSQL->selection_color(progdefaults.Sql1Color);
+			btnSQL->selection_color(RGBCOLOR(Sql1Color));
 		else
-			btnSQL->selection_color(progdefaults.Sql2Color);
+			btnSQL->selection_color(RGBCOLOR(Sql2Color));
 		btnSQL->redraw_label();
 	}
 }
@@ -8490,6 +9195,28 @@ void set_scope_yaxis_2(double x2)
 	wf->wfscope->yaxis_2(x2);
 }
 
+void set_scope_colors()
+{
+	if (digiscope) {
+		digiscope->bk_color(RGBCOLOR(digi_background));
+		digiscope->axis_color(RGBCOLOR(digi_axis_color));
+		digiscope->user_color_1(RGBCOLOR(digi_color_1));
+		digiscope->user_color_2(RGBCOLOR(digi_color_2));
+		digiscope->user_color_3(RGBCOLOR(digi_color_3));
+		digiscope->user_color_4(RGBCOLOR(digi_color_4));
+		digiscope->redraw();
+	}
+
+	wf->wfscope->bk_color(RGBCOLOR(digi_background));
+	wf->wfscope->axis_color(RGBCOLOR(digi_axis_color));
+	wf->wfscope->user_color_1(RGBCOLOR(digi_color_1));
+	wf->wfscope->user_color_2(RGBCOLOR(digi_color_2));
+	wf->wfscope->user_color_3(RGBCOLOR(digi_color_3));
+	wf->wfscope->user_color_4(RGBCOLOR(digi_color_4));
+	wf->wfscope->redraw();
+
+}
+
 void set_scope_clear_axis()
 {
 	if (digiscope) {
@@ -8498,10 +9225,13 @@ void set_scope_clear_axis()
 		digiscope->yaxis_1(0);
 		digiscope->yaxis_2(0);
 	}
+
 	wf->wfscope->xaxis_1(0);
 	wf->wfscope->xaxis_2(0);
 	wf->wfscope->yaxis_1(0);
 	wf->wfscope->yaxis_2(0);
+
+	set_scope_colors();
 }
 
 // raw buffer functions can ONLY be called by FLMAIN_TID
@@ -8872,18 +9602,14 @@ void put_Status1(const char *msg, double timeout, status_timeout action)
 
 void put_WARNstatus(double v)
 {
-	sig_vumeter->value(v);
-	sig_vumeter2->value(v);
-	VuMeter->value(v);
-
 	double val = 20 * log10(v == 0 ? 1e-9 : v);
 	if (val < progdefaults.normal_signal_level)
-		WARNstatus->color(progdefaults.LowSignal);
+		WARNstatus->color(RGBCOLOR(LowSignal));
 	else if (val < progdefaults.high_signal_level )
-		WARNstatus->color(progdefaults.NormSignal);
+		WARNstatus->color(RGBCOLOR(NormSignal));
 	else if (val < progdefaults.over_signal_level)
-		WARNstatus->color(progdefaults.HighSignal);
-	else WARNstatus->color(progdefaults.OverSignal);
+		WARNstatus->color(RGBCOLOR(HighSignal));
+	else WARNstatus->color(RGBCOLOR(OverSignal));
 	WARNstatus->redraw();
 }
 
@@ -9335,11 +10061,19 @@ void resetCONTESTIA() {
 //	trx_start_modem(active_modem);
 //}
 
+void resetSCAMP() {
+	trx_mode md = active_modem->get_mode();
+	if (md == MODE_SCAMPFSK || md == MODE_SCAMPOOK || md == MODE_SCFSKFST || md == MODE_SCFSKSLW ||
+		md == MODE_SCOOKSLW || md == MODE_SCFSKVSL )
+		trx_start_modem(active_modem);
+}
+
 void resetTHOR() {
 	trx_mode md = active_modem->get_mode();
 	if (md == MODE_THORMICRO || md == MODE_THOR4 || md == MODE_THOR5 || md == MODE_THOR8 ||
 		md == MODE_THOR11 ||
-		md == MODE_THOR16 || md == MODE_THOR22 ||
+		md == MODE_THOR16 || md == MODE_THOR22 || md == MODE_THOR25 ||
+		md == MODE_THOR32 || md == MODE_THOR44 || md == MODE_THOR56 ||
 		md == MODE_THOR25x4 || md == MODE_THOR50x1 ||
 		md == MODE_THOR50x2 || md == MODE_THOR100 )
 		trx_start_modem(active_modem);
@@ -9399,9 +10133,9 @@ void set_rx_only()
 	wf->xmtrcv->deactivate();
 }
 
-void qsy(long long rfc, int fmid)
+void qsy(unsigned long long rfc, int fmid)
 {
-	if (rfc <= 0LL) {
+	if (rfc <= 0ULL) {
 		rfc = wf->rfcarrier();
 	}
 
@@ -9416,7 +10150,7 @@ void qsy(long long rfc, int fmid)
 			rfc += (wf->USB() ? adj : -adj);
 	}
 
-	qso_selectFreq((long int) rfc, fmid);
+	qso_selectFreq(rfc, fmid);
 
 	std::string testmode = qso_opMODE->value();
 	bool xcvr_useFSK = (testmode.find("RTTY") != std::string::npos);
@@ -9429,7 +10163,7 @@ void qsy(long long rfc, int fmid)
 std::map<std::string, qrg_mode_t> qrg_marks;
 qrg_mode_t last_marked_qrg;
 
-void note_qrg(bool no_dup, const char* prefix, const char* suffix, trx_mode mode, long long rfc, int afreq)
+void note_qrg(bool no_dup, const char* prefix, const char* suffix, trx_mode mode, unsigned long long rfc, int afreq)
 {
 	qrg_mode_t m;
 	m.rfcarrier = (rfc ? rfc : wf->rfcarrier());
@@ -9486,7 +10220,7 @@ void * set_xmtrcv_button_false(void)
 // To be called from the main thread.
 void * set_xmtrcv_selection_color_transmitting(void)
 {
-	wf->xmtrcv_selection_color(progdefaults.XmtColor);
+	wf->xmtrcv_selection_color(RGBCOLOR(XmtColor));
 	return (void *)0;
 }
 
@@ -9504,30 +10238,30 @@ void xmtrcv_selection_color(Fl_Color clr)
 
 void xmtrcv_selection_color()
 {
-	wf->xmtrcv_selection_color(progdefaults.XmtColor);
+	wf->xmtrcv_selection_color(RGBCOLOR(XmtColor));
 }
 
 void rev_selection_color()
 {
-	wf->reverse_selection_color(progdefaults.RevColor);
+	wf->reverse_selection_color(RGBCOLOR(RevColor));
 }
 
 void xmtlock_selection_color()
 {
-	wf->xmtlock_selection_color(progdefaults.LkColor);
+	wf->xmtlock_selection_color(RGBCOLOR(LkColor));
 }
 
 void sql_selection_color()
 {
 	if (!btnSQL) return;
-	btnSQL->selection_color(progdefaults.Sql1Color);
+	btnSQL->selection_color(RGBCOLOR(Sql1Color));
 	btnSQL->redraw();
 }
 
 void afc_selection_color()
 {
 	if (!btnAFC) return;
-	btnAFC->selection_color(progdefaults.AfcColor);
+	btnAFC->selection_color(RGBCOLOR(AfcColor));
 	btnAFC->redraw();
 }
 
@@ -9539,55 +10273,547 @@ void rxid_selection_color()
 void txid_selection_color()
 {
 	if (!btnTxRSID) return;
-	btnTxRSID->selection_color(progdefaults.TxIDColor);
+	btnTxRSID->selection_color(RGBCOLOR(TxIDColor));
 	btnTxRSID->redraw();
 }
 
 void tune_selection_color()
 {
 	if (!btnTune) return;
-	btnTune->selection_color(progdefaults.TuneColor);
+	btnTune->selection_color(RGBCOLOR(TuneColor));
 	btnTune->redraw();
 }
 
 void spot_selection_color()
 {
 	if (!btnAutoSpot) return;
-	btnAutoSpot->selection_color(progdefaults.SpotColor);
+	btnAutoSpot->selection_color(RGBCOLOR(SpotColor));
 	btnAutoSpot->redraw();
 }
+
+// additional includes needed for button references
+
+#include "rxmon.h"
+#include "debug_dialog.h"
+#include "font_browser.h"
 
 void set_default_btn_color()
 {
 	Fl_Light_Button *buttons[] = {
-		btn_FSQCALL, btn_SELCAL, btn_MONITOR, btnPSQL,
-		btnDupCheckOn, btn_WKCW_connect, btn_WKFSK_connect,
-		btn_nanoCW_connect, btn_nanoIO_connect,
-		btn_enable_auditlog, btn_enable_fsq_heard_log,
-		btn_enable_ifkp_audit_log, btn_enable_ifkp_audit_log,
-		btn_Nav_connect, btn_Nav_config, btn_fmt_record,
+		btn_ref_enable, btn_unk_enable, btn_fmt_record ,
+		btnNotifyEnabled,
+		btnDataSourceUpdate,
+		btnDupCheckOn,
+		btn_WKCW_connect, btn_nanoCW_connect, btn_CW_KEYLINE_connect,
+		btn_cw_dtr_calibrate, btn_enable_auditlog,
+		btn_enable_fsq_heard_log, btn_enable_ifkp_audit_log, btn_enable_ifkp_heard_log,
+		btn_nanoIO_connect, btn_nanoio_debug,
+		btn_Nav_connect, btn_Nav_config,
+		btn_WKFSK_connect,
 		btnConnectTalker,
-		btn_unk_enable, btn_ref_enable };
+		btn_FSQCALL, btn_SELCAL, btn_MONITOR,
+		btnAFC, btnSQL, btnPSQL, btnTxRSID,
+		btnTune, btnAutoSpot
+	};
 
 	size_t nbtns = sizeof(buttons)/sizeof(*buttons);
 
 	for (size_t i = 0; i < nbtns; i++) {
 		if (buttons[i] != NULL) {
-			buttons[i]->selection_color(progdefaults.default_btn_color);
+			buttons[i]->color(FL_BACKGROUND_COLOR);
+			buttons[i]->selection_color(RGBCOLOR(default_btn_color));
 			buttons[i]->redraw();
 		}
 	}
+
+	Fl_Check_Button *check_buttons[] = {
+		btn_fd_connect,
+		btn_export_by_date,
+		btnSelectCall,
+		btnSelectName,
+		btnSelectFreq,
+		btnSelectBand,
+		btnSelectMode,
+		btnSelectQSOdateOn,
+		btnSelectQSOdateOff,
+		btnSelectTimeON,
+		btnSelectTimeOFF,
+		btnSelectTX_pwr,
+		btnSelectRSTsent,
+		btnSelectRSTrcvd,
+		btnSelectQth,
+		btnSelectLOC,
+		btnSelectState,
+		btnSelectAge,
+		btnSelectStaCall,
+		btnSelectStaCity,
+		btnSelectStaGrid,
+		btnSelectOperator,
+		btnSelectProvince,
+		btnSelectCountry,
+		btnSelectNotes,
+		btnSelectQSLrcvd,
+		btnSelectQSLsent,
+		btnSelecteQSLrcvd,
+		btnSelecteQSLsent,
+		btnSelectLOTWrcvd,
+		btnSelectLOTWsent,
+		btnSelectQSL_VIA,
+		btnSelectSerialIN,
+		btnSelectSerialOUT,
+		btnSelectCheck,
+		btnSelectXchgIn,
+		btnSelectMyXchg,
+		btnSelectCNTY,
+		btnSelectCONT,
+		btnSelectCQZ,
+		btnSelectDXCC,
+		btnSelectIOTA,
+		btnSelectITUZ,
+		btnSelectClass,
+		btnSelectSection,
+		btnSelect_cwss_serno,
+		btnSelect_cwss_prec,
+		btnSelect_cwss_check,
+		btnSelect_cwss_section,
+		btnSelect_1010,
+		btnCabCall,
+		btnCabFreq,
+		btnCabMode,
+		btnCabQSOdate,
+		btnCabTimeOFF,
+		btnCabRSTsent,
+		btnCabRSTrcvd,
+		btnCabSerialIN,
+		btnCabSerialOUT,
+		btnCabXchgIn,
+		btnCabMyXchg,
+		btnCabState,
+		btnCabCounty,
+
+		btn_dxcc_connect,
+		btn_dxc_auto_connect,
+		brws_order,
+		btn_spot_when_logged,
+		btn_dxc_hertz,
+
+		source_code[0], source_code[1], source_code[2], source_code[3], source_code[4], 
+		source_code[5], source_code[6], source_code[7], source_code[8], source_code[9], 
+		source_code[10], source_code[11], source_code[12], source_code[13], source_code[14], 
+
+		btn_mon_xcvr_audio, 
+		btn_rxgain_x10,
+		btn_mon_dsp_audio,
+		btn_RxFilt_at_track,
+		btn_mon_wf_display,
+		btn_mon_xmt_audio,
+
+//		font_browser->btn_fixed,
+
+		chkNotifyFilterNWB,
+		chkNotifyFilterLOTW,
+		chkNotifyFilterEQSL,
+		chkNotifyDupIgnore,
+		chkNotifyDupBand,
+		chkNotifyDupMode,
+
+		btn_notes_address,
+		btn_clear_notes,
+		btnUseGroupColors,
+		btn_show_all_codes,
+		btn_use_wsjtx_vumeter_scale,
+		btnDupBand,
+		btnDupMode,
+		btnDupTimeSpan,
+		btnDupXchg1,
+		btnDupState,
+		btn599,
+		btnCutNbrs,
+		btnUseLeadingZeros,
+		btnCWID,
+		chkRSidNotifyOnly,
+		chkRSidWideSearch,
+		chkRSidMark,
+		chkRSidAutoDisable,
+		chkRSidShowAlert,
+		chkRetainFreqLock,
+		chkDisableFreqChange,
+		chk_RSID_EOT,
+		btn_post_rsid,
+		btnsendid,
+		btnsendvideotext,
+		chkID_SMALL,
+		btn_vidlimit,
+		btn_vidmodelimit,
+		btnConnectToMaclogger,
+		btn_capture_maclogger_radio,
+		btn_capture_maclogger_log,
+		btn_capture_maclogger_lookup,
+		btn_capture_maclogger_spot_tune,
+		btn_capture_maclogger_spot_report,
+		btn_enable_maclogger_log,
+		btn_maclogger_spot_rx,
+		btn_enable_N3FJP_log,
+		btn_connect_to_n3fjp,
+		btn_N3FJP_sweet_spot,
+		btn_N3FJP_modem_carrier,
+		btn_enable_N3FJP_RIGTX,
+		btn_send_when_logged,
+		btn_send_datetime_off,
+		btn_show_eqsl_delivery,
+		btn_submit_lotw_password,
+		btn_lotw_quiet_mode,
+		btn_submit_lotw,
+		btn_show_lotw_delivery,
+		btnEnCloudlog,
+		btnNagMe,
+		btnClearOnSave,
+		btnCallUpperCase,
+		btnAutoFillQSO,
+		btnDateTimeSort,
+		btndate_time_force,
+		btnRSTindefault,
+		btnRSTdefault,
+		btnDisplayLogbookRead,
+		btn_log_power_meter,
+		btnCWuseSOMdecoding,
+		btnCWrcvTrack,
+		btnCWmfilt,
+		btnCWusefarnsworth,
+		btnQSK,
+		btnQSKadjust,
+		btnCW_use_paren,
+		btnCW_prosign_display,
+		btn_A_aelig,
+		btn_A_umlaut,
+		btn_A_ring,
+		btn_O_acute,
+		btn_O_slash,
+		btn_O_umlaut,
+		btn_C_cedilla,
+		btn_E_grave,
+		btn_E_acute,
+		btn_N_tilde,
+		btn_U_umlaut,
+		btn_U_circ,
+		btn_CW_backslash,
+		btn_CW_apostrophe,
+		btn_CW_quote,
+		btn_CW_dollar_sign,
+		btn_CW_open_paren,
+		btn_CW_close_paren,
+		btn_CW_colon,
+		btn_CW_semi_colon,
+		btn_CW_underscore,
+		btn_CW_at_symbol,
+		btn_CW_exclamation,
+		btn_CW_noise0,
+		btn_CW_noise1,
+		btn_CW_noise2,
+		btn_CW_noise3,
+		btn_WK_use_pot,
+		btn_WK_swap,
+		btn_WK_auto_space,
+		btn_WK_ct_space,
+		btn_WK_paddledog,
+		btn_WK_cut_zeronine,
+		btn_WK_paddle_echo,
+		btn_WK_serial_echo,
+		btn_WK_sidetone_on,
+		btn_WK_tone_on,
+		btn_WK_ptt_on,
+		btnK3NG,
+		btn_nanoIO_pot,
+		btn_disable_CW_PTT,
+		chk_nanoIO_CW_io,
+		btn_CW_KEYLINE_flrig,
+		btn_FLRIG_CW_disable_ptt,
+		btn_CW_KEYLINE_catport,
+		btn_CW_KEYLINE_shared_PTT,
+		btn_use_ICOMkeying,
+		btn_use_ELCTkeying,
+		btn_use_KNWDkeying,
+		btn_use_YAESUkeying,
+		btn_CAT_CW_disable_ptt,
+		valDominoEX_FILTER,
+		chkDominoEX_FEC,
+		btnFeldHellIdle,
+		btnBlackboard,
+		btnHellMarquee,
+		btn_fmt_plot_over_axis,
+		btn_fmt_thick_lines,
+		btn_fmt_unk_bpf_on,
+		btn_fmt_ref_bpf_on,
+		btn_fmt_autorecord,
+		btn_fmt_record_wav,
+		btn_fmt_sync_wav,
+		btn_fmt_center_on_unknown,
+		btn_fmt_center_on_reference,
+		btn_fmt_center_on_median,
+		btn_fmt_use_tabs,
+		btn_fsq_lowercase,
+		btn_fsq_msg_dt_stamp,
+		btn_fsq_msg_append,
+		btn_ifkp_lowercase,
+		btn_ifkp_lowercase_call,
+		btn_ifkp_freqlock,
+		btnMT63_8bit,
+		btnMT63_rx_integration,
+		btnMT63_usetones,
+		btnMT63_upper_lower,
+		btnMT63_at500,
+		btnMT63_centered,
+		btnMT63_manual,
+		btnContestia_8bit,
+		btnContestia_start_stop_tones,
+		btn_olivia_reset_fec,
+		btnOlivia_8bit,
+		btnOlivia_start_stop_tones,
+		btnEnablePSKbrowsing,
+		btnPSKpilot,
+		btnPSK8Preamble,
+		chkUOSrx,
+		btnRxTones[0], btnRxTones[1], btnRxTones[2], 
+		btnPreferXhairScope,
+		chk_true_scope,
+		chk_useMARKfreq,
+		chk_audibleBELL,
+		chk_visibleBELL,
+		btnAUTOCRLF,
+		btnCRCRLF,
+		chkUOStx,
+		chk_shaped_rtty,
+		chkPseudoFSK,
+		btnFSKenabled,
+		btnFSKshared,
+		btnFSKreverse,
+		btnFSKuseDTR,
+		btnFSK_STOPBITS,
+		btn_FSK_KEYLINE_flrig,
+		chk_nanoIO_polarity,
+		chk_nanoIO_FSK_io,
+		btnSynopAdifDecoding,
+		btnSynopKmlDecoding,
+		btnSynopInterleaved,
+		valTHOR_FILTER,
+		valTHOR_PREAMBLE,
+		valTHOR_SOFTSYMBOLS,
+		valTHOR_SOFTBITS,
+		btnNvtxAdifLog,
+		btnNvtxKmlLog,
+		btnWefaxAdifLog,
+		btn_flrig_auto_enable,
+		btn_flamp_auto_enable,
+		btn_flnet_auto_enable,
+		btn_fllog_auto_enable,
+		btn_prog1_auto_enable,
+		btn_prog2_auto_enable,
+		btn_prog3_auto_enable,
+		chkSlowCpu,
+		chkDTMFdecode,
+		btnKmlPurgeOnStartup,
+		btn_kml_enabled,
+		chkAutoExtract,
+		chk_open_wrap_folder,
+		chk_open_flmsg,
+		chk_open_flmsg_print,
+		chk_transfer__to_open_flmsg,
+		btnPSKRepAuto,
+		btnPSKRepLog,
+		btnPSKRepQRG,
+		btn_report_when_visible,
+		btn_pskrep_autostart,
+		btnEnableBusyChannel,
+		btnEnable_csma,
+		btnEnable_histogram,
+		btn_show_psm_button,
+		btn_auto_talk,
+		chkRxStream,
+		btnTXLEVEL_by_mode,
+		btnSQLCH_by_mode,
+		btnAFC_by_mode,
+		btnREVERSE_by_mode,
+		btnStartAtSweetSpot,
+		btnCWIsLSB,
+		btnDisable_p2p_io_widgets,
+		btnEnable_arq,
+		btnEnable_kiss,
+		btnEnable_dual_port,
+		btnKissTCPIO,
+		btnKissUDPIO,
+		btnKissTCPListen,
+		btnEnable_7bit_modem_inhibit,
+		btnEnable_auto_connect,
+		btnEnable_ax25_decode,
+		chk_flrig_keys_modem,
+		btn_fldigi_client_to_flrig,
+		btn_flrig_auto_shutdown,
+		chkUSERIGCAT,
+		btnRigCatEcho,
+		btnRigCatRTSplus,
+		btnRigCatDTRplus,
+		chkRigCatRTSCTSflow,
+		chk_restore_tio,
+		chkRigCatVSP,
+/*
+		btn_enable_gpio[0], btn_enable_gpio[1], btn_enable_gpio[2], btn_enable_gpio[3], btn_enable_gpio[4], 
+		btn_enable_gpio[5], btn_enable_gpio[6], btn_enable_gpio[7], btn_enable_gpio[8], btn_enable_gpio[9], 
+		btn_enable_gpio[10], btn_enable_gpio[11], btn_enable_gpio[12], btn_enable_gpio[13], btn_enable_gpio[14], 
+		btn_enable_gpio[15], btn_enable_gpio[16], 
+
+		btn_gpio_on[0], btn_gpio_on[1], btn_gpio_on[2], btn_gpio_on[3], btn_gpio_on[4],
+		btn_gpio_on[5], btn_gpio_on[6], btn_gpio_on[7], btn_gpio_on[8], btn_gpio_on[9], 
+		btn_gpio_on[10], btn_gpio_on[11], btn_gpio_on[12], btn_gpio_on[13], btn_gpio_on[14], 
+		btn_gpio_on[15], btn_gpio_on[16],
+*/
+		chkUSEHAMLIB,
+		btnHamlibCMDptt,
+		btnHamlibPTT_ON_DATA,
+		btnHamlibDTRplus,
+		chkHamlibRTSplus,
+		chkHamlibRTSCTSflow,
+		chkHamlibXONXOFFflow,
+		chk_hamlib_cw_is_lsb,
+		chk_hamlib_rtty_is_usb,
+		btnPTTrightchannel,
+		btn_enable_regex_match_wa,
+		btn_enable_mycall_match_wav,
+		btn_enable_rsid_match_wav,
+		btn_enable_flmsg_wav,
+		btn_enable_flmsg_time_out_wav,
+		chkAudioStereoOut,
+		chkReverseAudio,
+		btnPTTrightchannel2,
+		btnQSK2,
+		chkPseudoFSK2,
+		chkReverseRxAudio,
+		btn_use_wsjtx_vumeter_scale2,
+		btn_record_both,
+		btnFixedIntervals,
+		btnMarquee,
+		btnAscend,
+		btnBrowserHistory,
+		btnShowTooltips,
+		chkMenuIcons,
+		btn_rx_lowercase,
+		btn_tx_lowercase,
+		btn_save_config_on_exit,
+		btn2_save_macros_on_exit,
+		btn2NagMe,
+		btn2_confirm_exit,
+		btn_check_for_updates,
+		btn_tx_show_timer,
+		btnMacroMouseWheel,
+		btnUseLastMacro,
+		btnDisplayMacroFilename,
+		btn_save_macros_on_exit,
+		btn_macro_post,
+		btn_4bar_position,
+		btnRXClicks,
+		btnRXTooltips,
+		btnUSunits,
+		btn_clear_fields,
+		btn_rxtx_swap,
+		btnWF_UIrev,
+		btnWF_UIx1,
+		btnWF_UIwfcarrier,
+		btnWF_UIwfshift,
+		btnWF_UIwfreflevel,
+		btnWF_UIwfdrop,
+		btnWF_UIwfampspan,
+		btnWF_UIwfstore,
+		btnWF_UIwfmode,
+		btnWF_UIqsy,
+		btnWF_UIxmtlock,
+		btnUseCursorLines,
+		btnUseWideCursor,
+		btnUseCursorCenterLine,
+		btnUseWideCenter,
+		btnUseBWTracks,
+		btnUseWideTracks,
+		btnUseWideMonitor,
+		chkShowAudioScale,
+		btnViewXmtSignal,
+		btnWFaveraging,
+		btnWaterfallHistoryDefault,
+		btnWaterfallQSY,
+		btnWaterfallClickInsert,
+		btnWFspectrum_center,
+		btnWFspectrum_dbvals,
+		btn_spectrum_modem_scale,
+		btnPSKmailSweetSpot,
+		btn_arq_s2n_report,
+		btn_wx_full,
+		btn_wx_station_name,
+		btn_wx_condx,
+		btn_wx_fahrenheit,
+		btn_wx_celsius,
+		btn_wx_mph,
+		btn_wx_kph,
+		btn_wx_inches,
+		btn_wx_mbars,
+		btn_wx_raw,
+
+		btnNoiseOn,
+		btnOffsetOn,
+		btn_imd_on
+	};
+
+	size_t ncheck_btns = sizeof(check_buttons)/sizeof(*check_buttons);
+
+	for (size_t i = 0; i < ncheck_btns; i++) {
+		if (check_buttons[i] != NULL) {
+			check_buttons[i]->color( RGBCOLOR( default_check_btn_color ));
+			check_buttons[i]->redraw();
+		}
+	}
+
+	Fl_Round_Button *round_buttons[] = {
+		chkNotifyFilterCall, chkNotifyFilterDXCC,
+		btnQRZWEBnotavailable, btnQRZonline,
+		btnHAMCALLonline, btnHamQTHonline,
+		btnCallookOnline, btnQRZXMLnotavailable,
+		btnQRZcdrom, btnQRZsub,
+		btnHamcall, btnHamQTH,
+		btnCALLOOK, 
+		btn_fsqbaud[0], btn_fsqbaud[1], btn_fsqbaud[2], btn_fsqbaud[3], btn_fsqbaud[4],
+		btn_ifkpbaud[0], btn_ifkpbaud[1], btn_ifkpbaud[2], 
+		btnRigCatCMDptt, btnRigCatRTSptt, btnRigCatDTRptt,
+		btnTTYptt, btnSCU_17,
+		btnUsePPortPTT, btnUseUHrouterPTT,
+		btnRTSptt, btnRTSplusV, btnDTRptt, btnDTRplusV,
+		btn_use_cmedia_PTT,
+		btnAudioIO[0], btnAudioIO[1], btnAudioIO[2], btnAudioIO[3], 
+		btn_is_full_duplex,
+		btn_enable_audio_alerts,
+		btn_scheme_0, btn_scheme_1, btn_scheme_2, btn_scheme_3,
+		btn_scheme_4, btn_scheme_5, btn_scheme_6, btn_scheme_7,
+		btn_scheme_8, btn_scheme_9, btn_scheme_10, btn_scheme_11,
+		btn_scheme_12
+	};
+
+	size_t nround_btns = sizeof(round_buttons)/sizeof(*round_buttons);
+
+	for (size_t i = 0; i < nround_btns; i++) {
+		if (round_buttons[i] != NULL) {
+			round_buttons[i]->selection_color( RGBCOLOR( default_round_btn_color ) );
+			round_buttons[i]->redraw();
+		}
+	}
+
 	trx_mode md = active_modem->get_mode();
 	if ((md > MODE_WEFAX_FIRST) && (md <= MODE_WEFAX_LAST)) {
-		wefax_round_rx_noise_removal->selection_color(progdefaults.default_btn_color);
-		wefax_round_rx_binary->selection_color(progdefaults.default_btn_color);
-		wefax_round_rx_non_stop->selection_color(progdefaults.default_btn_color);
+		wefax_round_rx_noise_removal->selection_color( RGBCOLOR( default_btn_color ) );
+		wefax_round_rx_binary->selection_color( RGBCOLOR( default_btn_color ) );
+		wefax_round_rx_non_stop->selection_color( RGBCOLOR( default_btn_color ) );
 	}
 
 }
 
 void set_colors()
 {
+	set_default_btn_color();
+
 	spot_selection_color();
 	tune_selection_color();
 	txid_selection_color();
@@ -9596,7 +10822,6 @@ void set_colors()
 	afc_selection_color();
 	xmtlock_selection_color();
 	tune_selection_color();
-	set_default_btn_color();
 	set_log_colors();
 }
 
@@ -9762,15 +10987,15 @@ void enable_disable_kpsql(void)
 {
 	if (progdefaults.data_io_enabled == KISS_IO) {
 		check_kiss_modem();
-		//btnPSQL->activate();
-		//if(progStatus.kpsql_enabled || progdefaults.kpsql_enabled) {
-		//    btnPSQL->value(true);
-		//    btnPSQL->do_callback();
-		//}
+//		btnPSQL->activate();
+		if(progStatus.kpsql_enabled || progdefaults.kpsql_enabled) {
+		    btnPSQL->value(true);
+		    btnPSQL->do_callback();
+		}
 	} else {
 		sldrSquelch->value(progStatus.sldrSquelchValue);
-		//btnPSQL->value(false);
-		//btnPSQL->deactivate();
+		btnPSQL->value(false);
+//		btnPSQL->deactivate();
 	}
 
 	progStatus.data_io_enabled = progdefaults.data_io_enabled;
@@ -10201,9 +11426,9 @@ void cb_heard_send_image(Fl_Widget *w, void *)
 	fsq_showTxViewer('L');
 }
 
-static const Fl_Menu_Item *heard_popup;
+static Fl_Menu_Item *heard_popup;
 
-static const Fl_Menu_Item all_popup[] = {
+static Fl_Menu_Item all_popup[] = {
 	{ "Copy", 0, cb_heard_copy, 0 },
 	{ "Copy All", 0, cb_heard_copy_all, 0 , FL_MENU_DIVIDER },
 	{ "Send File To... (#)", 0, cb_heard_send_file, 0, FL_MENU_DIVIDER },
@@ -10211,7 +11436,7 @@ static const Fl_Menu_Item all_popup[] = {
 	{ 0, 0, 0, 0 }
 };
 
-static const Fl_Menu_Item directed_popup[] = {
+static Fl_Menu_Item directed_popup[] = {
 	{ "Copy", 0, cb_heard_copy, 0 },
 	{ "Log call", 0, cb_heard_copy_to_log, 0 },
 	{ "Copy All", 0, cb_heard_copy_all, 0 },
@@ -10460,19 +11685,29 @@ void display_fsq_mon_text(std::string text, int style)
 
 void cbFSQQTC(Fl_Widget *w, void *d)
 {
+	int mouse = Fl::event_button();
+	if (mouse == FL_RIGHT_MOUSE) {
+		open_config(TAB_FSQ);
+		return;
+	}
 	fsq_tx_text->add(progdefaults.fsqQTCtext.c_str());
+	restoreFocus();
+}
+
+void cbFSQQTH(Fl_Widget *w, void *d)
+{
+	int mouse = Fl::event_button();
+	if (mouse == FL_RIGHT_MOUSE) {
+		open_config(TAB_FSQ);
+		return;
+	}
+	fsq_tx_text->add(progdefaults.myQth.c_str());
 	restoreFocus();
 }
 
 void cbFSQCQ(Fl_Widget *w, void *d)
 {
 	fsq_xmt("cqcqcq");
-	restoreFocus();
-}
-
-void cbFSQQTH(Fl_Widget *w, void *d)
-{
-	fsq_tx_text->add(progdefaults.myQth.c_str());
 	restoreFocus();
 }
 
@@ -10578,7 +11813,7 @@ void FHdisp_char_height()
 			text_panel->h() - 2*minhtext);
 	minbox->redraw();
 
-//	UI_select();
+//	UI_select(__func__);
 
 }
 
@@ -10596,4 +11831,178 @@ void StatusBar_cb(Fl_Box *bx, void *d)
 	progStatus.vumeter_shown = 1;
 }
 
+void change_menu_fonts( Fl_Font font, int size)
+{
+	for (int i = 0; i < main_menu_size; i++) {
+		if (menu_[i].text) {
+			menu_[i].labelfont_ = font;
+			menu_[i].labelsize_ = size;
+		}
+	}
+	mnuFrame->redraw();
 
+	for (size_t n = 0; n < sizeof(quick_change_ifkp) / sizeof(*quick_change_ifkp); n++) {
+		quick_change_ifkp[n].labelfont_ = font;
+		quick_change_ifkp[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_fsq) / sizeof(*quick_change_fsq); n++) {
+		quick_change_fsq[n].labelfont_ = font;
+		quick_change_fsq[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_rtty) / sizeof(*quick_change_rtty); n++) {
+		quick_change_rtty[n].labelfont_ = font;
+		quick_change_rtty[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_contestia) / sizeof(*quick_change_contestia); n++) {
+		quick_change_contestia[n].labelfont_ = font;
+		quick_change_contestia[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_olivia) / sizeof(*quick_change_olivia); n++) {
+		quick_change_olivia[n].labelfont_ = font;
+		quick_change_olivia[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_throb) / sizeof(*quick_change_throb); n++) {
+		quick_change_throb[n].labelfont_ = font;
+		quick_change_throb[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_feld) / sizeof(*quick_change_feld); n++) {
+		quick_change_feld[n].labelfont_ = font;
+		quick_change_feld[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_domino) / sizeof(*quick_change_domino); n++) {
+		quick_change_domino[n].labelfont_ = font;
+		quick_change_domino[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_thor) / sizeof(*quick_change_thor); n++) {
+		quick_change_thor[n].labelfont_ = font;
+		quick_change_thor[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_mt63) / sizeof(*quick_change_mt63); n++) {
+		quick_change_mt63[n].labelfont_ = font;
+		quick_change_mt63[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_navtex) / sizeof(*quick_change_navtex); n++) {
+		quick_change_navtex[n].labelfont_ = font;
+		quick_change_navtex[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_wefax) / sizeof(*quick_change_wefax); n++) {
+		quick_change_wefax[n].labelfont_ = font;
+		quick_change_wefax[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_mfsk) / sizeof(*quick_change_mfsk); n++) {
+		quick_change_mfsk[n].labelfont_ = font;
+		quick_change_mfsk[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_psk_multi) / sizeof(*quick_change_psk_multi); n++) {
+		quick_change_psk_multi[n].labelfont_ = font;
+		quick_change_psk_multi[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_psk) / sizeof(*quick_change_psk); n++) {
+		quick_change_psk[n].labelfont_ = font;
+		quick_change_psk[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_psk_multiR) / sizeof(*quick_change_psk_multiR); n++) {
+		quick_change_psk_multiR[n].labelfont_ = font;
+		quick_change_psk_multiR[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_pskr) / sizeof(*quick_change_pskr); n++) {
+		quick_change_pskr[n].labelfont_ = font;
+		quick_change_pskr[n].labelsize_ = size;
+	}
+/* Commented out pending development work by KL4YFD
+	for (size_t n = 0; n < sizeof(quick_change_ofdm) / sizeof(*quick_change_ofdm); n++) {
+		quick_change_ofdm[n].labelfont_ = font;
+		quick_change_ofdm[n].labelsize_ = size;
+	}
+*/
+	for (size_t n = 0; n < sizeof(quick_change_8psk) / sizeof(*quick_change_8psk); n++) {
+		quick_change_8psk[n].labelfont_ = font;
+		quick_change_8psk[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(quick_change_qpsk) / sizeof(*quick_change_qpsk); n++) {
+		quick_change_qpsk[n].labelfont_ = font;
+		quick_change_qpsk[n].labelsize_ = size;
+	}
+
+	for (size_t n = 0; n < sizeof(all_popup) / sizeof(*all_popup); n++) {
+		all_popup[n].labelfont_ = font;
+		all_popup[n].labelsize_ = size;
+	}
+	for (size_t n = 0; n < sizeof(directed_popup) / sizeof(*directed_popup); n++) {
+		directed_popup[n].labelfont_ = font;
+		directed_popup[n].labelsize_ = size;
+	}
+
+	btnMacroTimer->labelsize(size);
+	btnMacroTimer->labelfont(font);
+	btnMacroTimer->redraw_label();
+	btnMacroTimer->redraw();
+
+	btnTune->labelsize(size);
+	btnTune->labelfont(font);
+	btnTune->redraw_label();
+	btnTune->redraw();
+
+	btnTxRSID->labelsize(size);
+	btnTxRSID->labelfont(font);
+	btnTxRSID->redraw_label();
+	btnTxRSID->redraw();
+
+	btnRSID->labelsize(size);
+	btnRSID->labelfont(font);
+	btnRSID->redraw_label();
+	btnRSID->redraw();
+
+	btnAutoSpot->labelsize(size);
+	btnAutoSpot->labelfont(font);
+	btnAutoSpot->redraw_label();
+	btnAutoSpot->redraw();
+
+	btn_EnableVideo_ID->labelsize(size);
+	btn_EnableVideo_ID->labelfont(font);
+	btn_EnableVideo_ID->redraw_label();
+	btn_EnableVideo_ID->redraw();
+
+	tx_timer->labelsize(size);
+	tx_timer->labelfont(font);
+	tx_timer->redraw_label();
+	tx_timer->redraw();
+
+}
+
+// cwsettings support code
+
+void cb_btncwsrcvTrack(Fl_Check_Button* o, void*) {
+  progdefaults.CWtrack = o->value();
+  btnCWrcvTrack->value(o->value());
+  progdefaults.changed = true;
+}
+
+void cb_cntcwsrange(Fl_Counter2* o, void*) {
+  progdefaults.CWrange = (int)o->value();
+  cntCWrange->value(o->value());
+  progdefaults.changed = true;
+}
+
+void cb_btncwsuseSOMdecoding(Fl_Check_Button* o, void*) {
+  progdefaults.CWuseSOMdecoding = o->value();
+  btnCWuseSOMdecoding->value(o->value());
+
+  progdefaults.changed = true;
+}
+
+void cb_btncwsmfilt(Fl_Check_Button* o, void*) {
+  progdefaults.CWmfilt = o->value();
+  btnCWmfilt->value(o->value());
+  if (active_modem == cw_modem)
+    active_modem->reset_rx_filter();
+  progdefaults.changed = true;
+}
+
+void cb_cntcwsbandwidth(Fl_Counter2* o, void*) {
+  progdefaults.CWbandwidth = (int)o->value();
+  cntCWbandwidth->value(o->value());
+  if (active_modem == cw_modem)
+    active_modem->reset_rx_filter();
+  progdefaults.changed = true;
+}

@@ -3,7 +3,7 @@
 //
 //         for the Fast Light Tool Kit (FLTK) 1.1.x .
 //
-//    David Freese, w1hkj@w1hkj.com
+//    David Freese, w1hkj25@gmail.com
 //    based on similar widget by Mariwan Jalal
 //
 // ----------------------------------------------------------------------------
@@ -30,6 +30,7 @@
 #define FONTBROWSER_H
 
 #include <string>
+#include <list>
 
 #include <FL/Enumerations.H>
 #include <FL/Fl_Window.H>
@@ -55,22 +56,21 @@ public:
 };
 
 // Font browser widget
+struct font_pair {
+	int  nbr;
+	std::string name;
+	font_pair() {
+		nbr = 0;
+		name.clear();
+	}
+	~font_pair() {
+	}
+};
+
 class Font_Browser : public Fl_Window
 {
-friend void *find_fixed_fonts(void *);
-
 public:
-	struct font_pair {
-		int  nbr;
-		std::string *name;
-		font_pair() {
-			nbr = 0;
-			name = 0;
-		}
-		~font_pair() {
-			if (name) delete name;
-		}
-	};
+friend void *find_fixed_fonts(void *);
 
 	enum filter_t { FIXED_WIDTH, VARIABLE_WIDTH, ALL_TYPES };
 
@@ -78,7 +78,8 @@ public:
 // created for instance 1 and deleted for instance 0
 
 	static int			*fixed;
-	static font_pair	*font_pairs;
+	static std::list<font_pair>		font_list;
+	font_pair			nufont;
 	static int			instance;
 	static int			numfonts;
 

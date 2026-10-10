@@ -167,6 +167,12 @@ of this document. See \ref sScriptSyntax and \ref sExampleScript
 \ref ss_hrdwr_pp     "PARALLEL"        &nbsp; \| &nbsp;
 \ref ss_hrdwr_init   "INIT"
 
+\ref ss_cmedia "CMEDIA PTT"
+\par
+\ref ss_cmedia_ptt     "CMEDIA_PTT"       &nbsp; \| &nbsp;
+\ref ss_cmedia_device  "CMEDIA_DEVICE"    &nbsp; \| &nbsp;
+\ref ss_cmedia_gpio    "CMEDIA_GPIO_LINE"
+
 \ref ss_rigcat "RIGCAT"
 \par
 \ref ss_rigcat_state   "STATE"          &nbsp; \| &nbsp;
@@ -257,6 +263,7 @@ of this document. See \ref sScriptSyntax and \ref sExampleScript
 \ref sss_open_squelch        "RSID.SQL OPEN"       &nbsp; \| &nbsp;
 \ref sss_pretone             "RSID.PRETONE"        &nbsp; \| &nbsp;
 \ref sss_end_of_xmit_id      "RSID.END XMT ID"     &nbsp; \| &nbsp;
+\ref sss_set_bandpass        "RSID.MIN_BW"         &nbsp; \| &nbsp;
 \ref sss_id_mode             "VIDEO.ID MODE"       &nbsp; \| &nbsp;
 \ref sss_ed_video_text       "VIDEO.VIDEO TXT"     &nbsp; \| &nbsp;
 \ref sss_input_video_text    "VIDEO.TEXT INPUT"    &nbsp; \| &nbsp;
@@ -868,7 +875,7 @@ INIT:
 
 | Structured | Dot Notation |
 |:-----------|:-------------|
-| <tt>RIGCAT:<br> STATE:ENABLE<br>END:</tt>           | <tt>RIG HRDWR PTT.STATE:ENABLE</tt> |
+| <tt>RIGCAT:<br> STATE:ENABLE<br>END:</tt>                             | <tt>RIG HRDWR PTT.STATE:ENABLE</tt> |
 | <tt>RIGCAT:<br> DEV PATH:/dev/tty.usbserial-RT071600<br>END:</tt>     | <tt>RIGCAT.DEV PATH:COM1</tt> |
 | <tt>RIGCAT:<br> DESC FILE:/Users/.fldigi/rigs/FT-817.xml<br>END:</tt> | <tt>RIGCAT.DESC FILE:/Users/.fldigi/rigs/FT-817.xml</tt> |
 | <tt>RIGCAT:<br> RETRIES:2<br>END:</tt>              | <tt>RIGCAT.RETRIES:2</tt> |
@@ -890,13 +897,51 @@ INIT:
 | <tt>RIGCAT:<br> INIT:<br>END:</tt>                  | <tt>RIGCAT.INIT:</tt> |
 
 <br>
+
+\section ss_cmedia CMEDIA PTT Commands
+
+See \ref cmedia_ptt
+
+\subsection ss_cmedia_ptt  CMEDIA_PTT
+
+Enable / disable C-Media PTT interface.
+
+CMEDIA_PTT:\<ENABLE | DISABLE\>
+
+\subsection ss_cmedia_device  CMEDIA_DEVICE
+
+OS set variable (C) values A,B,... etc., or NONE
+
+CMEDIA_DEVICE:\<NONE\>
+
+or
+
+CMEDIA_DEVICE:\<C-Media-(C)\>
+
+\subsection ss_cmedia_gpio  CMEDIA_GPIO_LINE
+
+Setting GPIO line number to use. (N) values 1, 2, 3, or 4.
+
+CMEDIA_GPIO_LINE:\<GPIO-(N)\>
+
+\subsection ss_cmedia_examples Examples
+
+| Structured | Dot Notation |
+|:-----------|:-------------|
+| <tt>CMEDIA PTT:<br> CMEDIA_PTT:DISABLE      <br>END:</tt>  | <tt>CMEDIA PTT.CMEDIA_PTT:DISABLE</tt>      |
+| <tt>CMEDIA PTT:<br> CMEDIA_DEVICE:NONE      <br>END:</tt>  | <tt>CMEDIA PTT.CMEDIA_DEVICE:NONE</tt>      |
+| <tt>CMEDIA PTT:<br> CMEDIA_DEVICE:C-Media-A <br>END:</tt>  | <tt>CMEDIA PTT.CMEDIA_DEVICE:C-Media-A</tt> |
+| <tt>CMEDIA PTT:<br> CMEDIA_GPIO_LINE:GPIO-3 <br>END:</tt>  | <tt>CMEDIA PTT.CMEDIA_GPIO_LINE:GPIO-3</tt> |
+
+<br>
+
 \section ss_hamlib HAMLIB Commands
 
 See \ref hamlib_cat_control
 
 \subsection ss_hamlib_s  Use Hamlib
 
-Enable to disable Hamlib Rig Control interface.
+Enable / disable Hamlib Rig Control interface.
 
 STATE:\<ENABLE | DISABLE\>
 
@@ -1220,7 +1265,7 @@ TIMEOUT:\<Character String\>
 | <tt>MISC NBEMS:<br> OPEN FLMSG:ENABLE<br>END:</tt>                | <tt>MISC NBEMS.OPEN FLMSG:ENABLE</tt> |
 | <tt>MISC NBEMS:<br> OPEN BRWSR:DISABLE<br>END:</tt>               | <tt>MISC NBEMS.OPEN BRWSR:DISABLE</tt> |
 | <tt>MISC NBEMS:<br> TIMEOUT:4.0<br>END:</tt>                      | <tt>MISC NBEMS.TIMEOUT:4.0</tt> |
-| <tt>MISC NBEMS:<br> PATH:c:/applications/nbems/flmsg<br>END:</tt> | <tt>MISC PATH:c:/applications/nbems/flmsg</tt> |
+| <tt>MISC NBEMS:<br> PATH:c:/nbems/flmsg<br>END:</tt>              | <tt>MISC NBEMS.PATH:c:/nbems/flmsg</tt> |
 
 \section s_id ID
 
@@ -1238,9 +1283,15 @@ NOTIFY:\<ENABLE | DISABLE\>
 \subsubsection sss_search_bandpass Searches passband
 
 Search the entire band pass for RSID signatures (Enabled). Otherwise search
-center frequency +/- 200Hz
+center frequency +/- 200Hz (Adjustable by \ref sss_set_bandpass command)
 
 SRCH BP:\<ENABLE | DISABLE\>
+
+\subsubsection sss_set_bandpass Limit RSID search bandpass (HZ)
+
+Adjust RSID search bandwidth in HZ around frequency center.
+
+MIN_BW:\<NUMERICAL VALUE IN HERTZ\>
 
 \subsubsection sss_mark_prev_mode Mark prev freq/mode
 
@@ -1383,6 +1434,7 @@ speed allowing for CW identifing.
 | <tt>ID:<br>RSID:<br>SQL OPEN:5<br>END:<br>END:</tt>           | <tt>ID.RSID.SQL OPEN:5</tt> |
 | <tt>ID:<br>RSID:<br>PRETONE:0.000<br>END:<br>END:</tt>        | <tt>ID.RSID.PRETONE:0.000</tt> |
 | <tt>ID:<br>RSID:<br>END XMT ID:DISABLE<br>END:<br>END:</tt>   | <tt>ID.RSID.END XMT ID:DISABLE</tt> |
+| <tt>ID:<br>RSID:<br>MIN_BW:200<br>END:<br>END:</tt>           | <tt>ID.RSID.MIN_BW:200</tt> |
 
 <br>
 | Structured | Dot Notation |

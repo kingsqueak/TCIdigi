@@ -137,6 +137,7 @@ extern int process_rsid_allow_errors(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 extern int process_rsid_sql_open(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 extern int process_rsid_pretone(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 extern int process_rsid_end_xmt_id(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
+extern int process_rsid_min_bw(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 extern int process_video_tx_id_mode(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 extern int process_video_tx_vid_txt(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 extern int process_video_txt_input(ScriptParsing *sp, SCRIPT_COMMANDS *sc);

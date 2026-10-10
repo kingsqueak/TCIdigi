@@ -146,7 +146,6 @@ enum {
 protected:
 // general
 	double phaseacc;
-	int symlen;
 	int symbits;
 	int numtones;
 	int basetone;

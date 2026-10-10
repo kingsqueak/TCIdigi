@@ -46,7 +46,7 @@
 #    define CLOCK_REALTIME 0
 #    define CLOCK_MONOTONIC 6
 #  endif
-#  if TIME_WITH_SYS_TIME
+#  if HAVE_SYS_TIME_H
 #    include <sys/time.h>
 #  endif
 #endif
@@ -151,6 +151,7 @@ FSK::FSK()
 
 	shared_port = false;
 	_sending = false;
+	fsk_port = new Cserial();
 }
 
 FSK::~FSK()
@@ -159,7 +160,8 @@ FSK::~FSK()
 	if (shared_port)
 		return;
 	fsk_port->ClosePort();
-}
+	delete fsk_port;
+ }
 
 void FSK::open_port(std::string device_name)
 {
@@ -175,7 +177,8 @@ void FSK::fsk_shares_port(Cserial *shared_device)
 {
 //std::cout << "fsk shares port : " << shared_device << std::endl;
 	shared_port = true;
-	fsk_port = shared_device;
+	delete fsk_port;
+ 	fsk_port = shared_device;
 }
 
 bool FSK::sending() {
@@ -393,7 +396,7 @@ void FSK::fskbit(int bit, double secs)
 
 	t3 = fsk_now();
 	while (t3 < end1 && (++loop1 < n1)) {
-		nanosleep(&tv, NULL);
+		nano_sleep(&tv, NULL);
 		t3 = fsk_now();
 	}
 

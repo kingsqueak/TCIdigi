@@ -33,6 +33,8 @@
 #include <iterator>
 #include <cstring>
 
+#include <FL/filename.H>
+
 #include "rigsupport.h"
 #include "rigxml.h"
 #include "rigio.h"
@@ -41,17 +43,15 @@
 #include "main.h"
 #include "fl_digi.h"
 #include "trx.h"
-
 #include "configuration.h"
-
 #include "globals.h"
-
 #include "debug.h"
 #include "tci.h"
-
 #include "gettext.h"
+#include "status.h"
+#include "fileselect.h"
 
-extern void n3fjp_set_freq(long);
+extern void n3fjp_set_freq(unsigned long long);
 extern bool n3fjp_connected;
 
 LOG_FILE_SOURCE(debug::LOG_RIGCONTROL);
@@ -195,37 +195,39 @@ void updateSelect()
 {
 	if (freqlist.empty())
 		return;
+    qso_opBrowser->clear(); // Prevent the list from doubling in size on each reload.
 	for (size_t i = 0; i < freqlist.size(); i++) {
 		qso_opBrowser->add(freqlist[i].str().c_str());
 	}
 }
 
-size_t updateList(long rf, int freq, std::string rmd, trx_mode md, std::string usage = "")
+long updateList(unsigned long long rf, int freq, std::string rmd, trx_mode md, std::string usage = "")
 {
 	qrg_mode_t m;
+    size_t index = 0;
+   
 	m.rmode = rmd;
 	m.mode = md;
 	m.rfcarrier = rf;
 	m.carrier = freq;
 	m.usage = usage;
 
+   for(index = 0; index < freqlist.size(); index++) {
+      if (freqlist[index] == m) return -1;
+   }   
+   
 	freqlist.push_back(m);
 	sort(freqlist.begin(), freqlist.end());
 
-	std::vector<qrg_mode_t>::const_iterator pos = find(freqlist.begin(), freqlist.end(), m);
-	if (pos != freqlist.end())
-		return pos - freqlist.begin();
-	else
-		return 0;
-
+   return index;
 }
 
-size_t addtoList(long val)
+long addtoList(unsigned long long val)
 {
 	qrg_mode_t m;
 
 	m.rfcarrier = val;
-
+    Fl::lock();
 	if (strlen(qso_opMODE->value()))
 		m.rmode = qso_opMODE->value();
 
@@ -233,14 +235,25 @@ size_t addtoList(long val)
 		m.carrier = active_modem->get_freq();
 		m.mode = active_modem->get_mode();
 	}
+    Fl::unlock();
 	return updateList(val, m.carrier, m.rmode, m.mode);
 }
 
-bool readFreqList()
+bool readFreqList(bool bdef)
 {
-	std::ifstream freqfile((HomeDir + "frequencies2.txt").c_str());
+	std::string fname = HomeDir + progStatus.default_frequencies_filename;
+	if (bdef) {
+		std::string defname = FSEL::select(
+			"Load from frequency list file",
+			"*.txt",
+			fname.c_str());
+		if (defname.empty()) return false;
+		fname = defname;
+	}
+
+	std::ifstream freqfile((fname).c_str());
 	if (!freqfile) {
-		LOG_ERROR("Could not open %s", (HomeDir + "frequencies2.txt").c_str());
+		LOG_ERROR("Could not open %s", (fname).c_str());
 		return false;
 	}
 
@@ -254,21 +267,35 @@ bool readFreqList()
 		is >> m;
 		freqlist.push_back(m);
 	}
+   
 	sort(freqlist.begin(), freqlist.end());
 	updateSelect();
 
 	freqfile.close();
 
-	return freqlist.size();
+	progStatus.default_frequencies_filename = fl_filename_name(fname.c_str());
+
+    if(freqlist.size()) return true;
+	return false;
 }
 
-void saveFreqList()
+void saveFreqList(bool bdef)
 {
 	if (freqlist.empty()) return;
 
-	std::ofstream freqfile((HomeDir + "frequencies2.txt").c_str());
+	std::string fname = HomeDir + progStatus.default_frequencies_filename;
+	if (bdef) {
+		std::string defname = FSEL::saveas(
+			"Save to frequency list file",
+			"*.txt",
+			fname.c_str());
+		if (defname.empty()) return;
+		fname = defname;
+	}
+
+	std::ofstream freqfile((fname).c_str());
 	if (!freqfile) {
-		LOG_ERROR("Could not open %s", (HomeDir + "frequencies2.txt").c_str());
+		LOG_ERROR("Could not open %s", (fname).c_str());
 		return;
 	}
 	freqfile << "# rfcarrier rig_mode carrier mode usage\n";
@@ -278,6 +305,9 @@ void saveFreqList()
 			std::ostream_iterator<qrg_mode_t>(freqfile, "\n") );
 
 	freqfile.close();
+
+	progStatus.default_frequencies_filename = fl_filename_name(fname.c_str());
+
 }
 
 void build_frequencies2_list()
@@ -307,26 +337,27 @@ void build_frequencies2_list()
 		}
 	}
 	fwidths[max_mode] += (int)ceil(fl_width(mode_info[mmax].sname));
+    qso_opBrowser->column_widths(fwidths);
 
-	if (readFreqList() == true)
+	if (readFreqList())
 		return;
 
-	updateList (1807000L, 1000, "USB", MODE_PSK31 );
-	updateList (3505000L, 800, "USB", MODE_CW);
-	updateList (3580000L, 1000, "USB", MODE_PSK31 );
-	updateList (1000500L, 800, "USB", MODE_CW);
-	updateList (10135000L, 1000, "USB", MODE_PSK31 );
-	updateList (7005000L, 800, "USB", MODE_CW);
-	updateList (7030000L, 1000, "USB", MODE_PSK31 );
-	updateList (7070000L, 1000, "USB", MODE_PSK31 );
-	updateList (14005000L, 800, "USB", MODE_CW);
-	updateList (14070000L, 1000, "USB", MODE_PSK31 );
-	updateList (18100000L, 1000, "USB", MODE_PSK31 );
-	updateList (21005000L, 800, "USB", MODE_CW);
-	updateList (21070000L, 1000, "USB", MODE_PSK31 );
-	updateList (24920000L, 1000, "USB", MODE_PSK31 );
-	updateList (28005000L, 800, "USB", MODE_CW);
-	updateList (28120000, 1000, "USB", MODE_PSK31 );
+	updateList (1807000ULL, 1000, "USB", MODE_PSK31 );
+	updateList (3505000ULL, 800, "USB", MODE_CW);
+	updateList (3580000ULL, 1000, "USB", MODE_PSK31 );
+	updateList (7005000ULL, 800, "USB", MODE_CW);
+	updateList (7030000ULL, 1000, "USB", MODE_PSK31 );
+	updateList (7070000ULL, 1000, "USB", MODE_PSK31 );
+	updateList (10105000ULL, 800, "USB", MODE_CW);
+	updateList (10135000ULL, 1000, "USB", MODE_PSK31 );
+	updateList (14005000ULL, 800, "USB", MODE_CW);
+	updateList (14070000ULL, 1000, "USB", MODE_PSK31 );
+	updateList (18100000ULL, 1000, "USB", MODE_PSK31 );
+	updateList (21005000ULL, 800, "USB", MODE_CW);
+	updateList (21070000ULL, 1000, "USB", MODE_PSK31 );
+	updateList (24920000ULL, 1000, "USB", MODE_PSK31 );
+	updateList (28005000ULL, 800, "USB", MODE_CW);
+	updateList (28120000ULL, 1000, "USB", MODE_PSK31 );
 	updateSelect();
 
 }
@@ -377,7 +408,7 @@ int cb_qso_opBW2()
 	return 0;
 }
 
-void sendFreq(long int f)
+void sendFreq(unsigned long long f)
 {
 	if (tci_is_active())
 		tci_set_freq((unsigned long)f);
@@ -386,12 +417,13 @@ void sendFreq(long int f)
 
 	if (n3fjp_connected)
 		n3fjp_set_freq(f);
+
 }
 
 void qso_movFreq(Fl_Widget* w, void *data)
 {
 	cFreqControl *fc = (cFreqControl *)w;
-	long int f;
+	unsigned long long f;
 	long restore = reinterpret_cast<intptr_t>(data);
 	f = fc->value();
 	if (fc == qsoFreqDisp1) {
@@ -406,12 +438,15 @@ void qso_movFreq(Fl_Widget* w, void *data)
 	}
 
 	sendFreq(f);
+
+	modeband.band_mode_change();
+
 	if (restore == 1)
 		restoreFocus();
 	return;
 }
 
-void qso_selectFreq(long int rfcarrier, int carrier)
+void qso_selectFreq(unsigned long long rfcarrier, int carrier)
 {
 	if (rfcarrier > 0) {
 		qsoFreqDisp1->value(rfcarrier);
@@ -421,7 +456,7 @@ void qso_selectFreq(long int rfcarrier, int carrier)
 	}
 
 	if (carrier > 0) {
-		active_modem->set_freq(carrier);
+		active_modem->set_freq((double)carrier);
 	}
 }
 
@@ -452,7 +487,7 @@ void qso_selectFreq()
 	}
 }
 
-void qso_setFreq(long int f)
+void qso_setFreq(unsigned long long f)
 {
 	// transceiver frequency
 	if (f > 0) {
@@ -483,11 +518,14 @@ void qso_delFreq()
 
 void qso_addFreq()
 {
-	long freq = qsoFreqDisp->value();
+	Fl::lock();
+	unsigned long long freq = qsoFreqDisp->value();
 	if (freq) {
-		size_t pos = addtoList(freq);
-		qso_opBrowser->insert(pos+1, freqlist[pos].str().c_str());
+		long pos = addtoList(freq);
+        if(pos > -1)
+            updateSelect();
 	}
+    Fl::unlock();
 }
 
 void qso_updateEntry(int i, std::string usage)

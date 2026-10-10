@@ -80,7 +80,7 @@ const struct mode_info_t mode_info[NUM_MODES] = {
 {MODE_CONTESTIA_64_1000,&contestia_64_1000_modem,"Cont-64/1K","Cont64-1K","","CONTESTI64/1000","CONTESTI","","CT64/1K",DISABLED_IO},
 {MODE_CONTESTIA_64_2000,&contestia_64_2000_modem,"Cont-64/2K","Cont64-2K","","CONTESTI64/2000","CONTESTI","","CT64/2K",DISABLED_IO},
 
-{MODE_DOMINOEXMICRO,&dominoexmicro_modem,"DOMEX Micro","DominoEX Micro","DOMINOEXMICRO","DOMINO","DOMINO","","DM M", DISABLED_IO },
+{MODE_DOMINOEXMICRO,&dominoexmicro_modem,"DOMEXM","DominoEX Micro","DOMINOEXMICRO","DOMINO","DOMINO","","DM M", DISABLED_IO },
 {MODE_DOMINOEX4,&dominoex4_modem,"DOMEX4","DominoEX 4","DOMINOEX4","DOMINO","DOMINO","","DM 4", DISABLED_IO },
 {MODE_DOMINOEX5,&dominoex5_modem,"DOMEX5","DominoEX 5","DOMINOEX5","DOMINO","DOMINO","","DM 5", DISABLED_IO },
 {MODE_DOMINOEX8,&dominoex8_modem,"DOMEX8","DominoEX 8","DOMINOEX8","DOMINO","DOMINO","","DM 8", DISABLED_IO },
@@ -90,13 +90,13 @@ const struct mode_info_t mode_info[NUM_MODES] = {
 {MODE_DOMINOEX44,&dominoex44_modem,"DOMX44","DominoEX 44","DOMINOEX44","DOMINO","DOMINO","","DM44", ARQ_IO | KISS_IO },
 {MODE_DOMINOEX88,&dominoex88_modem,"DOMX88","DominoEX 88","DOMINOEX88","DOMINO","DOMINO","","DM88", ARQ_IO | KISS_IO },
 
-{MODE_FELDHELL,&feld_modem,"FELDHELL","Feld Hell","","HELL","HELL","","HELL", DISABLED_IO },
-{MODE_SLOWHELL,&feld_slowmodem,"SLOWHELL","Slow Hell","","HELL","HELL","","SHLL", DISABLED_IO },
-{MODE_HELLX5,&feld_x5modem,"HELLX5","Feld Hell X5","","HELL","HELL","","HLX5", DISABLED_IO },
-{MODE_HELLX9,&feld_x9modem,"HELLX9","Feld Hell X9","","HELL","HELL","","HLX9", DISABLED_IO },
-{MODE_FSKH245,&feld_FMmodem,"FSKH245","FSK Hell-245","","FSKH245","HELL","FSKH245","FSKHL", DISABLED_IO  },
-{MODE_FSKH105,&feld_FM105modem,"FSKH105","FSK Hell-105","","FSKH105","HELL","FSKH105","H105", DISABLED_IO },
-{MODE_HELL80,&feld_80modem,"HELL80","Hell 80","","HELL80","HELL","HELL80","HL80", DISABLED_IO },
+{MODE_FELDHELL, &feld_modem,     "FELDHELL", "Feld Hell",    "", "HELL", "HELL", "",         "HELL",  DISABLED_IO },
+{MODE_SLOWHELL, &feld_slowmodem, "SLOWHELL", "Slow Hell",    "", "HELL", "HELL", "SLOWHELL", "SHLL",  DISABLED_IO },
+{MODE_HELLX5,   &feld_x5modem,   "HELLX5",   "Feld Hell X5", "", "HELL", "HELL", "HELLX5",   "HLX5",  DISABLED_IO },
+{MODE_HELLX9,   &feld_x9modem,   "HELLX9",   "Feld Hell X9", "", "HELL", "HELL", "HELLX9",   "HLX9",  DISABLED_IO },
+{MODE_FSKH245,  &feld_FMmodem,   "FSKH245",  "FSK Hell-245", "", "HELL", "HELL", "FSKH245",  "FSKHL", DISABLED_IO },
+{MODE_FSKH105,  &feld_FM105modem,"FSKH105",  "FSK Hell-105", "", "HELL", "HELL", "FSKH105",  "H105",  DISABLED_IO },
+{MODE_HELL80,   &feld_80modem,   "HELL80",   "Hell 80",      "", "HELL", "HELL", "HELL80",   "HL80",  DISABLED_IO },
 
 {MODE_MFSK8,&mfsk8_modem,"MFSK8","MFSK-8","MFSK8","MFSK8","MFSK","MFSK8","MK 8", DISABLED_IO  },
 {MODE_MFSK16,&mfsk16_modem,"MFSK16","MFSK-16","MFSK16","MFSK16","MFSK","MFSK16","MK16", ARQ_IO | KISS_IO },
@@ -159,8 +159,8 @@ const struct mode_info_t mode_info[NUM_MODES] = {
 
 {MODE_OFDM_500F,&ofdm_500f_modem,"OFDM500F","OFDM-500F","OFDM500F","OFDM500F","OFDM","","OFDM500F", ARQ_IO | KISS_IO },
 {MODE_OFDM_750F,&ofdm_750f_modem,"OFDM750F","OFDM-750F","OFDM750F","OFDM750F","OFDM","","OFDM750F", ARQ_IO | KISS_IO },
-{MODE_OFDM_2000F,&ofdm_2000f_modem,"OFDM2000F","OFDM-2000F","OFDM2000F","OFDM2000F","OFDM","","OFDM2000F", ARQ_IO | KISS_IO },
-{MODE_OFDM_2000,&ofdm_2000_modem,"OFDM2000","OFDM-2000","OFDM2000","OFDM2000","OFDM","","OFDM2000", ARQ_IO | KISS_IO },
+//{MODE_OFDM_2000F,&ofdm_2000f_modem,"OFDM2000F","OFDM-2000F","OFDM2000F","OFDM2000F","OFDM","","OFDM2000F", ARQ_IO | KISS_IO },
+//{MODE_OFDM_2000,&ofdm_2000_modem,"OFDM2000","OFDM-2000","OFDM2000","OFDM2000","OFDM","","OFDM2000", ARQ_IO | KISS_IO },
 {MODE_OFDM_3500,&ofdm_3500_modem,"OFDM3500","OFDM-3500","OFDM3500","OFDM3500","OFDM","","OFDM3500", ARQ_IO | KISS_IO },
 
 {MODE_OLIVIA,&olivia_modem,"OLIVIA","OLIVIA","OLIVIA","OLIVIA","OLIVIA","","OL", DISABLED_IO },
@@ -190,13 +190,26 @@ const struct mode_info_t mode_info[NUM_MODES] = {
 
 {MODE_RTTY,&rtty_modem,"RTTY","RTTY","RTTY","RTTY","RTTY","","RY", DISABLED_IO },
 
-{MODE_THORMICRO,&thormicro_modem,"THOR Micro","THOR Micro","THORM","THOR-M","THOR","","THM", DISABLED_IO  },
+{MODE_SCAMPFSK,&scampfsk_modem,"SCAMPFSK","SCAMPFSK","SCAMPFSK","MFSK", "MFSK", "SCAMPFSK", "SCFSK", DISABLED_IO },
+{MODE_SCAMPOOK,&scampook_modem,"SCAMPOOK","SCAMPOOK","SCAMPOOK","MFSK", "MFSK", "SCAMPOOK", "SCOOK", DISABLED_IO },
+{MODE_SCFSKFST,&scfskfst_modem,"SCFSKFST","SCFSKFST","SCFSKFST","MFSK", "MFSK", "SCFSKFST", "SFFST", DISABLED_IO },
+{MODE_SCFSKSLW,&scfskslw_modem,"SCFSKSLW","SCFSKSLW","SCFSKSLW","MFSK", "MFSK", "SCFSKSLW", "SFSLW", DISABLED_IO },
+{MODE_SCOOKSLW,&scookslw_modem,"SCOOKSLW","SCOOKSLW","SCOOKSLW","MFSK", "MFSK", "SCOOKSLW", "SOSLW", DISABLED_IO },
+{MODE_SCFSKVSL,&scfskvsl_modem,"SCFSKVSL","SCFSKVSL","SCFSKVSL","MFSK", "MFSK", "SCFSKVSL", "SFVSL", DISABLED_IO },
+
+{MODE_THORMICRO,&thormicro_modem,"THORM","THOR Micro","THORM","THOR-M","THOR","","THM", DISABLED_IO  },
 {MODE_THOR4,&thor4_modem,"THOR4","THOR 4","THOR4","THOR4","THOR","","TH4", DISABLED_IO  },
 {MODE_THOR5,&thor5_modem,"THOR5","THOR 5","THOR5","THOR5","THOR","","TH5", DISABLED_IO  },
 {MODE_THOR8,&thor8_modem,"THOR8","THOR 8","THOR8","THOR8","THOR","","TH8", DISABLED_IO  },
 {MODE_THOR11,&thor11_modem,"THOR11","THOR 11","THOR11","THOR11","THOR","","TH11", DISABLED_IO  },
 {MODE_THOR16,&thor16_modem,"THOR16","THOR 16","THOR16","THOR16","THOR","","TH16", ARQ_IO | KISS_IO },
 {MODE_THOR22,&thor22_modem,"THOR22","THOR 22","THOR22","THOR22","THOR","","TH22", ARQ_IO | KISS_IO },
+
+{MODE_THOR25,&thor25_modem,"THOR25","THOR 25","THOR25","THOR25","THOR","","TH25", ARQ_IO | KISS_IO },
+{MODE_THOR32,&thor32_modem,"THOR32","THOR 32","THOR32","THOR32","THOR","","TH32", ARQ_IO | KISS_IO },
+{MODE_THOR44,&thor44_modem,"THOR44","THOR 44","THOR44","THOR44","THOR","","TH44", ARQ_IO | KISS_IO },
+{MODE_THOR56,&thor56_modem,"THOR56","THOR 56","THOR56","THOR56","THOR","","TH56", ARQ_IO | KISS_IO },
+
 {MODE_THOR25x4,&thor25x4_modem,"THOR25x4","THOR 25 x4","THOR25x4","THOR-25X4","THOR","","TH25", ARQ_IO | KISS_IO },
 {MODE_THOR50x1,&thor50x1_modem,"THOR50x1","THOR 50 x1","THOR50x1","THOR-50X1","THOR","","TH51", ARQ_IO | KISS_IO },
 {MODE_THOR50x2,&thor50x2_modem,"THOR50x2","THOR 50 x2","THOR50x2","THOR-50X2","THOR","","TH52", ARQ_IO | KISS_IO },
@@ -290,20 +303,24 @@ std::ostream& operator<<(std::ostream& s, const qrg_mode_t& m)
 
 std::istream& operator>>(std::istream& s, qrg_mode_t& m)
 {
-	std::string sMode;
+	std::string sMode = "";
 	char temp[255];
-	int mnbr;
-	s >> m.rfcarrier >> m.rmode >> m.carrier >> sMode;
+	int mnbr = 0;
 
+   memset(temp, 0, sizeof(temp));
+   
+   s >> m.rfcarrier >> m.rmode >> m.carrier >> sMode;
 	s.getline(temp, 255);
 	m.usage = temp;
 	while (m.usage[0] == ' ') m.usage.erase(0,1);
 
+// This causes incorrect assignment when modem name starts with a number (ex:8PSK)
 // handle case for reading older type of specification std::string
-	if (sscanf(sMode.c_str(), "%d",&mnbr)) {
-		m.mode = mnbr;
-		return s;
-	}
+// if (sscanf(sMode.c_str(), "%d",&mnbr)) {
+// 	m.mode = mnbr;
+// 	return s;
+// }
+
 	m.mode = MODE_PSK31;
 	for (mnbr = MODE_CW; mnbr < NUM_MODES; mnbr++)
 		if (sMode == mode_info[mnbr].sname) {

@@ -70,6 +70,7 @@
 
 #include "lgbook.h"
 #include "logsupport.h"
+#include "logger.h"
 #include "qso_db.h"
 #include "dx_dialog.h"
 #include "contest.h"
@@ -80,11 +81,15 @@
 
 #include "spectrum_viewer.h"
 
+#include "ui_colors.h"
+
 #define STATUS_FILENAME "status"
 
 status progStatus = {
 	MODE_PSK31,			// trx_mode	lastmode;
 	mode_info[MODE_PSK31].sname,	// lastmode_name
+	0,					// int screen_number;
+	1.0,				// double screen_scale;
 	50,					// int mainX;
 	50,					// int mainY;
 	WMIN, 				// int mainW;
@@ -95,15 +100,18 @@ status progStatus = {
 	false,				// bool Rig_Contest_UI;
 	false,				// bool DOCKEDSCOPE;
 	false,				// bool tbar_is_docked;
+	true,				// bool EnableVideo_ID;
+
 //	50,					// int RxTextHeight;
 	WMIN/2,				// int tiled_group_x;
 	true,				// bool show_channels;
+
 	50,					// int rigX;
 	50,					// int rigY;
 	560,				// int rigW
 	80,					// int rigH
 	1000,				// int carrier;
-	14070000,			// int noCATfreq;
+	14070000ULL,		// unsigned long long noCATfreq;
 	"USB",				// string noCATmode;
 	"3000",				// string noCATwidth;
 	1,					// int mag;
@@ -146,7 +154,8 @@ status progStatus = {
 	true,				// bool afconoff
 	true,				// bool sqlonoff
 	false,				// bool reverse
-	-3.0,				// double txlevel
+	false,				// bool tx_lock
+	-12.0,				// double txlevel
 	50,					// int	scopeX;
 	50,					// int	scopeY;
 	false,				// bool	scopeVisible;
@@ -167,7 +176,11 @@ status progStatus = {
 	0,					// int timerMacro
 	false,				// bool skip_sked_macro
 	"macros.mdf",		// string LastMacroFile;
+
+	"frequencies2.txt",	// string default_frequencies_filename
+
 	0,					// int n_rsids
+
 	false,				// bool spot_recv
 	false,				// bool spot_log
 	false,				// bool contest
@@ -318,6 +331,7 @@ status progStatus = {
 
 	false,			// 	bool	useCW_KEYLINE;
 
+	false,			//	bool	thordebug;
 //----------------------------------------------------------------------
 // FMT saved controls
 	1500.0,			// double	FMT_ref_freq;
@@ -355,12 +369,20 @@ status progStatus = {
 
 void status::saveLastState()
 {
-    int mX = fl_digi_main->x();
-    int mY = fl_digi_main->y();
-    if (mX >= 0 && mX >= 0) {
-    	mainX = mX;
-	    mainY = mY;
-    }
+	int screen_number = 0;
+	int scrx = 0, scry = 0, scrw = 0, scrh = 0;
+
+	mainX = fl_digi_main->x();
+	mainY = fl_digi_main->y();
+
+#if FLDIGI_FLTK_API_MINOR >3
+	screen_number = fl_digi_main->screen_num();
+	screen_scale = Fl::screen_scale(screen_number);
+	Fl::screen_xywh( scrx, scry, scrw, scrh);
+	mainX -= scrx;
+	mainY -= scry;
+#endif
+
 	mainW = fl_digi_main->w();
 	mainH = fl_digi_main->h() - tci_rx_attenuator_extra();
 
@@ -389,7 +411,6 @@ void status::saveLastState()
 	dxdialog_h = dxcluster_viewer->h();
 
 	if (!bWF_only) {
-//		RxTextHeight = (ReceiveText->h() * 100) / text_panel->h();//VTgroup->h();
 		quick_entry = ReceiveText->get_quick_entry();
 		rx_scroll_hints = ReceiveText->get_scroll_hints();
 		rx_word_wrap = ReceiveText->get_word_wrap();
@@ -488,8 +509,15 @@ void status::saveLastState()
 	squelch_value = 0;
 	int_squelch_value = 0;
 
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", PACKAGE_TARNAME);
-
+#if FLDIGI_FLTK_API_MINOR < 4
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", PACKAGE_TARNAME);
+#else
+	Fl_Preferences spref(
+		HomeDir.c_str(),
+		"w1hkj.org",
+		PACKAGE_TARNAME,
+		Fl_Preferences::C_LOCALE);
+#endif
 	spref.set("version", PACKAGE_VERSION);
 	spref.set("dual_channels", "YES");
 
@@ -502,6 +530,7 @@ void status::saveLastState()
 	spref.set("afc_enabled", afconoff);
 
 	spref.set("reverse", reverse);
+	spref.set("tx_lock", tx_lock);
 
 	spref.set("psk8DCDShortFlag", psk8DCDShortFlag);
 
@@ -515,9 +544,18 @@ void status::saveLastState()
 	spref.set("int_wf_reflevel", (int)round(reflevel * 100));
 	spref.set("int_wf_ampspan", (int)round(ampspan * 100));
 
-	spref.set("noCATfreq", noCATfreq);
+	int hval, lval;
+	hval = noCATfreq / INT_MAX;
+	lval = noCATfreq  - hval * INT_MAX;
+
+	spref.set("noCATfreqH", hval);
+	spref.set("noCATfreqL", lval);
+
 	spref.set("noCATmode", noCATmode.c_str());
 	spref.set("noCATwidth", noCATwidth.c_str());
+
+	spref.set("screen_number", screen_number);
+	spref.set("screen_scale", screen_scale);
 
 	spref.set("main_x", mainX);
 	spref.set("main_y", mainY);
@@ -536,6 +574,7 @@ if (!bWF_only) {
 	spref.set("noriglog", NO_RIGLOG);
 	spref.set("docked_scope", DOCKEDSCOPE);
 	spref.set("tbar_is_docked", tbar_is_docked);
+	spref.set("EnableVideo_ID", EnableVideo_ID);
 
 	spref.set("rigctl_x", rigX);
 	spref.set("rigctl_y", rigY);
@@ -572,6 +611,12 @@ if (!bWF_only) {
 	spref.set("scope_w", scopeW);
 	spref.set("scope_h", scopeH);
 
+	spref.set("sqlevel", sldrSquelchValue);
+	spref.set("sqlonoff", sqlonoff);
+	spref.set("afconoff", afconoff);
+	spref.set("reverse", reverse);
+	spref.set("txlevel", txlevel);
+
 	spref.set("svX", svX);
 	spref.set("svY", svY);
 	spref.set("svW", svW);
@@ -581,6 +626,8 @@ if (!bWF_only) {
 	spref.set("xy_graticule", xy_graticule);
 
 	spref.set("last_macro_file", LastMacroFile.c_str());
+
+	spref.set("default_frequencies_filename", default_frequencies_filename.c_str());
 
 	spref.set("spot_recv", spot_recv);
 	spref.set("spot_log", spot_log);
@@ -727,6 +774,8 @@ if (!bWF_only) {
 
 	spref.set("useCW_KEYLINE", useCW_KEYLINE);
 
+	spref.set("thordebug", thordebug);
+	
 //----------------------------------------------------------------------
 // FMT saved controls
 	spref.set("int_FMT_ref_freq", (int)round(FMT_ref_freq * 1000));
@@ -745,12 +794,24 @@ if (!bWF_only) {
 //----------------------------------------------------------------------
 	spref.set("vumeter_shown", vumeter_shown);
 
-	save_mode_state();
+	ui_colors.save("fldigi_UI_colors");
+
+	UI_STATS(__func__);
+
+	modeband.save_mode_state();
 }
 
 void status::loadLastState()
 {
-	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.com", PACKAGE_TARNAME);
+#if FLDIGI_FLTK_API_MINOR < 4
+	Fl_Preferences spref(HomeDir.c_str(), "w1hkj.org", PACKAGE_TARNAME);
+#else
+	Fl_Preferences spref(
+		HomeDir.c_str(),
+		"w1hkj.org",
+		PACKAGE_TARNAME,
+		Fl_Preferences::C_LOCALE);
+#endif
 
 	int i;
 	char strbuff[1000];
@@ -788,6 +849,10 @@ void status::loadLastState()
 
 	spref.get("reverse", i, reverse); reverse = i;
 
+#ifndef __WIN32__
+	spref.get("tx_lock", i, tx_lock); tx_lock = i;
+#endif
+
 //	spref.get("rx_text_height", RxTextHeight, RxTextHeight);
 	spref.get("tiled_group_x", tiled_group_x, tiled_group_x);
 	spref.get("show_channels", i, show_channels); show_channels = i;
@@ -806,7 +871,10 @@ void status::loadLastState()
 	ampspan = int_ampspan / 100.0;
 	progdefaults.wfAmpSpan = ampspan;
 
-	spref.get("noCATfreq", noCATfreq, noCATfreq);
+	int hval = 0, lval = 0;
+	spref.get("noCATfreqH", hval, hval);
+	spref.get("noCATfreqL", lval, lval);
+	noCATfreq = 1ULL * hval * INT_MAX + lval;
 
 	memset(strbuff, 0, sizeof(strbuff));
 	spref.get("noCATmode", strbuff, "USB", sizeof(strbuff) - 1);
@@ -816,20 +884,17 @@ void status::loadLastState()
 	spref.get("noCATwidth", strbuff, "3000", sizeof(strbuff) - 1);
 	noCATwidth = strbuff;
 
-	spref.get("main_x", mainX, mainX);
-	if (mainX > Fl::w())
-		mainX = 0;
+	spref.get("screen_number", screen_number, screen_number);
+	spref.get("screen_scale", screen_scale, screen_scale);
 
+	spref.get("main_x", mainX, mainX);
 	spref.get("main_y", mainY, mainY);
-	if (mainY > Fl::h())
-		mainY = 0;
 
 	spref.get("main_w", mainW, mainW);
 	if (mainW < WMIN) mainW = WMIN;
 	if (mainW > Fl::w()) mainW = Fl::w();
 
 	spref.get("main_h", mainH, mainH);
-//	if (mainH < HMIN) mainH = HMIN;
 	if (mainH > Fl::w()) mainH = Fl::h();
 
 	spref.get("wf_ui", i, WF_UI); WF_UI = i;
@@ -838,6 +903,7 @@ void status::loadLastState()
 	spref.get("noriglog", i, NO_RIGLOG); NO_RIGLOG = i;
 	spref.get("docked_scope", i, DOCKEDSCOPE); DOCKEDSCOPE = i;
 	spref.get("tbar_is_docked", i, tbar_is_docked); tbar_is_docked = i;
+	spref.get("EnableVideo_ID", i, EnableVideo_ID); EnableVideo_ID = i;
 
 	spref.get("rigctl_x", rigX, rigX);
 	spref.get("rigctl_y", rigY, rigY);
@@ -881,6 +947,12 @@ void status::loadLastState()
 	spref.get("scope_w", scopeW, scopeW);
 	spref.get("scope_h", scopeH, scopeH);
 
+	spref.get("sqlevel", sldrSquelchValue, sldrSquelchValue);
+	spref.get("sqlonoff", i, sqlonoff); sqlonoff = i;
+	spref.get("afconoff", i, afconoff); afconoff = i;
+	spref.get("reverse", i, reverse); reverse = i;
+	spref.get("txlevel", txlevel, txlevel);
+
 	spref.get("svX", svX, svX);
 	spref.get("svY", svY, svY);
 	spref.get("svW", svW, svW);
@@ -892,6 +964,10 @@ void status::loadLastState()
 	memset(strbuff, 0, sizeof(strbuff));
 	spref.get("last_macro_file", strbuff, "macros.mdf", sizeof(strbuff) - 1);
 	LastMacroFile = strbuff;
+
+	memset(strbuff, 0, sizeof(strbuff));
+	spref.get("default_frequencies_filename", strbuff, "frequencies2.txt", sizeof(strbuff) - 1);
+	default_frequencies_filename = strbuff;
 
 	spref.get("spot_recv", i, spot_recv); spot_recv = i;
 	spref.get("spot_log", i, spot_log); spot_log = i;
@@ -1073,6 +1149,8 @@ void status::loadLastState()
 
 	spref.get("useCW_KEYLINE", i, useCW_KEYLINE); useCW_KEYLINE = i;
 
+	spref.get("thordebug", i, thordebug); thordebug = i;
+
 //----------------------------------------------------------------------
 // FMT saved controls
 	spref.get("int_FMT_ref_freq", int_FMT_ref_freq, int_FMT_ref_freq);
@@ -1090,7 +1168,12 @@ void status::loadLastState()
 	spref.get("vumeter_shown", vumeter_shown, vumeter_shown);
 //----------------------------------------------------------------------
 
-	load_mode_state();
+	modeband.load_mode_state();
+
+	load_udp_prefs();
+	load_cloud_prefs();
+
+	ui_colors.load("fldigi_UI_colors");
 
 	set_debug_mask(debug_mask);
 }
@@ -1241,6 +1324,11 @@ void status::initLastState()
 
 	kiss_io_set_button_state(0);
 
+#if FLDIGI_FLTK_API_MINOR >3
+	fl_digi_main->screen_num(screen_number);
+	Fl::screen_scale(screen_number, screen_scale);
+#endif
+
 	if (bWF_only)
 		fl_digi_main->resize(mainX, mainY, mainW, Hmenu + Hwfall + Hstatus);
 	else {
@@ -1248,7 +1336,7 @@ void status::initLastState()
 
 		set_macroLabels();
 
-		UI_select();
+		UI_select(__func__);
 	}
 
 	if (VIEWERvisible)
@@ -1385,4 +1473,5 @@ void status::initLastState()
 	btn_WK_paddledog->value((WK_mode_register & 0x80) == 0x80);
 
 	select_WK_CommPort->value(WK_serial_port_name.c_str());
+
 }

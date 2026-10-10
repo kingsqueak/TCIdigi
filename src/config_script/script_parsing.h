@@ -114,7 +114,7 @@
 
 #define CMD_CMEDIA_PTT              F_LOC("CMEDIA PTT")
 #define CMD_USE_CMEDIA_PTT            F_LOC("CMEDIA_PTT")
-#define CMD_CMEDIA_DEV                F_LOC("CMEDIA_DEVICE")      
+#define CMD_CMEDIA_DEV                F_LOC("CMEDIA_DEVICE")
 #define CMD_CMEDIA_GPIO_LINE          F_LOC("CMEDIA_GPIO_LINE")
 
 #define CMD_RIGCAT                  F_LOC("RIGCAT")
@@ -219,6 +219,7 @@
 #define CMD_ID_RSID_SQL_OPEN             F_LOC("SQL OPEN")
 #define CMD_ID_RSID_PRETONE              F_LOC("PRETONE")
 #define CMD_ID_RSID_END_XMT_ID           F_LOC("END XMT ID")
+#define CMD_ID_RSID_MIN_BW               F_LOC("MIN_BW")
 #define CMD_ID_VIDEO                  F_LOC("VIDEO")
 #define CMD_ID_VIDEO_TX_ID_MODE          F_LOC("ID MODE")
 #define CMD_ID_VIDEO_TX_VIDEO_TXT        F_LOC("VIDEO TXT")

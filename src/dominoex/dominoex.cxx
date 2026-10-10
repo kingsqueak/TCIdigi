@@ -3,7 +3,7 @@
 // dominoex.cxx  --  DominoEX modem
 //
 // Copyright (C) 2008-20012
-//     David Freese   <w1hkj@w1hkj.com>
+//     David Freese   <w1hkj25@gmail.com>
 //     Hamish Moffatt <hamish@debian.org>
 //     John Phelps    <kl4yfd@gmail.com>
 //
@@ -45,7 +45,10 @@
 
 LOG_FILE_SOURCE(debug::LOG_MODEM);
 
-char dommsg[80];
+static char   dommsg[80];
+static double s2nvals[500];
+static int    s2nptr = 0;
+
 static std::map<int, unsigned char> mupsksec2pri;
 
 bool usingFEC = false;
@@ -311,6 +314,9 @@ dominoex::dominoex(trx_mode md)
 	symcounter = 0;
 	Mu_symcounter = 0;
 	metric = 0.0;
+	for (int n = 0; n < 500; n++) {
+		s2nvals[n] = -20;
+	}
 
 	fragmentsize = symlen;
 
@@ -541,10 +547,9 @@ void dominoex::eval_s2n()
 	sig = decayavg( sig, s, abs( s - sig) > 4 ? 4 : 32);
 	noise = decayavg( noise, n, 64);
 
-	if (noise)
-		s2n = 20*log10(sig / noise) - 6;
+	if (noise == 0) noise = sig / 1000.0;
 	else
-		s2n = 0;
+		s2n = 20*log10(sig / noise) - 6;
 
 //	metric = 4 * s2n;
 	// To partially offset the increase of noise by (THORNUMTONES -1)
@@ -556,8 +561,22 @@ void dominoex::eval_s2n()
 
 	display_metric(metric);
 
-	snprintf(dommsg, sizeof(dommsg), "s/n %3.0f dB", s2n );
-	put_Status1(dommsg);
+	s2nvals[s2nptr] = s2n;
+	++s2nptr;
+	if (s2nptr == 100) s2nptr = 0;
+
+	double maxs2n = -20;
+
+	for (int n = 0; n < 500; n++) {
+		if (s2nvals[n] > maxs2n) maxs2n = s2nvals[n];
+	}
+
+	if (maxs2n > -12) {
+		if (metric >= progStatus.sldrSquelchValue) {
+			snprintf(dommsg, sizeof(dommsg), "s/n %3.0f dB", maxs2n );
+			put_Status1(dommsg, 15, STATUS_CLEAR);
+		}
+	}
 }
 
 int dominoex::rx_process(const double *buf, int len)
@@ -693,13 +712,15 @@ void dominoex::sendsecondary()
 
 void dominoex::flushtx()
 {
-//	if (progdefaults.DOMINOEX_FEC)
-//		MuPskFlushTx();
-//	else {
 // flush the varicode decoder at the receiver end
 		for (int i = 0; i < 4; i++)
 			sendidle();
-//	}
+
+	if (progdefaults.softDOMINOEX) {
+		sig_stop = true;
+		sendtone( 0, (samplerate * progdefaults.SoftStart / 1000) / symlen + 1 );
+	}
+
 }
 
 int dominoex::tx_process()
@@ -711,6 +732,7 @@ int dominoex::tx_process()
 	case TX_STATE_PREAMBLE:
 		if (progdefaults.DOMINOEX_FEC)
 			MuPskClearbits();
+		if (progdefaults.softDOMINOEX) sig_start = true;
 		sendidle();
 		txstate = TX_STATE_START;
 		break;

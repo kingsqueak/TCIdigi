@@ -61,6 +61,7 @@
 
 #include "fldigi-config.h"
 #include "configuration.h"
+#include "ui_colors.h"
 #include "status.h"
 #include "squelch_status.h"
 #include "Viewer.h"
@@ -100,17 +101,42 @@
 				cwCnt + wSpace + bwQsy + wSpace + bwMem + wSpace + \
 				bwXmtLock + wSpace + bwRev + wSpace + bwXmtRcv + wSpace)
 
+Fl_Group *wfgp1 = (Fl_Group *)0;
+Fl_Group *wfgp2 = (Fl_Group *)0;
+Fl_Group *wfgp3 = (Fl_Group *)0;
+Fl_Group *wfgp4 = (Fl_Group *)0;
+Fl_Group *wfgp5 = (Fl_Group *)0;
+Fl_Group *wfgp6 = (Fl_Group *)0;
+Fl_Group *wfgp7 = (Fl_Group *)0;
+Fl_Group *wfgp8 = (Fl_Group *)0;
+Fl_Group *wfgp9 = (Fl_Group *)0;
+Fl_Group *wfgp10 = (Fl_Group *)0;
+Fl_Group *wfgp11 = (Fl_Group *)0;
+Fl_Group *wfgp12 = (Fl_Group *)0;
+
+Fl_Box *wfbx1 = (Fl_Box *)0;
+Fl_Box *wfbx2 = (Fl_Box *)0;
+Fl_Box *wfbx3 = (Fl_Box *)0;
+Fl_Box *wfbx4 = (Fl_Box *)0;
+Fl_Box *wfbx5 = (Fl_Box *)0;
+Fl_Box *wfbx6 = (Fl_Box *)0;
+Fl_Box *wfbx7 = (Fl_Box *)0;
+Fl_Box *wfbx8 = (Fl_Box *)0;
+Fl_Box *wfbx9 = (Fl_Box *)0;
+Fl_Box *wfbx10 = (Fl_Box *)0;
+Fl_Box *wfbx11 = (Fl_Box *)0;
+Fl_Box *wfbx12 = (Fl_Box *)0;
+
 extern modem *active_modem;
 
-static	RGB RGByellow	= {254,254,0};
-//static	RGB RGBgreen	= {0,254,0};
-//static	RGB RGBdkgreen	= {0,128,0};
-//static	RGB RGBblue		= {0,0,255};
-static	RGB RGBred		= {254,0,0};
-//static	RGB RGBwhite	= {254,254,254};
-//static	RGB RGBblack	= {0,0,0};
-//static RGB RGBmagenta = {196,0,196};
+static RGB RGByellow  = {254,254,0};
+//static RGB RGBgreen   = {0,254,0};
+//static RGB RGBdkgreen = {0,128,0};
+//static RGB RGBblue    = {0,0,255};
+static RGB RGBred     = {254,0,0};
+static RGB RGBwhite   = {254,254,254};
 //static RGB RGBblack   = {0,0,0};
+//static RGB RGBmagenta = {196,0,196};
 
 // RGBI is a structure consisting of the values RED, GREEN, BLUE, INTENSITY
 // each value can range from 0 (extinguished) to 255 (full on)
@@ -161,10 +187,8 @@ WFdisp::WFdisp (int x0, int y0, int w0, int h0, char *lbl) :
 	bandwidth = 32;
 	RGBmarker = RGBred;
 	RGBcursor = RGByellow;
-	RGBInotch.I = progdefaults.notchRGBI.I;
-	RGBInotch.R = progdefaults.notchRGBI.R;
-	RGBInotch.G = progdefaults.notchRGBI.G;
-	RGBInotch.B = progdefaults.notchRGBI.B;
+	RGBInotch.I = 255;
+	Fl::get_color( RGBCOLOR( notch ), RGBInotch.R, RGBInotch.G, RGBInotch.B );
 	mode = WATERFALL;
 	centercarrier = false;
 	overload = false;
@@ -243,8 +267,10 @@ inline void WFdisp::makeMarker_(int width, const RGB* color, int freq, const RGB
 			(progdefaults.rtty_shift < rtty::numshifts ?
 				rtty::SHIFT[progdefaults.rtty_shift] :
 				progdefaults.rtty_custom_shift));
-		int bw_limit_hi = (int)(shift / 2 + progdefaults.RTTY_BW / 2.0);
-		int bw_limit_lo = (int)(shift / 2 - progdefaults.RTTY_BW / 2.0);
+//		int bw_limit_hi = (int)(shift / 2 + progdefaults.RTTY_BW / 2.0);
+//		int bw_limit_lo = (int)(shift / 2 - progdefaults.RTTY_BW / 2.0);
+		int bw_limit_hi = (int)((shift + progdefaults.RTTY_BW )/ 2.0);
+		int bw_limit_lo = (int)((shift - progdefaults.RTTY_BW )/ 2.0);
 		int bw_freq = static_cast<int>(freq + 0.5);
 		int bw_lower1 = -bw_limit_hi;
 		int bw_upper1 = -bw_limit_lo;
@@ -306,9 +332,8 @@ void WFdisp::make_fmt_marker ()
 
 	memset(markerimage + scale_width, 0, RGBwidth * (WFMARKER - 2));
 
-	Fl::get_color(progdefaults.FMT_unk_color, unk_trk_color.R, unk_trk_color.G, unk_trk_color.B);
-
-	Fl::get_color(progdefaults.FMT_ref_color, ref_trk_color.R, ref_trk_color.G, ref_trk_color.B);
+	Fl::get_color(RGBCOLOR( FMT_unk_color ), unk_trk_color.R, unk_trk_color.G, unk_trk_color.B);
+	Fl::get_color(RGBCOLOR( FMT_ref_color ), ref_trk_color.R, ref_trk_color.G, ref_trk_color.B);
 
 	int fmt_bw = progdefaults.FMT_filter;
 
@@ -355,9 +380,7 @@ void WFdisp::makeMarker()
 					progdefaults.rtty_custom_shift));
 		marker_width = (int)(marker_width / 2.0 + 1);
 
-		RGBmarker.R = progdefaults.bwTrackRGBI.R;
-		RGBmarker.G = progdefaults.bwTrackRGBI.G;
-		RGBmarker.B = progdefaults.bwTrackRGBI.B;
+		Fl::get_color( RGBCOLOR( bwTrack ), RGBmarker.R, RGBmarker.G, RGBmarker.B );
 
 		makeMarker_(marker_width, &RGBmarker, carrierfreq, clrMin, clrM, clrMax);
 
@@ -384,9 +407,7 @@ void WFdisp::makeMarker()
 	if (xp < bandwidth / 2.0 || xp > (progdefaults.HighFreqCutoff - bandwidth / 2.0))
 		return;
 	clrM = markerimage + scale_width + (int)(xp + 0.5);
-	RGBcursor.R = progdefaults.cursorLineRGBI.R;
-	RGBcursor.G = progdefaults.cursorLineRGBI.G;
-	RGBcursor.B = progdefaults.cursorLineRGBI.B;
+	Fl::get_color( RGBCOLOR( cursorLine ), RGBcursor.R, RGBcursor.G, RGBcursor.B );
 
 	int bw_lo = marker_width;
 	int bw_hi = marker_width;
@@ -396,9 +417,9 @@ void WFdisp::makeMarker()
 
 	for (int y = 0; y < WFMARKER - 2; y++) {
 		int incr = y * scale_width;
-		int msize = (WFMARKER - 2 - y)*RGBsize*step/4;
-		for (int m = -step; m < step; m++)
-			*(clrM + incr + m) = RGBcursor;
+		int msize = (y + 1) * RGBsize * step / 4;
+		for (int i = -msize; i <= msize; i++)
+			*(clrM + i + incr) = RGBwhite;
 
 		if (xp - (bw_lo + msize) > 0)
 			for (int i = bw_lo - msize; i <= bw_lo + msize; i++)
@@ -438,12 +459,13 @@ void WFdisp::makeScale() {
 
 void WFdisp::setcolors() {
 	double di;
-	int r, g, b;
+	int r, g, b, n;
 	for (int i = 0; i < 256; i++) {
 		di = sqrt((double)i / 256.0);
 		mag2RGBI[i].I = (uchar)(200*di);
 	}
-	for (int n = 0; n < 8; n++) {
+
+	for (n = 0; n < 8; n++) {
 		for (int i = 0; i < 32; i++) {
 			r = palette[n].R + (int)(1.0 * i * (palette[n+1].R - palette[n].R) / 32.0);
 			g = palette[n].G + (int)(1.0 * i * (palette[n+1].G - palette[n].G) / 32.0);
@@ -468,7 +490,8 @@ void WFdisp::initmaps() {
 	memset (mag2RGBI, 0, sizeof(mag2RGBI));
 	initMarkers();
 	makeScale();
-	setcolors();
+//std::cout << "WFdisp::initmaps()\n";
+//	setcolors();
 }
 
 int WFdisp::peakFreq(int f0, int delta)
@@ -751,17 +774,29 @@ void WFdisp::handle_sig_data()
 
 		for (int n = 0; n < WF_FFTLEN - WF_BLOCKSIZE; n++)
 			circbuff[n] = circbuff[n + WF_BLOCKSIZE];
+
 		{
 // this block guarded by data_mutex
 			guard_lock data_lock(&data_mutex);
 			current = audio_blocks.front();
 			audio_blocks.pop();
 		}
+		double fftavg = 0;
 		for (int n = 0; n < WF_BLOCKSIZE; n++)
-			circbuff[n + WF_FFTLEN - WF_BLOCKSIZE - 1] = current.sig[n];
+			fftavg += fabs(circbuff[n + WF_FFTLEN - WF_BLOCKSIZE - 1] = current.sig[n]);
+
+		{
+			sig_vumeter->wsjtx_meter_face( progdefaults.use_wsjtx_vumeter_scale );
+			sig_vumeter2->wsjtx_meter_face( progdefaults.use_wsjtx_vumeter_scale );
+			VuMeter->wsjtx_meter_face( progdefaults.use_wsjtx_vumeter_scale );
+			fftavg /= WF_BLOCKSIZE;
+			sig_vumeter->value(fftavg);
+			sig_vumeter2->value(fftavg);
+			if (!tx_timer->visible()) VuMeter->value(fftavg);
+		}
 
 		overload = false;
-		double overval = 0, peak = 0.0;
+		double overval = 0.0, peak = 0.0;
 		for (int i = WF_FFTLEN - WF_BLOCKSIZE; i < WF_FFTLEN; i++) {
 			overval = fabs(circbuff[i]);
 			if (overval > peak) peak = overval;
@@ -809,10 +844,10 @@ void WFdisp::handle_sig_data()
 				else
 					dfreq = rfc - afreq - offset;
 			}
-			snprintf(szFrequency, sizeof(szFrequency), "%-.3f", dfreq / 1000.0);
+			snprintf(szFrequency, sizeof(szFrequency), "%-.3lf", dfreq / 1000.0);
 		} else {
 			dfreq = active_modem->get_txfreq();
-			snprintf(szFrequency, sizeof(szFrequency), "%-.0f", dfreq);
+			snprintf(szFrequency, sizeof(szFrequency), "%-.0lf", dfreq);
 		}
 		inpFreq->value(szFrequency);
 
@@ -1016,19 +1051,15 @@ void WFdisp::drawScale() {
 void WFdisp::drawMarker() {
 	if (mode == SCOPE) return;
 	int msize = RGBsize * scale_width;
-	int psize = scale_width * WFMARKER;
 	uchar *pixmap = (uchar *)(markerimage + (int)(offset));
 	uchar map[msize];
 	memset(map, 0, sizeof(map));
 	int y1 = y() + WFSCALE + WFTEXT;
 	for (int yp = 0; yp < WFMARKER; yp++) {
 		for (int xp = 0; xp < scale_width; xp++) {
-			if ((RGBsize * xp + 2 < msize) && 
-				(RGBsize * (yp * scale_width + xp * step + 2) < psize)) {
-				map[RGBsize * xp] = pixmap[RGBsize * (yp * scale_width + xp * step)];
-				map[RGBsize * xp + 1] = pixmap[RGBsize * (yp * scale_width + xp * step) + 1];
-				map[RGBsize * xp + 2] = pixmap[RGBsize * (yp * scale_width + xp * step) + 2];
-			}
+			map[RGBsize * xp] = pixmap[RGBsize * (yp * scale_width + xp * step)];
+			map[RGBsize * xp + 1] = pixmap[RGBsize * (yp * scale_width + xp * step) + 1];
+			map[RGBsize * xp + 2] = pixmap[RGBsize * (yp * scale_width + xp * step) + 2];
 		}
 		fl_draw_image((const uchar *)map, x(), y1 + yp, w(), 1, RGBsize, 0);
 	}
@@ -1074,6 +1105,58 @@ case Step: for (int row = 0; row < image_height; row++) { \
 	}
 #undef UPD_LOOP
 
+	if (progdefaults.mon_wf_display && 
+		progdefaults.mon_xcvr_audio &&
+		progdefaults.mon_dsp_audio) {
+
+		int trk_low = progdefaults.RxFilt_low;
+		int trk_high = progdefaults.RxFilt_high;
+		RGBI *pos1 = fft_img + trk_low / step;
+		RGBI *pos2 = fft_img + trk_high / step;
+		RGBI clr;
+		clr.I = 255;
+		Fl::get_color( RGBCOLOR( monitor ), clr.R, clr.G, clr.B );
+		if (likely(pos1 >= fft_img && pos2 < fft_img + disp_width)) {
+				if (progdefaults.mon_wide_tracks) {
+					for (int y = 0; y < image_height; y ++) {
+						*(pos1 + 1) = *pos1 = clr; //progdefaults.monitorRGBI;
+						*(pos2 - 1) = *pos2 = clr; //progdefaults.monitorRGBI;
+						pos1 += disp_width;
+						pos2 += disp_width;
+					}
+				} else {
+					for (int y = 0; y < image_height; y ++) {
+						*pos1 = clr; //progdefaults.monitorRGBI;
+						*pos2 = clr; //progdefaults.monitorRGBI;
+						pos1 += disp_width;
+						pos2 += disp_width;
+					}
+				}
+		}
+	}
+
+// draw RsID detection zone
+	if ( progdefaults.rsid &&
+		 !progdefaults.rsidWideSearch &&
+		( (carrierfreq - progdefaults.rsid_min_bw / 2) > 1) && 
+		( (carrierfreq + progdefaults.rsid_min_bw / 2) < (progdefaults.HighFreqCutoff - 1))) {
+		RGBI RGBIrsid;
+		RGBIrsid.I = 255;//progdefaults.rsidRGBI.I;
+		Fl::get_color( RGBCOLOR( rsid ), RGBIrsid.R, RGBIrsid.G, RGBIrsid.B );
+		RGBI  *pos1 = fft_img + (carrierfreq - offset - progdefaults.rsid_min_bw / 2) / step;
+		RGBI  *pos2 = fft_img + (carrierfreq - offset + progdefaults.rsid_min_bw / 2) / step;
+		int dash = 0;
+		for (int y = 0; y < image_height; y++) {
+			dash = (dash + 1) % 6;
+			if (dash == 0 || dash == 1 || dash == 2) {
+				*(pos1) = RGBIrsid;
+				*(pos2) = RGBIrsid;
+			}
+			pos1 += disp_width;
+			pos2 += disp_width;
+		}
+	}
+
 	if (active_modem && progdefaults.UseBWTracks) {
 		trx_mode mode = active_modem->get_mode();
 		if (mode == MODE_FMT) {
@@ -1083,8 +1166,8 @@ case Step: for (int row = 0; row < image_height; row++) { \
 			RGBI  *pos2 = fft_img + (trk - offset + bw) / step;
 			RGBI unk_trk_color, ref_trk_color;
 
-			Fl::get_color(progdefaults.FMT_unk_color, unk_trk_color.R, unk_trk_color.G, unk_trk_color.B);
-			Fl::get_color(progdefaults.FMT_ref_color, ref_trk_color.R, ref_trk_color.G, ref_trk_color.B);
+			Fl::get_color(RGBCOLOR( FMT_unk_color ), unk_trk_color.R, unk_trk_color.G, unk_trk_color.B);
+			Fl::get_color(RGBCOLOR( FMT_ref_color ), ref_trk_color.R, ref_trk_color.G, ref_trk_color.B);
 
 			if (likely(pos1 >= fft_img && pos2 < fft_img + disp_width)) {
 				if (progdefaults.UseWideTracks) {
@@ -1145,20 +1228,21 @@ case Step: for (int row = 0; row < image_height; row++) { \
 
 				if (mode == MODE_RTTY && progdefaults.useMARKfreq) {
 					if (active_modem->get_reverse()) {
-						rgbi1 = progdefaults.rttymarkRGBI;
-						rgbi2 = progdefaults.bwTrackRGBI;
+						Fl::get_color( RGBCOLOR( rttymark ), rgbi1.R, rgbi1.G, rgbi1.B ); rgbi1.I = 255;
+						Fl::get_color( RGBCOLOR( bwTrack ), rgbi2.R, rgbi2.G, rgbi2.B ); rgbi2.I = 255;
 					} else {
-						rgbi1 = progdefaults.bwTrackRGBI;
-						rgbi2 = progdefaults.rttymarkRGBI;
+						Fl::get_color( RGBCOLOR( bwTrack ), rgbi1.R, rgbi1.G, rgbi1.B ); rgbi1.I = 255;
+						Fl::get_color( RGBCOLOR( rttymark ), rgbi2.R, rgbi2.G, rgbi2.B ); rgbi2.I = 255;
 					}
 				} else {
-					rgbi1 = progdefaults.bwTrackRGBI;
-					rgbi2 = progdefaults.bwTrackRGBI;
+					Fl::get_color( RGBCOLOR( bwTrack ), rgbi1.R, rgbi1.G, rgbi1.B ); rgbi1.I = 255;
+					rgbi2 = rgbi1;
 				}
+
 				if (progdefaults.UseWideTracks) {
 					for (int y = 0; y < image_height; y ++) {
-						*(pos1 + 1) = *pos1 = rgbi1;
-						*(pos2 - 1) = *pos2 = rgbi2;
+						*(pos1 + 1) = *(pos1 - 1) = *pos1 = rgbi1;
+						*(pos2 + 1) = *(pos2 - 1) = *pos2 = rgbi2;
 						pos1 += disp_width;
 						pos2 += disp_width;
 					}
@@ -1176,10 +1260,8 @@ case Step: for (int row = 0; row < image_height; row++) { \
 
 // draw notch
 	if ((notch_frequency > 1) && (notch_frequency < progdefaults.HighFreqCutoff - 1)) {
-		RGBInotch.I = progdefaults.notchRGBI.I;
-		RGBInotch.R = progdefaults.notchRGBI.R;
-		RGBInotch.G = progdefaults.notchRGBI.G;
-		RGBInotch.B = progdefaults.notchRGBI.B;
+		RGBInotch.I = 255;
+		Fl::get_color( RGBCOLOR( notch ), RGBInotch.R, RGBInotch.G, RGBInotch.B );
 		RGBI  *notch = fft_img + (notch_frequency - offset) / step;
 		int dash = 0;
 		for (int y = 0; y < image_height; y++) {
@@ -1216,15 +1298,18 @@ void WFdisp::drawcolorWF() {
 		RGBI  *pos0 = (fft_img + cursorpos);
 		RGBI  *pos1 = (fft_img + cursorpos - bw_lo/step);
 		RGBI  *pos2 = (fft_img + cursorpos + bw_hi/step);
+		RGBI  clr;
+		clr.I = 255;
+		Fl::get_color( RGBCOLOR( cursorCenter ), clr.R, clr.G, clr.B );
 		if (pos1 >= fft_img && pos2 < fft_img + disp_width) {
 			for (int y = 0; y < image_height; y ++) {
 				if (progdefaults.UseCursorLines) {
-					*pos1 = *pos2 = progdefaults.cursorLineRGBI;
+					*pos1 = *pos2 = clr;
 					if (progdefaults.UseWideCursor)
 						*(pos1 + 1) = *(pos2 - 1) = *pos1;
 				}
 				if (progdefaults.UseCursorCenterLine) {
-					*pos0 = progdefaults.cursorCenterRGBI;
+					*pos0 = clr;
 					if (progdefaults.UseWideCenter)
 						*(pos0 - 1) = *(pos0 + 1) = *pos0;
 				}
@@ -1431,7 +1516,7 @@ void WFdisp::draw() {
 //=======================================================================
 
 void x1_cb(Fl_Widget *w, void* v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	int m = wf->wfdisp->wfmag();
 	if (m == MAG_1) w->label("x1");
 	if (m == MAG_2) w->label("x2");
@@ -1440,20 +1525,20 @@ void x1_cb(Fl_Widget *w, void* v) {
 }
 
 void slew_left(Fl_Widget *w, void * v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	wf->wfdisp->slew(-100);
 	restoreFocus();
 }
 
 void slew_right(Fl_Widget *w, void * v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	wf->wfdisp->slew(100);
 	restoreFocus();
 }
 
 
 void center_cb(Fl_Widget *w, void *v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	wf->wfdisp->movetocenter();
 	restoreFocus();
 }
@@ -1465,7 +1550,7 @@ void killMacroTimer()
 
 void carrier_cb(Fl_Widget *w, void *v) {
 	Fl_Counter *cntr = (Fl_Counter *)w;
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	int selfreq = (int) cntr->value();
 	if (selfreq > progdefaults.HighFreqCutoff) selfreq = progdefaults.HighFreqCutoff - wf->wfdisp->Bandwidth() / 2;
 	killMacroTimer();
@@ -1563,7 +1648,7 @@ void qsy_cb(Fl_Widget *w, void *v)
 }
 
 void rate_cb(Fl_Widget *w, void *v) {
-	waterfall* wf = static_cast<waterfall*>(w->parent());
+	waterfall* wf = static_cast<waterfall*>(w->parent()->parent());
 	WFspeed new_speed;
 
 	switch (wf->wfdisp->Speed()) {
@@ -1606,7 +1691,7 @@ void xmtrcv_cb(Fl_Widget *w, void *vi)
 	} else {
 		if (progdefaults.show_psm_btn && progStatus.kpsql_enabled) {
 			psm_transmit_ended(PSM_ABORT);
-			xmtrcv_selection_color(progdefaults.XmtColor);
+			xmtrcv_selection_color(RGBCOLOR( XmtColor ));
 		}
 
 		if (btnTune->value()) {
@@ -1663,13 +1748,13 @@ void set_wf_mode(void)
    static const char* names[NUM_WF_MODES] = { "WF", "FFT", "SIG" };
    int m = 0;
 
-   if (progdefaults.show_psm_btn && progStatus.kpsql_enabled) {
-	  if(wf->wfdisp->Mode() == WATERFALL) {
-		 return;
-	  }
-	  m = WATERFALL;
+	if (progStatus.kpsql_enabled) {
+		if(wf->wfdisp->Mode() == WATERFALL) {
+			return;
+		}
+		m = WATERFALL;
    } else {
-	  m = wf->wfdisp->Mode() + (Fl::event_button() == FL_LEFT_MOUSE ? 1 : -1);
+		m = wf->wfdisp->Mode() + (Fl::event_button() == FL_LEFT_MOUSE ? 1 : -1);
    }
 
 	m = WCLAMP(m, WATERFALL, NUM_WF_MODES-1);
@@ -1691,29 +1776,30 @@ void mode_cb(Fl_Widget* w, void*)
 }
 
 void reflevel_cb(Fl_Widget *w, void *v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	double val = wf->wfRefLevel->value();
 	progdefaults.wfRefLevel = val;
 	restoreFocus();
 }
 
 void ampspan_cb(Fl_Widget *w, void *v) {
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	double val = wf->wfAmpSpan->value();
 	wf->wfdisp->Ampspan(val);
 	progdefaults.wfAmpSpan = val;
 	restoreFocus();
+std::cout << "span: " << val << std::endl;
 }
 
 void btnRev_cb(Fl_Widget *w, void *v)
 {
 	if (!active_modem) return;
-	waterfall *wf = (waterfall *)w->parent();
+	waterfall *wf = (waterfall *)w->parent()->parent();
 	Fl_Light_Button *b = (Fl_Light_Button *)w;
 	wf->Reverse(b->value());
+	progdefaults.rtty_reverse = wf->Reverse();
 	active_modem->set_reverse(wf->Reverse());
-	progdefaults.rtty_reverse = b->value();
-	set_mode_reverse(active_modem->get_mode(), progdefaults.rtty_reverse);
+	modeband.set_mode_reverse(wf->Reverse());
 	progdefaults.changed = true;
 	restoreFocus();
 }
@@ -1893,11 +1979,12 @@ void waterfall::Carrier(int f)
 	if (active_modem) active_modem->set_freq(f);
 }
 
-void waterfall::rfcarrier(long long cf) {
+void waterfall::rfcarrier(unsigned long long cf) {
 	wfdisp->rfcarrier(cf);
+//	modeband.band_mode_change(); 
 }
 
-long long waterfall::rfcarrier() {
+unsigned long long waterfall::rfcarrier() {
 	return wfdisp->rfcarrier();
 }
 
@@ -1914,8 +2001,7 @@ void waterfall::USB(bool b) {
 	if (wfdisp->USB() == b)
 		return;
 	wfdisp->USB(b);
-	if (active_modem) active_modem->set_reverse(reverse);
-	REQ(&viewer_redraw);
+	viewer_redraw();
 }
 
 bool waterfall::USB() {
@@ -1938,11 +2024,13 @@ void waterfall::show_scope(bool on)
 	wfscope->redraw();
 }
 
+inline int rightof(Fl_Widget* w)
+{
+	return w->x() + w->w();
+}
+
 waterfall::waterfall(int x0, int y0, int w0, int h0, char *lbl) :
 	Fl_Group(x0,y0,w0,h0,lbl) {
-	int xpos;
-	float ratio;
-	ratio = w0 * 1.0 / bwdths;
 
 	wf_dim = h() - BTN_HEIGHT - 4;
 
@@ -1956,110 +2044,230 @@ waterfall::waterfall(int x0, int y0, int w0, int h0, char *lbl) :
 			w() - 2 * BEZEL,
 			wf_dim - 2 * BEZEL);
 		wfscope = new Digiscope (x() + w(), y(), wf_dim, wf_dim);
+		wfscope->bk_color(RGBCOLOR( digi_background ));
+		wfscope->axis_color(RGBCOLOR( digi_axis_color ));
+		wfscope->user_color_1(RGBCOLOR( digi_color_1 ));
+		wfscope->user_color_2(RGBCOLOR( digi_color_2 ));
+		wfscope->user_color_3(RGBCOLOR( digi_color_3 ));
+		wfscope->user_color_4(RGBCOLOR( digi_color_4 ));
 		rs1->resizable(wfdisp);
 	rs1->end();
 	wfscope->hide();
 
-	xpos = x() + wSpace;
+	int bw = w() / 20;
 
-	mode = new Fl_Button(xpos, buttonrow, (int)(bwFFT*ratio), BTN_HEIGHT, "WF");
-	mode->callback(mode_cb, 0);
-	mode->tooltip(_("Waterfall / FFT / Scope"));
+	wfgp1 = new Fl_Group(x(), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp1->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwFFT*ratio) + wSpace;
-	wfRefLevel = new Fl_Counter2(xpos, buttonrow, (int)(cwRef*ratio), BTN_HEIGHT );
-	wfRefLevel->callback(reflevel_cb, 0);
-	wfRefLevel->step(1.0);
-	wfRefLevel->precision(0);
-	wfRefLevel->range(-80.0, 0.0);//(-40.0, 0.0);
-	wfRefLevel->value(0.0);//(-20.0);
-	wfRefLevel->tooltip(_("Upper signal level (dB)"));
-	wfRefLevel->type(FL_SIMPLE_COUNTER);
+		mode = new Fl_Button(wfgp1->x(), wfgp1->y(), 36, BTN_HEIGHT, "WF");
+		mode->callback(mode_cb, 0);
+		mode->tooltip(_("Waterfall / FFT / Scope"));
 
-	xpos = xpos + (int)(cwRef*ratio) + wSpace;
-	wfAmpSpan = new Fl_Counter2(xpos, buttonrow, (int)(cwRef*ratio), BTN_HEIGHT );
-	wfAmpSpan->callback(ampspan_cb, 0);
-	wfAmpSpan->step(1.0);
-	wfAmpSpan->precision(0);
-	wfAmpSpan->range(6.0, 90.0);
-	wfAmpSpan->value(70.0);
-	wfdisp->Ampspan(70.0);
-	wfAmpSpan->tooltip(_("Signal range (dB)"));
-	wfAmpSpan->type(FL_SIMPLE_COUNTER);
+		wfbx1 = new Fl_Box(rightof(mode), buttonrow, wfgp1->w() - 37, BTN_HEIGHT, "");
+		wfbx1->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(cwRef*ratio) + wSpace;
-	x1 = new Fl_Button(xpos, buttonrow, (int)(bwX1*ratio), BTN_HEIGHT, "x1");
-	x1->callback(x1_cb, 0);
-	x1->tooltip(_("Change waterfall scale"));
+		wfgp1->end();
+		if (progdefaults.status_bar_fill) wfgp1->resizable(wfbx1);
+// 1
+	wfgp2 = new Fl_Group(rightof(wfgp1), buttonrow, bw * 2, BTN_HEIGHT, "");
+		wfgp2->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwX1*ratio) + wSpace;
-	left = new Fl_Repeat_Button(xpos, buttonrow, (int)(bwMov*ratio), BTN_HEIGHT, "@<");
-	left->callback(slew_left, 0);
-	left->tooltip(_("Slew display lower in frequency"));
+		wfRefLevel = new Fl_Counter2(wfgp2->x(), buttonrow, 75, BTN_HEIGHT );
+		wfRefLevel->callback(reflevel_cb, 0);
+		wfRefLevel->step(1.0);
+		wfRefLevel->precision(0);
+		wfRefLevel->range(-80.0, 0.0);//(-40.0, 0.0);
+		wfRefLevel->value(0.0);//(-20.0);
+		wfRefLevel->tooltip(_("Upper signal level (dB)"));
+		wfRefLevel->type(FL_SIMPLE_COUNTER);
 
-	xpos = xpos + (int)(bwMov*ratio);
-	center = new Fl_Button(xpos, buttonrow, (int)(bwMov*ratio), BTN_HEIGHT, "@||");
-	center->callback(center_cb, 0);
-	center->tooltip(_("Center display on signal"));
+		wfbx2 = new Fl_Box(rightof(wfRefLevel), buttonrow, wfgp2->w() - 75, BTN_HEIGHT, "");
+		wfbx2->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwMov*ratio);
-	right = new Fl_Repeat_Button(xpos, buttonrow, (int)(bwMov*ratio), BTN_HEIGHT, "@>");
-	right->callback(slew_right, 0);
-	right->tooltip(_("Slew display higher in frequency"));
+		wfgp2->end();
+		if (progdefaults.status_bar_fill) wfgp2->resizable(wfbx2);
+//3
+	wfgp3 = new Fl_Group(rightof(wfgp2), buttonrow, bw * 2, BTN_HEIGHT, "");
+		wfgp3->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwMov*ratio) + wSpace;
-	wfrate = new Fl_Button(xpos, buttonrow, (int)(bwRate*ratio), BTN_HEIGHT, "Norm");
-	wfrate->callback(rate_cb, 0);
-	wfrate->tooltip(_("Waterfall drop speed"));
+		wfAmpSpan = new Fl_Counter2(wfgp3->x(), buttonrow, 75, BTN_HEIGHT );
+		wfAmpSpan->callback(ampspan_cb, 0);
+		wfAmpSpan->step(1.0);
+		wfAmpSpan->precision(0);
+		wfAmpSpan->range(6.0, 90.0);
+		wfAmpSpan->value(70.0);
+		wfdisp->Ampspan(70.0);
+		wfAmpSpan->tooltip(_("Signal range (dB)"));
+		wfAmpSpan->type(FL_SIMPLE_COUNTER);
 
-	xpos = xpos + (int)(bwRate*ratio) + wSpace;
-	wfcarrier = new Fl_Counter2(xpos, buttonrow, (int)(cwCnt*ratio), BTN_HEIGHT );
-	wfcarrier->callback(carrier_cb, 0);
-	wfcarrier->step(1.0);
-	wfcarrier->lstep(10.0);
-	wfcarrier->precision(0);
-	wfcarrier->range(16.0, progdefaults.HighFreqCutoff - 16.0);
-	wfcarrier->value(wfdisp->carrier());
-	wfcarrier->tooltip(_("Adjust cursor frequency"));
+		wfbx3 = new Fl_Box(rightof(wfAmpSpan), buttonrow, wfgp3->w() - 75, BTN_HEIGHT, "");
+		wfbx3->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(cwCnt*ratio) + wSpace;
-	qsy = new Fl_Button(xpos, buttonrow, (int)(bwQsy*ratio), BTN_HEIGHT, "QSY");
-	qsy->callback(qsy_cb, 0);
-	qsy->tooltip(_("Center in passband\nRight click to undo"));
-	qsy->deactivate();
+		wfgp3->end();
+		if (progdefaults.status_bar_fill) wfgp3->resizable(wfbx3);
+//5
+	wfgp4 = new Fl_Group(rightof(wfgp3), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp4->box(FL_FLAT_BOX);
 
-	xpos = xpos + (int)(bwQsy*ratio) + wSpace;
-	btnMem = new Fl_Button(xpos, buttonrow, (int)(bwMem*ratio), BTN_HEIGHT, "Store");
-	btnMem->callback(btnMem_cb, 0);
-	btnMem->tooltip(_("Store mode and frequency\nRight click for list"));
-	mbtnMem = new Fl_Menu_Button(btnMem->x(), btnMem->y(), btnMem->w(), btnMem->h(), 0);
-	mbtnMem->callback(btnMem->callback(), mbtnMem);
-	mbtnMem->type(Fl_Menu_Button::POPUP3);
+		x1 = new Fl_Button(wfgp4->x(), buttonrow, 37, BTN_HEIGHT, "x1");
+		x1->callback(x1_cb, 0);
+		x1->tooltip(_("Change waterfall scale"));
 
-	xpos = xpos + (int)(bwMem*ratio) + wSpace;
-	xmtlock = new Fl_Light_Button(xpos, buttonrow, (int)(bwXmtLock*ratio), BTN_HEIGHT, "Lk");
-	xmtlock->callback(xmtlock_cb, 0);
-	xmtlock->value(0);
-	xmtlock->selection_color(progdefaults.LkColor);
-	xmtlock->tooltip(_("Lock transmit frequency"));
+		wfbx4 = new Fl_Box(rightof(x1), buttonrow, wfgp4->w() - 37, BTN_HEIGHT, "");
+		wfbx4->box(FL_FLAT_BOX);
 
-	/// We save this flag which is used by rtty decoding.
-	xpos = xpos + (int)(bwXmtLock*ratio) + wSpace;
-	btnRev = new Fl_Light_Button(xpos, buttonrow, (int)(bwRev*ratio), BTN_HEIGHT, "Rv");
-	btnRev->callback(btnRev_cb, 0);
-	reverse = progdefaults.rtty_reverse;
-	btnRev->value(reverse);
-	btnRev->selection_color(progdefaults.RevColor);
-	btnRev->tooltip(_("Reverse"));
+		wfgp4->end();
+		if (progdefaults.status_bar_fill) wfgp4->resizable(wfbx4);
+//6
+	wfgp5 = new Fl_Group(rightof(wfgp4), buttonrow, bw * 3, BTN_HEIGHT, "");
+		wfgp5->box(FL_FLAT_BOX);
 
-	xpos = w() - (int)(bwXmtRcv*ratio) - wSpace;
-	xmtrcv = new Fl_Light_Button(xpos, buttonrow, (int)(bwXmtRcv*ratio) - BEZEL, BTN_HEIGHT, "T/R");
-	xmtrcv->callback(xmtrcv_cb, 0);
-	xmtrcv->selection_color(progdefaults.XmtColor);
-	xmtrcv->value(0);
-	xmtrcv->tooltip(_("Transmit/Receive"));
+		left = new Fl_Repeat_Button(wfgp5->x(), buttonrow, 37, BTN_HEIGHT, "@<");
+		left->callback(slew_left, 0);
+		left->tooltip(_("Slew display lower in frequency"));
+
+		center = new Fl_Button(rightof(left), buttonrow, 38, BTN_HEIGHT, "@||");
+		center->callback(center_cb, 0);
+		center->tooltip(_("Center display on signal"));
+
+		right = new Fl_Repeat_Button(rightof(center), buttonrow, 37, BTN_HEIGHT, "@>");
+		right->callback(slew_right, 0);
+		right->tooltip(_("Slew display higher in frequency"));
+
+		wfbx5 = new Fl_Box(rightof(right), buttonrow, wfgp5->w() - 37 - 38 - 37, BTN_HEIGHT, "");
+		wfbx5->box(FL_FLAT_BOX);
+
+		wfgp5->end();
+		if (progdefaults.status_bar_fill) wfgp5->resizable(wfbx5);
+//9
+	wfgp6 = new Fl_Group(rightof(wfgp5), buttonrow, bw * 2, BTN_HEIGHT, "");
+		wfgp6->box(FL_FLAT_BOX);
+
+		wfrate = new Fl_Button(wfgp6->x(), buttonrow, 75, BTN_HEIGHT, "Norm");
+		wfrate->callback(rate_cb, 0);
+		wfrate->tooltip(_("Waterfall drop speed"));
+
+		wfbx6 = new Fl_Box(rightof(wfrate), buttonrow, wfgp6->w() - 75, BTN_HEIGHT, "");
+		wfbx6->box(FL_FLAT_BOX);
+
+		wfgp6->end();
+		if (progdefaults.status_bar_fill) wfgp6->resizable(wfbx6);
+//11
+	wfgp7 = new Fl_Group(rightof(wfgp6), buttonrow, bw * 3.5, BTN_HEIGHT, "");
+		wfgp6->box(FL_FLAT_BOX);
+
+		wfcarrier = new Fl_Counter2(wfgp7->x(), buttonrow, 132, BTN_HEIGHT );
+		wfcarrier->callback(carrier_cb, 0);
+		wfcarrier->step(1.0);
+		wfcarrier->lstep(10.0);
+		wfcarrier->precision(0);
+		wfcarrier->range(16.0, progdefaults.HighFreqCutoff - 16.0);
+		wfcarrier->value(wfdisp->carrier());
+		wfcarrier->tooltip(_("Adjust cursor frequency"));
+
+		wfbx7 = new Fl_Box(rightof(wfcarrier), buttonrow, wfgp7->w() - 132, BTN_HEIGHT, "");
+		wfbx7->box(FL_FLAT_BOX);
+
+		wfgp7->end();
+		if (progdefaults.status_bar_fill) wfgp7->resizable(wfbx7);
+//14.5
+	wfgp8 = new Fl_Group(rightof(wfgp7), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp8->box(FL_FLAT_BOX);
+
+		qsy = new Fl_Button(wfgp8->x(), buttonrow, 37, BTN_HEIGHT, "QSY");
+		qsy->callback(qsy_cb, 0);
+		qsy->tooltip(_("Center in passband\nRight click to undo"));
+		qsy->deactivate();
+
+		wfbx8 = new Fl_Box(rightof(qsy), buttonrow, wfgp8->w() - 37, BTN_HEIGHT, "");
+		wfbx8->box(FL_FLAT_BOX);
+
+		wfgp8->end();
+		if (progdefaults.status_bar_fill) wfgp8->resizable(wfbx8);
+//15.5
+	wfgp9 = new Fl_Group(rightof(wfgp8), buttonrow, bw * 1.5, BTN_HEIGHT, "");
+		wfgp9->box(FL_FLAT_BOX);
+
+		btnMem = new Fl_Button(wfgp9->x(), buttonrow, 56, BTN_HEIGHT, "Store");
+		btnMem->callback(btnMem_cb, 0);
+		btnMem->tooltip(_("Store mode and frequency\nRight click for list"));
+
+		mbtnMem = new Fl_Menu_Button(btnMem->x() + 4, btnMem->y() + 4, bw * 3, btnMem->h(), 0);
+		mbtnMem->callback(btnMem->callback(), mbtnMem);
+		mbtnMem->type(Fl_Menu_Button::POPUP3);
+
+		wfbx9 = new Fl_Box(rightof(btnMem), buttonrow, wfgp9->w() - 56, BTN_HEIGHT, "");
+		wfbx9->box(FL_FLAT_BOX);
+
+		wfgp9->end();
+		if (progdefaults.status_bar_fill) wfgp9->resizable(wfbx9);
+
+//17
+	wfgp10 = new Fl_Group(rightof(wfgp9), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp10->box(FL_FLAT_BOX);
+
+		xmtlock = new Fl_Light_Button(wfgp10->x(), buttonrow, 37, BTN_HEIGHT, "Lk");
+		xmtlock->callback(xmtlock_cb, 0);
+		xmtlock->value(0);
+		xmtlock->selection_color(RGBCOLOR( LkColor ));
+		xmtlock->tooltip(_("Lock transmit frequency"));
+
+		wfbx10 = new Fl_Box(rightof(xmtlock), buttonrow, wfgp10->w() - 37, BTN_HEIGHT, "");
+		wfbx10->box(FL_FLAT_BOX);
+
+		wfgp10->end();
+		if (progdefaults.status_bar_fill) wfgp10->resizable(wfbx10);
+//18
+	wfgp11 = new Fl_Group(rightof(wfgp10), buttonrow, bw, BTN_HEIGHT, "");
+		wfgp11->box(FL_FLAT_BOX);
+
+		btnRev = new Fl_Light_Button(wfgp11->x(), buttonrow, 37, BTN_HEIGHT, "Rv");
+		btnRev->callback(btnRev_cb, 0);
+		reverse = progdefaults.rtty_reverse;
+		btnRev->value(reverse);
+		btnRev->selection_color(RGBCOLOR( RevColor ));
+		btnRev->tooltip(_("Reverse"));
+
+		wfbx11 = new Fl_Box(rightof(btnRev), buttonrow, wfgp11->w() - 37, BTN_HEIGHT, "");
+		wfbx11->box(FL_FLAT_BOX);
+
+		wfgp11->end();
+		if (progdefaults.status_bar_fill) wfgp11->resizable(wfbx11);
+//19
+	wfgp12 = new Fl_Group(rightof(wfgp11), buttonrow, x() + w() - rightof(wfgp11), BTN_HEIGHT, "");
+		wfgp12->box(FL_FLAT_BOX);
+
+		xmtrcv = new Fl_Light_Button(wfgp12->x(),buttonrow, 45, BTN_HEIGHT, "T/R");
+		xmtrcv->callback(xmtrcv_cb, 0);
+		xmtrcv->selection_color(RGBCOLOR( XmtColor ));
+		xmtrcv->value(0);
+		xmtrcv->tooltip(_("Transmit/Receive"));
+
+		wfbx12 = new Fl_Box(rightof(xmtrcv), buttonrow, wfgp12->w() - 45, BTN_HEIGHT, "");
+		wfbx12->box(FL_FLAT_BOX);
+
+		wfgp12->end();
+		if (progdefaults.status_bar_fill) wfgp12->resizable(wfbx12);
+//20
 	end();
+/*
+std::cout << "++++++++++++++++++ waterfall widths +++++++++++++++++++++" << std::endl;
+std::cout << "wfgp1  " << wfgp1->w() << std::endl;
+std::cout << "wfgp2  " << wfgp2->w() << std::endl;
+std::cout << "wfgp3  " << wfgp3->w() << std::endl;
+std::cout << "wfgp4  " << wfgp4->w() << std::endl;
+std::cout << "wfgp5  " << wfgp5->w() << std::endl;
+std::cout << "wfgp6  " << wfgp6->w() << std::endl;
+std::cout << "wfgp7  " << wfgp7->w() << std::endl;
+std::cout << "wfgp8  " << wfgp8->w() << std::endl;
+std::cout << "wfgp9  " << wfgp9->w() << std::endl;
+std::cout << "wfgp11 " << wfgp11->w() << std::endl;
+std::cout << "wfgp12 " << wfgp12->w() << std::endl;
+std::cout << "wfgp13 " << wfgp13->w() << std::endl;
+std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+*/
 }
+
 
 void waterfall::UI_select(bool on) {
 	if (on) {
@@ -2350,13 +2558,19 @@ int WFdisp::handle(int event)
 		}
 		break;
 	case FL_RELEASE:
-		switch (eb = Fl::event_button()) {
-		case FL_RIGHT_MOUSE:
+		eb = Fl::event_button();
+		if (eb == FL_RIGHT_MOUSE) {
 			tmp_carrier = false;
-			if (active_modem) active_modem->set_freq(oldcarrier);
+			if (active_modem) {
+				if (Fl::event_state() & FL_CTRL) {
+					do_qsy(true);
+				} else {
+					active_modem->set_freq(oldcarrier);
+				}
+			}
 			restoreFocus();
-			// fall through
-		case FL_LEFT_MOUSE:
+		}
+		else if (eb == FL_LEFT_MOUSE) {
 			push = 0;
 			oldcarrier = newcarrier;
 			if (eb != FL_LEFT_MOUSE || !ReceiveText->visible())
@@ -2456,75 +2670,75 @@ int WFdisp::handle(int event)
 
 void waterfall::handle_mouse_wheel(int what, int d)
 {
-	if (d == 0)
+	if (what == WF_NOP)
 		return;
 
-	Fl_Valuator *val = 0;
-	const char* msg_fmt = 0, *msg_label = 0;
+	int val;
+	char msg[200];
 
-	switch (what) {
-	case WF_NOP:
-		return;
-	case WF_AFC_BW:
-	{
+	if (what == WF_AFC_BW) {
 		if (active_modem) {
 			trx_mode m = active_modem->get_mode();
 			if (m >= MODE_PSK_FIRST && m <= MODE_PSK_LAST) {
-				val = mailserver ? cntServerOffset : cntSearchRange;
-				msg_label = "Srch Rng";
+				snprintf(msg, sizeof(msg), "Srch Rng: %3.0f Hz", 
+					mailserver ? cntServerOffset->value() : cntSearchRange->value());
 			}
 			else if (m >= MODE_HELL_FIRST && m <= MODE_HELL_LAST) {
-				val = sldrHellBW;
-				msg_label = "BW";
+				snprintf(msg, sizeof(msg), "BW: %3.0f Hz", sldrHellBW->value());
 			}
 			else if (m == MODE_CW) {
-				val = sldrCWbandwidth;
-				msg_label = "BW";
+				if (d > 0) progdefaults.CWbandwidth -= 10;
+				if (d < 0) progdefaults.CWbandwidth += 10;
+				if (progdefaults.CWbandwidth < 10) progdefaults.CWbandwidth = 10;
+				if (progdefaults.CWbandwidth > 800) progdefaults.CWbandwidth = 800;
+				snprintf(msg, sizeof(msg), "BW: %d Hz", progdefaults.CWbandwidth);
 			}
 			else
 				return;
-			msg_fmt = "%s: %2.0f Hz";
+			put_status(msg, 5.0);
 		}
-		break;
+		return;
 	}
-	case WF_SIGNAL_SEARCH:
+
+	if (what == WF_SIGNAL_SEARCH) {
 		if (d > 0) {
 			if (active_modem) active_modem->searchDown();
 		} else {
 			if (active_modem) active_modem->searchUp();
 		}
+		return;\
+	}
+
+	if (what == WF_SQUELCH) {
+		val = sldrSquelch->value();
+		if (d > 0 ) val--;
+		else 		val++;
+		if (val < 0) val = 0;
+		if (val > 100) val = 100;
+		snprintf(msg, sizeof(msg), "Squelch: %d", val);
+		put_status(msg, 5.0);
+		sldrSquelch->value(val);
 		return;
-	case WF_SQUELCH:
-		val = sldrSquelch;
-		d = -d;
-		msg_fmt = "%s = %2.0f %%";
-		msg_label = "Squelch";
-		break;
-	case WF_CARRIER:
-		val = wfcarrier;
-		break;
-	case WF_MODEM:
+	}
+
+	if (what == WF_CARRIER) {
+		val = wfcarrier->value();
+		if (d > 0) val--;
+		else       val++;
+		carrier(val);
+		return;
+	}
+
+	if (what == WF_MODEM) {
 		init_modem(d > 0 ? MODE_NEXT : MODE_PREV);
 		return;
-	case WF_SCROLL:
+	}
+
+	if (what == WF_SCROLL) {
 		(d > 0 ? right : left)->do_callback();
 		return;
 	}
 
-	val->value(val->clamp(val->increment(val->value(), -d)));
-	bool changed_save = progdefaults.changed;
-	val->do_callback();
-	progdefaults.changed = changed_save;
-	if (val == cntServerOffset || val == cntSearchRange) {
-		if (active_modem) active_modem->set_sigsearch(SIGSEARCH);
-	} else if (val == sldrSquelch) { // sldrSquelch gives focus to TransmitText
-		take_focus();
-	}
-	if (msg_fmt) {
-		char msg[60];
-		snprintf(msg, sizeof(msg), msg_fmt, msg_label, val->value());
-		put_status(msg, 2.0);
-	}
 }
 
 const char* waterfall::wf_wheel_action[] = {

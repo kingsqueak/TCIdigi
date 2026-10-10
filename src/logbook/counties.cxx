@@ -148,9 +148,19 @@ void load_SQSO()
 	std::string cnty_file = DATA_dir;
 	cnty_file.append("SQSO.txt");
 	std::ifstream csvfile(cnty_file.c_str());
+	std::string str = szSQSO;
 
 	if (!csvfile) {
-		std::string str = szSQSO;
+		load_from_string( str, vec_SQSO );
+		return;
+	}
+	char line[1024];
+	csvfile.getline(line, 1024);
+	std::string sline = line;
+	std::string vertest = "Version ";
+	vertest.append(FLDIGI_VERSION);
+	if (sline.find(vertest) == std::string::npos) {
+		csvfile.close();
 		load_from_string( str, vec_SQSO );
 		return;
 	}
@@ -195,10 +205,10 @@ void save_SQSO()
 	std::ofstream csvfile(cnty_file.c_str());
 
 	if (!csvfile) {
-//		std::cout << "cannot create " << cnty_file << std::endl;
 		return;
 	}
-	csvfile << "State/Province, ST/PR, County/City/Disrict, CCD" << std::endl;
+	csvfile << "State/Province, ST/PR, County/City/District, CCD -- Version ";
+	csvfile << FLDIGI_VERSION << std::endl;
 
 	for (size_t n = 0; n < vec_SQSO.size(); n++ )
 		csvfile << vec_SQSO[n].state << ","
@@ -208,8 +218,6 @@ void save_SQSO()
 				<< std::endl;
 
 	csvfile.close();
-
-//std::cout << vec_SQSO.size() << " records written to " << cnty_file << std::endl;
 }
 
 void save_7qp()
@@ -331,6 +339,7 @@ const std::string Cstates::names()
 
 const std::string Cstates::state_short(std::string ST)  // ST can be either short or long form
 {
+	if (ST == "NIL") return "";
 	for (size_t n = 0; n < vec_SQSO.size(); n++)
 		if (ST == vec_SQSO[n].ST || ST == vec_SQSO[n].state)
 			return vec_SQSO[n].ST;
@@ -339,6 +348,7 @@ const std::string Cstates::state_short(std::string ST)  // ST can be either shor
 
 const std::string Cstates::state(std::string ST) // ST can be either short or long form
 {
+	if (ST == "NIL") return "";
 	for (size_t n = 0; n < vec_SQSO.size(); n++)
 		if (ST == vec_SQSO[n].ST || ST == vec_SQSO[n].state)
 			return vec_SQSO[n].state;
@@ -403,7 +413,7 @@ const std::string Cstates::cnty_short( std::string st, std::string cnty) // st/c
 		if (!OK) return answer;
 
 		ST = vec_7QP[n].ST;
-		for (size_t k = n; ST == vec_7QP[k].ST, k < vec_7QP.size(); k++) {
+		for (size_t k = n; k < vec_7QP.size(); k++) {
 			dCNTY = ucasestr(vec_7QP[k].CTY);
 			dCOUNTY = ucasestr(vec_7QP[k].county);
 			if (CNTY == dCNTY) {
@@ -425,7 +435,7 @@ const std::string Cstates::cnty_short( std::string st, std::string cnty) // st/c
 		if (!OK) return answer;
 
 		ST = vec_6QP[n].ST;
-		for (size_t k = n; ST == vec_6QP[k].ST, k < vec_6QP.size(); k++) {
+		for (size_t k = n; k < vec_6QP.size(); k++) {
 			dCNTY = ucasestr(vec_6QP[k].CTY);
 			dCOUNTY = ucasestr(vec_6QP[k].county);
 			if (CNTY == dCNTY) {
@@ -447,7 +457,7 @@ const std::string Cstates::cnty_short( std::string st, std::string cnty) // st/c
 		if (!OK) return answer;
 
 		ST = vec_SQSO[n].ST;
-		for (size_t k = n; ST == vec_SQSO[k].ST, k < vec_SQSO.size(); k++) {
+		for (size_t k = n; k < vec_SQSO.size(); k++) {
 			dCNTY = ucasestr(vec_SQSO[k].CTY);
 			dCOUNTY = ucasestr(vec_SQSO[k].county);
 			if (CNTY == dCNTY) {
@@ -479,7 +489,7 @@ const std::string Cstates::county( std::string st, std::string cnty) // st/cnty 
 		if (ST != dST) return "";
 
 		ST = vec_7QP[n].ST;
-		for (size_t k = n; ST == vec_7QP[k].ST, k < vec_7QP.size(); k++) {
+		for (size_t k = n; k < vec_7QP.size(); k++) {
 			dCNTY = ucasestr(vec_7QP[k].CTY);
 			dCOUNTY = ucasestr(vec_7QP[k].county);
 			if (CNTY == dCNTY) return vec_7QP[k].county;
@@ -494,7 +504,7 @@ const std::string Cstates::county( std::string st, std::string cnty) // st/cnty 
 		if (ST != dST) return "";
 
 		ST = vec_6QP[n].ST;
-		for (size_t k = n; ST == vec_6QP[k].ST, k < vec_6QP.size(); k++) {
+		for (size_t k = n; k < vec_6QP.size(); k++) {
 			if (vec_6QP[k].ST.empty()) return "";
 			dCNTY = ucasestr(vec_6QP[k].CTY);
 			dCOUNTY = ucasestr(vec_6QP[k].county);
@@ -503,14 +513,15 @@ const std::string Cstates::county( std::string st, std::string cnty) // st/cnty 
 		}
 		return "";
 	} else {
-		for (n = 0; !vec_SQSO[n].ST.empty(); n++) {
+		for (n = 0; n < vec_SQSO.size(); n++) {
+			if (vec_SQSO[n].ST.empty()) return "";
 			dST = ucasestr(vec_SQSO[n].ST);
 			if (ST == dST) break;
 		}
 		if (ST != dST) return "";
 
 		ST = vec_SQSO[n].ST;
-		for (size_t k = n; ST == vec_SQSO[k].ST, k < vec_SQSO.size(); k++) {
+		for (size_t k = n; k < vec_SQSO.size(); k++) {
 			if (vec_SQSO[k].ST.empty()) return "";
 			dCNTY = ucasestr(vec_SQSO[k].CTY);
 			dCOUNTY = ucasestr(vec_SQSO[k].county);

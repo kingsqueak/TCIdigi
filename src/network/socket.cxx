@@ -38,7 +38,7 @@
 #  include <sys/select.h>
 #else
 #  include "compat.h"
-#define socklen_t int
+#  include <ws2tcpip.h>
 #endif
 
 #define DEFAULT_BUFFER_SIZE 1024

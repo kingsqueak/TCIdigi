@@ -25,6 +25,7 @@
 #include <FL/Fl_Box.H>
 
 #include "configuration.h"
+#include "ui_colors.h"
 #include "confdialog.h"
 #include "gettext.h"
 #include "fmt_dialog.h"
@@ -90,8 +91,13 @@ static const char *legend_15  = " |14|13|12|11|10|9|8|7|6|5|4|3|2|1| |";
 static const char *legend_30  = " |28|26|24|22|20|18|16|14|12|10|8|6|4|2| |";
 static const char *legend_60  = " |55|50|45|40|35|30|25|20|15|10|5| |";
 static const char *legend_120 = " |110|100|90|80|70|60|50|40|30|20|10| |";
+static const char *legend_4h  = " |3.5|3.0|2.5|2.0|1.5|1.0|0.5| |";
+static const char *legend_8h  = " |7.5|7.0|6.5|6.0|5.5|5.0|4.5|4.0|3.5|3.0|2.5|2.0|1.5|1.0|0.5| |";
+static const char *legend_16h = " |15|14|13|12|11|10|9|8|7|6|5|4|3|2|1| |";
+static const char *legend_24h = " |23|22|21|20|19|18|17|16|15|14|13|12|11|10|9|8|7|6|5|4|3|2|1| |";
+static const char *legend_48h = " |46|44|42|40|38|36|34|32|30|28|26|24|22|20|18|16|14|12|10|8|6|4|2| |";
 
-static int seconds[5] = {300, 900, 1800, 3600, 7200};
+static int seconds[] = {300, 900, 1800, 3600, 7200, 14400, 28800, 57600, 86400, 172800};
 
 void cb_unk_up(void *)
 {
@@ -154,6 +160,11 @@ void fmt_set_x_scale()
 	const char *legend = NULL;
 
 	switch (progStatus.FMT_minutes) {
+		case 9: minutes = 2880; markers = 24; legend = legend_48h; break;
+		case 8: minutes = 1440; markers = 24; legend = legend_24h; break;
+		case 7: minutes = 960; markers = 16; legend = legend_16h; break;
+		case 6: minutes = 480; markers = 16; legend = legend_8h; break;
+		case 5: minutes = 240; markers = 8; legend = legend_4h; break;
 		case 4: minutes = 120; markers = 12; legend = legend_120; break;
 		case 3: minutes = 60; markers = 12; legend = legend_60;  break;
 		case 2: minutes = 30; markers = 15; legend = legend_30;  break;
@@ -225,12 +236,14 @@ void fmt_scale_cb(void *)
 {
 	progStatus.FMT_trk_scale = fmt_scale->index();
 	fmt_set_y_scale();
+	fmt_plot->redraw();
 }
 
 void fmt_cntr_minutes_cb(void *)
 {
 	progStatus.FMT_minutes = fmt_cntr_minutes->index();
 	fmt_set_x_scale();
+	fmt_plot->redraw();
 }
 
 Fl_Group* fmt_panel(int X, int Y, int W, int H) {
@@ -243,11 +256,11 @@ Fl_Group* fmt_panel(int X, int Y, int W, int H) {
 		grp->w() - 4, grp->h() - 4- 2 * grp_height, "");
 
 		fmt_plot->reverse_x(progdefaults.FMT_reverse);
-		fmt_plot->bk_color (progdefaults.FMT_background);
-		fmt_plot->line_color_1 (progdefaults.FMT_unk_color);
-		fmt_plot->line_color_2 (progdefaults.FMT_ref_color);
-		fmt_plot->axis_color (progdefaults.FMT_axis_color);
-		fmt_plot->legend_color (progdefaults.FMT_legend_color);
+		fmt_plot->bk_color ( RGBCOLOR( FMT_background ) );
+		fmt_plot->line_color_1 ( RGBCOLOR( FMT_unk_color ) );
+		fmt_plot->line_color_2 ( RGBCOLOR( FMT_ref_color ) );
+		fmt_plot->axis_color ( RGBCOLOR( FMT_axis_color ) );
+		fmt_plot->legend_color ( RGBCOLOR( FMT_legend_color ) );
 		fmt_set_x_scale ();
 		fmt_set_y_scale ();
 		fmt_plot->show_1(false);
@@ -261,14 +274,14 @@ Fl_Group* fmt_panel(int X, int Y, int W, int H) {
 		btn_unk_enable = new Fl_Light_Button(
 			ref_group->x() + 2, ref_group->y() + 2,
 				50, 20, "Unk'");
-			btn_unk_enable->selection_color(progdefaults.default_btn_color);
+			btn_unk_enable->selection_color( RGBCOLOR( default_btn_color ) );
 			btn_unk_enable->callback((Fl_Callback *)cb_btn_unk_enable);
 
 		unk_color = new Fl_Box(
 			btn_unk_enable->x() + btn_unk_enable->w() + 2, btn_unk_enable->y() + 4,
 			12, 12, "");
 			unk_color->box(FL_DOWN_BOX);
-			unk_color->color(progdefaults.FMT_unk_color);
+			unk_color->color( RGBCOLOR( FMT_unk_color ));
 
 		btn_unk_dn = new Fl_Button(
 			unk_color->x() + unk_color->w() + 2, btn_unk_enable->y(),
@@ -358,14 +371,14 @@ Fl_Group* fmt_panel(int X, int Y, int W, int H) {
 		btn_ref_enable = new Fl_Light_Button(
 			unk_group->x() + 2, unk_group->y() + 2,
 				50, 20, "Ref'");
-			btn_ref_enable->selection_color(progdefaults.default_btn_color);
+			btn_ref_enable->selection_color( RGBCOLOR( default_btn_color ) );
 			btn_ref_enable->callback((Fl_Callback *)cb_btn_ref_enable);
 
 		ref_color = new Fl_Box(
 			btn_ref_enable->x() + btn_ref_enable->w() + 2, btn_ref_enable->y() + 4,
 			12, 12, "");
 			ref_color->box(FL_DOWN_BOX);
-			ref_color->color(progdefaults.FMT_ref_color);
+			ref_color->color( RGBCOLOR( FMT_ref_color ) );
 
 		btn_ref_dn = new Fl_Button(
 			unk_color->x() + unk_color->w() + 2, btn_ref_enable->y(),
@@ -444,6 +457,11 @@ Fl_Group* fmt_panel(int X, int Y, int W, int H) {
 			fmt_cntr_minutes->add("30  min");
 			fmt_cntr_minutes->add("60  min");
 			fmt_cntr_minutes->add("120 min");
+			fmt_cntr_minutes->add("4 hr");
+			fmt_cntr_minutes->add("8 hr");
+			fmt_cntr_minutes->add("16 hr");
+			fmt_cntr_minutes->add("24 hr");
+			fmt_cntr_minutes->add("48 hr");
 			fmt_cntr_minutes->color(FL_WHITE);
 			fmt_cntr_minutes->index(progStatus.FMT_minutes);
 			fmt_cntr_minutes->callback((Fl_Callback *)fmt_cntr_minutes_cb);
@@ -541,14 +559,14 @@ void set_fmt_scope()
 
 void clear_ref_scope()
 {
-	fmt_plot->data_2 (&fmt_modem->ref_pipe[MAX_DATA_PTS], MAX_DATA_PTS);
+	fmt_plot->data_2 (&fmt_modem->ref_pipe[0], MAX_DATA_PTS);
 	fmt_plot->redraw();
 	Fl::flush();
 }
 
 void clear_unk_scope()
 {
-	fmt_plot->data_1 (&fmt_modem->ref_pipe[MAX_DATA_PTS], MAX_DATA_PTS);
+	fmt_plot->data_1 (&fmt_modem->ref_pipe[0], MAX_DATA_PTS);
 	fmt_plot->redraw();
 	Fl::flush();
 }

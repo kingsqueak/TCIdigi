@@ -69,12 +69,24 @@ static char letters[32] = {
 /*
  * U.S. version of the figures case.
  */
-static char figures[32] = {
+static char USTTY_figures[32] = {
 	'\0',	'3',	'\n',	'-',	' ',	'\a',	'8',	'7',
 	'\r',	'$',	'4',	'\'',	',',	'!',	':',	'(',
 	'5',	'"',	')',	'2',	'#',	'6',	'0',	'1',
 	'9',	'?',	'&',	' ',	'.',	'/',	';',	' '
 };
+
+/*
+ * ITA-2 version of the figures case
+ */
+static char ITA2_figures[32] = {
+	'\0',	'3',	'\n',	'-',	' ',	'\'',	'8',	'7',
+	'\r',	' ',	'4',	'\a',	',',	'!',	':',	'(',
+	'5',	'+',	')',	'2',	'#',	'6',	'0',	'1',
+	'9',	'?',	'&',	' ',	'.',	'/',	'=',	' '
+};
+
+static char *figures;
 
 int dspcnt = 0;
 
@@ -326,7 +338,7 @@ void rtty::resetFSK() {
 			fsk_tty->dtr(true);
 		else
 			fsk_tty->rts(true);
-		sig_start = true;
+		if (progdefaults.softRTTY) sig_start = true;
 	}
 }
 
@@ -543,14 +555,17 @@ char snrmsg[80];
 void rtty::Metric()
 {
 	double delta = rtty_baud/8.0;
-	double np = wf->powerDensity(frequency, delta) * 3000 / delta;
+	double np = wf->powerDensity(frequency, delta) * 3000 / delta + 1e-8;
 	double sp =
 		wf->powerDensity(frequency - shift/2, delta) +
-		wf->powerDensity(frequency + shift/2, delta) + 1e-10;
+		wf->powerDensity(frequency + shift/2, delta) + 1e-8;
 	double snr = 0;
+
+	if (np < 1e-6) np = sp * 100;
 
 	sigpwr = decayavg( sigpwr, sp, sp > sigpwr ? 2 : 8);
 	noisepwr = decayavg( noisepwr, np, 16 );
+
 	snr = 10*log10(sigpwr / noisepwr);
 
 	snprintf(snrmsg, sizeof(snrmsg), "s/n %-3.0f dB", snr);
@@ -1032,7 +1047,7 @@ void rtty::flush_stream()
 		FSKbuf[i] = 0.0;
 	}
 
-	sig_stop = true;
+	if (progdefaults.softRTTY) sig_stop = true;
 	if (progdefaults.PseudoFSK)
 		ModulateStereo(outbuf, FSKbuf, symbollen * 6);
 	else
@@ -1043,6 +1058,12 @@ void rtty::flush_stream()
 void rtty::send_char(int c)
 {
 	int i;
+
+	if (progdefaults.ITA2)
+		figures = ITA2_figures;
+	else
+		figures = USTTY_figures;
+
 	if (nbits == 5) {
 		if (c == LETTERS)
 			c = 0x1F;
@@ -1069,6 +1090,7 @@ void rtty::send_char(int c)
 			c = letters[c];
 		else
 			c = figures[c];
+
 		if (c)
 			put_echo_char(progdefaults.rx_lowercase ? tolower(c) : c);
 	}
@@ -1101,7 +1123,7 @@ int rtty::rtty_sleep (double sleep_time)
 	double start_at = rtty_now();
 	double end_at = start_at + sleep_time;
 
-	double delay = sleep_time - 0.005;
+	double delay = sleep_time;
 
 	tv.tv_sec = (time_t) delay;
 	tv.tv_nsec = (long) ((delay - tv.tv_sec) * 1000000000L);
@@ -1110,17 +1132,13 @@ int rtty::rtty_sleep (double sleep_time)
 #ifdef __WIN32__
 	timeBeginPeriod(1);
 #endif
-//	while (1) {
-		rval = nanosleep (&tv, &tv);
-		if (errno == EINTR) {
-//			continue
-std::cout << "EINTR error in rtty_sleep" << std::endl;
-		}
-//		break;
-//	}
+	rval = nano_sleep (&tv, &tv);
+	if (errno == EINTR) {
+		std::cerr << "EINTR error in rtty_sleep" << std::endl;
+	}
 	rval = 0;
 	while (rtty_now() < end_at) rval++;
-//std::cout << "rtty_sleep( " << sleep_time << ") : " << rval << std::endl;
+// std::cout << "rtty_sleep( " << sleep_time << ") : " << rval << std::endl;
 #ifdef __WIN32__
 	timeEndPeriod(1);
 #endif
@@ -1129,19 +1147,28 @@ std::cout << "EINTR error in rtty_sleep" << std::endl;
 }
 
 static int line_char_count = 0;
-// 1 start, 5 data, 1.5/2.0 stopbits
-#define wait_one_byte(baud, stopbits) \
-rtty_sleep( ((6 + (stopbits))*1.0 / (baud)));
 
 void rtty::flrig_fsk_send(char c)
 {
 	static std::string s = " ";
 	s[0] = c;
 	flrig_fskio_send_text(s);
-//	if (c == '[' || c == ']')
-//		return;
-	wait_one_byte(45.45, 1.5);
+
+	int shift = baudot_enc(c) & 0x300; // test for LETTERS/FIGURES
+	if (shift != shift_state) {
+		shift_state = shift;
+		wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
+	}
+	wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
+	if ( c == '\n' ) {
+		wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);  // FIGURES sent by flrig
+		wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);  // \r      sent by flrig
+		wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);  // LETTERS sent by flrig
+	}
 }
+
+int idles = 8;
+int send_idles = 0;
 
 int rtty::tx_process()
 {
@@ -1150,10 +1177,21 @@ int rtty::tx_process()
 	int c = get_tx_char();
 
 	if (progdefaults.use_FLRIG_FSK) {
+
+// read idles, stop bits, baudrate from flrig
+		flrig_get_idles();
+		flrig_get_stopbits();
+		flrig_get_baud();
+
 		if (preamble) {
 			start_deadman();
 			flrig_fsk_send('[');
 			preamble = false;
+			send_idles = idles = progdefaults.flrig_fsk_idles;
+			while (send_idles) {
+				wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
+				--send_idles;
+			}
 		}
 		if (c == GET_TX_CHAR_ETX || stopflag) {
 			stopflag = false;
@@ -1163,7 +1201,7 @@ int rtty::tx_process()
 			return -1;
 		}
 		if (c == GET_TX_CHAR_NODATA) {
-			rtty_sleep(0.022 * 7.5);
+			wait_one_byte(progdefaults.flrig_fsk_baud, progdefaults.flrig_fsk_stopbits);
 		} else {
 			flrig_fsk_send(c);
 			put_echo_char(c);
@@ -1176,7 +1214,7 @@ int rtty::tx_process()
 		if (c == GET_TX_CHAR_ETX || stopflag) {
 			stopflag = false;
 			stop_deadman();
-			sig_start = true;
+			if (progdefaults.softRTTY) sig_start = true;
 			return -1;
 		}
 
@@ -1185,12 +1223,6 @@ int rtty::tx_process()
 			return 0;
 		}
 
-//		if (sig_start) {
-//			int cltrs = 0x1F;
-//			send_FSK(cltrs);
-//			send_FSK(cltrs);
-//			sig_start = false;
-//		}
 		send_FSK(c);
 		put_echo_char(toupper(c));
 
@@ -1200,7 +1232,7 @@ int rtty::tx_process()
 	if (progStatus.nanoFSK_online) {
 		if (preamble) {
 			start_deadman();
-			sig_start = true;
+			if (progdefaults.softRTTY) sig_start = true;
 			for (int i = 0; i < progdefaults.TTY_LTRS; i++)
 				nano_send_char(-1);
 			preamble = false;
@@ -1281,7 +1313,7 @@ int rtty::tx_process()
 	}
 
 	if (preamble) {
-		sig_start = true;
+		if (progdefaults.softRTTY) sig_start = true;
 		for (int i = 0; i < progdefaults.TTY_LTRS; i++)
 			send_char(LETTERS);
 		preamble = false;
@@ -1386,6 +1418,11 @@ int rtty::baudot_enc(unsigned char data)
 	mode = 0;
 	c = -1;
 
+	if (progdefaults.ITA2)
+		figures = ITA2_figures;
+	else
+		figures = USTTY_figures;
+
 	if (islower(data))
 		data = toupper(data);
 
@@ -1394,7 +1431,7 @@ int rtty::baudot_enc(unsigned char data)
 			mode |= LETTERS;
 			c = i;
 		}
-		if (data == figures[i]) {
+		else if (data == figures[i]) {
 			mode |= FIGURES;
 			c = i;
 		}
@@ -1408,6 +1445,11 @@ int rtty::baudot_enc(unsigned char data)
 char rtty::baudot_dec(unsigned char data)
 {
 	int out = 0;
+
+	if (progdefaults.ITA2)
+		figures = ITA2_figures;
+	else
+		figures = USTTY_figures;
 
 	switch (data) {
 	case 0x1F:		/* letters */

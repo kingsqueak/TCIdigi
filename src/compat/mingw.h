@@ -101,7 +101,6 @@ int mingw_rename(const char*, const char*);
 #  define SHUT_RDWR SD_BOTH
 #endif
 
-int nanosleep (const struct timespec *req, struct timespec *rem);
 int socketpair(int family, int type, int protocol, SOCKET *sv);
 
 /* uname */

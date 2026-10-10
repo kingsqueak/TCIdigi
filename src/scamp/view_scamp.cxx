@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// rtty.cxx  --  RTTY modem
+// scamp.cxx  --  ScAMP modem
 //
 // Copyright (C) 2006-2010
 //		Dave Freese, W1HKJ
@@ -24,8 +24,8 @@
 #include <config.h>
 #include <iostream>
 
-//#include "rtty.h"
-#include "view_rtty.h"
+//#include "scamp.h"
+#include "view_scamp.h"
 #include "fl_digi.h"
 #include "digiscope.h"
 #include "misc.h"
@@ -56,19 +56,19 @@ static char figures[32] = {
 	'9',	'?',	'&',	' ',	'.',	'/',	';',	' '
 };
 
-const double	view_rtty::SHIFT[] = {23, 85, 160, 170, 182, 200, 240, 350, 425, 850};
+const double	view_scamp::SHIFT[] = {23, 85, 160, 170, 182, 200, 240, 350, 425, 850};
 // FILTLEN must be same size as BAUD
-const double	view_rtty::BAUD[]  = {45, 45.45, 50, 56, 75, 100, 110, 150, 200, 300};
-const int		view_rtty::FILTLEN[] = { 512, 512, 512, 512, 512, 512, 512, 256, 128, 64};
-const int		view_rtty::BITS[]  = {5, 7, 8};
-const int		view_rtty::numshifts = (int)(sizeof(SHIFT) / sizeof(*SHIFT));
-const int		view_rtty::numbauds = (int)(sizeof(BAUD) / sizeof(*BAUD));
+const double	view_scamp::BAUD[]  = {45, 45.45, 50, 56, 75, 100, 110, 150, 200, 300};
+const int		view_scamp::FILTLEN[] = { 512, 512, 512, 512, 512, 512, 512, 256, 128, 64};
+const int		view_scamp::BITS[]  = {5, 7, 8};
+const int		view_scamp::numshifts = (int)(sizeof(SHIFT) / sizeof(*SHIFT));
+const int		view_scamp::numbauds = (int)(sizeof(BAUD) / sizeof(*BAUD));
 
-void view_rtty::rx_init()
+void view_scamp::rx_init()
 {
 	for (int ch = 0; ch < progdefaults.VIEWERchannels; ch++) {
 		channel[ch].state = IDLE;
-		channel[ch].rxstate = RTTY_RX_STATE_IDLE;
+		channel[ch].rxstate = SCAMP_RX_STATE_IDLE;
 		channel[ch].rxmode = LETTERS;
 		channel[ch].phaseacc = 0;
 		channel[ch].timeout = 0;
@@ -90,7 +90,7 @@ void view_rtty::rx_init()
 	}
 }
 
-void view_rtty::init()
+void view_scamp::init()
 {
 	bool wfrev = wf->Reverse();
 	bool wfsb = wf->USB();
@@ -98,7 +98,7 @@ void view_rtty::init()
 	rx_init();
 }
 
-view_rtty::~view_rtty()
+view_scamp::~view_scamp()
 {
 	for (int ch = 0; ch < MAX_CHANNELS; ch ++) {
 		if (channel[ch].mark_filt) delete channel[ch].mark_filt;
@@ -107,50 +107,50 @@ view_rtty::~view_rtty()
 	}
 }
 
-void view_rtty::reset_filters(int ch)
+void view_scamp::reset_filters(int ch)
 {
 	delete channel[ch].mark_filt;
-	channel[ch].mark_filt = new fftfilt(rtty_baud/samplerate, filter_length);
-	channel[ch].mark_filt->rtty_filter(rtty_baud/samplerate);
+	channel[ch].mark_filt = new fftfilt(scamp_baud/samplerate, filter_length);
+	channel[ch].mark_filt->rtty_filter(scamp_baud/samplerate);
 	delete channel[ch].space_filt;
-	channel[ch].space_filt = new fftfilt(rtty_baud/samplerate, filter_length);
-	channel[ch].space_filt->rtty_filter(rtty_baud/samplerate);
+	channel[ch].space_filt = new fftfilt(scamp_baud/samplerate, filter_length);
+	channel[ch].space_filt->rtty_filter(scamp_baud/samplerate);
 }
 
-void view_rtty::restart()
+void view_scamp::restart()
 {
 	double stl;
 
-	rtty_shift = shift = (progdefaults.rtty_shift < rtty::numshifts ?
+	scamp_shift = shift = (progdefaults.rtty_shift < rtty::numshifts ?
 			      SHIFT[progdefaults.rtty_shift] : progdefaults.rtty_custom_shift);
-	rtty_baud = BAUD[progdefaults.rtty_baud];
+	scamp_baud = BAUD[progdefaults.rtty_baud];
 	filter_length = FILTLEN[progdefaults.rtty_baud];
 
-	nbits = rtty_bits = BITS[progdefaults.rtty_bits];
-	if (rtty_bits == 5)
-		rtty_parity = RTTY_PARITY_NONE;
+	nbits = scamp_bits = BITS[progdefaults.rtty_bits];
+	if (scamp_bits == 5)
+		scamp_parity = SCAMP_PARITY_NONE;
 	else
 		switch (progdefaults.rtty_parity) {
-			case 0 : rtty_parity = RTTY_PARITY_NONE; break;
-			case 1 : rtty_parity = RTTY_PARITY_EVEN; break;
-			case 2 : rtty_parity = RTTY_PARITY_ODD; break;
-			case 3 : rtty_parity = RTTY_PARITY_ZERO; break;
-			case 4 : rtty_parity = RTTY_PARITY_ONE; break;
-			default : rtty_parity = RTTY_PARITY_NONE; break;
+			case 0 : scamp_parity = SCAMP_PARITY_NONE; break;
+			case 1 : scamp_parity = SCAMP_PARITY_EVEN; break;
+			case 2 : scamp_parity = SCAMP_PARITY_ODD; break;
+			case 3 : scamp_parity = SCAMP_PARITY_ZERO; break;
+			case 4 : scamp_parity = SCAMP_PARITY_ONE; break;
+			default : scamp_parity = SCAMP_PARITY_NONE; break;
 		}
-	rtty_stop = progdefaults.rtty_stop;
+	scamp_stop = progdefaults.rtty_stop;
 
 
-	symbollen = (int) (samplerate / rtty_baud + 0.5);
+	symbollen = (int) (samplerate / scamp_baud + 0.5);
 	bflen = symbollen/3;
 
 	set_bandwidth(shift);
 
-	rtty_BW = progdefaults.RTTY_BW;
+	scamp_BW = progdefaults.RTTY_BW;
 
-	bp_filt_lo = (shift/2.0 - rtty_BW/2.0) / samplerate;
+	bp_filt_lo = (shift/2.0 - scamp_BW/2.0) / samplerate;
 	if (bp_filt_lo < 0) bp_filt_lo = 0;
-	bp_filt_hi = (shift/2.0 + rtty_BW/2.0) / samplerate;
+	bp_filt_hi = (shift/2.0 + scamp_BW/2.0) / samplerate;
 
 	for (int ch = 0; ch < MAX_CHANNELS; ch ++) {
 
@@ -181,23 +181,23 @@ void view_rtty::restart()
 		channel[ch].mark_noise = channel[ch].space_noise = 0;
 		channel[ch].bit = channel[ch].nubit = true;
 
-		for (int i = 0; i < VIEW_RTTY_MAXBITS; i++) channel[ch].bit_buf[i] = 0.0;
+		for (int i = 0; i < VIEW_SCAMP_MAXBITS; i++) channel[ch].bit_buf[i] = 0.0;
 
 		for (int i = 0; i < VIEW_MAXPIPE; i++)
 			channel[ch].mark_history[i] = channel[ch].space_history[i] = cmplx(0,0);
 	}
 
 // stop length = 1, 1.5 or 2 bits
-	rtty_stop = progdefaults.rtty_stop;
-	if (rtty_stop == 0) stl = 1.0;
-	else if (rtty_stop == 1) stl = 1.5;
+	scamp_stop = progdefaults.rtty_stop;
+	if (scamp_stop == 0) stl = 1.0;
+	else if (scamp_stop == 1) stl = 1.5;
 	else stl = 2.0;
-	stoplen = (int) (stl * samplerate / rtty_baud + 0.5);
+	stoplen = (int) (stl * samplerate / scamp_baud + 0.5);
 
 	rx_init();
 }
 
-view_rtty::view_rtty(trx_mode tty_mode)
+view_scamp::view_scamp(trx_mode tty_mode)
 {
 	cap |= CAP_AFC | CAP_REV;
 
@@ -214,7 +214,7 @@ view_rtty::view_rtty(trx_mode tty_mode)
 	restart();
 }
 
-cmplx view_rtty::mixer(double &phase, double f, cmplx in)
+cmplx view_scamp::mixer(double &phase, double f, cmplx in)
 {
 	cmplx z = cmplx( cos(phase), sin(phase)) * in;;
 
@@ -225,7 +225,7 @@ cmplx view_rtty::mixer(double &phase, double f, cmplx in)
 }
 
 
-unsigned char view_rtty::bitreverse(unsigned char in, int n)
+unsigned char view_scamp::bitreverse(unsigned char in, int n)
 {
 	unsigned char out = 0;
 
@@ -246,37 +246,37 @@ static int rparity(int c)
 	return p & 1;
 }
 
-int view_rtty::rttyparity(unsigned int c)
+int view_scamp::scampparity(unsigned int c)
 {
 	c &= (1 << nbits) - 1;
 
-	switch (rtty_parity) {
+	switch (scamp_parity) {
 	default:
-	case RTTY_PARITY_NONE:
+	case SCAMP_PARITY_NONE:
 		return 0;
 
-	case RTTY_PARITY_ODD:
+	case SCAMP_PARITY_ODD:
 		return rparity(c);
 
-	case RTTY_PARITY_EVEN:
+	case SCAMP_PARITY_EVEN:
 		return !rparity(c);
 
-	case RTTY_PARITY_ZERO:
+	case SCAMP_PARITY_ZERO:
 		return 0;
 
-	case RTTY_PARITY_ONE:
+	case SCAMP_PARITY_ONE:
 		return 1;
 	}
 }
 
-int view_rtty::decode_char(int ch)
+int view_scamp::decode_char(int ch)
 {
 	unsigned int parbit, par, data;
 
 	parbit = (channel[ch].rxdata >> nbits) & 1;
-	par = rttyparity(channel[ch].rxdata);
+	par = scampparity(channel[ch].rxdata);
 
-	if (rtty_parity != RTTY_PARITY_NONE && parbit != par)
+	if (scamp_parity != SCAMP_PARITY_NONE && parbit != par)
 		return 0;
 
 	data = channel[ch].rxdata & ((1 << nbits) - 1);
@@ -287,7 +287,7 @@ int view_rtty::decode_char(int ch)
 	return data;
 }
 
-bool view_rtty::is_mark_space( int ch, int &correction)
+bool view_scamp::is_mark_space( int ch, int &correction)
 {
 	correction = 0;
 // test for rough bit position
@@ -301,12 +301,12 @@ bool view_rtty::is_mark_space( int ch, int &correction)
 	return false;
 }
 
-bool view_rtty::is_mark(int ch)
+bool view_scamp::is_mark(int ch)
 {
 	return channel[ch].bit_buf[symbollen / 2];
 }
 
-bool view_rtty::rx(int ch, bool bit)
+bool view_scamp::rx(int ch, bool bit)
 {
 	bool flag = false;
 	unsigned char c = 0;
@@ -318,44 +318,44 @@ bool view_rtty::rx(int ch, bool bit)
 	channel[ch].bit_buf[symbollen - 1] = bit;
 
 	switch (channel[ch].rxstate) {
-	case RTTY_RX_STATE_IDLE:
+	case SCAMP_RX_STATE_IDLE:
 		if ( is_mark_space(ch, correction)) {
-			channel[ch].rxstate = RTTY_RX_STATE_START;
+			channel[ch].rxstate = SCAMP_RX_STATE_START;
 			channel[ch].counter = correction;
 		}
 		break;
-	case RTTY_RX_STATE_START:
+	case SCAMP_RX_STATE_START:
 		if (--channel[ch].counter == 0) {
 			if (!is_mark(ch)) {
-				channel[ch].rxstate = RTTY_RX_STATE_DATA;
+				channel[ch].rxstate = SCAMP_RX_STATE_DATA;
 				channel[ch].counter = symbollen;
 				channel[ch].bitcntr = 0;
 				channel[ch].rxdata = 0;
 			} else {
-				channel[ch].rxstate = RTTY_RX_STATE_IDLE;
+				channel[ch].rxstate = SCAMP_RX_STATE_IDLE;
 			}
 		}
 		break;
-	case RTTY_RX_STATE_DATA:
+	case SCAMP_RX_STATE_DATA:
 		if (--channel[ch].counter == 0) {
 			channel[ch].rxdata |= is_mark(ch) << channel[ch].bitcntr++;
 			channel[ch].counter = symbollen;
 		}
-		if (channel[ch].bitcntr == nbits + (rtty_parity != RTTY_PARITY_NONE ? 1 : 0))
-			channel[ch].rxstate = RTTY_RX_STATE_STOP;
+		if (channel[ch].bitcntr == nbits + (scamp_parity != SCAMP_PARITY_NONE ? 1 : 0))
+			channel[ch].rxstate = SCAMP_RX_STATE_STOP;
 		break;
-	case RTTY_RX_STATE_STOP:
+	case SCAMP_RX_STATE_STOP:
 		if (--channel[ch].counter == 0) {
 			if (is_mark(ch)) {
-				if (channel[ch].metric > rtty_squelch) {
+				if (channel[ch].metric > scamp_squelch) {
 					c = decode_char(ch);
-// print this RTTY_CHANNEL
+// print this SCAMP_CHANNEL
 					if ( c != 0 )
 						REQ(&viewaddchr, ch, (int)channel[ch].frequency, c, mode);
 				}
 				flag = true;
 			}
-			channel[ch].rxstate = RTTY_RX_STATE_IDLE;
+			channel[ch].rxstate = SCAMP_RX_STATE_IDLE;
 		}
 		break;
 	default : break;
@@ -364,9 +364,9 @@ bool view_rtty::rx(int ch, bool bit)
 	return flag;
 }
 
-void view_rtty::Metric(int ch)
+void view_scamp::Metric(int ch)
 {
-	double delta = rtty_baud/2.0;
+	double delta = scamp_baud/2.0;
 	double np = wf->powerDensity(channel[ch].frequency, delta) * 3000 / delta;
 	double sp =
 		wf->powerDensity(channel[ch].frequency - shift/2, delta) +
@@ -379,7 +379,7 @@ void view_rtty::Metric(int ch)
 	channel[ch].metric = CLAMP(channel[ch].sigpwr/channel[ch].noisepwr, 0.0, 100.0);
 
 	if (channel[ch].state == RCVNG)
-		if (channel[ch].metric < rtty_squelch) {
+		if (channel[ch].metric < scamp_squelch) {
 			channel[ch].timeout = progdefaults.VIEWERtimeout * samplerate / WF_BLOCKSIZE;
 			channel[ch].state = WAITING;
 		}
@@ -396,20 +396,20 @@ void view_rtty::Metric(int ch)
 	}
 }
 
-void view_rtty::find_signals()
+void view_scamp::find_signals()
 {
 	double spwrhi = 0.0, spwrlo = 0.0, npwr = 0.0;
-	double rtty_squelch = pow(10, progStatus.VIEWER_rttysquelch / 10.0);
+	double scamp_squelch = pow(10, progStatus.VIEWER_rttysquelch / 10.0);
 	for (int i = 0; i < progdefaults.VIEWERchannels; i++) {
 		if (channel[i].state != IDLE) continue;
 		int cf = progdefaults.LowFreqCutoff + 100 * i;
 		if (cf < shift) cf = shift;
-		double delta = rtty_baud / 8;
-		for (int chf = cf; chf < cf + 100 - rtty_baud / 4; chf += 5) {
+		double delta = scamp_baud / 8;
+		for (int chf = cf; chf < cf + 100 - scamp_baud / 4; chf += 5) {
 			spwrlo = wf->powerDensity(chf - shift/2, delta);
 			spwrhi = wf->powerDensity(chf + shift/2, delta);
-			npwr = (wf->powerDensity(chf, delta) * 3000 / rtty_baud) + 1e-10;
-			if ((spwrlo / npwr > rtty_squelch) && (spwrhi / npwr > rtty_squelch)) {
+			npwr = (wf->powerDensity(chf, delta) * 3000 / scamp_baud) + 1e-10;
+			if ((spwrlo / npwr > scamp_squelch) && (spwrhi / npwr > scamp_squelch)) {
 				if (!i && (channel[i+1].state == SRCHG || channel[i+1].state == RCVNG)) break;
 				if ((i == (progdefaults.VIEWERchannels -2)) &&
 					(channel[i+1].state == SRCHG || channel[i+1].state == RCVNG)) break;
@@ -424,14 +424,14 @@ void view_rtty::find_signals()
 		}
 	}
 	for (int i = 1; i < progdefaults.VIEWERchannels; i++ )
-		if (fabs(channel[i].frequency - channel[i-1].frequency) < rtty_baud/2)
+		if (fabs(channel[i].frequency - channel[i-1].frequency) < scamp_baud/2)
 			clearch(i);
 }
 
-void view_rtty::clearch(int ch)
+void view_scamp::clearch(int ch)
 {
 	channel[ch].state = IDLE;
-	channel[ch].rxstate = RTTY_RX_STATE_IDLE;
+	channel[ch].rxstate = SCAMP_RX_STATE_IDLE;
 	channel[ch].rxmode = LETTERS;
 	channel[ch].phaseacc = 0;
 	channel[ch].frequency = NULLFREQ;
@@ -439,11 +439,11 @@ void view_rtty::clearch(int ch)
 	REQ( &viewclearchannel, ch);
 }
 
-void view_rtty::clear()
+void view_scamp::clear()
 {
 	for (int ch = 0; ch < progdefaults.VIEWERchannels; ch++) {
 		channel[ch].state = IDLE;
-		channel[ch].rxstate = RTTY_RX_STATE_IDLE;
+		channel[ch].rxstate = SCAMP_RX_STATE_IDLE;
 		channel[ch].rxmode = LETTERS;
 		channel[ch].phaseacc = 0;
 		channel[ch].frequency = NULLFREQ;
@@ -451,7 +451,7 @@ void view_rtty::clear()
 	}
 }
 
-int view_rtty::rx_process(const double *buf, int buflen)
+int view_scamp::rx_process(const double *buf, int buflen)
 {
 	cmplx z, zmark, zspace, *zp_mark, *zp_space;
 	static bool bit = true;
@@ -461,7 +461,7 @@ int view_rtty::rx_process(const double *buf, int buflen)
 	reverse = wf->Reverse() ^ !wf->USB();
 }
 
-	rtty_squelch = pow(10, progStatus.VIEWER_rttysquelch / 10.0);
+	scamp_squelch = pow(10, progStatus.VIEWER_rttysquelch / 10.0);
 
 	for (int ch = 0; ch < progdefaults.VIEWERchannels; ch++) {
 		if (channel[ch].state == IDLE)
@@ -529,11 +529,11 @@ int view_rtty::rx_process(const double *buf, int buflen)
 					int mp1 = mp0 + 1;
 					if (mp0 < 0) mp0 += VIEW_MAXPIPE;
 					if (mp1 < 0) mp1 += VIEW_MAXPIPE;
-					double ferr = (TWOPI * samplerate / rtty_baud) *
+					double ferr = (TWOPI * samplerate / scamp_baud) *
 						(!reverse ?
 						arg(conj(channel[ch].mark_history[mp1]) * channel[ch].mark_history[mp0]) :
 						arg(conj(channel[ch].space_history[mp1]) * channel[ch].space_history[mp0]));
-					if (fabs(ferr) > rtty_baud / 2) ferr = 0;
+					if (fabs(ferr) > scamp_baud / 2) ferr = 0;
 					channel[ch].freqerr = decayavg ( channel[ch].freqerr, ferr / 4,
 						progdefaults.rtty_afcspeed == 0 ? 8 :
 						progdefaults.rtty_afcspeed == 1 ? 4 : 1 );
@@ -549,7 +549,7 @@ int view_rtty::rx_process(const double *buf, int buflen)
 	return 0;
 }
 
-char view_rtty::baudot_dec(int ch, unsigned char data)
+char view_scamp::baudot_dec(int ch, unsigned char data)
 {
 	int out = 0;
 
@@ -577,10 +577,10 @@ char view_rtty::baudot_dec(int ch, unsigned char data)
 }
 
 //=====================================================================
-// RTTY transmit
+// SCAMP transmit
 //=====================================================================
 
-int view_rtty::tx_process()
+int view_scamp::tx_process()
 {
 	return 0;
 }

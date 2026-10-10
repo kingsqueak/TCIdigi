@@ -474,7 +474,7 @@ static const unsigned char code_to_ltrs[128] = {
 	'_', 'O', 'B', '_', 'T', '_', '_', '_', '\r', '_', '_', '_', '_', '_', '_', '_' // 7
 };
 
-static const unsigned char code_to_figs[128] = {
+static const unsigned char USTTY_code_to_figs[128] = {
 	//0 1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 	'_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', // 0
 	'_', '_', '_', '_', '_', '_', '_', '\'', '_', '_', '_', '!', '_', ':', '(', '_', // 1
@@ -485,6 +485,19 @@ static const unsigned char code_to_figs[128] = {
 	'_', '_', '_', '"', '_', ')', '_', '_', '_', '#', '_', '_', '\n', '_', '_', '_', // 6
 	'_', '9', '?', '_', '5', '_', '_', '_', '\r', '_', '_', '_', '_', '_', '_', '_' // 7
 };
+
+static const unsigned char ITA2_code_to_figs[128] = {
+	//0 1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
+	'_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_',  // 0
+	'_', '_', '_', '_', '_', '_', '_', '\'', '_', '_', '_', '!', '_', ':', '(', '_', // 1
+	'_', '_', '_', '_', '_', '_', '_', '2', '_', '_', '_', '6', '_', '0', '1', '_',  // 2
+	'_', '_', '_', '_', '_', '&', '_', '_', '_', '.', '/', '_', '=', '_', '_', '_',  // 3
+	'_', '_', '_', '_', '_', '_', '_', '-', '_', '_', '_', '\'', '_', '8', '7', '_', // 4
+	'_', '_', '_', '$', '_', '4', '3', '_', '_', ',', '_', '_', ' ', '_', '_', '_',  // 5
+	'_', '_', '_', '+', '_', ')', '_', '_', '_', '#', '_', '_', '\n', '_', '_', '_', // 6
+	'_', '9', '?', '_', '5', '_', '_', '_', '\r', '_', '_', '_', '_', '_', '_', '_'  // 7
+};
+
 
 static const int code_ltrs = 0x5a;
 static const int code_figs = 0x36;
@@ -509,7 +522,11 @@ public:
 			// TODO: If a code is invalid, we could take the closest value in terms of bits.
 			if (check_bits(code)) {
 				m_valid_codes[code] = true;
-				unsigned char figv = code_to_figs[code];
+				unsigned char figv;
+				if (progdefaults.ITA2)
+					figv = ITA2_code_to_figs[code];
+				else
+					figv = USTTY_code_to_figs[code];
 				unsigned char ltrv = code_to_ltrs[code];
 				if ( figv != '_') {
 					m_figs_to_code[figv] = code;
@@ -543,7 +560,13 @@ public:
 	}
 
 	int code_to_char(int code, bool shift) const {
-		const unsigned char * target = (shift) ? code_to_figs : code_to_ltrs;
+		const unsigned char * target;
+
+		if (progdefaults.ITA2)
+			target = (shift) ? ITA2_code_to_figs : code_to_ltrs;
+				else
+			target = (shift) ? USTTY_code_to_figs : code_to_ltrs;
+
 		if (target[code] != '_') {
 			return target[code];
 		}
@@ -748,7 +771,7 @@ public:
 		std::string::operator=( alt_string );
 		cleanup();
 
-		long long currFreq = wf->rfcarrier();
+		unsigned long long currFreq = wf->rfcarrier();
 
 		if( ! progdefaults.NVTX_AdifLog && ! progdefaults.NVTX_KmlLog ) {
 			return ;
@@ -756,13 +779,26 @@ public:
 
 		const NavtexRecord * ptrNavRec = NavtexCatalog::InstCatalog().FindStation(currFreq, m_origin, progdefaults.myLocator, *this );
 		if( ptrNavRec != NULL ) {
-			LOG_INFO("Locator=%s Origin=%c freq=%d name=%s lon=%lf lat=%lf",
+#ifdef __WIN32__
+// this subterfuge is necessary due to a bug in mingw gcc macro parser
+			char dummy[100];
+			snprintf(dummy, sizeof(dummy), "Locator=%s Origin=%c freq=%llu name=%s lon=%lf lat=%lf",
 				progdefaults.myLocator.c_str(),
 				m_origin,
-				static_cast<int>(currFreq),
+				currFreq,
 				ptrNavRec->name().c_str(),
 				ptrNavRec->coordinates().longitude().angle(),
 				ptrNavRec->coordinates().latitude().angle() );
+			LOG_INFO("%s", dummy);
+#else
+			LOG_INFO("Locator=%s Origin=%c freq=%llu name=%s lon=%lf lat=%lf",
+				progdefaults.myLocator.c_str(),
+				m_origin,
+				currFreq,
+				ptrNavRec->name().c_str(),
+				ptrNavRec->coordinates().longitude().angle(),
+				ptrNavRec->coordinates().latitude().angle() );
+#endif
 		} else {
 			LOG_INFO("Locator=%s Origin=%c freq=%d Navtex station not found",
 				progdefaults.myLocator.c_str(),
@@ -864,9 +900,6 @@ class navtex_implementation {
 	ccir_message                    m_curr_msg ;
 
 	double               m_message_time ;
-	double               m_early_accumulator ;
-	double               m_prompt_accumulator ;
-	double               m_late_accumulator ;
 	double               m_mark_f, m_space_f;
 	double               m_time_sec;
 
@@ -898,6 +931,10 @@ class navtex_implementation {
 	// filter method related
 	double               m_center_frequency_f ;
 
+	bool m_wfrev;
+	bool m_wfsb;
+	bool m_reverse;
+
 	navtex_implementation( const navtex_implementation & );
 	navtex_implementation();
 	navtex_implementation & operator=( const navtex_implementation & );
@@ -911,9 +948,6 @@ public:
 		m_time_sec = 0.0 ;
 		m_state = SYNC_SETUP;
 		m_message_time = 0.0 ;
-		m_early_accumulator = 0;
-		m_prompt_accumulator = 0;
-		m_late_accumulator = 0;
 		m_sample_rate = the_sample_rate;
 		m_bit_duration = 0;
 		m_shift = false;
@@ -1154,7 +1188,7 @@ private:
 
 	// Turns accumulator values (estimates of whether a bit is 1 or 0)
 	// into navtex messages
-	void handle_bit_value(int accumulator) {
+	void handle_bit_value(int logic_level) {
 		int buffersize = m_bit_values.size();
 		int i, offset = 0;
 
@@ -1162,7 +1196,7 @@ private:
 		for (i = 0; i < buffersize - 1; i++) {
 			m_bit_values[i] = m_bit_values[i+1];
 		}
-		m_bit_values[buffersize - 1] = accumulator;
+		m_bit_values[buffersize - 1] = logic_level;
 		if (m_bit_cursor > 0)
 			m_bit_cursor--;
 
@@ -1450,26 +1484,17 @@ private:
 
 		// Calculate the slope between early and late signals
 		// to align the logic sampling with the received signal
+		// This usually returns a value between -1..1, closer to 0.
 		double slope = m_average_late_signal - m_average_early_signal;
+		slope /= (m_average_prompt_signal + 0.1);
 
-		if (m_average_prompt_signal * 1.05 < m_average_early_signal &&
-		    m_average_prompt_signal * 1.05 < m_average_late_signal) {
-			// At a signal minimum. Get out quickly.
-			if (m_average_early_signal > m_average_late_signal) {
-				// move prompt to where early is
-				slope = m_next_early_event - m_next_prompt_event;
-				slope = fmod(slope - m_bit_sample_count, m_bit_sample_count);
-				m_average_late_signal = m_average_prompt_signal;
-				m_average_prompt_signal = m_average_early_signal;
-			} else {
-				// move prompt to where late is
-				slope = m_next_late_event - m_next_prompt_event;
-				slope = fmod(slope + m_bit_sample_count, m_bit_sample_count);
-				m_average_early_signal = m_average_prompt_signal;
-				m_average_prompt_signal = m_average_late_signal;
-			}
-		} else
-			slope /= 1024;
+		// Scale by the distance between the sample points
+		slope *= 22;
+
+		// Slow down the adjustment at the peak
+		if (m_average_prompt_signal > m_average_early_signal &&
+		    m_average_prompt_signal > m_average_late_signal)
+			slope /= 2;
 
 		if (slope) {
 			m_next_early_event += slope;
@@ -1517,6 +1542,14 @@ public:
 			zspace = mixer(m_space_phase, m_space_f, z);
 			n_out = m_space_lowpass->run(zspace, &zp_space);
 
+			m_wfrev = wf->Reverse();
+			m_wfsb = wf->USB();
+			m_reverse = m_wfrev ^ !m_wfsb;
+			if (m_reverse) {
+				cmplx *temp = zp_mark;
+				zp_mark = zp_space;
+				zp_space = temp;
+			}
 			if (n_out)
 				process_fft_output(zp_mark, zp_space, n_out);
 		}
@@ -1589,18 +1622,7 @@ private:
 				0.5 * ( (mark_env - noise_floor) * (mark_env - noise_floor) -
 					 (space_env - noise_floor) * (space_env - noise_floor));
 
-			// Using the logarithm of the logic_level tells the
-			// bit synchronization and character decoding which
-			// samples were decoded well, and which poorly.
-			// This helps fish signals out of the noise.
-			int mark_state = log(1 + abs(logic_level));
-			if (logic_level < 0)
-				mark_state = -mark_state;
-			m_early_accumulator += mark_state;
-			m_prompt_accumulator += mark_state;
-			m_late_accumulator += mark_state;
-
-			// An average of the magnitude of the accumulator
+			// An average of the magnitude of the logic_level
 			// is taken at the sample point, as well as a quarter
 			// bit before and after. This allows the code to see
 			// the best time to sample the signal without relying
@@ -1608,31 +1630,26 @@ private:
 			if (m_sample_count >= m_next_early_event) {
 				m_average_early_signal = decayavg(
 						m_average_early_signal,
-						fabs(m_early_accumulator), 64);
+						fabs(logic_level), 64);
 				m_next_early_event += m_bit_sample_count;
-				m_early_accumulator = 0;
 			}
 
 			if (m_sample_count >= m_next_late_event) {
 				m_average_late_signal = decayavg(
 						m_average_late_signal,
-						fabs(m_late_accumulator), 64);
+						fabs(logic_level), 64);
 				m_next_late_event += m_bit_sample_count;
-				m_late_accumulator = 0;
 			}
 
-			// the end of a signal pulse
-			// the accumulator should be at maximum deviation
+			// the peak of a signal pulse
 			m_pulse_edge_event = m_sample_count >= m_next_prompt_event;
 			if (m_pulse_edge_event) {
 				m_average_prompt_signal = decayavg(
 						m_average_prompt_signal,
-						fabs(m_prompt_accumulator), 64);
+						fabs(logic_level), 64);
 				m_next_prompt_event += m_bit_sample_count;
-				m_averaged_mark_state = m_prompt_accumulator;
 				if (m_ptr_navtex->get_reverse())
 					m_averaged_mark_state = -m_averaged_mark_state;
-				m_prompt_accumulator = 0;
 			}
 
 			switch (m_state) {
@@ -1644,7 +1661,7 @@ private:
 				case SYNC:
 				case READ_DATA:
 					if (m_pulse_edge_event)
-						handle_bit_value(m_averaged_mark_state);
+						handle_bit_value(logic_level);
 			}
 
 			m_sample_count++;

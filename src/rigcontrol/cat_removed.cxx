@@ -59,13 +59,13 @@ bool sendCommand(std::string, std::string, int, int) { return false; }
 
 void add_to_cmdque(std::string, std::string, int, int) { }
 
-long long rigCAT_getfreq(int, bool& failed, int)
+unsigned long long rigCAT_getfreq(int, bool& failed, int)
 {
 	failed = true;
 	return 0;
 }
 
-void rigCAT_setfreq(long long) { }
+void rigCAT_setfreq(unsigned long long) { }
 std::string rigCAT_getmode() { return std::string(); }
 void rigCAT_setmode(const std::string&) { }
 std::string rigCAT_getwidth() { return std::string(); }
@@ -81,14 +81,14 @@ bool rigCAT_init() { cat_unavailable("rigCAT"); return false; }
 bool rigCAT_active() { return false; }
 void rigCAT_sendINIT(const std::string&, int) { }
 void rigCAT_set_ptt(int) { }
-void rigCAT_set_qsy(long long) { }
+void rigCAT_set_qsy(unsigned long long) { }
 void rigCAT_defaults() { }
 
 bool readRigXML() { return false; }
 void selectRigXmlFilename() { cat_unavailable("rigCAT description"); }
 void loadRigXmlFile(void) { }
 
-void xmlrpc_rig_set_qsy(long long) { }
+void xmlrpc_rig_set_qsy(unsigned long long) { }
 bool xmlrpc_USB() { return true; }
 void xmlrpc_send_command(std::string) { }
 void xmlrpc_priority(std::string) { }
@@ -98,7 +98,10 @@ void FLRIG_start_flrig_thread() { cat_unavailable("flrig"); }
 void stop_flrig_thread() { }
 void reconnect_to_flrig() { cat_unavailable("flrig"); }
 void set_flrig_ptt(int) { }
-void set_flrig_freq(unsigned long int) { }
+void set_flrig_freq(unsigned long long) { }
+void flrig_get_baud() { }
+void flrig_get_idles() { }
+void flrig_get_stopbits() { }
 void set_flrig_mode(const char*) { }
 void set_flrig_bw(int, int) { }
 void set_flrig_notch() { }

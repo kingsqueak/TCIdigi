@@ -956,12 +956,33 @@ void cb_ifkp_send_avatar( Fl_Widget *w, void *)
 			correct_avatar();
 			return;
 		}
-		std::string mycall = progdefaults.myCall;
-		for (size_t n = 0; n < mycall.length(); n++)
-			mycall[n] = tolower(mycall[n]);
-		std::string fname = AvatarDir;
-		fname.append(mycall).append(".png");
-		my_avatar_img = Fl_Shared_Image::get(fname.c_str(), 59, 74);
+
+		std::string image_fname = progdefaults.ifkp_avatar_image_file;
+
+		if (image_fname.empty()) {
+			image_fname = progdefaults.operCall;
+			if (image_fname.empty()) {
+				image_fname = progdefaults.myCall;
+				if (image_fname.empty()) {
+					ifkp_avatar->video(tux_img, 59 * 74 * 3);
+					return;
+				}
+			}
+		}
+
+		if (image_fname.find(".gif") == std::string::npos &&
+			image_fname.find(".png") == std::string::npos &&
+			image_fname.find(".PNG") == std::string::npos &&
+			image_fname.find(".jp") == std::string::npos &&  // jpg, jpeg
+			image_fname.find(".JP") == std::string::npos ) { // JPG, JPEG
+
+			for (size_t n = 0; n < image_fname.length(); n++)
+				image_fname[n] = tolower(image_fname[n]);
+			std::string fname = AvatarDir;
+			fname.append(image_fname).append(".png");
+		}
+
+		my_avatar_img = Fl_Shared_Image::get(image_fname.c_str(), 59, 74);
 		if (!my_avatar_img) {
 			return;
 		}
@@ -985,8 +1006,10 @@ void cb_ifkp_send_avatar( Fl_Widget *w, void *)
 				j = i * 3;
 				avatar[j] = avatar[j+1] = avatar[j+2] = img_data[i];
 			}
-		} else
+		} else {
 			return;
+		}
+
 		if (!ifkppicTxWin) ifkp_createTxViewer();
 
 		active_modem->ifkp_send_avatar();

@@ -275,16 +275,16 @@ void cRsId::receive(const float* buf, size_t len)
 void cRsId::search(void)
 {
 	if (progdefaults.rsidWideSearch) {
-		nBinLow = 3;
+		nBinLow = 10;
 		nBinHigh = RSID_FFT_SIZE - 32;
 	}
 	else {
 		float centerfreq = active_modem->get_freq();
 		float bpf = 1.0 * RSID_ARRAY_SIZE / RSID_SAMPLE_RATE;
-		nBinLow = (int)((centerfreq  - 100.0 * 2) * bpf);
-		nBinHigh = (int)((centerfreq  + 100.0 * 2) * bpf);
+		nBinLow = (int)((centerfreq  - progdefaults.rsid_min_bw / 2) * bpf);
+		nBinHigh = (int)((centerfreq  + progdefaults.rsid_min_bw / 2) * bpf);
 	}
-	if (nBinLow < 3) nBinLow = 3;
+	if (nBinLow < 10) nBinLow = 10;
 	if (nBinHigh > RSID_FFT_SIZE - 32) nBinHigh = RSID_FFT_SIZE - 32;
 
 	bool bReverse = !(wf->Reverse() ^ wf->USB());
@@ -626,7 +626,21 @@ void cRsId::apply(int iBin, int iSymbol, int extended)
 		LOG_VERBOSE("%s", msg);
 		return;
 	}
-
+/*
+std::cout <<
+  "\n---------------------------------\nRsID configuration:" <<
+  "\ncurrfreq: " << currfreq <<
+  "\nrsidfreq: " << rsidfreq <<
+  "\nretain tx frequency: " << progdefaults.retain_freq_lock <<
+  "\ndisable_freq_change: " << progdefaults.disable_rsid_freq_change <<
+  "\nrsid_mark: " << progdefaults.rsid_mark <<
+  "\nrsid_squelch: " << progdefaults.rsid_squelch <<
+  "\nrsid_notify_only: " << progdefaults.rsid_notify_only <<
+  "\ndisable_warning_dialog_box: " << progdefaults.disable_rsid_warning_dialog_box <<
+  "\nenable_rsid_match: " << progdefaults.ENABLE_RSID_MATCH <<
+  "\nrsid_auto_disable: " << progdefaults.rsid_auto_disable <<
+  "\nrsid_eot_squelch: " << progdefaults.rsid_eot_squelch << std::endl;
+*/
 	if (progdefaults.rsid_rx_modes.test(mbin)) {
 		char msg[50];
 		snprintf(msg, sizeof(msg), "RSID: %s @ %0.1f Hz", p_rsid[n].name, rsidfreq);
@@ -654,8 +668,10 @@ void cRsId::apply(int iBin, int iSymbol, int extended)
 		return;
 	}
 
-	if (!progdefaults.disable_rsid_warning_dialog_box)
+	if (!progdefaults.disable_rsid_warning_dialog_box) {
+		LOG_INFO("REQ call of notify_ssid: %d %f", mbin, rsidfreq);
 		REQ(notify_rsid, mbin, rsidfreq);
+	}
 
 	if (progdefaults.rsid_notify_only) {
 		if (data_io_enabled == KISS_IO) {
@@ -748,7 +764,7 @@ bool cRsId::assigned(trx_mode mode) {
 	switch (mode) {
 	case MODE_EOT : 
 		rmode = RSID_EOT;
-std::cout << "send RSID_EOT" << std::endl;
+//std::cout << "send RSID_EOT" << std::endl;
 		return true;
 	case MODE_RTTY :
 		if (progdefaults.rtty_baud == 5 && progdefaults.rtty_bits == 1 && progdefaults.rtty_shift == 9)
@@ -1079,10 +1095,11 @@ void cRsId::send(bool preRSID)
 		}
 	}
 
+	memset(outbuf, 0, symlen * sizeof(*outbuf));
+
 	// 5 symbol periods of silence at end of transmission
 	// and between RsID and the data signal
 	int nperiods = 5;
-	memset(outbuf, 0, symlen * sizeof(*outbuf));
 	for (int i = 0; i < nperiods; i++)
 		active_modem->ModulateXmtr(outbuf, symlen);
 

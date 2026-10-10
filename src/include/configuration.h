@@ -48,6 +48,9 @@
 #elif defined(__OpenBSD__)
 #  define DEFAULT_PTTDEV "/dev/tty00"
 #  define DEFAULT_CWFSKPORT "/dev/tty01"
+
+
+
 #  define DEFAULT_HAMRIGDEVICE "/dev/tty00"
 #elif defined(__WOE32__)
 #  define DEFAULT_PTTDEV "COM1"
@@ -71,7 +74,7 @@
 #endif
 
 #define CONFIG_LIST                                                                     \
-    ELEM_(bool, confirmExit, "CONFIRMEXIT",                                             \
+        ELEM_(bool, confirmExit, "CONFIRMEXIT",                                         \
           "Ensure user wants to leave flgidi",                                          \
           true)                                                                         \
         ELEM_(bool, show_tx_timer, "SHOW_TX_TIMER",                                     \
@@ -86,7 +89,7 @@
         ELEM_(bool, noise, "NOISETEST",                                                 \
               "Noise test on/off",                                                      \
               false)                                                                    \
-        ELEM_(double, s2n, "SIGNAL2NOISE",                                             \
+        ELEM_(double, s2n, "SIGNAL2NOISE",                                              \
               "Signal to Noise ratio for test",                                         \
               +20.0)                                                                    \
         ELEM_(bool, rsidWideSearch, "RSIDWIDESEARCH",                                   \
@@ -95,6 +98,9 @@
         ELEM_(int, rsid_squelch, "RSIDSQUELCH",                                         \
               "RSID detection opens squelch for nn seconds",                            \
               5)                                                                        \
+        ELEM_(int, rsid_min_bw, "RSID_MIN_BW",                                          \
+              "RSID minimum search bandwidth in Hertz",                                 \
+              200)                                                                      \
         ELEM_(bool, rsid, "RECEIVERSID",                                                \
               "Enable Reed Soloman ID decoding",                                        \
               false)                                                                    \
@@ -149,6 +155,9 @@
         ELEM_(double, over_signal_level, "over_signal_level",                           \
               "Input signal level transition (dB); -90 to 0",                           \
               -3.0)                                                                     \
+        ELEM_(bool, use_wsjtx_vumeter_scale, "use_wsjtx_vumeter_scale",                 \
+              "Enable if WSJTX metering desired",                                       \
+              false)                                                                    \
                                                                                         \
         ELEM_(double, wfRefLevel, "WFREFLEVEL",                                         \
               "Waterfall reference level (dB)",                                         \
@@ -210,6 +219,24 @@
         ELEM_(bool, StartAtSweetSpot, "STARTATSWEETSPOT",                               \
               "Always start new modems at sweet spot frequencies",                      \
               true)                                                                     \
+        ELEM_(int, SoftStart, "SOFTSTART",                                              \
+              "(1 - cos(x)) shaping of signal start over SoftStart milliseconds",       \
+              100)                                                                      \
+        ELEM_(bool, softDOMINOEX, "SOFTDOMINOEX",                                       \
+              "Enable for DOMINOEX modems",                                             \
+              true)                                                                     \
+        ELEM_(bool, softPSK, "SOFTPSK",                                                 \
+              "Enable for PSK modems",                                                  \
+              false)                                                                    \
+        ELEM_(bool, softMFSK, "SOFTMFSK",                                               \
+              "Enable for MFSK modems",                                                 \
+              true)                                                                     \
+        ELEM_(bool, softRTTY, "SOFTRTTY",                                               \
+              "Enable for RTTY modems",                                                 \
+              false)                                                                    \
+        ELEM_(bool, softTHOR, "SOFTTHOR",                                               \
+              "Enable for THOR modems",                                                 \
+              true)                                                                     \
         ELEM_(bool, CWOffset, "CWOFFSET",                                               \
               "Select if waterfall should compensate for BFO offset in CW",             \
               false)                                                                    \
@@ -219,8 +246,11 @@
         ELEM_(bool, CW_backslash, "CW_blackslash",                                      \
               "encode/decode backslash character",                                      \
               true)                                                                     \
-        ELEM_(bool, CW_single_quote, "CW_single_quote",                                 \
-              "encode/decode single_quote character",                                   \
+        ELEM_(bool, CW_apostrophe, "CW_apostrophe",                                     \
+              "encode/decode apostrophe character",                                     \
+              true)                                                                     \
+        ELEM_(bool, CW_quote, "CW_quote",                                               \
+              "encode/decode quote character",                                          \
               true)                                                                     \
         ELEM_(bool, CW_dollar_sign, "CW_dollar_sign",                                   \
               "encode/decode dollar_sign character",                                    \
@@ -453,6 +483,9 @@
         ELEM_(bool, PseudoFSK, "PSEUDOFSK",                                             \
               "Generate Pseudo-FSK signal on right audio channel",                      \
               false)                                                                    \
+        ELEM_(bool, ITA2, "ITA2",                                                       \
+              "Use ITA2 shift if true",                                                 \
+              false)                                                                    \
 /* FSK interface elements */                                                            \
         ELEM_(bool, useFSK, "USEFSK",                                                   \
               "TRUE if DTR/RTS keying for RTTY",                                        \
@@ -475,9 +508,20 @@
         ELEM_(bool, fsk_STOPBITS, "FSK_STOPBITS",                                       \
               "True - 1.5 stop bits; False - 2 stop bits",                              \
               true)                                                                     \
+/* FLRIG FSK elements */                                                                \
         ELEM_(bool, use_FLRIG_FSK, "FLRIG_FSK",                                         \
               "True - enable; False - disable",                                         \
               false)                                                                    \
+        ELEM_(int, flrig_fsk_idles, "FLRIG_FSK_IDLES",                                  \
+              "Number of idles for flrig FSK - default 4",                              \
+              4)                                                                        \
+        ELEM_(double, flrig_fsk_baud, "FLRIG_FSK_BAUD",                                 \
+              "flrig FSK baudrate - default 45.45, US standard BAUDOT",                 \
+              45.45)                                                                    \
+        ELEM_(double, flrig_fsk_stopbits, "FLRIG_FSK_STOPBITS",                         \
+              "flrig FSK stopbits - default 1.5",                                       \
+              1.5)                                                                      \
+/* end FLRIG FSK elements */                                                            \
         ELEM_(double, flrig_poll, "FLRIG_POLL",                                         \
               "range 50 to 5000 msecs",                                                 \
               200)                                                                      \
@@ -515,9 +559,15 @@
               18)                                                                       \
         ELEM_(double, CWfarnsworth, "CWFARNSWORTH",                                     \
               "Speed for Farnsworth timing (WPM)",                                      \
-              18)                                                                       \
+              15)                                                                       \
         ELEM_(bool, CWusefarnsworth, "CWUSEFARNSWORTH",                                 \
               "Use Farnsworth timing",                                                  \
+              false)                                                                    \
+        ELEM_(double, CWwordsworth, "CWWORDSWORTH",                                     \
+              "Speed for wordsworth timing (WPM)",                                      \
+              15)                                                                       \
+        ELEM_(bool, CWusewordsworth, "CWUSEWORDSWORTH",                                 \
+              "Use Wordsworth timing",                                                  \
               false)                                                                    \
         ELEM_(double, defCWspeed, "CWDEFSPEED",                                         \
               "Default speed (WPM)",                                                    \
@@ -525,6 +575,9 @@
         ELEM_(int, CWbandwidth, "CWBANDWIDTH",                                          \
               "Filter bandwidth (Hz)",                                                  \
               150)                                                                      \
+        ELEM_(int, CW_fillen, "CWFILLEN",                                               \
+              "CW FIR receive filter length in samples; 0=128, 1=256, 2=512, 3=1024",   \
+              2)                                                                        \
         ELEM_(double, CWlower, "CWLOWER",                                               \
               "Detector hysterisis, lower threshold",                                   \
               0.4)                                                                      \
@@ -563,6 +616,12 @@
         ELEM_(double, CWdash2dot, "CWDASH2DOT",                                         \
               "Dash to dot ratio",                                                      \
               3.0)                                                                      \
+        ELEM_(double, CWweight, "CWWEIGHT",                                             \
+              "Add 'weight' to CW elements",                                            \
+              0.0)                                                                      \
+        ELEM_(bool, show_CW_controls, "SHOWCWCONTROLS",                                 \
+              "Show additional control bar for CW, at bottom of main dialog",           \
+              true)                                                                     \
         ELEM_(bool, QSK, "QSK",                                                         \
               "Generate QSK signal on right audio channel",                             \
               false)                                                                    \
@@ -665,6 +724,13 @@
         ELEM_(bool, WK_K3NGsketch, "WK_K3NGsketch",                                     \
               "Mortty loaded with K3NG WinKeyer emulator sketch",                       \
               false)                                                                    \
+        /* SCAMP */                                                                     \
+        ELEM_(int, ScampResync, "SCAMPRESYNC",                                          \
+              "SCAMP Resync Frames 0-9",                                                \
+              0)                                                                        \
+        ELEM_(int, ScampRepeat, "SCAMPREPEAT",                                          \
+              "SCAMP Repeat Frames 1-9",                                                \
+              1)                                                                        \
         /* FELD HELL */                                                                 \
         ELEM_(double, HELL_BW, "HELL_BW0", "Feld Hell working bandwidth",  245.0)       \
         ELEM_(double, HELL_BW_FH, "HELL_BW1", "FH bandwidth",  245.0)                   \
@@ -763,6 +829,9 @@
         ELEM_(int, THOR_PATHS, "THORPATHS",                                             \
               "This setting is currently unused",                                       \
               5)                                                                        \
+        ELEM_(double, THOR_RISETIME, "THOR_RISETIME",                                   \
+              "Leading/trailing edge raised cosine",                                    \
+              4.0)                                                                      \
         ELEM_(double, ThorCWI, "THORCWI",                                               \
               "CWI threshold (CWI detection and suppression)",                          \
               0.0)                                                                      \
@@ -793,6 +862,9 @@
         ELEM_(bool, PKT_unitsEnglish, "PKTUNITSENGLISH",                                \
               "display decoded data in English units",                                  \
               false)                                                                    \
+        ELEM_(std::string, thor_avatar_image_file, "THOR_AVATAR_IMAGE_FILE",            \
+              "THOR avatar image to transmit",                                          \
+              "")                                                                       \
         /* DOMINOEX */                                                                  \
         ELEM_(double, DOMINOEX_BW, "DOMINOEXBW",                                        \
               "Filter bandwidth factor (bandwidth relative to signal width)",           \
@@ -835,9 +907,6 @@
               "Always transmit centered at 1500 Hz (SHARES requirement)",               \
               false)                                                                    \
         /* FSQ */                                                                       \
-        ELEM_(int, fsq_frequency, "FSQFREQUENCY",                                       \
-              "0 - 1150 Hz, 1 - 1500 Hz, 2 - Variable",                                 \
-              1)                                                                        \
         ELEM_(int, fsq_movavg, "FSQMOVAVG",                                             \
               "size of moving average filter for bin filtering\n"                       \
               "value 2 to 8",                                                           \
@@ -895,15 +964,6 @@
         ELEM_(std::string, fsq_audit_log, "FSQ_AUDIT_LOG",                              \
               "FSQ audit log pathname",                                                 \
               "fsq_audit_log.txt")                                                      \
-        ELEM_(Fl_Color, fsq_xmt_color, "FSQXMTCOLOR",                                   \
-              "Color for FSQ xmt text",                                                 \
-              FL_RED)                                                                   \
-        ELEM_(Fl_Color, fsq_directed_color, "FSQDIRECTEDCOLOR",                         \
-              "Color for FSQ directed text",                                            \
-              FL_BLUE)                                                                  \
-        ELEM_(Fl_Color, fsq_undirected_color, "FSQUNDIRECTEDCOLOR",                     \
-              "Color for FSQ undirected text",                                          \
-              FL_DARK_GREEN)                                                            \
         ELEM_(bool, add_fsq_msg_dt, "ADDFSQMSGDT",                                      \
               "Add date-time stamp to each # type received message",                    \
               1)                                                                        \
@@ -938,6 +998,12 @@
               "0 - NO, 1 - YES\n"                                                       \
               "Always t/r at 1500 Hz",                                                  \
               1)                                                                        \
+        ELEM_(std::string, ifkp_avatar_image_file, "IFKP_AVATAR_IMAGE_FILE",            \
+              "IFKP avatar image to transmit",                                          \
+              "")                                                                       \
+        ELEM_(int, mfsk_avg, "MFSK_avg",                                                \
+              "MFSK modem afc low pass filter time constant",                           \
+              32)                                                                       \
        /* Waterfall & UI */                                                             \
         ELEM_(uchar, red, "", "",  0)                                                   \
         ELEM_(uchar, green, "", "",  255)                                               \
@@ -962,30 +1028,18 @@
         ELEM_(bool, UseBWTracks, "USEBWTRACKS",                                         \
               "Draw bandwidth marker with vertical lines",                              \
               true)                                                                     \
-        ELEM_(bool, UseWideTracks, "USEWIDETRACKS",                                     \
-              "Draw bandwidth marker with 3x vertical lines",                           \
-              false)                                                                    \
         ELEM_(bool, UseWideCursor, "USEWIDECURSOR",                                     \
               "Draw cursor with 3x vertical lines",                                     \
               false)                                                                    \
         ELEM_(bool, UseWideCenter, "USEWIDECENTER",                                     \
               "Draw center line marker with 3x vertical lines",                         \
               false)                                                                    \
-        ELEM_(RGBI, cursorLineRGBI, "CLCOLORS",                                         \
-              "Color of cursor lines (RGBI)",                                           \
-              {255, 255, 0, 255})                                                       \
-        ELEM_(RGBI, cursorCenterRGBI, "CCCOLORS",                                       \
-              "Color of cursor center line (RGBI)",                                     \
-              {255, 255, 255, 255})                                                     \
-        ELEM_(RGBI, bwTrackRGBI, "BWTCOLORS",                                           \
-              "Color of bandwidth marker (RGBI)",                                       \
-              {255, 0, 0, 255})                                                         \
-        ELEM_(RGBI, notchRGBI, "NOTCHCOLORS",                                           \
-              "Color of notch marker (RGBI)",                                           \
-              {255, 255, 255, 255})                                                     \
-        ELEM_(RGBI, rttymarkRGBI, "RTTYMARKRGBI",                                       \
-              "Color of RTTY MARK freq marker (RGBI)",                                  \
-              {255, 120, 0, 255})                                                       \
+        ELEM_(bool, UseWideTracks, "USEWIDETRACKS",                                     \
+              "Draw bandwidth marker with 3x vertical lines",                           \
+              false)                                                                    \
+        ELEM_(bool, UseWideMonitor, "USEWIDEMONITOR",                                   \
+              "Draw bandwidth lines with 3x vertical lines",                            \
+              false)                                                                    \
         ELEM_(int, feldfontnbr, "FELDFONTNBR",                                          \
               "Index of raster font used for transmission",                             \
               4)                                                                        \
@@ -1040,6 +1094,18 @@
         ELEM_(bool, NagMe, "NAGME",                                                     \
               "Prompt to save log",                                                     \
               true)                                                                     \
+        ELEM_(bool, EnCloudlog, "ENCLOUDLOG",                                           \
+              "Enable Cloudlog",                                                        \
+              false)                                                                    \
+        ELEM_(std::string, cloudlog_api_url, "CLOUDLOG_API_URL",                        \
+              "Cloudlog API URL",                                                       \
+              "")                                                                       \
+        ELEM_(std::string, cloudlog_api_key, "CLOUDLOG_API_KEY",                        \
+              "Cloudlog API Key",                                                       \
+              "")                                                                       \
+        ELEM_(int, cloudlog_station_id, "CLOUDLOG_STATION_ID",                          \
+              "Cloudlog Station ID",                                                    \
+              1)                                                                        \
         ELEM_(bool, ClearOnSave, "CLEARONSAVE",                                         \
               "Clear log fields on save",                                               \
               false)                                                                    \
@@ -1154,9 +1220,24 @@
         ELEM_(int, mon_dsp_audio, "mon_dsp_audio",                                      \
               "monitor dsp filter output for selected modem @ waterfall frequency",     \
               0)                                                                        \
+        ELEM_(bool, mon_wf_display, "MON_WF_DISPLAY",                                   \
+              "Display monitor filter",                                                 \
+              true)                                                                     \
+        ELEM_(bool, mon_wide_tracks, "WIDEMONITORTRACKS",                               \
+              "Draw bandwidth lines with 3x vertical lines",                            \
+              false)                                                                    \
+        ELEM_(int, mon_xmt_audio, "mon_xmt_audio",                                      \
+              "monitor transmit audio on alert audio device",                           \
+              true)                                                                     \
+        ELEM_(double, mon_tx_vol, "mon_tx_vol",                                         \
+              "monitor transmit monitor volume level",                                  \
+              25.0)                                                                     \
         ELEM_(int, RxFilt_vol, "RxFilt_vol",                                            \
               "Audio stream volume",                                                    \
               50)                                                                       \
+        ELEM_(int, rxgain_x10, "rxgain_x10",                                            \
+              "Rx monitor audio gain boost",                                            \
+              false)                                                                    \
         ELEM_(int, RxFilt_bw, "RxFilt_bw",                                              \
               "DSP audio stream filter bandwidth",                                      \
               500)                                                                      \
@@ -1271,6 +1352,16 @@
         ELEM_(int, tracefile_timeout, "tracefile_timeout",                              \
               "Tqsl trace file timeout in seconds",                                     \
               15)                                                                       \
+        /* UDP log interface */                                                         \
+        ELEM_(std::string, udp_address, "UDP_LOG_ADDRESS",                              \
+              "IP Address of UDP broadcast socket",                                     \
+              "127.0.0.1")                                                              \
+        ELEM_(std::string, udp_port, "UDP_LOG_PORT",                                    \
+              "IP port number of UDP socket",                                           \
+              "9876")                                                                   \
+        ELEM_(bool, enable_udp_logging, "ENABLE_UDP_LOGGING",                           \
+              "set TRUE to enable UDP broadcast of log record",                         \
+              false)                                                                    \
         /* MacLogger interface */                                                       \
         ELEM_(bool, connect_to_maclogger, "CONNECT_TO_MACLOGGER",                       \
               "Connect to MacLogger UDP server on 255.255.255.255 / 9932",              \
@@ -1433,20 +1524,32 @@
               "Use parallel port PTT",                                                  \
               false)                                                                    \
         /* GPIO parameters */                                                           \
-        ELEM_(bool, gpio_ptt, "USE_GPIO_PTT",                                           \
-              "use GPIO for ptt (pi3/4)",                                               \
+        /* PTT parameters */                                                            \
+        ELEM_(bool, enable_gpio_ptt, "ENABLE_GPIO_PTT",                                 \
+              "Set to true for GPIO PTT",                                               \
               false)                                                                    \
-        ELEM_(long, enable_gpio, "ENABLE_GPIO",                                         \
-              "GPIO enable\n"                                                           \
-              "bits 0 - 16; bit 0 : gpio pin N",                                        \
+        ELEM_(int, gpio_ptt_sel, "GPIO_PTT_SEL",                                        \
+              "GPIO ptt selection",                                                     \
               0)                                                                        \
-        ELEM_(long, gpio_on, "GPIO_STATE",                                              \
-              "GPIO State\n"                                                            \
-              "bits 0 - 16; bit 0 : PTT ON state on pin N",                             \
+        ELEM_(int, gpio_ptt_line, "GPIO_ptt_LINE",                                      \
+              "GPIO ptt line number; -1 : no selection",                                \
+              -1)                                                                       \
+        ELEM_(std::string, gpio_ptt_device, "GPIO_PTT_DEVICE",                          \
+              "PTT device",                                                             \
+              "/dev/gpiochip0")                                                         \
+        /* CW parameters */                                                             \
+        ELEM_(bool, enable_gpio_cw, "ENABLE_GPIO_CW",                                   \
+              "Set to true for GPIO CW",                                                \
+              false)                                                                    \
+        ELEM_(int, gpio_cw_sel, "GPIO_CW_SEL",                                          \
+              "GPIO cw selection",                                                      \
               0)                                                                        \
-        ELEM_(int, gpio_pulse_width, "GPIO_PULSE_WIDTH",                                \
-              "GPIO pulse width setting for PiHpSDR PTT",                               \
-              0)                                                                        \
+        ELEM_(int, gpio_cw_line, "GPIO_CW_LINE",                                        \
+              "GPIO cw line number; -1 : no selection",                                 \
+              -1)                                                                       \
+        ELEM_(std::string, gpio_cw_device, "GPIO_CW_DEVICE",                            \
+              "CW device",                                                              \
+              "/dev/gpiochip0")                                                         \
         /* cmedia parameters */                                                         \
         ELEM_(std::string, cmedia_device, "CMEDIA_DEVICE",                              \
               "DRA-xx device name",                                                     \
@@ -1624,10 +1727,64 @@
         ELEM_(std::string, myAntenna, "MYANTENNA",                                      \
               "Antenna description (keep short!)",                                      \
               "")                                                                       \
-        /* Sound card */                                                                \
         ELEM_(std::string, operCall, "OPERCALL",                                        \
               "Operator call sign, if distinct from the station call MYCALL",           \
               "")                                                                       \
+        ELEM_(std::string, contestCall, "CONTESTCALL",                                  \
+              "Contest callsign",                                                       \
+              "")                                                                       \
+        ELEM_(std::string, contestOperators, "CONTESTOPERATORS",                        \
+              "Contest operators",                                                      \
+              "")                                                                       \
+        ELEM_(std::string, contestLocator, "CONTESTLOCATOR",                            \
+              "Contest locator",                                                        \
+              "")                                                                       \
+        ELEM_(std::string, contestClub, "CONTESTCLUB",                                  \
+              "Contest club",                                                           \
+              "")                                                                       \
+        ELEM_(std::string, contestName, "CONTESTNAME",                                  \
+              "Contest operator name",                                                  \
+              "")                                                                       \
+        ELEM_(std::string, contestAddress, "CONTESTADDRESS",                            \
+              "Contest address",                                                        \
+              "")                                                                       \
+        ELEM_(std::string, contestCity, "CONTESTCITY",                                  \
+              "Contest city",                                                           \
+              "")                                                                       \
+        ELEM_(std::string, contestPostalCode, "CONTESTPOSTALCODE",                      \
+              "Contest postal code",                                                    \
+              "")                                                                       \
+        ELEM_(std::string, contestEmail, "CONTESTEMAIL",                                \
+              "Contest email address",                                                  \
+              "")                                                                       \
+        ELEM_(std::string, contestSoapbox, "CONTESTSOAPBOX",                            \
+              "Contest soapbox",                                                        \
+              "")                                                                       \
+        ELEM_(std::string, contestDarcDok, "CONTESTDARCDOK",                            \
+              "Contest DARC DOK",                                                       \
+              "")                                                                       \
+        ELEM_(int, contestAssisted, "CONTESTASSISTED",                                  \
+              "Contest assisted category",                                              \
+              1)                                                                        \
+        ELEM_(int, contestBand, "CONTESTBAND",                                          \
+              "Contest band category",                                                  \
+              0)                                                                        \
+        ELEM_(int, contestMode, "CONTESTMODE",                                          \
+              "Contest mode category",                                                  \
+              1)                                                                        \
+        ELEM_(int, contestOperator, "CONTESTOPERATOR",                                  \
+              "Contest operator category",                                              \
+              2)                                                                        \
+        ELEM_(int, contestPower, "CONTESTPOWER",                                        \
+              "Contest power category",                                                 \
+              1)                                                                        \
+        ELEM_(int, contestStation, "CONTESTSTATION",                                    \
+              "Contest station category",                                               \
+              3)                                                                        \
+        ELEM_(int, contestTransmitter, "CONTESTTRANSMITTER",                            \
+              "Contest transmitter category",                                           \
+              1)                                                                        \
+        /* Sound card */                                                                \
         ELEM_(int, btnAudioIOis, "AUDIOIO",                                             \
               "Audio subsystem. Saved values 0 (OSS), 1 (sound card), and\n"         \
               "2 (PulseAudio) all open the sound card. 3 is file I/O.",                \
@@ -1761,12 +1918,6 @@
         ELEM_(bool, clear_fields, "CLEARFIELDS",                                        \
               "clear logging fields upon transfer of CALL from Rx panel",               \
               true)                                                                     \
-        ELEM_(RGB, bwsrSliderColor, "BWSRSLIDERCOLOR",                                  \
-              "Background color of signal browser detect level",                        \
-              {185, 211, 238})                                                          \
-        ELEM_(RGB, bwsrSldrSelColor,"BWSRSLDRSELCOLOR",                                 \
-              "Button highlight color, signal browser detect level",                    \
-              {54, 100, 139})                                                           \
         ELEM_(int, bwsrHiLight1, "BWSRHILIGHT1",                                        \
               "View Browser highlight color 1, default Dark Red",                       \
               FL_RED)                                                                   \
@@ -1782,12 +1933,6 @@
         ELEM_(int, bwsrSelect, "BWSRSELECT",                                            \
               "View Browser line select color",                                         \
               FL_BLUE)                                                                  \
-        ELEM_(RGB, dup_color, "dupcolor",                                               \
-              "Callsign background color when duplicate detected",                      \
-              {255, 110, 180})                                                          \
-        ELEM_(RGB, possible_dup_color, "duppossiblecolor",                              \
-              "Callsign background color when possible duplicate detected",             \
-              {255, 255, 150})                                                          \
         ELEM_(bool, EnableDupCheck, "ENABLEDUPCHECK",                                   \
               "Check for duplicates (contest)",                                         \
               true)                                                                     \
@@ -1824,6 +1969,15 @@
         ELEM_(std::string, mytxpower, "TXPOWER",                                        \
               "TX power used for logbook entries",                                      \
               "")                                                                       \
+        ELEM_(bool, log_power_meter, "LOG_POWER_METER",                                 \
+             "Use power meter reading for logged TX power",                             \
+             true)                                                                      \
+        ELEM_(bool, report_average_power, "REPORT_AVERAGE_POWER",                       \
+             "true - report average power, false - report peak power",                  \
+             true)                                                                      \
+        ELEM_(int, pwr_set_size, "PWR_SET_SIZE",                                        \
+             "number of power samples over which to computer peak/average, max 50",     \
+             20)                                                                        \
         ELEM_(std::string, my_FD_call, "FD_CALL",                                       \
               "Field Day call sign",                                                    \
               "")                                                                       \
@@ -1933,18 +2087,6 @@
               "Fields separated by : character\n"                                       \
               "Lines separated by | character",                                         \
               "w3nr.ddns.net:7300::|dx.n8noe.us:7373::|w0mw.dynip.com:23::|")           \
-        ELEM_(RGB, DX_Color, "DX_COLOR",                                                \
-              "RX text font color (RGB)",                                               \
-              { 0, 0, 130 })                                                            \
-        ELEM_(Fl_Color, DXC_even_color, "DXC_EVEN_COLOR",                               \
-              "Even line background color in dxcluster dialog",                         \
-              7)                                                                        \
-        ELEM_(Fl_Color, DXC_odd_color, "DXC_ODD_COLOR",                                 \
-              "Odd line background color in dxcluster dialog",                          \
-              246)                                                                      \
-        ELEM_(Fl_Color, DXC_textcolor, "DXC_TEXTCOLOR",                                 \
-              "Text color in dxcluster dialog",                                         \
-              FL_YELLOW)                                                                \
         ELEM_(std::string, DXC_textname, "DXC_TEXTNAME",                                \
               "DX cluster browser font name",                                           \
               "")                                                                       \
@@ -1954,12 +2096,6 @@
         ELEM_(int, DXC_textsize, "DXC_TEXTSIZE",                                        \
               "DX cluster browsers font size",                                          \
               14)                                                                       \
-        ELEM_(Fl_Color, DXfontcolor, "DXFONTCOLOR",                                     \
-              "Text color in dxcluster stream",                                         \
-              FL_YELLOW)                                                                \
-        ELEM_(Fl_Color, DXalt_color, "DXALT_COLOR",                                     \
-              "Alternate text color in dxcluster stream",                               \
-              FL_DARK_RED)                                                              \
         ELEM_(std::string, DXfontname, "DXFONTNAME",                                    \
               "DX cluster stream font name",                                            \
               "")                                                                       \
@@ -2076,53 +2212,20 @@
         ELEM_(std::string, PaletteName, "PALETTENAME",                                  \
               "Waterfall color palette file name",                                      \
               "default.pal")                                                            \
-        ELEM_(RGB, cfgpal0, "PALETTE0",                                                 \
-              "Custom palette 0",                                                       \
-              { 0,0,0 })                                                                \
-        ELEM_(RGB, cfgpal1, "PALETTE1",                                                 \
-              "Custom palette 1",                                                       \
-              { 0,0,136 })                                                              \
-        ELEM_(RGB, cfgpal2, "PALETTE2",                                                 \
-              "Custom palette 2",                                                       \
-              { 0,19,198 })                                                             \
-        ELEM_(RGB, cfgpal3, "PALETTE3",                                                 \
-              "Custom palette 3",                                                       \
-              { 0,32,239 })                                                             \
-        ELEM_(RGB, cfgpal4, "PALETTE4",                                                 \
-              "Custom palette 4",                                                       \
-              { 172,167,105 })                                                          \
-        ELEM_(RGB, cfgpal5, "PALETTE5",                                                 \
-              "Custom palette 5",                                                       \
-              { 194,198,49 })                                                           \
-        ELEM_(RGB, cfgpal6, "PALETTE6",                                                 \
-              "Custom palette 6",                                                       \
-              { 225,228,107 })                                                          \
-        ELEM_(RGB, cfgpal7, "PALETTE7",                                                 \
-              "Custom palette 7",                                                       \
-              { 255,255,0 })                                                            \
-        ELEM_(RGB, cfgpal8, "PALETTE8",                                                 \
-              "Custom palette 8",                                                       \
-              { 251,51,0 })                                                             \
         /* Palettes for macro button groups */                                          \
         ELEM_(bool, useGroupColors, "USEGROUPCOLORS",                                   \
               "Use macro group colors",                                                 \
               true)                                                                     \
-        ELEM_(RGB, btnGroup1, "FKEYGROUP1",                                             \
-              "Macro group 1 color",                                                    \
-              { 80, 144, 144 })                                                         \
-        ELEM_(RGB, btnGroup2, "FKEYGROUP2",                                             \
-              "Macro group 2 color",                                                    \
-              { 144, 80, 80 })                                                          \
-        ELEM_(RGB, btnGroup3, "FKEYGROUP3",                                             \
-              "Macro group 3 color",                                                    \
-              { 80, 80, 144 })                                                          \
-        ELEM_(RGB, btnFkeyTextColor, "FKEYTEXTCOLOR",                                   \
-              "Macro button foreground ",                                               \
-              { 255, 255, 255 })                                                        \
         /* RX / TX / Waterfall text widgets */                                          \
         ELEM_(std::string, charset_name, "CHARSET_NAME",                                \
               "Default character set",                                                  \
               "UTF-8")                                                                  \
+        ELEM_(Fl_Font, MenuFontnbr, "MENUFONTNBR",                                      \
+              "Menu text font index",                                                   \
+              FL_HELVETICA)                                                             \
+        ELEM_(int, MenuFontsize, "MENUFONTSIZE",                                        \
+              "Menu text font size",                                                    \
+              16)                                                                       \
         ELEM_(bool, RxFontWarn, "RXFONTWARN",                                           \
               "Enable RX font warnings",                                                \
               true)                                                                     \
@@ -2135,9 +2238,6 @@
         ELEM_(int, RxFontsize, "RXFONTSIZE",                                            \
               "RX text font size",                                                      \
               16)                                                                       \
-        ELEM_(Fl_Color, RxFontcolor, "RXFNTCOLOR",                                      \
-              "RX text font color",                                                     \
-              FL_BLACK)                                                                 \
         ELEM_(std::string, MacroBtnFontName, "MACROBTNFONTNAME",                        \
               "Macro Btn Font Name",                                                    \
               "")                                                                       \
@@ -2147,12 +2247,6 @@
         ELEM_(int, MacroBtnFontsize, "MACROBTNFONTSIZE",                                \
               "Macro btn font size",                                                    \
               12)                                                                       \
-        ELEM_(Fl_Color, MacroBtnFontcolor, "MACROBTNFONTCOLOR",                         \
-              "Macro btn font color",                                                   \
-              FL_WHITE)                                                                 \
-        ELEM_(Fl_Color, RxTxSelectcolor, "RXTXSELCOLOR",                                \
-              "RX/TX text select color",                                                \
-              FL_MAGENTA)                                                               \
         ELEM_(bool, TxFontWarn, "TXFONTWARN",                                           \
               "Enable TX font warnings",                                                \
               true)                                                                     \
@@ -2165,39 +2259,6 @@
         ELEM_(int, TxFontsize, "TXFONTSIZE",                                            \
               "TX text font size",                                                      \
               16)                                                                       \
-        ELEM_(Fl_Color, TxFontcolor, "TXFNTCOLOR",                                      \
-              "TX text font color",                                                     \
-              FL_BLACK)                                                                 \
-        ELEM_(RGB, RxColor, "RXFONTCOLOR",                                              \
-              "RX text font color (RGB)",                                               \
-              { 255, 242, 190 })                                                        \
-        ELEM_(RGB, TxColor, "TXFONTCOLOR",                                              \
-              "TX text font color (RGB)",                                               \
-              { 200, 235, 255 })                                                        \
-        ELEM_(Fl_Color, XMITcolor, "XMITCOLOR",                                         \
-              "Color for Transmit text style",                                          \
-              FL_RED)                                                                   \
-        ELEM_(Fl_Color, CTRLcolor, "CTRLCOLOR",                                         \
-              "Color for Control text style",                                           \
-              FL_DARK_GREEN)                                                            \
-        ELEM_(Fl_Color, SKIPcolor, "SKIPCOLOR",                                         \
-              "Color for Skipped text style",                                           \
-              FL_BLUE)                                                                  \
-        ELEM_(Fl_Color, ALTRcolor, "ALTRCOLOR",                                         \
-              "Color for Alternate text style",                                         \
-              FL_DARK_MAGENTA)                                                          \
-        ELEM_(Fl_Color, LowSignal, "LOWSIGNAL",                                         \
-              "Color for low signal level",                                             \
-              FL_BLACK)                                                                 \
-        ELEM_(Fl_Color, NormSignal, "NORMSIGNAL",                                       \
-              "Color for normal signal level",                                          \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, HighSignal, "HIGHSIGNAL",                                       \
-              "Color for high signal level",                                            \
-              FL_YELLOW)                                                                \
-        ELEM_(Fl_Color, OverSignal, "OVERSIGNAL",                                       \
-              "Color for over driven signal",                                           \
-              FL_RED)                                                                   \
         ELEM_(std::string, WaterfallFontName, "WATERFALLFONTNAME",                      \
               "Waterfall font name",                                                    \
               "")                                                                       \
@@ -2207,12 +2268,6 @@
         ELEM_(int, WaterfallFontsize, "WATERFALLFONTSIZE",                              \
               "Waterfall font size",                                                    \
               12)                                                                       \
-        ELEM_(Fl_Color, LOGGINGtextcolor, "LOGGINGTEXTCOLOR",                           \
-              "Text color in logging controls",                                         \
-              FL_BLACK)                                                                 \
-        ELEM_(Fl_Color, LOGGINGcolor, "LOGGINGCOLOR",                                   \
-              "Background color in logging controls",                                   \
-              FL_BACKGROUND2_COLOR)                                                     \
         ELEM_(std::string, LOGGINGfontname, "LOGGINGTEXTNAME",                          \
               "LOGGING text font name",                                                 \
               "")                                                                       \
@@ -2222,12 +2277,6 @@
         ELEM_(int, LOGGINGtextsize, "LOGGINGTEXTSIZE",                                  \
               "Logging Controls font size",                                             \
               12)                                                                       \
-        ELEM_(Fl_Color, LOGBOOKtextcolor, "LOGBOOKTEXTCOLOR",                           \
-              "Text color in logbook dialog",                                           \
-              FL_BLACK)                                                                 \
-        ELEM_(Fl_Color, LOGBOOKcolor, "LOGBOOKCOLOR",                                   \
-              "Background color in logbook dialog",                                     \
-              FL_BACKGROUND2_COLOR)                                                     \
         ELEM_(std::string, LOGBOOKtextname, "LOGBOOKTEXTNAME",                          \
               "Logbook text font name",                                                 \
               "")                                                                       \
@@ -2252,40 +2301,10 @@
         ELEM_(bool, wf_audioscale, "WFAUDIOSCALE",                                      \
               "Always show audio frequencies on waterfall",                             \
               true)                                                                     \
-        /* Freq Display colors */                                                       \
-        ELEM_(RGB, FDbackground, "FDBACKGROUND",                                        \
-              "Frequency display background color",                                     \
-              { 255, 253, 222 })                                                        \
-        ELEM_(RGB, FDforeground, "FDFOREGROUND",                                        \
-              "Frequency display foreground color",                                     \
-              { 0, 0, 0 })                                                              \
-        /* S-meter and Power-meter */                                                   \
-        ELEM_(RGB, Smeter_bg_color, "SMETERBG",                                         \
-              "S-meter background color",                                               \
-              { 255, 253, 222 })                                                        \
-        ELEM_(RGB, Smeter_scale_color, "SMETERSCALECOLOR",                              \
-              "S-meter scale color",                                                    \
-              { 0, 0, 0 })                                                              \
-        ELEM_(RGB, Smeter_meter_color, "SMETERMETERCOLOR",                              \
-              "S-meter meter color",                                                    \
-              { 0, 200, 0 })                                                            \
-        ELEM_(RGB, PWRmeter_bg_color, "PWRMETERBGD",                                    \
-              "Power meter background color",                                           \
-              { 255, 253, 222 })                                                        \
-        ELEM_(RGB, PWRmeter_scale_color, "PWRMETERSCALECOLOR",                          \
-              "Power meter scale color",                                                \
-              { 0, 0, 0 })                                                              \
-        ELEM_(RGB, PWRmeter_meter_color, "PWRMETERMETERCOLOR",                          \
-              "Power meter meter color",                                                \
-              { 200, 0, 0 })                                                            \
         ELEM_(int, PWRselect, "PWRSELECT",                                              \
               "Power meter type:\n"                                                     \
               " 0: 25 W, 1: 50 W, 2: 100 W, 3: 200 W, 4: AUTO",                         \
               4)                                                                        \
-        /* Tab selection color */                                                       \
-        ELEM_(Fl_Color, TabsColor, "TABSCOLOR",                                         \
-              "UI tabs color",                                                          \
-              FL_BACKGROUND2_COLOR)                                                     \
         /* Signal Viewer */                                                             \
         ELEM_(bool, VIEWERascend, "VIEWERASCEND",                                       \
               "Low frequency on bottom of viewer",                                      \
@@ -2324,43 +2343,6 @@
         ELEM_(int, ViewerFontsize, "VIEWERFONTSIZE",                                    \
               "Signal Viewer font size",                                                \
               FL_NORMAL_SIZE)                                                           \
-                                                                                        \
-        ELEM_(Fl_Color, Sql1Color, "SQL1COLOR",                                         \
-              "UI SQL button select color 1",                                           \
-              FL_YELLOW)                                                                \
-        ELEM_(Fl_Color, Sql2Color, "SQL2COLOR",                                         \
-              "UI SQL button select color 2",                                           \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, AfcColor, "AFCCOLOR",                                           \
-              "UI AFC button select color",                                             \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, LkColor, "LKCOLOR",                                             \
-              "UI Lk xmt frequ select color",                                           \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, RevColor, "REVCOLOR",                                           \
-              "UI Rev select color",                                                    \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, XmtColor, "XMTCOLOR",                                           \
-              "UI T/R select color",                                                    \
-              FL_RED)                                                                   \
-        ELEM_(Fl_Color, SpotColor, "SPOTCOLOR",                                         \
-              "UI Spot select color",                                                   \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, RxIDColor, "RXIDCOLOR",                                         \
-              "UI RxID select color",                                                   \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, RxIDwideColor, "RXIDWIDECOLOR",                                 \
-              "UI RxID WIDE search select color",                                       \
-              FL_DARK_RED)                                                              \
-        ELEM_(Fl_Color, TxIDColor, "TXIDCOLOR",                                         \
-              "UI TxID select color",                                                   \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, TuneColor, "TUNECOLOR",                                         \
-              "UI Tune select color",                                                   \
-              FL_RED)                                                                   \
-        ELEM_(Fl_Color, default_btn_color, "DEFAULTBTNCOLOR",                           \
-              "Default color of lighted buttons",                                       \
-              FL_YELLOW)                                                                \
         /* XMLRPC LOGBOOK server */                                                     \
         ELEM_(bool, xml_logbook, "XML_LOGBOOK",                                         \
               "Try to open remote xml logbook",                                         \
@@ -2557,6 +2539,12 @@
        ELEM_(int, wefax_align_rows, "WEFAX_align_rows",                                 \
              "Enable autoalign every NN rows",                                          \
              10 )                                                                       \
+       ELEM_(int, wefax_lpm_288, "WEFAX_lpm_288",                                       \
+             "default lines per minute, 3 = 60, 2 = 90, 1 = 120, 0 = 240",              \
+             3 )                                                                        \
+       ELEM_(int, wefax_lpm_576, "WEFAX_lpm_576",                                       \
+             "default lines per minute, 3 = 60, 2 = 90, 1 = 120, 0 = 240",              \
+             1 )                                                                        \
        /* NAVTEX configuration items */                                                 \
        ELEM_(bool, NVTX_AdifLog, "NAVTEXADIFLOG",                                       \
              "Logs Navtex messages in Adig log file",                                   \
@@ -2604,6 +2592,9 @@
               true)                                                                     \
         ELEM_(bool, wx_station_name, "WX_STATION_NAME",                                 \
               "Report station noun name",                                               \
+              true)                                                                     \
+        ELEM_(bool, wx_raw, "WX_RAW",                                                   \
+              "Unparsed METAR report",                                                  \
               true)                                                                     \
     /* KML Keyhole Markup Language */                                                   \
         ELEM_(bool, kml_purge_on_startup, "KML_PURGE_ON_STARTUP",                       \
@@ -2798,21 +2789,6 @@
         ELEM_(bool, FMT_dft_cull_on, "FMT_dft_cull_on",                                 \
              "Enable DFT culling",                                                      \
              false)                                                                     \
-        ELEM_(Fl_Color, FMT_background, "FMT_background",                               \
-              "Color for FMT plot background",                                          \
-              FL_BACKGROUND2_COLOR)                                                     \
-        ELEM_(Fl_Color, FMT_unk_color, "FMT_unk_color",                                 \
-              "Color for FMT unknown data plot",                                        \
-              FL_DARK_BLUE)                                                             \
-        ELEM_(Fl_Color, FMT_ref_color, "FMT_ref_color",                                 \
-              "Color for FMT reference data plot",                                      \
-              FL_GREEN)                                                                 \
-        ELEM_(Fl_Color, FMT_legend_color, "FMT_legend_color",                           \
-              "Color for FMT legends",                                                  \
-              FL_BLACK)                                                                 \
-        ELEM_(Fl_Color, FMT_axis_color, "FMT_axis_color",                               \
-              "Color for FMT plot axis",                                                \
-              FL_BLACK)                                                                 \
         ELEM_(bool, FMT_use_tabs, "fmt_use_tabs",                                       \
              "Use TAB delimiters in exported csv file",                                 \
              false)                                                                     \
@@ -2831,18 +2807,21 @@
         ELEM_(double, FMT_freq_err, "FMT_freq_err",                                     \
              "limit to frequency error before automatic reset",                         \
              2.0)                                                                       \
-    /* save operating parameters by mode */                                             \
+    /* save operating parameters by mode and band */                                    \
         ELEM_(bool, sqlch_by_mode, "SQLCH_BY_MODE",                                     \
               "Save/restore SQUELCH on per mode basis",                                 \
-              false)                                                                    \
+              true)                                                                     \
         ELEM_(bool, txlevel_by_mode, "TXLEVEL_BY_MODE",                                 \
               "Save/restore TXLEVEL on per mode basis",                                 \
-              false)                                                                    \
+              true)                                                                     \
         ELEM_(bool, afc_by_mode, "AFC_BY_MODE",                                         \
               "Save/restore AFC on per mode basis",                                     \
-              false)                                                                    \
+              true)                                                                     \
         ELEM_(bool, reverse_by_mode, "REVERSE_BY_MODE",                                 \
               "Save/restore REVERSE on per mode basis",                                 \
+              true)                                                                     \
+        ELEM_(bool, status_bar_fill, "STATUS_BAR_FILL",                                 \
+              "Enable to display expandable fill space between controls",               \
               false)                                                                    \
 
 // declare the struct

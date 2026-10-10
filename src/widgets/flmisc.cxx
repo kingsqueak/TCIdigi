@@ -318,13 +318,19 @@ Mode_Browser::~Mode_Browser(void)
 	delete modes;
 }
 
+#define FLTK_VER (FLDIGI_FLTK_API_MAJOR * 10000 + FLDIGI_FLTK_API_MINOR * 100 + FLDIGI_FLTK_API_PATCH)
+
 void Mode_Browser::show_(mode_set_t* b)
 {
 	store = b;
 	modes->check_none();
 	for (size_t i = 0; i < b->size(); i++)
 		modes->checked(i + 1, store->test(i));
+#if (FLTK_VER >= 10400)
+	modes->vposition(0);
+#else
 	modes->position(0);
+#endif
 	Fl_Double_Window::show();
 }
 

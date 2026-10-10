@@ -126,7 +126,7 @@ ifkp::ifkp(trx_mode md) : modem()
 
 	mode = md;
 	fft = new g_fft<double>(IFKP_FFTSIZE);
-	snfilt = new Cmovavg(64);
+	snfilt = new Cmovavg(32);
 	movavg_size = 4;
 	for (int i = 0; i < IFKP_NUMBINS; i++) binfilt[i] = new Cmovavg(movavg_size);
 	txphase = 0;
@@ -479,6 +479,8 @@ void ifkp::process_symbol(int sym)
 	prev_symbol = symbol;
 }
 
+int no_signal = 0;
+
 void ifkp::process_tones()
 {
 	max = 0;
@@ -488,44 +490,21 @@ void ifkp::process_tones()
 	peak = IFKP_NUMBINS / 2;
 
 	int firstbin = frequency * IFKP_SYMLEN / samplerate - IFKP_NUMBINS / 2;
-
 	double sigval = 0;
-
-	double mins[3];
 	double min = 3.0e8;
-	double temp;
 
-	mins[0] = mins[1] = mins[2] = 1.0e8;
 	for (int i = 0; i < IFKP_NUMBINS; ++i) {
 		val = norm(fft_data[i + firstbin]);
-// looking for maximum signal
+// search for minimum and maximum signalx
 		tones[i] = binfilt[i]->run(val);
 		if (tones[i] > max) {
 			max = tones[i];
 			peak = i;
 		}
-// looking for minimum signal in a 3 bin sequence
-		mins[2] = tones[i];
-		temp = mins[0] + mins[1] + mins[2];
-		mins[0] = mins[1];
-		mins[1] = mins[2];
-		if (temp < min) min = temp;
+		if (tones[i] < min) {
+			min = tones[i];
+		}
 	}
-
-	sigval = tones[peak-1] + tones[peak] + tones[peak+1];
-	if (min == 0) min = 1e-10;
-
-	s2n = 10 * log10( snfilt->run(sigval/min)) - 36.0;
-
-//scale to -25 to +45 db range
-// -25 -> 0 linear
-// 0 - > 45 compressed by 2
-
-	if (s2n <= 0) metric = 2 * (25 + s2n);
-	if (s2n > 0) metric = 50 * ( 1 + s2n / 45);
-	metric = clamp(metric, 0, 100);
-
-	display_metric(metric);
 
 	if (peak == prev_peak) {
 		peak_counter++;
@@ -534,12 +513,38 @@ void ifkp::process_tones()
 	}
 
 	if ((peak_counter >= peak_hits) &&
-		(peak != last_peak) &&
-		(metric >= progStatus.sldrSquelchValue ||
-		 progStatus.sqlonoff == false)) {
-		process_symbol(peak);
+		(peak != last_peak)) {
+		sigval = (tones[peak-1] + tones[peak] + tones[peak+1]);
+		if (min == 0) min = max / 1000;
+		if (min > 0 && max > 0) {
+			s2n = 20 * log10( snfilt->run(sigval/min));
+			s2n -= 64;
+			s2n *= 40;
+			s2n /= 75;
+			s2n -= 20;
+		} else
+			s2n = -25;
+
+//scale to -25 to +45 db range
+// -25 -> 0 linear
+// 0 - > 45 compressed by 2
+
+		if (s2n <= 0) metric = 2 * (25 + s2n);
+		if (s2n > 0) metric = 50 * ( 1 + s2n / 45);
+			metric = clamp(metric, 0, 100);
+
+		display_metric(metric);
+
+		if (metric >= progStatus.sldrSquelchValue ||
+			progStatus.sqlonoff == false) { //) {
+			process_symbol(peak);
+		}
 		peak_counter = 0;
 		last_peak = peak;
+		no_signal = 0;
+	} else if (++no_signal > 128) { // reset the filter and zero the s/n display
+		snfilt->reset();
+		display_metric(0);
 	}
 
 	prev_peak = peak;
@@ -872,38 +877,178 @@ void ifkp::ifkp_send_avatar() {
 	start_tx();
 }
 
+static picture *def_ifkp_avatar = (picture *)0; 
+
+void load_default_ifkp_image(std::string fname, int W, int H)
+{
+	static Fl_Shared_Image	*shared_image = (Fl_Shared_Image *)0;
+	static unsigned char *image_array = (unsigned char *)0;
+	int D = 0;
+	unsigned char *img_data;
+
+	shared_image = Fl_Shared_Image::get(fname.c_str(), W, H);
+
+	if (!shared_image) {
+		def_ifkp_avatar->video(tux_img, W * H * 3);
+		return;
+	}
+
+// force image to be retrieved from hard drive vice shared image memory
+	shared_image->reload(); 
+
+	if (shared_image->count() > 1) {
+		shared_image->release();
+		shared_image = 0;
+		def_ifkp_avatar->video(tux_img, W * H * 3);
+		return;
+	}
+
+	img_data = (unsigned char *)shared_image->data()[0];
+
+	D = shared_image->d();
+
+	if (image_array) delete [] image_array;
+
+	image_array = new unsigned char [W * H * 3];
+	if (D == 3)
+		memcpy(image_array, img_data, W*H*3);
+	else if (D == 4) {
+		int i, j, k;
+		for (i = 0; i < W*H; i++) {
+			j = i*3; k = i*4;
+			image_array[j] = img_data[k];
+			image_array[j+1] = img_data[k+1];
+			image_array[j+2] = img_data[k+2];
+		}
+	} else if (D == 1) {
+		int i, j;
+		for (i = 0; i < W*H; i++) {
+			j = i * 3;
+			image_array[j] = image_array[j+1] = image_array[j+2] = img_data[i];
+		}
+	} else {
+		def_ifkp_avatar->video(tux_img, W * H * 3);
+		return;
+	}
+	def_ifkp_avatar->video(image_array, W * H * 3);
+
+	shared_image->release();
+	shared_image = 0;
+
+	return;
+}
+
+void select_ifkp_avatar(Fl_Widget *w, void *d)
+{
+	const char *p = FSEL::select(
+			_("Select operator avatar image"), "Avatar\t*.{gif,jpg,jpeg,png}\n", AvatarDir.c_str());
+
+	if (!p || !*p) return;
+
+	std::string avatar_file;
+	avatar_file.assign(p);
+
+	load_default_ifkp_image(avatar_file, 59, 74);
+
+	progdefaults.ifkp_avatar_image_file = avatar_file;
+}
+
+void init_def_ifkp_avatar(Fl_Group *w)
+{
+	if (def_ifkp_avatar == (picture *)0) {
+		def_ifkp_avatar = new picture(w->x(), w->y(), w->w(), w->h());
+		def_ifkp_avatar->noslant();
+		def_ifkp_avatar->callback(select_ifkp_avatar);
+		def_ifkp_avatar->tooltip(_("Select operator avatar"));
+		w->add(def_ifkp_avatar);
+	}
+	def_ifkp_avatar->show();
+
+	int W = w->w();
+	int H = w->h();
+
+	std::string image_fname = progdefaults.ifkp_avatar_image_file;
+
+	if (image_fname.empty()) {
+		image_fname = progdefaults.operCall;
+		if (image_fname.empty()) {
+			image_fname = progdefaults.myCall;
+			if (image_fname.empty()) {
+				def_ifkp_avatar->video(tux_img, W * H * 3);
+				return;
+			}
+		}
+	}
+
+	if (image_fname.find(".gif") == std::string::npos &&
+		image_fname.find(".png") == std::string::npos &&
+		image_fname.find(".PNG") == std::string::npos &&
+		image_fname.find(".jp") == std::string::npos &&  // jpg, jpeg
+		image_fname.find(".JP") == std::string::npos ) { // JPG, JPEG
+
+		for (size_t n = 0; n < image_fname.length(); n++)
+			image_fname[n] = tolower(image_fname[n]);
+		std::string fname = AvatarDir;
+		fname.append(image_fname).append(".png");
+	}
+
+	load_default_ifkp_image(image_fname, 59, 74);
+}
+
 void ifkp::m_ifkp_send_avatar()
 {
-	std::string mycall = progdefaults.myCall;
-	for (size_t n = 0; n < mycall.length(); n++)
-		mycall[n] = tolower(mycall[n]);
-	std::string fname = AvatarDir;
-	fname.append(mycall).append(".png");
+	std::string image_fname = progdefaults.ifkp_avatar_image_file;
 
-	my_avatar_img = Fl_Shared_Image::get(fname.c_str(), 59, 74);
-	if (!my_avatar_img) return;
+	if (image_fname.empty()) {
+		image_fname = progdefaults.operCall;
+		if (image_fname.empty()) {
+			image_fname = progdefaults.myCall;
+			if (image_fname.empty()) {
+				def_ifkp_avatar->video(tux_img, 59 * 74 * 3);
+				return;
+			}
+		}
+	}
+
+	if (image_fname.find(".gif") == std::string::npos &&
+		image_fname.find(".png") == std::string::npos &&
+		image_fname.find(".PNG") == std::string::npos &&
+		image_fname.find(".jp") == std::string::npos &&  // jpg, jpeg
+		image_fname.find(".JP") == std::string::npos ) { // JPG, JPEG
+
+		for (size_t n = 0; n < image_fname.length(); n++)
+			image_fname[n] = tolower(image_fname[n]);
+		std::string fname = AvatarDir;
+		fname.append(image_fname).append(".png");
+	}
+
+	my_avatar_img = Fl_Shared_Image::get(image_fname.c_str(), 59, 74);
+	if (!my_avatar_img) {
+		return;
+	}
 	unsigned char *img_data = (unsigned char *)my_avatar_img->data()[0];
 	memset(avatar, 0, sizeof(avatar));
 	int D = my_avatar_img->d();
 
 	if (D == 3)
-		memcpy(avatar, img_data, 59*74*3);
+		memcpy(avatar, img_data, 59 * 74 * 3);
 	else if (D == 4) {
 		int i, j, k;
-		for (i = 0; i < 59*74; i++) {
-			j = i*3; k = i*4;
+		for (i = 0; i < 59 * 74; i++) {
+			j = i * 3; k = i * 4;
 			avatar[j] = img_data[k];
 			avatar[j+1] = img_data[k+1];
 			avatar[j+2] = img_data[k+2];
 		}
 	} else if (D == 1) {
 		int i, j;
-		for (i = 0; i < 59*74; i++) {
+		for (i = 0; i < 59 * 74; i++) {
 			j = i * 3;
 			avatar[j] = avatar[j+1] = avatar[j+2] = img_data[i];
 		}
-	} else
+	} else {
 		return;
+	}
 
 	ifkp_send_avatar();
 }
@@ -929,11 +1074,14 @@ int ifkp::tx_process()
 		img_str.clear();
 
 		if (TX_IMAGE) {
+			stopflag = false;
 			send_image();
 			ifkppicTxWin->hide();
 		}
-		if (TX_AVATAR)
+		if (TX_AVATAR) {
+			stopflag = false;
 			send_avatar();
+		}
 
 		send_char(0);
 

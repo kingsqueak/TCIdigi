@@ -577,6 +577,34 @@ public:
 	}
 };
 
+class Modem_get_io_names : public xmlrpc_c::method
+{
+public:
+	Modem_get_io_names()
+	{
+		_signature = "A:n";
+		_help = "Returns all usable KISS, ARQ I/O modem names.";
+	}
+	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+	{
+		std::vector<xmlrpc_c::value> names;
+		names.reserve(NUM_MODES);
+		std::string snames;
+		for (size_t i = 0; i < NUM_MODES; i++) 
+		{
+			if(mode_info[i].iface_io != DISABLED_IO) 
+			{
+				names.push_back(xmlrpc_c::value_string(mode_info[i].sname));
+				snames.append("\n").append(mode_info[i].sname);
+		    }
+		}
+		LOG_INFO("[%s] modem.get_io_names: %s",
+			XmlRpc::client_id.c_str(),
+			snames.c_str());
+		*retval = xmlrpc_c::value_array(names);
+	}
+};
+
 class Modem_get_names : public xmlrpc_c::method
 {
 public:
@@ -828,16 +856,16 @@ public:
 
 // =============================================================================
 
-static Fl_Valuator* get_bw_val(void)
+static int get_bw_val(void)
 {
 	if (!(active_modem->get_cap() & modem::CAP_BW))
 		return 0;
 
 	trx_mode m = active_modem->get_mode();
 	if (m >= MODE_HELL_FIRST && m <= MODE_HELL_LAST)
-		return sldrHellBW;
+		return sldrHellBW->value();
 	else if (m == MODE_CW)
-		return sldrCWbandwidth;
+		return progdefaults.CWbandwidth;
 	return 0;
 }
 
@@ -851,14 +879,11 @@ public:
 	}
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
-		Fl_Valuator* val = get_bw_val();
+		int val = get_bw_val();
 		LOG_INFO("[%s] modem.get_bw: %d",
 			XmlRpc::client_id.c_str(),
-			int(get_bw_val()->value()));
-		if (val)
-			*retval = xmlrpc_c::value_int((int)get_bw_val()->value());
-		else
-			*retval = xmlrpc_c::value_int(0);
+			val);
+		*retval = val;
 	}
 };
 
@@ -873,7 +898,8 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		Fl_Valuator* val = get_bw_val();
+/*
+		int val = get_bw_val();
 		if (val) {
 			int v = (int)(val->value());
 			LOG_INFO("[%s] modem.set_bw: %d",
@@ -883,6 +909,7 @@ public:
 			*retval = xmlrpc_c::value_int(v);
 		} else
 			*retval = xmlrpc_c::value_int(0);
+*/
 	}
 };
 
@@ -897,6 +924,7 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
+/*
 		Fl_Valuator* val = get_bw_val();
 		if (val) {
 			int v = (int)(val->value() + params.getInt(0));
@@ -907,6 +935,7 @@ public:
 			*retval = xmlrpc_c::value_int(v);
 		} else
 			*retval = xmlrpc_c::value_int(0);
+*/
 	}
 };
 
@@ -1190,9 +1219,9 @@ public:
 	}
 };
 
-void xmlrpc_set_qsy(long long rfc)
+void xmlrpc_set_qsy(unsigned long long rfc)
 {
-	unsigned long int freq = static_cast<unsigned long int>(rfc);
+	unsigned long long freq = rfc;
 	wf->rfcarrier(freq);
 	wf->movetocenter();
 	show_frequency(freq);
@@ -1209,11 +1238,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		double rfc = wf->rfcarrier();
-		LOG_INFO("[%s] main.set_freq: %f",
+		double rfc = (double) wf->rfcarrier();
+		LOG_INFO("[%s] main.set_freq: %lf",
 			XmlRpc::client_id.c_str(),
 			rfc);
-		qsy((long long int)params.getDouble(0, 0.0));
+		qsy((unsigned long long)params.getDouble(0, 0.0));
 		*retval = xmlrpc_c::value_double(rfc);
 	}
 };
@@ -1229,9 +1258,9 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		double rfc = wf->rfcarrier() + params.getDouble(0);
-		qsy((long long int)rfc);
-		LOG_INFO("[%s] main.inc_freq: %f",
+		double rfc = (double) wf->rfcarrier() + params.getDouble(0);
+		qsy((unsigned long long)rfc);
+		LOG_INFO("[%s] main.inc_freq: %lf",
 			XmlRpc::client_id.c_str(),
 			rfc);
 		*retval = xmlrpc_c::value_double(rfc);
@@ -1660,13 +1689,10 @@ public:
 	}
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
-		std::string st;
-		if (btnTune->value())
-			st = "tune";
-		else if (wf->xmtrcv->value())
-			st = "tx";
-		else
-			st = "rx";
+		std::string st = "rx";
+		if (trx_state == STATE_TX) st = "tx";
+		else if (trx_state == STATE_TUNE) st = "tune";
+
 		LOG_INFO("[%s] main.get_trx_status: %s",
 			 XmlRpc::client_id.c_str(),
 			 st.c_str());
@@ -2412,11 +2438,13 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		double rfc = wf->rfcarrier();
-		unsigned long int f = (long int)(params.getDouble(0,0.0));
-		LOG_INFO("[%s] rig.set_frequency %lu",
+		double rfc = (double) wf->rfcarrier();
+		unsigned long long f = (unsigned long long)(params.getDouble(0,0.0));
+		char dummy[200];
+		snprintf(dummy, sizeof(dummy), "[%s] rig.set_frequency %llu",
 			XmlRpc::client_id.c_str(),
 			f);
+		LOG_INFO("%s", dummy);
 		qsy(f);
 		*retval = xmlrpc_c::value_double(rfc);
 	}
@@ -2432,8 +2460,8 @@ public:
 	}
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
-		double rfc = wf->rfcarrier();
-		LOG_INFO("[%s] rig.get_frequency %f",
+		double rfc = (double) wf->rfcarrier();
+		LOG_INFO("[%s] rig.get_frequency %lf",
 			XmlRpc::client_id.c_str(),
 			rfc);
 		*retval = xmlrpc_c::value_double(rfc);
@@ -2475,14 +2503,22 @@ public:
 		_signature = "n:i";
 		_help = "Sets the power meter returns null.";
 	}
-	static void set_pwrmeter(int rfc)
+	static void set_pwrmeter(int val)
 	{
-		if (pwrmeter && smeter && progStatus.meters) {
-			pwrmeter->value(rfc);
-			smeter->hide();
-			pwrmeter->show();
+		if (pwrmeter) {
+			pwrmeter->value(val);
+			if (pwrlevel_grp->visible())
+				return;
+			if (progStatus.meters) {
+				if (!pwrmeter->visible()) {
+					if (smeter) smeter->hide();
+					pwrmeter->show();
+				}
+				pwrmeter->redraw();
+			}
 		}
 	}
+
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
@@ -2655,7 +2691,7 @@ public:
 		for (size_t n = 0; n < bws.size(); n++)
 			sbws.append("\n").append(std::string(bws[n]));
 
-		LOG_INFO("[%s] rig.get_modes:%s",
+		LOG_INFO("[%s] rig.get_bandwidths:%s",
 			XmlRpc::client_id.c_str(),
 			sbws.c_str());
 
@@ -3129,6 +3165,37 @@ public:
 	}
 };
 
+extern Fl_Value_Input2 *nbrContestStart;
+int contest_start_number = 0;
+
+static void set_contest_counter() {
+	nbrContestStart->value(contest_start_number);
+	progdefaults.ContestStart = contest_start_number;
+	cb_ResetSerNbr();
+	progdefaults.changed = true;
+}
+
+class Log_set_contest_counter : public xmlrpc_c::method
+{
+public:
+	Log_set_contest_counter()
+	{
+		_signature = "n:s";
+		_help = "Sets the starting contest number field contents.";
+	}
+	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+	{
+		XMLRPC_LOCK;
+		std::string snbr = std::string(params.getString(0));
+		LOG_INFO("[%s] log.set_counter_counter: %s",
+			XmlRpc::client_id.c_str(),
+			snbr.c_str());
+		contest_start_number = atol( snbr.c_str() );
+		REQ(set_contest_counter);
+		*retval = xmlrpc_c::value_nil();
+	}
+};
+
 class Log_get_exchange : public xmlrpc_c::method
 {
 public:
@@ -3334,7 +3401,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		std::string adif_str = all_adif_records();
+#ifdef __WIN32__
+		LOG_INFO("[%s] logbook.all_adif_records export size %u",
+#else
 		LOG_INFO("[%s] logbook.all_adif_records export size %lu",
+#endif
 			XmlRpc::client_id.c_str(),
 			adif_str.length());
 		*retval = xmlrpc_c::value_string(adif_str);
@@ -4133,6 +4204,7 @@ ELEM_(Fldigi_terminate, "fldigi.terminate")                            \
 ELEM_(Modem_get_mode, "modem.get_mode")                                \
 ELEM_(Modem_get_submode, "modem.get_submode")                          \
 ELEM_(Modem_get_name, "modem.get_name")                                \
+ELEM_(Modem_get_io_names, "modem.get_io_names")                        \
 ELEM_(Modem_get_names, "modem.get_names")                              \
 ELEM_(Modem_get_id, "modem.get_id")                                    \
 ELEM_(Modem_get_max_id, "modem.get_max_id")                            \
@@ -4256,7 +4328,6 @@ ELEM_(Log_get_rst_out, "log.get_rst_out")                              \
 ELEM_(Log_set_rst_in, "log.set_rst_in")                                \
 ELEM_(Log_set_rst_out, "log.set_rst_out")                              \
 ELEM_(Log_get_serial_number, "log.get_serial_number")                  \
-ELEM_(Log_set_serial_number, "log.set_serial_number")                  \
 ELEM_(Log_get_serial_number_sent, "log.get_serial_number_sent")        \
 ELEM_(Log_get_exchange, "log.get_exchange")                            \
 ELEM_(Log_set_exchange, "log.set_exchange")                            \
@@ -4277,6 +4348,8 @@ ELEM_(Log_set_qth, "log.set_qth")                                      \
 ELEM_(Log_set_locator, "log.set_locator")                              \
 ELEM_(Log_set_rst_in, "log.set_rst_in")                                \
 ELEM_(Log_set_rst_out, "log.set_rst_out")                              \
+ELEM_(Log_set_serial_number, "log.set_serial_number")                  \
+ELEM_(Log_set_contest_counter, "log.set_contest_counter")              \
 \
 ELEM_(Logbook_last_record, "logbook.last_record")                      \
 ELEM_(Logbook_all_records, "logbook.all_records")                      \

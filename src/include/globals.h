@@ -163,8 +163,8 @@ enum {
 	
 	MODE_OFDM_500F,
 	MODE_OFDM_750F,
-	MODE_OFDM_2000F,
-	MODE_OFDM_2000,
+//	MODE_OFDM_2000F,
+//	MODE_OFDM_2000,
 	MODE_OFDM_3500,
 	
 	MODE_OLIVIA,
@@ -191,6 +191,15 @@ enum {
 
 	MODE_RTTY,
 
+	MODE_SCAMPFSK,
+	MODE_SCAMPOOK,
+	MODE_SCFSKFST,
+	MODE_SCFSKSLW,
+	MODE_SCOOKSLW,
+	MODE_SCFSKVSL,
+	MODE_SCAMP_FIRST = MODE_SCAMPFSK,
+	MODE_SCAMP_LAST = MODE_SCFSKVSL,
+
 	MODE_THORMICRO,
 	MODE_THOR4,
 	MODE_THOR5,
@@ -198,6 +207,10 @@ enum {
 	MODE_THOR11,
 	MODE_THOR16,
 	MODE_THOR22,
+	MODE_THOR25,
+	MODE_THOR32,
+	MODE_THOR44,
+	MODE_THOR56,
 	MODE_THOR25x4,
 	MODE_THOR50x1,
 	MODE_THOR50x2,
@@ -282,7 +295,7 @@ extern const struct mode_info_t mode_info[NUM_MODES];
 class qrg_mode_t
 {
 public:
-	long long rfcarrier;
+	unsigned long long rfcarrier;
 	std::string rmode;
 	int carrier;
 	trx_mode mode;
@@ -294,7 +307,7 @@ public:
 		carrier(0),
 		mode(NUM_MODES),
 		usage("") { }
-	qrg_mode_t(long long rfc_, std::string rm_, int c_, trx_mode m_, std::string use_ = "")
+	qrg_mode_t(unsigned long long rfc_, std::string rm_, int c_, trx_mode m_, std::string use_ = "")
                 : rfcarrier(rfc_), rmode(rm_), carrier(c_), mode(m_), usage(use_) { }
 	bool operator<(const qrg_mode_t& rhs) const
         {

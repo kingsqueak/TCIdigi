@@ -68,7 +68,9 @@ TRACEPAIR tracepair(45, 352);
 static bool xmt_filter = false;
 
 //=============================================================================
-char mfskmsg[80];
+static char   mfskmsg[80];
+static double s2nvals[100];
+static int    s2nptr = 0;
 //=============================================================================
 
 #include "mfsk-pic.cxx"
@@ -105,14 +107,18 @@ void  mfsk::rx_init()
 			pipe[i].vector[j] = cmplx(0,0);
 	}
 	reset_afc();
-	s2n = 0.0;
+
 	memset(picheader, ' ', PICHEADER - 1);
 	picheader[PICHEADER -1] = 0;
 	put_MODEstatus(mode);
 	syncfilter->reset();
 	staticburst = false;
 
+	s2n = 0.0;
 	s2n_valid = false;
+	for (int n = 0; n < 100; n++) {
+		s2nvals[n] = -20;
+	}
 }
 
 
@@ -744,8 +750,6 @@ void mfsk::update_syncscope()
 	set_scope(scopedata, SCOPESIZE);
 
 	scopedata.next(); // change buffers
-	snprintf(mfskmsg, sizeof(mfskmsg), "s/n %3.0f dB", 20.0 * log10(s2n));
-	put_Status1(mfskmsg);
 }
 
 void mfsk::synchronize()
@@ -797,13 +801,16 @@ void mfsk::afc()
 		sigsearch = 0;
 	}
 
-	if (staticburst || !progStatus.afconoff)
-		return;
-	if (metric < progStatus.sldrSquelchValue)
-		return;
 	if (afcmetric < 3.0)
 		return;
+
+	if (metric < progStatus.sldrSquelchValue)
+		return;
+
 	if (currsymbol != prev1symbol)
+		return;
+
+	if (staticburst || !progStatus.afconoff)
 		return;
 
 	if (pipeptr == 0)
@@ -817,7 +824,7 @@ void mfsk::afc()
 	f1 = tonespacing * (basetone + currsymbol);
 
 	if ( fabs(f1 - f) < ts) {
-		freqerr = decayavg(freqerr, (f1 - f), 32);
+		freqerr = decayavg(freqerr, (f1 - f), progdefaults.mfsk_avg);
 		set_freq(frequency - freqerr);
 	}
 
@@ -829,7 +836,22 @@ void mfsk::eval_s2n()
 	noise = (numtones -1) * abs(pipe[pipeptr].vector[prev2symbol]);
 	if (noise > 0)
 		s2n = decayavg ( s2n, sig / noise, 64 );
+	else
+		s2n = -20;
 
+	s2nvals[s2nptr] = s2n;
+	++s2nptr;
+	if (s2nptr == 100) s2nptr = 0;
+
+	double maxs2n = -20;
+
+	for (int n = 0; n < 100; n++) {
+		if (s2nvals[n] > maxs2n) maxs2n = s2nvals[n];
+	}
+	if (20 * log10(maxs2n) >= -12) {
+		snprintf(mfskmsg, sizeof(mfskmsg), "s/n %3.0f dB", 20.0 * log10(maxs2n));
+		put_Status1(mfskmsg, 15, STATUS_CLEAR);
+	}
 }
 
 int mfsk::rx_process(const double *buf, int len)
@@ -1082,15 +1104,14 @@ int mfsk::tx_process()
 	switch (txstate) {
 		case TX_STATE_PREAMBLE:
 			clearbits();
-			sig_start = true;
-			if (mode != MODE_MFSK64L && mode != MODE_MFSK128L )
+			if (progdefaults.softMFSK) sig_start = true;
+
+		if (mode != MODE_MFSK64L && mode != MODE_MFSK128L )
 				for (int i = 0; i < preamble / 3; i++)
 					sendbit(0);
-
 			txstate = TX_STATE_START;
 			break;
 		case TX_STATE_START:
-			sig_start = true;
 			sendchar('\r');
 			sendchar(2);		// STX
 			sendchar('\r');
@@ -1129,11 +1150,17 @@ int mfsk::tx_process()
 		case TX_STATE_FLUSH:
 			sendchar('\r');
 			sendchar(4);		// EOT
-			sig_stop = true;
 			sendchar('\r');
 			flushtx(preamble);
 			rxstate = RX_STATE_DATA;
 			txstate = TX_STATE_PREAMBLE;
+
+			if (progdefaults.softMFSK) sig_stop = true;
+			for (int n = 0; n < (samplerate * progdefaults.SoftStart / 1000 / symlen) + 1; n++) {
+				sendbit(0);
+				sendbit(0);
+			}
+
 			stopflag = false;
 			return -1;
 

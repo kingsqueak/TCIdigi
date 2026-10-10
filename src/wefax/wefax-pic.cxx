@@ -53,6 +53,7 @@
 
 #include "debug.h"
 #include "configuration.h"
+#include "ui_colors.h"
 #include "wefax.h"
 #include "trx.h"
 #include "fl_digi.h"
@@ -204,10 +205,7 @@ static void wefax_cb_pic_tx_close( Fl_Widget *, void *)
 }
 
 /// Usual LPM values.
-static const struct {
-	int          m_value ;
-	const char * m_label ;
-} all_lpm_values[] = {
+LPM_VALUES all_lpm_values[4] = {
 	{ 240, "240" },
 	{ 120, "120" },
 	{  90,  "90" },
@@ -765,12 +763,7 @@ Fl_Group *create_wefax_rx_viewer(int pos_x, int pos_y,int win_wid, int hei_win)
 
 	wefax_pic_rx_win = new Fl_Group(pos_x, pos_y, win_wid, hei_win);
 
-	wefax_pic_rx_win->color(
-			fl_rgb_color(
-				progdefaults.RxColor.R,
-				progdefaults.RxColor.G,
-				progdefaults.RxColor.B),
-			progdefaults.RxTxSelectcolor);
+	wefax_pic_rx_win->color( RGBCOLOR( RxColor ), RGBCOLOR( RxTxSelectcolor ));
 	wefax_pic_rx_win->align(FL_ALIGN_CLIP);
 
 
@@ -796,7 +789,7 @@ Fl_Group *create_wefax_rx_viewer(int pos_x, int pos_y,int win_wid, int hei_win)
 					255,
 					255,
 					255),
-				progdefaults.RxTxSelectcolor);
+				RGBCOLOR( RxTxSelectcolor ));
 	wefax_pic_rx_scroll->box(FL_ENGRAVED_FRAME);
 	wefax_pic_rx_scroll->begin();
 
@@ -866,7 +859,7 @@ Fl_Group *create_wefax_rx_viewer(int pos_x, int pos_y,int win_wid, int hei_win)
 		wefax_btn_rx_resume->y(),
 		50, H_BUTTON, _("Cont'"));
 	wefax_round_rx_non_stop->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-	wefax_round_rx_non_stop->selection_color(progdefaults.default_btn_color);
+	wefax_round_rx_non_stop->selection_color(RGBCOLOR( default_btn_color ));
 	wefax_round_rx_non_stop->callback(wefax_cb_pic_rx_manual, 0);
 	wefax_round_rx_non_stop->tooltip(_("Continuous reception mode"));
 
@@ -921,7 +914,7 @@ Fl_Group *create_wefax_rx_viewer(int pos_x, int pos_y,int win_wid, int hei_win)
 		wefax_rx_center->y(),
 		45, H_BUTTON,
 		"Auto");
-	wefax_autocenter->selection_color(progdefaults.default_btn_color);
+	wefax_autocenter->selection_color(RGBCOLOR( default_btn_color));
 	wefax_autocenter->callback(cb_wefax_autocenter, 0);
 	wefax_autocenter->tooltip(_("Enable automatic image centering"));
 	wefax_autocenter->value(progdefaults.wefax_autocenter);
@@ -933,7 +926,7 @@ Fl_Group *create_wefax_rx_viewer(int pos_x, int pos_y,int win_wid, int hei_win)
 	wefax_round_rx_noise_removal->callback(wefax_cb_pic_rx_noise_removal, 0);
 	wefax_round_rx_noise_removal->tooltip(_("Removes noise when ticked"));
 	wefax_round_rx_noise_removal->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-	wefax_round_rx_noise_removal->selection_color(progdefaults.default_btn_color);
+	wefax_round_rx_noise_removal->selection_color(RGBCOLOR( default_btn_color ) );
 
 	wefax_round_rx_binary = new Fl_Light_Button(
 		wefax_round_rx_noise_removal->x() + wefax_round_rx_noise_removal->w() + W_MARGIN,
@@ -942,7 +935,7 @@ Fl_Group *create_wefax_rx_viewer(int pos_x, int pos_y,int win_wid, int hei_win)
 	wefax_round_rx_binary->callback(wefax_cb_pic_rx_binary, 0);
 	wefax_round_rx_binary->tooltip(_("Binary image when ticked"));
 	wefax_round_rx_binary->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-	wefax_round_rx_binary->selection_color(progdefaults.default_btn_color);
+	wefax_round_rx_binary->selection_color(RGBCOLOR( default_btn_color ));
 	wefax_round_rx_binary->value(0);
 
 	wefax_spinner_rx_binary = new Fl_Spinner(
@@ -1256,12 +1249,7 @@ void create_wefax_tx_viewer(int pos_x, int pos_y,int win_wid, int hei_win)
 	Fl_Double_Window * tmpWin = new Fl_Double_Window(win_wid, hei_win, _("Send image"));
 	wefax_pic_tx_win = tmpWin;
 
-	wefax_pic_tx_win->color(
-			fl_rgb_color(
-				progdefaults.TxColor.R,
-				progdefaults.TxColor.G,
-				progdefaults.TxColor.B),
-			progdefaults.RxTxSelectcolor);
+	wefax_pic_tx_win->color( RGBCOLOR( TxColor ), RGBCOLOR( RxTxSelectcolor ));
 
 	wefax_pic_tx_win->begin();
 
@@ -1272,7 +1260,7 @@ void create_wefax_tx_viewer(int pos_x, int pos_y,int win_wid, int hei_win)
 					255,
 					255,
 					255),
-				progdefaults.RxTxSelectcolor);
+				RGBCOLOR( RxTxSelectcolor ));
 	wefax_pic_tx_scroll->box(FL_ENGRAVED_FRAME);
 	wefax_pic_tx_scroll->begin();
 

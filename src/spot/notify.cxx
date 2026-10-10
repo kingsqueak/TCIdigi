@@ -125,7 +125,7 @@ struct notify_dup_t
 	time_t when;
 	band_t band;
 	trx_mode mode;
-	long long freq;
+	unsigned long long freq;
 };
 
 typedef MAP_TYPE<std::string, notify_dup_t> notify_seen_t;
@@ -137,7 +137,7 @@ struct notify_t
 	std::string re;
 	bool enabled;
 	int afreq;
-	long long rfreq;
+	unsigned long long rfreq;
 	trx_mode mode;
 
 	const char* match_string;
@@ -772,12 +772,12 @@ struct replace_refs
 			str[len - 1] = '\0';
 			break;
 		case REF_DF_HZ:
-			snprintf(str, len, "%lld", wf->rfcarrier());
+			snprintf(str, len, "%llu", wf->rfcarrier());
 			break;
 		case REF_RF_HZ: case REF_RF_KHZ: {
-			long long hz = wf->rfcarrier() + (wf->USB() ? n.afreq : -n.afreq);
+			unsigned long long hz = wf->rfcarrier() + (wf->USB() ? n.afreq : -n.afreq);
 			if (t == REF_RF_HZ)
-				snprintf(str, len, "%lld", hz);
+				snprintf(str, len, "%llu", hz);
 			else // REF_RF_KHZ
 				snprintf(str, len, "%.3f", (double)hz / 1000.0);
 			break;
@@ -1051,14 +1051,17 @@ static void notify_recv(trx_mode mode, int afreq, const char* str, const regmatc
 		n->submatch_offsets = sub;
 		n->submatch_length = std::min(len, (size_t)10); // whole string + up to 9 user-specified backrefs
 
-std::cout << "trigger: " << n->last_trigger << "\n" <<
-"audio freq: " << n->afreq << "\n" <<
-"rf carrier: " << n->rfreq << "\n" <<
-"mode #: " << n->mode << "\n" <<
-"mode: " << mode_info[n->mode].name << "\n" <<
-"match: " << n->match_string << "\n" <<
-"offsets: " << n->submatch_offsets << "\n" <<
-"length: " << n->submatch_length << std::endl;
+		std::stringstream result;
+
+		result <<
+		"Regular expression search:\n" << 
+		"  audio freq: " << n->afreq << "\n" <<
+		"  rf carrier: " << n->rfreq << "\n" <<
+		"  mode:       " << mode_info[n->mode].name << "\n" <<
+		"  actual re: \"" << notify_get_re(*n) << "\"\n" <<
+		"  match:     \"" << n->match_string << "\"\n";
+
+		LOG_INFO("%s", result.str().c_str());
 
 		notify_notify(*n);
 	}
@@ -1601,7 +1604,17 @@ static void notify_save(void)
 	notify_set_qsodb_cache();
 
 	remove(std::string(HomeDir).append("/").append("notify.prefs").c_str());
+
+#if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences ndata(HomeDir.c_str(), PACKAGE_TARNAME, "notify");
+#else
+	Fl_Preferences ndata(
+		HomeDir.c_str(),
+		PACKAGE_TARNAME,
+		"notify",
+		(Fl_Preferences::Root)0);
+#endif
+
 	ndata.set("items", static_cast<int>(notify_list.size()));
 
 	size_t num = 0;
@@ -1649,7 +1662,16 @@ static void notify_load(void)
 	char s[512];
 	s[sizeof(s)-1] = '\0';
 
+#if FLDIGI_FLTK_API_MINOR < 4
 	Fl_Preferences ndata(HomeDir.c_str(), PACKAGE_TARNAME, "notify");
+#else
+	Fl_Preferences ndata(
+		HomeDir.c_str(),
+		PACKAGE_TARNAME,
+		"notify",
+		(Fl_Preferences::Root)0);
+#endif
+
 	if (!ndata.get("items", x, 0) || x <= 0)
 		return;
 	size_t n = static_cast<size_t>(x);

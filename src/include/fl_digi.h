@@ -27,6 +27,8 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Browser.H>
 #include <FL/Fl_Pack.H>
+#include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_Choice.H>
 #include <string>
 
 #include "combo.h"
@@ -52,6 +54,8 @@
 
 #include <FL/Fl_Progress.H>
 
+#define UI_debug
+
 extern fre_t seek_re;
 
 extern Fl_Double_Window *fl_digi_main;
@@ -69,6 +73,13 @@ extern Fl_Double_Window *notify_window;
 extern Fl_Double_Window *dxcc_window;
 extern Fl_Double_Window	*dxcluster_viewer;
 extern Fl_Double_Window *rxaudio_dialog;
+extern Fl_Double_Window *cwsettings;
+extern Fl_Double_Window *dlgGPIO_config;
+
+extern Fl_Menu_Item 	menu_[];
+extern int 				main_menu_size;
+extern Fl_Group			*mnuFrame;;
+extern void change_menu_fonts( Fl_Font font, int size);
 
 extern bool first_use;
 extern bool bEXITING;
@@ -335,9 +346,12 @@ extern Fl_Light_Button		*btnRSID;
 extern Fl_Light_Button		*btnTxRSID;
 extern Fl_Light_Button		*btnTune;
 extern Fl_Light_Button		*btnAutoSpot;
+extern Fl_Light_Button		*btn_EnableVideo_ID;
 
-extern bool			bWF_only;
+extern bool				bWF_only;
 extern int				altMacros;
+
+extern bool				ui_debug;
 
 extern waterfall		*wf;
 extern Digiscope		*digiscope;
@@ -369,7 +383,9 @@ extern void activate_thor_image_item(bool b);
 extern void WF_UI();
 
 extern void set_macroLabels();
-extern void UI_select();
+
+extern void UI_select(std::string parent = "");
+extern void UI_STATS(std::string parent = "");
 
 extern void cb_mnuVisitURL(Fl_Widget*, void* arg);
 
@@ -390,6 +406,7 @@ extern void set_scope_xaxis_2(double y2);
 extern void set_scope_yaxis_1(double x1);
 extern void set_scope_yaxis_2(double x2);
 extern void set_scope_clear_axis();
+extern void set_scope_colors();
 
 extern void set_CWwpm();
 extern void put_rx_char(unsigned int data, int style = FTextBase::RECV);
@@ -412,7 +429,7 @@ extern void put_Status1(const char *msg, double timeout = 0.0, status_timeout ac
 extern void put_Status2(const char *msg, double timeout = 0.0, status_timeout action = STATUS_CLEAR);
 extern void show_clock(bool);
 
-extern void show_frequency(long long);
+extern void show_frequency(unsigned long long);
 
 extern void show_mode(const std::string sMode);
 extern void show_bw(const std::string sWidth);
@@ -441,6 +458,32 @@ extern void spot_selection_color();
 extern void set_default_btn_color();
 
 extern void put_WARNstatus(double);
+
+extern Fl_Group *wfgp1;
+extern Fl_Group *wfgp2;
+extern Fl_Group *wfgp3;
+extern Fl_Group *wfgp4;
+extern Fl_Group *wfgp5;
+extern Fl_Group *wfgp6;
+extern Fl_Group *wfgp7;
+extern Fl_Group *wfgp8;
+extern Fl_Group *wfgp9;
+extern Fl_Group *wfgp10;
+extern Fl_Group *wfgp11;
+extern Fl_Group *wfgp12;
+
+extern Fl_Box *wfbx1;
+extern Fl_Box *wfbx2;
+extern Fl_Box *wfbx3;
+extern Fl_Box *wfbx4;
+extern Fl_Box *wfbx5;
+extern Fl_Box *wfbx6;
+extern Fl_Box *wfbx7;
+extern Fl_Box *wfbx8;
+extern Fl_Box *wfbx9;
+extern Fl_Box *wfbx10;
+extern Fl_Box *wfbx11;
+extern Fl_Box *wfbx12;
 
 extern void qsoSave_cb(Fl_Widget *b, void *);
 
@@ -561,6 +604,7 @@ extern const char* ltime(void);
 extern const double zusec(void);
 extern const timeval tmval(void);
 extern const unsigned long zmsec(void);
+extern const unsigned long secs(void);
 extern void  start_macro_time();
 extern int   stop_macro_time();
 
@@ -568,10 +612,10 @@ extern void setTabColors();
 
 extern void toggle_visible_modes(Fl_Widget*, void*);
 
-extern void qsy(long long rfc, int fmid = -1);
+extern void qsy(unsigned long long rfc, int fmid = -1);
 
 extern void note_qrg(bool no_dup = true, const char* prefix = " ", const char* suffix = " ",
-	      trx_mode mode = NUM_MODES, long long rfc = 0LL, int afreq = 0);
+	      trx_mode mode = NUM_MODES, unsigned long long rfc = 0ULL, int afreq = 0);
 
 extern void set_olivia_bw(int bw);
 extern void set_olivia_tones(int tones);
@@ -768,6 +812,19 @@ extern Fl_Input2	*inpSQSO_category;
 extern Fl_Input2	*inpSQSO_category1;
 extern Fl_Input2	*inpSQSO_category2;
 
+// cwsettings
+extern Fl_Check_Button		*btncwsrcvTrack;
+extern Fl_Counter2			*cntcwsrange;
+extern Fl_Check_Button		*btncwsuseSOMdecoding;
+extern Fl_Check_Button		*btncwsmfilt;
+extern Fl_Counter2			*cntcwsbandwidth;
+
+extern void cb_btncwsrcvTrack(Fl_Check_Button*, void*);
+extern void cb_cntcwsrange(Fl_Counter2*, void*);
+extern void cb_btncwsuseSOMdecoding(Fl_Check_Button*, void*);
+extern void cb_btncwsmfilt(Fl_Check_Button*, void*);
+extern void cb_cntcwsbandwidth(Fl_Counter2*, void*);
+
 extern Fl_Double_Window *nano_calibration_dialog();;
 
 // TOD clock
@@ -783,5 +840,7 @@ extern void  disable_deadman();
 extern void FHdisp_char_height();
 
 extern bool clean_exit(bool);
+
+extern void redraw_windows();
 
 #endif
