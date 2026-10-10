@@ -34,47 +34,16 @@ const char* szAbout =
 <BODY BGCOLOR=FFFFCO TEXT=101010>\n\
 <font size=\"0\" face=\"Verdana, Arial, Helvetica\">\n\
 <CENTER>\n\
-<H3><I>Fldigi " PACKAGE_VERSION "</I></H3>\n\
+<H3><I>TCIdigi " PACKAGE_VERSION "</I></H3>\n\
 <br>\n\
-Fast and Light DIGItal modem program\n\
+Based on fldigi, a Qt6 TCI client digital app for Mac and Linux\n\
 </CENTER>\n\
 <P>\n\
-Copyright \251 2008-2025\n\
+Copyright \251 2026\n\
 <P>\n\
 Distributed under the GNU General Public License version 3 or later.<br>\n\
 This is free software: you are free to change and redistribute it.<br>\n\
 There is NO WARRANTY, to the extent permitted by law.\n\
-<H4>Programmers:</H4>\n\
-<pre>\
-Dave Freese        W1HKJ\n\
-Mike Black         W9MDB\n\
-Stelios Bounanos   M0GLD\n\
-Rem\355 Chateauneu    F4ECW\n\
-John Douyere       VK2ETA\n\
-Stefan Fendt       DL1SMF\n\
-Leigh Klotz        WA5ZNU\n\
-John Phelps        KL4YFD\n\
-Andrej Lajovic     S57LN\n\
-Rik van Riel       AB1KW\n\
-Robert Stiles      KK5VD\n\
-</pre>\
-<H4>Beginners' Guide:</H4>\n\
-<pre>\
-Murray Greenman      ZL1BPU<br>\n\
-</pre>\
-<H4>Localization:</H4>\n\
-<pre>\
-Espa\361ol     Spanish      Pavel Milanes Costa CO7WT\n\
-                         Christian W. Correa HK4QWC\n\
-Deutsch     German       Marc Richter        DF2MR\n\
-Catalan     Catalan      Xavi Pérez          EA3W\n\
-Nederlands  Dutch        Peter van der Post  PA1POS\n\
-Fran\347ais    French       Bernard Seront      F4GAR\n\
-Ελληνικά    Greek        Haris Andrianos     SV1GRB\n\
-Italiano    Italian      Emanuale Repetto    IZ1UKX\n\
-Język       Polish       Roman Bagiński      SP4JEU\n\
-Pусский     Russian      Alexandr Kalugin    RX9CDR\n\
-</pre>\
 </body>\n\
 </html>\n\
 ";
