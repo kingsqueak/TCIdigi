@@ -1560,7 +1560,9 @@ void applyQrzAccount(QrzClient* client)
 	client->setAccount(account.user, account.password, account.logKey);
 }
 
-void editTci(QWidget* parent)
+// welcome is the first-run prompt: Enable starts ticked and a line says why
+// the dialog opened.
+void editTci(QWidget* parent, bool welcome = false)
 {
 	if (!engine_up()) {
 		QMessageBox::information(parent, QStringLiteral("TCI"),
@@ -1580,11 +1582,19 @@ void editTci(QWidget* parent)
 		"Turn it on for the dial, mode, and filter. "
 		"Audio over TCI is used instead of the sound card."));
 	about->setWordWrap(true);
+	if (welcome) {
+		auto* first = new QLabel(QStringLiteral(
+			"<b>TCIdigi needs a TCI connection to your radio.</b> "
+			"Check the host and port your radio's TCI server uses, then Save. "
+			"This is also under Configure, TCI."));
+		first->setWordWrap(true);
+		form->addRow(first);
+	}
 	form->addRow(about);
 
 	auto* enable = new QCheckBox(QStringLiteral("Enable TCI"));
 	enable->setObjectName(QStringLiteral("tciEnable"));
-	enable->setChecked(current.enable != 0);
+	enable->setChecked(welcome || current.enable != 0);
 	auto* audio = new QCheckBox(QStringLiteral("Use TCI for receive and transmit audio"));
 	audio->setObjectName(QStringLiteral("tciAudio"));
 	audio->setChecked(current.audio != 0);
@@ -3422,7 +3432,7 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	levelCol->setSpacing(4);
 
 	m_rxLevel = new QDoubleSpinBox;
-	m_rxLevel->setRange(-30.0, 0.0);
+	m_rxLevel->setRange(-50.0, 0.0);
 	m_rxLevel->setSingleStep(1.0);
 	m_rxLevel->setDecimals(1);
 	m_rxLevel->setPrefix(QStringLiteral("Rx "));
@@ -3826,7 +3836,8 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	}
 
 	// No saved operator fields means this configuration has never had them.
-	// Ask after the window is shown. Close without Save asks again next time.
+	// TCI off means the radio is not set up yet. Ask after the window is
+	// shown, station first. Close without Save asks again next time.
 	{
 		QSettings settings;
 		const bool haveOperator =
@@ -3836,9 +3847,15 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 			|| settings.contains(QStringLiteral("station/operCall"))
 			|| settings.contains(QStringLiteral("qrz/myGrid"))
 			|| settings.contains(QStringLiteral("qrz/antenna"));
-		if (!haveOperator) {
-			QTimer::singleShot(0, this, [this] {
-				editStation(this);
+		EngineTci tci;
+		engine_tci(&tci);
+		const bool needTci = engine_up() && !tci.enable;
+		if (!haveOperator || needTci) {
+			QTimer::singleShot(0, this, [this, haveOperator, needTci] {
+				if (!haveOperator)
+					editStation(this);
+				if (needTci)
+					editTci(this, true);
 			});
 		}
 	}

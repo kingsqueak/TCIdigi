@@ -85,7 +85,7 @@ endif()
 set(TCIDIGI_VERSION "${CMAKE_MATCH_1}")
 
 set_target_properties(fldigi-qt PROPERTIES
-  # TCIdigi-0.23.app. The menu bar and Dock still say TCIdigi.
+  # TCIdigi-0.24.app. The menu bar and Dock still say TCIdigi.
   OUTPUT_NAME "TCIdigi-${TCIDIGI_VERSION}"
   MACOSX_BUNDLE_GUI_IDENTIFIER org.tcidigi.tcidigi
   MACOSX_BUNDLE_BUNDLE_NAME "TCIdigi"

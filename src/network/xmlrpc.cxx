@@ -1116,8 +1116,8 @@ public:
 	{
 		LOG_INFO("[%s] main.get_status1: %s",
 			XmlRpc::client_id.c_str(),
-			Status1->label());
-		*retval = xmlrpc_c::value_string(Status1->label());
+			status_line(STATUS_LINE_1).c_str());
+		*retval = xmlrpc_c::value_string(status_line(STATUS_LINE_1));
 	}
 };
 
@@ -1133,8 +1133,8 @@ public:
 	{
 		LOG_INFO("[%s] main.get_status2: %s",
 			XmlRpc::client_id.c_str(),
-			Status2->label());
-		*retval = xmlrpc_c::value_string(Status2->label());
+			status_line(STATUS_LINE_2).c_str());
+		*retval = xmlrpc_c::value_string(status_line(STATUS_LINE_2));
 	}
 };
 

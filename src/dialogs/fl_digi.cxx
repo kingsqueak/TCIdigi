@@ -42,6 +42,7 @@
 #include <cctype>
 #include <cstdio>
 #include <string>
+#include <chrono>
 #include <fstream>
 #include <algorithm>
 #include <map>
@@ -8288,7 +8289,7 @@ static void cb_cntTxLevel(Fl_Counter2* o, void*) {
 static void cb_cntRxLevel(Fl_Counter2* o, void*) {
 	double v = o->value();
 	if (v > 0.0) v = 0.0;
-	if (v < -30.0) v = -30.0;
+	if (v < -50.0) v = -50.0;
 	progdefaults.tci_rx_level = v;
 	progdefaults.saveDefaults();
 }
@@ -8309,11 +8310,11 @@ static void add_tci_rx_level()
 		return;
 	double v = progdefaults.tci_rx_level;
 	if (v > 0.0) v = 0.0;
-	if (v < -30.0) v = -30.0;
+	if (v < -50.0) v = -50.0;
 	progdefaults.tci_rx_level = v;
 	cntRxLevel = new Fl_Counter2(
 		cntTxLevel->x(), cntTxLevel->y(), cntTxLevel->w(), cntTxLevel->h(), "");
-	cntRxLevel->minimum(-30);
+	cntRxLevel->minimum(-50);
 	cntRxLevel->maximum(0);
 	cntRxLevel->precision(1);
 	cntRxLevel->step(1.0);
@@ -9645,8 +9646,54 @@ void put_status_msg(void *d)
 	}
 }
 
+namespace {
+
+struct StatusText {
+	std::string text;
+	double expires; // seconds on the steady clock, 0 for no timeout
+	status_timeout action;
+	StatusText() : expires(0.0), action(STATUS_CLEAR) {}
+};
+
+StatusText status_lines[3];
+pthread_mutex_t status_lines_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+double steady_seconds()
+{
+	using namespace std::chrono;
+	return duration<double>(steady_clock::now().time_since_epoch()).count();
+}
+
+} // namespace
+
+void set_status_line(status_line_id which, const char *msg, double timeout, status_timeout action)
+{
+	if (which < STATUS_LINE_BAR || which > STATUS_LINE_2)
+		return;
+	guard_lock lock(&status_lines_mutex);
+	StatusText& line = status_lines[which];
+	line.text = msg ? msg : "";
+	line.expires = timeout > 0.0 ? steady_seconds() + timeout : 0.0;
+	line.action = action;
+}
+
+std::string status_line(status_line_id which)
+{
+	if (which < STATUS_LINE_BAR || which > STATUS_LINE_2)
+		return std::string();
+	guard_lock lock(&status_lines_mutex);
+	StatusText& line = status_lines[which];
+	if (line.expires > 0.0 && steady_seconds() >= line.expires) {
+		line.expires = 0.0;
+		if (line.action == STATUS_CLEAR)
+			line.text.clear();
+	}
+	return line.text;
+}
+
 void put_status(const char *msg, double timeout, status_timeout action)
 {
+	set_status_line(STATUS_LINE_BAR, msg, timeout, action);
 	static PSM_STRUCT ps;
 	ps.msg.clear();
 	ps.msg.assign(msg);
@@ -9666,6 +9713,7 @@ void put_Status2(const char *msg, double timeout, status_timeout action)
 	ps.w = Status2;
 
 	info2msg = msg;
+	set_status_line(STATUS_LINE_2, msg, timeout, action);
 
 	Fl::awake(put_status_msg, (void *)&ps);
 }
@@ -9684,6 +9732,7 @@ void put_Status1(const char *msg, double timeout, status_timeout action)
 	if (!active_modem) return;
 	if (progStatus.NO_RIGLOG && active_modem->get_mode() != MODE_FSQ) return;
 
+	set_status_line(STATUS_LINE_1, msg, timeout, action);
 	Fl::awake(put_status_msg, (void *)&ps);
 
 }
@@ -9718,6 +9767,9 @@ void clear_StatusMessages()
 	Status2->label("");
 	info1msg = "";
 	info2msg = "";
+	set_status_line(STATUS_LINE_BAR, "");
+	set_status_line(STATUS_LINE_1, "");
+	set_status_line(STATUS_LINE_2, "");
 }
 
 void put_MODEstatus(const char* fmt, ...)

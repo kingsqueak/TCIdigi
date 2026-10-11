@@ -40,6 +40,7 @@ public:
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <chrono>
 #include <cstring>
 #include <fstream>
 #include <sstream>
@@ -405,10 +406,8 @@ void engine_view(EngineView* out)
 	out->hz_low = slice.hz_low;
 	out->hz_high = slice.hz_high;
 
-	const char* report = (Status2 && Status2->label()) ? Status2->label() : "";
-	if (std::strcmp(report, "STATUS2") == 0)
-		report = "";
-	copy_str(out->signal_report, (int)sizeof out->signal_report, report);
+	copy_str(out->signal_report, (int)sizeof out->signal_report,
+		status_line(STATUS_LINE_2).c_str());
 
 	const char* state = "Receiving";
 	if (out->tuning)
@@ -420,10 +419,21 @@ void engine_view(EngineView* out)
 	std::snprintf(out->modem_status, sizeof out->modem_status, "%s  %s",
 		out->modem[0] ? out->modem : "Modem", state);
 
-	const char* status = (Status1 && Status1->label()) ? Status1->label() : "";
-	if (!status[0] || std::strcmp(status, "STATUS1") == 0)
-		status = state;
-	copy_str(out->status, (int)sizeof out->status, status);
+	// A status-bar message ("Squelch: 42") shows over Status1 for up to
+	// kBarSeconds, less when its own timeout clears it sooner.
+	static const double kBarSeconds = 6.0;
+	static std::string bar_seen;
+	static std::chrono::steady_clock::time_point bar_since;
+	const std::string bar = status_line(STATUS_LINE_BAR);
+	const auto now = std::chrono::steady_clock::now();
+	if (bar != bar_seen) {
+		bar_seen = bar;
+		bar_since = now;
+	}
+	const bool bar_live = !bar.empty()
+		&& std::chrono::duration<double>(now - bar_since).count() < kBarSeconds;
+	const std::string line = bar_live ? bar : status_line(STATUS_LINE_1);
+	copy_str(out->status, (int)sizeof out->status, line.empty() ? state : line.c_str());
 }
 
 int engine_rx_delta(char* buf, int cap)
@@ -677,23 +687,10 @@ int engine_set_spot(int on)
 	return 1;
 }
 
-static void clear_qt_status(void*)
-{
-	if (Status1)
-		Status1->label("");
-}
-
-// put_status writes the hidden FLTK status bar. The Qt window shows Status1.
+// The Qt status line shows status-bar messages over Status1.
 static void show_qt_status(const char* msg, double seconds)
 {
 	put_status(msg, seconds);
-	if (!Status1)
-		return;
-	// label() keeps the pointer. The TxID line is a stack buffer, so copy it.
-	Status1->copy_label(msg);
-	Fl::remove_timeout(clear_qt_status);
-	if (seconds > 0.0)
-		Fl::add_timeout(seconds, clear_qt_status);
 }
 
 void engine_set_rxid(int on)

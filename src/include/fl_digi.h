@@ -451,6 +451,14 @@ extern void put_MODEstatus(const char* fmt, ...) format__(printf, 1, 2);
 extern void put_MODEstatus(trx_mode mode);
 extern void put_Status1(const char *msg, double timeout = 0.0, status_timeout action = STATUS_CLEAR);
 extern void put_Status2(const char *msg, double timeout = 0.0, status_timeout action = STATUS_CLEAR);
+
+// The status bar, Status1, and Status2 as text, set at the same points as
+// the FLTK boxes. A timeout is applied when the text is read: STATUS_CLEAR
+// empties the line, STATUS_DIM keeps it.
+enum status_line_id { STATUS_LINE_BAR, STATUS_LINE_1, STATUS_LINE_2 };
+extern std::string status_line(status_line_id which);
+extern void set_status_line(status_line_id which, const char *msg,
+	double timeout = 0.0, status_timeout action = STATUS_CLEAR);
 extern void show_clock(bool);
 
 extern void show_frequency(unsigned long long);
