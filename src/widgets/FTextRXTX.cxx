@@ -48,6 +48,7 @@
 
 #include "cw.h"
 #include "tcidigi_tx.h"
+#include "tcidigi_rx.h"
 
 #include <pthread.h>
 
@@ -332,6 +333,8 @@ out:
 
 void FTextRX::add(unsigned int c, int attr)
 {
+	if (this == ReceiveText)
+		tcidigi_rx_add(c, attr);
 	if (c == '\r')
 		return;
 
@@ -453,6 +456,8 @@ void FTextRX::mark(FTextBase::TEXT_ATTR attr)
 
 void FTextRX::clear(void)
 {
+	if (this == ReceiveText)
+		tcidigi_rx_clear();
 	FTextBase::clear();
 	s_text.clear();
 	s_style.clear();
@@ -463,6 +468,8 @@ void FTextRX::query_clear(void)
 {
 	if ( fl_choice2(_("Confirm Clear Text"), NULL, _("Yes"), _("No")) == 2)
 		return;
+	if (this == ReceiveText)
+		tcidigi_rx_clear();
 	FTextBase::clear();
 	s_text.clear();
 	s_style.clear();
@@ -2206,6 +2213,145 @@ bool tcidigi_tx_eot()
 {
 	TxLock guard(&g_tx.lock);
 	return g_tx.sent >= g_tx.text.size() && g_tx.backs == 0;
+}
+
+// The Qt shell's receive stream. FTextRX::add and clear feed it for the
+// receive pane only, before the hidden widget wraps lines to its own width
+// or trims its scrollback.
+namespace {
+
+const size_t kRxKeep = 4u << 20;
+
+struct RxStream {
+	bool on;
+	bool cleared;
+	std::string text;
+	std::string pending;
+	pthread_mutex_t lock;
+
+	RxStream() : on(false), cleared(false)
+	{
+		pthread_mutex_init(&lock, 0);
+	}
+};
+
+RxStream g_rx;
+
+// Start of the last UTF-8 character, or npos when s is empty.
+size_t last_char_start(const std::string& s)
+{
+	if (s.empty())
+		return std::string::npos;
+	size_t n = s.size() - 1;
+	while (n > 0 && (static_cast<unsigned char>(s[n]) & 0xC0) == 0x80)
+		--n;
+	return n;
+}
+
+void rx_erase_locked()
+{
+	size_t n = last_char_start(g_rx.text);
+	if (n == std::string::npos)
+		return;
+	g_rx.text.erase(n);
+	// Erase pending text in place. A character the window already took
+	// needs a '\b' it can apply.
+	n = last_char_start(g_rx.pending);
+	if (n != std::string::npos && g_rx.pending[n] != '\b')
+		g_rx.pending.erase(n);
+	else
+		g_rx.pending += '\b';
+}
+
+} // namespace
+
+void tcidigi_rx_use(bool on)
+{
+	TxLock guard(&g_rx.lock);
+	g_rx.on = on;
+	g_rx.text.clear();
+	g_rx.pending.clear();
+	g_rx.cleared = false;
+}
+
+bool tcidigi_rx_active()
+{
+	TxLock guard(&g_rx.lock);
+	return g_rx.on;
+}
+
+void tcidigi_rx_add(unsigned int c, int attr)
+{
+	TxLock guard(&g_rx.lock);
+	if (!g_rx.on || c == '\r')
+		return;
+	if (c == '\b') {
+		rx_erase_locked();
+		return;
+	}
+	// Same as the widget: control characters show by name unless they are
+	// marked CTRL. A newline is kept.
+	std::string add;
+	if (c != '\n' && (c < ' ' || c == 127) && attr != FTextBase::CTRL)
+		add = ascii[(unsigned char)c];
+	else
+		add = char(c);
+	g_rx.text += add;
+	g_rx.pending += add;
+	// Past the limit, keep the newest three quarters from a line start.
+	if (g_rx.text.size() > kRxKeep) {
+		size_t cut = g_rx.text.find('\n', g_rx.text.size() - kRxKeep * 3 / 4);
+		if (cut != std::string::npos)
+			++cut;
+		else {
+			cut = g_rx.text.size() - kRxKeep * 3 / 4;
+			while (cut < g_rx.text.size()
+				&& (static_cast<unsigned char>(g_rx.text[cut]) & 0xC0) == 0x80)
+				++cut;
+		}
+		g_rx.text.erase(0, cut);
+	}
+}
+
+void tcidigi_rx_clear()
+{
+	TxLock guard(&g_rx.lock);
+	if (!g_rx.on)
+		return;
+	g_rx.text.clear();
+	g_rx.pending.clear();
+	g_rx.cleared = true;
+}
+
+int tcidigi_rx_take(char* buf, int cap)
+{
+	if (!buf || cap < 2)
+		return 0;
+	TxLock guard(&g_rx.lock);
+	buf[0] = 0;
+	if (g_rx.cleared) {
+		g_rx.cleared = false;
+		return -1;
+	}
+	size_t n = g_rx.pending.size();
+	if (n == 0)
+		return 0;
+	if (n > (size_t)cap - 1) {
+		// Do not split a UTF-8 character between two takes.
+		n = (size_t)cap - 1;
+		while (n > 0 && (static_cast<unsigned char>(g_rx.pending[n]) & 0xC0) == 0x80)
+			--n;
+	}
+	std::memcpy(buf, g_rx.pending.data(), n);
+	buf[n] = 0;
+	g_rx.pending.erase(0, n);
+	return (int)n;
+}
+
+std::string tcidigi_rx_text()
+{
+	TxLock guard(&g_rx.lock);
+	return g_rx.text;
 }
 
 /// Clears the buffer.

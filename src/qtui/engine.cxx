@@ -25,6 +25,7 @@
 #include "qrunner.h"
 #include "pskrep.h"
 #include "tcidigi_tx.h"
+#include "tcidigi_rx.h"
 #include "main.h"
 
 #include <FL/Fl.H>
@@ -48,7 +49,6 @@ public:
 namespace {
 
 int g_up = 0;
-int g_rx_pos = 0;
 int g_mode_ids[NUM_MODES];
 int g_mode_n = -1;
 
@@ -287,13 +287,19 @@ void engine_qrz_account(char* user, int user_cap, char* password, int pass_cap,
 
 int engine_start(int argc, char** argv)
 {
-	g_rx_pos = 0;
 	g_mode_n = -1;
 	int rc = fldigi_start(argc, argv, 1);
 	g_up = (rc == 0) ? 1 : 0;
 	if (g_up) {
 		// The modem reads this queue. The hidden FLTK buffer is not a second copy.
 		tcidigi_tx_use(true);
+		// Received text as it arrives, before the hidden pane wraps or trims it.
+		tcidigi_rx_use(true);
+		// The waterfall samples at 8 kHz, so 4 kHz is the whole spectrum.
+		// 1000 pixels at x1 is 4 Hz each; x2 and x4 show 2 and 1 kHz.
+		progdefaults.HighFreqCutoff = WF_SAMPLERATE / 2;
+		if (wf)
+			wf->setFixedWidth(WF_SAMPLERATE / 2 / 4);
 		psk_browser_keep_text(true);
 		// Saved configs clear a channel after 15 seconds. Keep the QSO for 5 minutes.
 		if (progdefaults.VIEWERtimeout != 300) {
@@ -422,62 +428,26 @@ void engine_view(EngineView* out)
 
 int engine_rx_delta(char* buf, int cap)
 {
-	if (!buf || cap < 2 || !ReceiveText || !ReceiveText->buffer())
+	if (!g_up)
 		return 0;
-	int len = ReceiveText->buffer()->length();
-	if (len < g_rx_pos) {
-		g_rx_pos = 0;
-		buf[0] = 0;
-		return -1;
-	}
-	if (len == g_rx_pos) {
-		buf[0] = 0;
-		return 0;
-	}
-	int n = std::min(cap - 1, len - g_rx_pos);
-	char* text = ReceiveText->buffer()->text_range(g_rx_pos, g_rx_pos + n);
-	if (!text) {
-		buf[0] = 0;
-		return 0;
-	}
-	std::memcpy(buf, text, (size_t)n);
-	buf[n] = 0;
-	std::free(text);
-	g_rx_pos += n;
-	return n;
+	return tcidigi_rx_take(buf, cap);
 }
 
 void engine_clear_rx()
 {
-	g_rx_pos = 0;
-	if (ReceiveText)
-		ReceiveText->clear();
+	tcidigi_rx_clear();
 }
 
 void engine_clear_tx()
 {
-	if (tcidigi_tx_active())
-		tcidigi_tx_clear();
-	else if (TransmitText)
-		TransmitText->clear();
+	tcidigi_tx_clear();
 }
 
 int engine_tx_text(char* buf, int cap)
 {
 	if (!buf || cap < 1)
 		return 0;
-	buf[0] = 0;
-	if (tcidigi_tx_active()) {
-		copy_str(buf, cap, tcidigi_tx_get().c_str());
-		return (int)std::strlen(buf);
-	}
-	if (!TransmitText || !TransmitText->buffer())
-		return 0;
-	char* text = TransmitText->buffer()->text();
-	if (!text)
-		return 0;
-	copy_str(buf, cap, text);
-	std::free(text);
+	copy_str(buf, cap, tcidigi_tx_get().c_str());
 	return (int)std::strlen(buf);
 }
 
@@ -492,47 +462,20 @@ void engine_set_tx_text(const char* text)
 		return;
 	if (trx_state == STATE_TUNE)
 		return;
-	if (tcidigi_tx_active()) {
-		const std::string have = tcidigi_tx_get();
-		if (have == text)
-			return;
-		const std::string want(text);
-		// The modem reads this buffer from the front. Replacing it while
-		// transmitting would send the message again, so only append.
-		if (trx_state == STATE_TX) {
-			// Backspace of a character already handed to the modem is sent.
-			// An edit inside that sent text is left alone.
-			if (!tcidigi_tx_edit(want) && has_rx_mark(want) && !has_rx_mark(have))
-				tcidigi_tx_add("^r");
-			return;
-		}
-		tcidigi_tx_replace(want);
-		return;
-	}
-	if (!TransmitText || !TransmitText->buffer())
-		return;
-	char* cur = TransmitText->buffer()->text();
-	const bool same = cur && std::strcmp(cur, text) == 0;
-	std::string have = cur ? cur : "";
-	if (cur)
-		std::free(cur);
-	if (same)
+	const std::string have = tcidigi_tx_get();
+	if (have == text)
 		return;
 	const std::string want(text);
 	// The modem reads this buffer from the front. Replacing it while
 	// transmitting would send the message again, so only append.
 	if (trx_state == STATE_TX) {
-		if (want.size() >= have.size() && want.compare(0, have.size(), have) == 0) {
-			if (want.size() > have.size())
-				TransmitText->add_text(want.substr(have.size()));
-			return;
-		}
-		if (has_rx_mark(want) && !has_rx_mark(have))
-			TransmitText->add_text("^r");
+		// Backspace of a character already handed to the modem is sent.
+		// An edit inside that sent text is left alone.
+		if (!tcidigi_tx_edit(want) && has_rx_mark(want) && !has_rx_mark(have))
+			tcidigi_tx_add("^r");
 		return;
 	}
-	TransmitText->clear();
-	TransmitText->add_text(want);
+	tcidigi_tx_replace(want);
 }
 
 int engine_modem_count()
@@ -892,8 +835,7 @@ void engine_transmit(int on)
 	} else if (trx_state == STATE_TX) {
 		queue_reset();
 		active_modem->set_stopflag(true);
-		if (TransmitText)
-			TransmitText->clear();
+		tcidigi_tx_clear();
 		// stopflag only ends a transmit that is pulling characters.
 		// Drop the state here so a second click always returns to receive.
 		trx_receive();
@@ -911,8 +853,7 @@ void engine_abort()
 		return;
 	queue_reset();
 	active_modem->set_stopflag(true);
-	if (TransmitText)
-		TransmitText->clear();
+	tcidigi_tx_clear();
 	show_tune(false);
 	show_tr(false);
 	// Restarts the modem in receive and leaves the transmit loop at once.

@@ -151,6 +151,7 @@ static pthread_mutex_t waterfall_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 WFdisp::WFdisp (int x0, int y0, int w0, int h0, char *lbl) :
 			  Fl_Widget(x0,y0,w0,h0,"") {
+	fixed_width = 0;
 	disp_width = w();
 	if (disp_width > progdefaults.HighFreqCutoff/4)
 		disp_width = progdefaults.HighFreqCutoff/4;
@@ -215,14 +216,17 @@ WFdisp::WFdisp (int x0, int y0, int w0, int h0, char *lbl) :
 
 	int error = 0;
 
-// use fastest sync converter
+// The configured converter, as RsID uses. Only modems that do not run at
+// WF_SAMPLERATE go through it; sig_data copies 8 kHz audio straight in.
+// SRC_SINC_FASTEST passes about 80% of Nyquist, which darkened the top
+// 800 Hz of a 4 kHz waterfall.
 //	SRC_SINC_BEST_QUALITY		= 0,
 //	SRC_SINC_MEDIUM_QUALITY		= 1,
 //	SRC_SINC_FASTEST			= 2,
 //	SRC_ZERO_ORDER_HOLD			= 3,
 //	SRC_LINEAR					= 4,
 
-	src_state = src_new(2, 1, &error);
+	src_state = src_new(progdefaults.sample_converter, 1, &error);
 	if (error) {
 		LOG_ERROR("src_new error %d: %s", error, src_strerror(error));
 		abort();
@@ -722,6 +726,22 @@ void WFdisp::sig_data( double *sig, int len )
 		src_set_ratio(src_state, src_data.src_ratio);
 		LOG_INFO("Waterfall sample rate ratio %f", src_ratio);
 	}
+	// Already at the waterfall rate: no conversion, and no filter edge.
+	if (src_ratio == 1.0) {
+		for (int n = 0; n < len; n++) {
+			outsamples[genptr++] = sig[n];
+			if (genptr < WF_BLOCKSIZE)
+				continue;
+			for (int k = 0; k < WF_BLOCKSIZE; k++) audio_block.sig[k] = outsamples[k];
+			{
+				guard_lock data_lock (&data_mutex);
+				audio_blocks.push(audio_block);
+			}
+			genptr = 0;
+		}
+		return;
+	}
+
 	for (int n = 0; n < len; n++) insamples[n] = sig[n];
 
 	while (srclen > 0) {
@@ -911,9 +931,19 @@ int WFdisp::carrier() {
 	return carrierfreq;
 }
 
+void WFdisp::setFixedWidth(int px)
+{
+	if (px > IMAGE_WIDTH)
+		px = IMAGE_WIDTH;
+	fixed_width = px > 0 ? px : 0;
+	checkWidth();
+	checkoffset();
+	makeScale();
+}
+
 void WFdisp::checkWidth()
 {
-	disp_width = w();
+	disp_width = fixed_width > 0 ? fixed_width : w();
 	if (mag == MAG_1) step = 4;
 	if (mag == MAG_1 && disp_width > progdefaults.HighFreqCutoff/4)
 		disp_width = progdefaults.HighFreqCutoff/4;

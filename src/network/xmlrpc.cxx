@@ -80,6 +80,7 @@ struct XmlRpcImpl;
 #include "confdialog.h"
 #include "arq_io.h"
 #include "status.h"
+#include "tcidigi_rx.h"
 
 LOG_FILE_SOURCE(debug::LOG_RPC_SERVER);
 
@@ -3510,10 +3511,13 @@ public:
 	}
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
+		// The Qt shell keeps received text unwrapped; the widget wraps it.
+		int len = tcidigi_rx_active() ? (int)tcidigi_rx_text().size()
+			: ReceiveText->buffer()->length();
 		LOG_INFO("[%s] Text.get_rx_length: %d",
 			XmlRpc::client_id.c_str(),
-			(int)(ReceiveText->buffer()->length()));
-		*retval = xmlrpc_c::value_int(ReceiveText->buffer()->length());
+			len);
+		*retval = xmlrpc_c::value_int(len);
 	}
 };
 
@@ -3531,6 +3535,20 @@ public:
 		// the get* methods may throw but this function is not allowed to do so
 		try {
 			params->verifyEnd(2);
+
+			if (tcidigi_rx_active()) {
+				const std::string all = tcidigi_rx_text();
+				int len = (int)all.size();
+				int start = params->getInt(0, 0, len - 1);
+				int n = params->getInt(1, -1, len - start);
+				if (n == -1 || n > len - start)
+					n = len - start;
+				*text = static_cast<char*>(malloc((size_t)n + 1));
+				memcpy(*text, all.data() + start, (size_t)n);
+				(*text)[n] = 0;
+				*size = n;
+				return;
+			}
 
 			Fl_Text_Buffer_mod* tbuf = ReceiveText->buffer();
 			int len = tbuf->length();

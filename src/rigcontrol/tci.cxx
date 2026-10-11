@@ -1033,7 +1033,7 @@ static void tci_show_rig_menus()
 }
 
 static const char* tci_filter_presets[] = {
-	"0-5000",
+	"0-4000",
 	"80-3000",
 	"80-2000",
 	"950-2050",

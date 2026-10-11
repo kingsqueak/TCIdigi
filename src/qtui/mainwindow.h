@@ -63,6 +63,8 @@ private:
 	QLabel* m_status = nullptr;
 	QPlainTextEdit* m_rx = nullptr;
 	QString m_rxHeld;
+	// Received backspaces for text already in the pane, applied on release.
+	int m_rxErase = 0;
 	QPlainTextEdit* m_tx = nullptr;
 	QString m_txSeen;
 	QTimer* m_statusTimer = nullptr;

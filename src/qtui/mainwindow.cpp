@@ -2868,11 +2868,11 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	auto* rigFilter = new QComboBox;
 	rigFilter->setObjectName(QStringLiteral("rigFilter"));
 	rigFilter->addItems({
-		QStringLiteral("0-5000"), QStringLiteral("80-3000"), QStringLiteral("80-2000"),
+		QStringLiteral("0-4000"), QStringLiteral("80-3000"), QStringLiteral("80-2000"),
 		QStringLiteral("950-2050"), QStringLiteral("1200-1800"), QStringLiteral("1325-1675"),
 		QStringLiteral("1450-1550"), QStringLiteral("1460-1540")
 	});
-	rigFilter->setCurrentText(QStringLiteral("0-5000"));
+	rigFilter->setCurrentText(QStringLiteral("0-4000"));
 	rigFilter->setToolTip(QStringLiteral("Filter width (Hz)."));
 	connect(rigMode, &QComboBox::currentTextChanged, this, [this](const QString& name) {
 		if (m_applying)
@@ -3007,6 +3007,7 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 		if (engine_up())
 			engine_clear_rx();
 		m_rxHeld.clear();
+		m_rxErase = 0;
 		m_rx->clear();
 	});
 	connect(m_rx->verticalScrollBar(), &QScrollBar::valueChanged, this, [this] {
@@ -3752,6 +3753,7 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 			const int got = engine_rx_delta(chunk, (int)sizeof chunk);
 			if (got < 0) {
 				m_rxHeld.clear();
+				m_rxErase = 0;
 				m_rx->clear();
 			} else if (got > 0) {
 				addRxText(QString::fromUtf8(chunk, got));
@@ -3935,19 +3937,35 @@ void MainWindow::addRxText(const QString& text)
 {
 	if (!m_rx || text.isEmpty())
 		return;
-	m_rxHeld += text;
+	// A backspace erases the newest character: held text first, then text
+	// already in the pane once it is released.
+	for (const QChar ch : text) {
+		if (ch != QLatin1Char('\b')) {
+			m_rxHeld += ch;
+			continue;
+		}
+		if (m_rxHeld.isEmpty()) {
+			++m_rxErase;
+			continue;
+		}
+		m_rxHeld.chop(1);
+		if (!m_rxHeld.isEmpty() && m_rxHeld.back().isHighSurrogate())
+			m_rxHeld.chop(1);
+	}
 	releaseRxText();
 }
 
 void MainWindow::releaseRxText()
 {
-	if (!m_rx || m_rxHeld.isEmpty() || !atBottom(m_rx))
+	if (!m_rx || (m_rxHeld.isEmpty() && !m_rxErase) || !atBottom(m_rx))
 		return;
 	const QString text = m_rxHeld;
 	m_rxHeld.clear();
 	// A cursor of its own: the view's cursor and any selection stay put.
 	QTextCursor end(m_rx->document());
 	end.movePosition(QTextCursor::End);
+	for (; m_rxErase > 0; --m_rxErase)
+		end.deletePreviousChar();
 	end.insertText(text);
 	QScrollBar* bar = m_rx->verticalScrollBar();
 	bar->setValue(bar->maximum());
