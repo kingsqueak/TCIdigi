@@ -22,6 +22,7 @@
 // ----------------------------------------------------------------------------
 
 #include <config.h>
+#include "tcidigi_version.h"
 
 #include "dialogs/guide.cxx"
 
@@ -34,7 +35,7 @@ const char* szAbout =
 <BODY BGCOLOR=FFFFCO TEXT=101010>\n\
 <font size=\"0\" face=\"Verdana, Arial, Helvetica\">\n\
 <CENTER>\n\
-<H3><I>TCIdigi " PACKAGE_VERSION "</I></H3>\n\
+<H3><I>" TCIDIGI_NAME " " TCIDIGI_VERSION "</I></H3>\n\
 <br>\n\
 Based on fldigi, a Qt6 TCI client digital app for Mac and Linux\n\
 </CENTER>\n\

@@ -1212,13 +1212,13 @@ static void set_reply_tx_lock(char * arg)
 
 	if(strarg.find("ON") != std::string::npos) {
 		active_modem->set_freqlock(true);
-		REQ(set_button, (Fl_Button *) wf->xmtlock, 1);
+		REQ(set_tx_lock, true);
 		return;
 	}
 
 	if(strarg.find("OFF") != std::string::npos) {
 		active_modem->set_freqlock(false);
-		REQ(set_button, (Fl_Button *) wf->xmtlock, 0);
+		REQ(set_tx_lock, false);
 		return;
 	}
 }

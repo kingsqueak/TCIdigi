@@ -727,7 +727,7 @@ static void notify_goto_freq_cb(Fl_Widget* w, void* arg)
 	if (active_modem->get_mode() != n->mode)
 		init_modem_sync(n->mode);
 	qsy(n->rfreq, n->afreq);
-	if (n->event == NOTIFY_EVENT_RSID && btnRSID->value() &&
+	if (n->event == NOTIFY_EVENT_RSID && progdefaults.rsid &&
 	    progdefaults.rsid_auto_disable && progdefaults.rsid_notify_only)
 		toggleRSID();
 	w->parent()->hide();

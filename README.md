@@ -22,7 +22,7 @@ cmake -S src/qtui -B build-qt \
 cmake --build build-qt --target fldigi-qt
 ```
 
-The program is `build-qt/TCIdigi.app`. Installing it with `cmake --install build-qt --prefix /Applications` replaces `/Applications/TCIdigi.app`.
+The program is `build-qt/TCIdigi-<version>.app`, where the version comes from `src/include/tcidigi_version.h`. Installing it with `cmake --install build-qt --prefix /Applications` puts `/Applications/TCIdigi-<version>.app` there. Bundles from older versions are left in place.
 
 A launch with no `--config-dir` uses `~/.tcidigi`. TCIdigi does not read `~/.fldigi`.
 

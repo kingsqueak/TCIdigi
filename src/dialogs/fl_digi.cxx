@@ -1637,8 +1637,7 @@ void startup_modem(modem* m, int f)
 		wf->btnRev->deactivate();
 	}
 
-	wf->xmtlock->value(progStatus.tx_lock);
-	wf->xmtlock->do_callback();
+	set_tx_lock(progStatus.tx_lock);
 
 //	UI_select(__func__);
 }
@@ -1755,18 +1754,15 @@ void cb_E(Fl_Menu_*, void*) {
 static int squelch_val;
 void rsid_squelch_timer(void*)
 {
-	progStatus.sqlonoff = squelch_val;
-	modeband.set_mode_squelch_onoff(squelch_val);
-	if (progStatus.sqlonoff) {
-		btnSQL->value(1);
-	}
+	set_sql(squelch_val);
 }
 
 void init_modem_squelch(trx_mode mode, int freq)
 {
 	squelch_val = progStatus.sqlonoff;
 	progStatus.sqlonoff = 0;
-	btnSQL->value(0);
+	if (btnSQL)
+		btnSQL->value(0);
 	if (!progdefaults.rsid_eot_squelch)
 		Fl::add_timeout(progdefaults.rsid_squelch, rsid_squelch_timer);
 	init_modem(mode, freq);
@@ -1774,10 +1770,7 @@ void init_modem_squelch(trx_mode mode, int freq)
 
 void rsid_eot_squelch()
 {
-	progStatus.sqlonoff = squelch_val;
-	modeband.set_mode_squelch_onoff(squelch_val);
-	if (progStatus.sqlonoff)
-		btnSQL->value(1);
+	set_sql(squelch_val);
 	Fl::remove_timeout(rsid_squelch_timer);
 }
 
@@ -2150,13 +2143,8 @@ void init_modem(trx_mode mode, int freq)
 
 	UI_select(std::string(__func__).append("\n").append(mode_info[mode].sname));
 
-	if (wf->xmtlock->value() == 1 && !mailserver) {
-		if(!progdefaults.retain_freq_lock) {
-			wf->xmtlock->value(0);
-			wf->xmtlock->damage();
-			active_modem->set_freqlock(false);
-		}
-	}
+	if (tx_lock_on() && !mailserver && !progdefaults.retain_freq_lock)
+		set_tx_lock(false);
 
 //	if (FD_logged_on) FD_mode_check();
 }
@@ -2936,20 +2924,56 @@ void cb_ShowWEFAX_images(Fl_Widget*, void*)
 		cb_mnuVisitURL(0, (void*)progdefaults.wefax_save_dir.c_str());
 }
 
-void cbTune(Fl_Widget *w, void *) {
-	Fl_Button *b = (Fl_Button *)w;
-	if (!(active_modem->get_cap() & modem::CAP_TX)) {
-		b->value(0);
+static bool g_tune = false;
+
+bool tune_pressed()
+{
+	return g_tune;
+}
+
+void show_tune(bool on)
+{
+	g_tune = on;
+	if (!btnTune)
+		return;
+	btnTune->value(on);
+	btnTune->labelcolor(on ? FL_RED : FL_FOREGROUND_COLOR);
+	btnTune->redraw();
+}
+
+void request_tune(bool on)
+{
+	if (!active_modem || !(active_modem->get_cap() & modem::CAP_TX)) {
+		show_tune(false);
 		return;
 	}
-	if (b->value() == 1) {
-		b->labelcolor(FL_RED);
+	show_tune(on);
+	if (on)
 		trx_tune();
-	} else {
-		b->labelcolor(FL_FOREGROUND_COLOR);
+	else
 		trx_receive();
-	}
+}
+
+void cbTune(Fl_Widget *w, void *) {
+	request_tune(static_cast<Fl_Button *>(w)->value() == 1);
 	restoreFocus(10);
+}
+
+bool tx_lock_on()
+{
+	return progStatus.tx_lock;
+}
+
+void set_tx_lock(bool on)
+{
+	if (active_modem)
+		active_modem->set_freqlock(on);
+	else
+		progStatus.tx_lock = on;
+	if (wf && wf->xmtlock) {
+		wf->xmtlock->value(on);
+		wf->xmtlock->damage();
+	}
 }
 
 void cb_quick_rsid (Fl_Widget *w, void *)
@@ -3016,14 +3040,78 @@ void cbAutoSpot(Fl_Widget* w, void*)
 	progStatus.spot_recv = static_cast<Fl_Light_Button*>(w)->value();
 }
 
+void set_afc(bool on)
+{
+	progStatus.afconoff = on;
+	modeband.set_mode_afc(on);
+	if (btnAFC)
+		btnAFC->value(on);
+}
+
+void set_sql(bool on)
+{
+	progStatus.sqlonoff = on;
+	modeband.set_mode_squelch_onoff(on);
+	if (btnSQL)
+		btnSQL->value(on);
+}
+
+void set_rxid(bool on)
+{
+	progdefaults.rsid = on;
+	if (btnRSID)
+		btnRSID->value(on);
+	if (chkRSidWideSearch)
+		chkRSidWideSearch->value(progdefaults.rsidWideSearch);
+}
+
+void set_txid(bool on)
+{
+	progdefaults.TransmitRSid = on;
+	if (btnTxRSID)
+		btnTxRSID->value(on);
+}
+
+void set_autospot(bool on)
+{
+	progStatus.spot_recv = on;
+	if (btnAutoSpot)
+		btnAutoSpot->value(on);
+}
+
+static bool power_squelch()
+{
+	return progdefaults.show_psm_btn && progStatus.kpsql_enabled;
+}
+
+double squelch_level()
+{
+	return power_squelch() ? progStatus.sldrPwrSquelchValue : progStatus.sldrSquelchValue;
+}
+
+void set_squelch_level(double value)
+{
+	if (value < 0)
+		value = 0;
+	if (value > 100)
+		value = 100;
+	if (power_squelch())
+		progStatus.sldrPwrSquelchValue = value;
+	else {
+		progStatus.sldrSquelchValue = value;
+		modeband.set_mode_squelch(value);
+	}
+	if (sldrSquelch)
+		sldrSquelch->value(value);
+}
+
 void cbEnableVideo_ID(Fl_Widget* w, void*)
 {	progStatus.EnableVideo_ID = static_cast<Fl_Light_Button*>(w)->value();
 }
 
 void toggleRSID()
 {
-	progdefaults.rsid = !progdefaults.rsid;
-	cbRSID(NULL, NULL);
+	set_rxid(!progdefaults.rsid);
 }
 
 void cb_mnuRxAudioDialog(Fl_Menu_ *, void *) {
@@ -8112,7 +8200,7 @@ void show_spot(bool v)
 	}
 	else {
 		btnAutoSpot->deactivate();
-		oldval = btnAutoSpot->value();
+		oldval = progStatus.spot_recv;
 		btnAutoSpot->value(v);
 		btnAutoSpot->do_callback();
 		mnu->size(btnRSID->x(), mnu->h());
@@ -10107,8 +10195,7 @@ void start_tx()
 void abort_tx()
 {
 	if (trx_state == STATE_TUNE) {
-		btnTune->value(0);
-		btnTune->do_callback();
+		request_tune(false);
 		return;
 	}
 	if (trx_state == STATE_TX) {
@@ -10204,16 +10291,14 @@ void note_qrg(bool no_dup, const char* prefix, const char* suffix, trx_mode mode
 // To be called from the main thread.
 void * set_xmtrcv_button_true(void)
 {
-	wf->xmtrcv->value(true);
-	wf->xmtrcv->redraw();
+	show_tr(true);
 	return (void *)0;
 }
 
 // To be called from the main thread.
 void * set_xmtrcv_button_false(void)
 {
-	wf->xmtrcv->value(false);
-	wf->xmtrcv->redraw();
+	show_tr(false);
 	return (void *)0;
 }
 

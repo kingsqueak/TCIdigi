@@ -1844,7 +1844,7 @@ static void pRST(std::string &s, size_t &i, size_t endbracket)
 
 static void pMYCALL(std::string &s, size_t &i, size_t endbracket)
 {
-	std::string call = inpMyCallsign->value();
+	std::string call = progdefaults.myCall;
 	if (active_modem->get_mode() == MODE_IFKP && progdefaults.ifkp_lowercase)
 		for (size_t n = 0; n < call.length(); n++) call[n] = tolower(call[n]);
 	s.replace( i, 8, call );
@@ -1852,17 +1852,17 @@ static void pMYCALL(std::string &s, size_t &i, size_t endbracket)
 
 static void pMYLOC(std::string &s, size_t &i, size_t endbracket)
 {
-	s.replace( i, 7, inpMyLocator->value() );
+	s.replace( i, 7, progdefaults.myLocator );
 }
 
 static void pMYNAME(std::string &s, size_t &i, size_t endbracket)
 {
-	s.replace( i, 8, inpMyName->value() );
+	s.replace( i, 8, progdefaults.myName );
 }
 
 static void pMYQTH(std::string &s, size_t &i, size_t endbracket)
 {
-	s.replace( i, 7, inpMyQth->value() );
+	s.replace( i, 7, progdefaults.myQth );
 }
 
 static void pMYRST(std::string &s, size_t &i, size_t endbracket)
@@ -3319,13 +3319,11 @@ static void pAFC(std::string &s, size_t &i, size_t endbracket)
 	if (sVal.length() > 0) {
 		// sVal = on|off|t   [ON, OFF or Toggle]
 		if (sVal.compare(0,2,"on") == 0)
-			btnAFC->value(1);
+			set_afc(true);
 		else if (sVal.compare(0,3,"off") == 0)
-			btnAFC->value(0);
+			set_afc(false);
 		else if (sVal.compare(0,1,"t") == 0)
-			btnAFC->value(!btnAFC->value());
-
-		btnAFC->do_callback();
+			set_afc(!progStatus.afconoff);
 	}
 	substitute(s, i, endbracket, "");
 }
@@ -3340,12 +3338,11 @@ static void pSQL(std::string &s, size_t &i, size_t endbracket)
 	if (sVal.length() > 0) {
 		// sVal = on|off|t   [ON, OFF or Toggle]
 		if (sVal.compare(0,2,"on") == 0)
-			btnSQL->value(1);
+			set_sql(true);
 		else if (sVal.compare(0,3,"off") == 0)
-			btnSQL->value(0);
+			set_sql(false);
 		else if (sVal.compare(0,1,"t") == 0)
-			btnSQL->value(!btnSQL->value());
-		btnSQL->do_callback();
+			set_sql(!progStatus.sqlonoff);
 	}
 	substitute(s, i, endbracket, "");
 }
@@ -3360,8 +3357,7 @@ static void pSQLCH(std::string &s, size_t &i, size_t endbracket)
 	if (sVal.length() > 0) {
 		int val;
 		sscanf(sVal.c_str(), "%d", &val);
-		sldrSquelch->value(val);
-		sldrSquelch->do_callback();
+		set_squelch_level(val);
 	}
 	substitute(s, i, endbracket, "");
 }
@@ -3418,14 +3414,11 @@ static void pLOCK(std::string &s, size_t &i, size_t endbracket)
 	if (sVal.length() > 0) {
 		// sVal = on|off|t   [ON, OFF or Toggle]
 		if (sVal.compare(0,2,"on") == 0)
-			wf->xmtlock->value(1);
+			set_tx_lock(true);
 		else if (sVal.compare(0,3,"off") == 0)
-			wf->xmtlock->value(0);
+			set_tx_lock(false);
 		else if (sVal.compare(0,1,"t") == 0)
-			wf->xmtlock->value(!wf->xmtlock->value());
-
-		wf->xmtlock->damage();
-		wf->xmtlock->do_callback();
+			set_tx_lock(!tx_lock_on());
 	}
 	substitute(s, i, endbracket, "");
 }
@@ -3435,13 +3428,11 @@ static void doLOCK( std::string s){
 	if (sVal.length() > 0) {
 		// sVal = on|off|t[oggle]   [ON, OFF or Toggle]
 		if (sVal.compare(0,2,"on") == 0)
-			wf->xmtlock->value(1);
+			set_tx_lock(true);
 		else if (sVal.compare(0,3,"off") == 0)
-			wf->xmtlock->value(0);
+			set_tx_lock(false);
 		else if (sVal.compare(0,1,"t") == 0)
-			wf->xmtlock->value(!wf->xmtlock->value());
-		wf->xmtlock->damage();
-		wf->xmtlock->do_callback();
+			set_tx_lock(!tx_lock_on());
 	}
 }
 
@@ -3467,30 +3458,23 @@ static void pTX_RSID(std::string &s, size_t &i, size_t endbracket)
 	if (sVal.length() > 0) {
 		// sVal = on|off|t   [ON, OFF or Toggle]
 		if (sVal.compare(0,2,"on") == 0)
-			btnTxRSID->value(1);
+			set_txid(true);
 		else if (sVal.compare(0,3,"off") == 0)
-			btnTxRSID->value(0);
+			set_txid(false);
 		else if (sVal.compare(0,1,"t") == 0)
-			btnTxRSID->value(!btnTxRSID->value());
-		btnTxRSID->do_callback();
+			set_txid(!progdefaults.TransmitRSid);
 	}
 	substitute(s, i, endbracket, "");
 }
 
 static void doTXRSID(std::string s)
 {
-	if (s.find("on") != std::string::npos) {
-		btnTxRSID->value(1);
-		btnTxRSID->do_callback();
-	}
-	else if (s.find("off") != std::string::npos) {
-		btnTxRSID->value(0);
-		btnTxRSID->do_callback();
-	}
-	else if (s.find("t") != std::string::npos) {
-		btnTxRSID->value(!btnTxRSID->value());
-		btnTxRSID->do_callback();
-	}
+	if (s.find("on") != std::string::npos)
+		set_txid(true);
+	else if (s.find("off") != std::string::npos)
+		set_txid(false);
+	else if (s.find("t") != std::string::npos)
+		set_txid(!progdefaults.TransmitRSid);
 	que_ok = true;
 }
 
@@ -3515,13 +3499,11 @@ static void pRX_RSID(std::string &s, size_t &i, size_t endbracket)
 	if (sVal.length() > 0) {
 		// sVal = on|off|t   [ON, OFF or Toggle]
 		if (sVal.compare(0,2,"on") == 0)
-			btnRSID->value(1);
+			set_rxid(true);
 		else if (sVal.compare(0,3,"off") == 0)
-			btnRSID->value(0);
+			set_rxid(false);
 		else if (sVal.compare(0,1,"t") == 0)
-			btnRSID->value(!btnRSID->value());
-
-		btnRSID->do_callback();
+			set_rxid(!progdefaults.rsid);
 	}
 	substitute(s, i, endbracket, "");
 }
@@ -5561,12 +5543,12 @@ void MACROTEXT::execute(int n)
 
 	if (ToggleTXRX) {
 		text2send.clear();
-		if (!wf->xmtrcv->value()) {
-			REQ(set_button, wf->xmtrcv, true);
+		if (!tr_pressed()) {
+			REQ(request_tr, true);
 			if (macro_idle_on && idleTime > 0)
 				Fl::add_timeout(idleTime, idleTimer);
 		} else
-			REQ(set_button, wf->xmtrcv, false);
+			REQ(request_tr, false);
 		return;
 	}
 	if (useWait && waitTime > 0) {

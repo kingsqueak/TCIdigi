@@ -73,6 +73,10 @@ target_link_libraries(fldigi-qt PRIVATE fldigi_qt_entry Qt6::Widgets Qt6::Networ
 # those flags as its own keywords and links the framework name as a file.
 target_link_options(fldigi-qt PRIVATE "SHELL:${FLDIGI_ENGINE_LINK_LINE}")
 
+# A version bump in this header reruns configure, so the bundle name and
+# Info.plist follow it.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+  "${FLDIGI_SRC}/include/tcidigi_version.h")
 file(READ "${FLDIGI_SRC}/include/tcidigi_version.h" TCIDIGI_VERSION_H)
 string(REGEX MATCH "#define TCIDIGI_VERSION \"([^\"]+)\"" _tcidigi_ver "${TCIDIGI_VERSION_H}")
 if(NOT CMAKE_MATCH_1)
@@ -81,7 +85,8 @@ endif()
 set(TCIDIGI_VERSION "${CMAKE_MATCH_1}")
 
 set_target_properties(fldigi-qt PROPERTIES
-  OUTPUT_NAME TCIdigi
+  # TCIdigi-0.23.app. The menu bar and Dock still say TCIdigi.
+  OUTPUT_NAME "TCIdigi-${TCIDIGI_VERSION}"
   MACOSX_BUNDLE_GUI_IDENTIFIER org.tcidigi.tcidigi
   MACOSX_BUNDLE_BUNDLE_NAME "TCIdigi"
   MACOSX_BUNDLE_SHORT_VERSION_STRING "${TCIDIGI_VERSION}"
@@ -95,8 +100,9 @@ if(APPLE)
   )
   # The .app bundle is a directory. zsh reports "permission denied" if that
   # path is executed. This wrapper is the program to run from a shell.
+  set(_tcidigi_app "TCIdigi-${TCIDIGI_VERSION}")
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/TCIdigi-run"
-"#!/bin/sh\nexec \"$(dirname \"$0\")/TCIdigi.app/Contents/MacOS/TCIdigi\" \"$@\"\n")
+"#!/bin/sh\nexec \"$(dirname \"$0\")/${_tcidigi_app}.app/Contents/MacOS/${_tcidigi_app}\" \"$@\"\n")
   add_custom_command(TARGET fldigi-qt POST_BUILD
     COMMAND chmod 755 "${CMAKE_CURRENT_BINARY_DIR}/TCIdigi-run"
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -109,5 +115,6 @@ if(APPLE)
   )
 endif()
 
-# cmake --install <build> --prefix /Applications puts TCIdigi.app there.
+# cmake --install <build> --prefix /Applications puts TCIdigi-<version>.app
+# there. An older version's bundle is left in place.
 install(TARGETS fldigi-qt BUNDLE DESTINATION .)

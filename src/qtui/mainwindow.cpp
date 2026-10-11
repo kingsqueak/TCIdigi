@@ -17,6 +17,7 @@
 #include "qrzclient.h"
 #include "waterfallview.h"
 #include "tcidigi_version.h"
+#include "htmlstrings.h"
 
 #include <QAction>
 #include <QActionGroup>
@@ -954,6 +955,9 @@ QString fittedBrowserLine(const QString& full, const QFont& font, int width, int
 	return shown;
 }
 
+// Set on a browser row whose decoded text matches the seek expression.
+constexpr int kSeekMatchRole = Qt::UserRole + 1;
+
 class BrowserStreamDelegate : public QStyledItemDelegate
 {
 public:
@@ -964,6 +968,13 @@ public:
 	{
 		QStyleOptionViewItem opt = option;
 		initStyleOption(&opt, index);
+		if (index.data(kSeekMatchRole).toBool()) {
+			// Readable blue on both the light and the dark base.
+			const bool dark = opt.palette.color(QPalette::Base).lightness() < 128;
+			const QColor blue = dark ? QColor(110, 168, 255) : QColor(20, 90, 210);
+			opt.palette.setColor(QPalette::Text, blue);
+			opt.palette.setColor(QPalette::WindowText, blue);
+		}
 		opt.text = fittedBrowserLine(opt.text, opt.font, qMax(16, opt.rect.width() - 8), nullptr);
 		opt.features |= QStyleOptionViewItem::WrapText;
 		opt.textElideMode = Qt::ElideNone;
@@ -1044,7 +1055,14 @@ public:
 		m_seek->setPlaceholderText(QStringLiteral("seek - regular expression"));
 		m_seek->setToolTip(QStringLiteral("seek - regular expression"));
 		m_seek->setClearButtonEnabled(true);
+		m_seek->setText(QSettings().value(QStringLiteral("browserSeek")).toString());
 		column->addWidget(m_seek);
+		connect(m_seek, &QLineEdit::textChanged, this, [this](const QString& text) {
+			QSettings().setValue(QStringLiteral("browserSeek"), text);
+			compileSeek();
+			for (int row = 0; row < m_list->count(); ++row)
+				markSeek(m_list->item(row));
+		});
 
 		auto* bottom = new QHBoxLayout;
 		bottom->setSpacing(6);
@@ -1129,6 +1147,7 @@ public:
 				m_undockToggle();
 		});
 		refill();
+		compileSeek();
 		setFloating(false);
 	}
 
@@ -1150,6 +1169,7 @@ public:
 				return;
 			item->setText(text);
 			item->setToolTip(text);
+			markSeek(item);
 		}
 	}
 
@@ -1175,6 +1195,35 @@ private:
 		return QStringLiteral("%1").arg(channel, 2, 10, QChar(' '));
 	}
 
+	// fldigi matches the seek expression against the decoded text, without
+	// case. A row reads "NN FFFF text", so the channel and audio Hz are skipped.
+	void compileSeek()
+	{
+		const QString pattern = m_seek->text().trimmed();
+		m_seekRe = QRegularExpression(pattern, QRegularExpression::CaseInsensitiveOption);
+		const bool bad = !pattern.isEmpty() && !m_seekRe.isValid();
+		m_seek->setToolTip(bad
+			? QStringLiteral("Not a valid regular expression: %1").arg(m_seekRe.errorString())
+			: QStringLiteral("seek - regular expression. Matching lines turn blue."));
+		if (pattern.isEmpty() || bad)
+			m_seekRe = QRegularExpression();
+	}
+
+	void markSeek(QListWidgetItem* item)
+	{
+		if (!item)
+			return;
+		bool match = false;
+		if (!m_seekRe.pattern().isEmpty()) {
+			static const QRegularExpression prefix(QStringLiteral("^\\s*\\d+(\\s+\\d+)?\\s?"));
+			QString text = item->text();
+			text.remove(prefix);
+			match = !text.isEmpty() && m_seekRe.match(text).hasMatch();
+		}
+		if (item->data(kSeekMatchRole).toBool() != match)
+			item->setData(kSeekMatchRole, match);
+	}
+
 	void refill()
 	{
 		m_list->clear();
@@ -1191,6 +1240,7 @@ private:
 	std::function<void()> m_undockToggle;
 	QListWidget* m_list = nullptr;
 	QLineEdit* m_seek = nullptr;
+	QRegularExpression m_seekRe;
 	QSlider* m_squelch = nullptr;
 	QLabel* m_squelchValue = nullptr;
 	QPushButton* m_undock = nullptr;
@@ -2781,7 +2831,7 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	: QMainWindow(parent)
 	, m_theme(theme)
 {
-	setWindowTitle(QStringLiteral("TCIdigi"));
+	setWindowTitle(QString::fromUtf8(TCIDIGI_NAME " " TCIDIGI_VERSION));
 	resize(1180, 820);
 	setMinimumSize(900, 620);
 
@@ -2956,7 +3006,11 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	installClearMenu(m_rx, [this] {
 		if (engine_up())
 			engine_clear_rx();
+		m_rxHeld.clear();
 		m_rx->clear();
+	});
+	connect(m_rx->verticalScrollBar(), &QScrollBar::valueChanged, this, [this] {
+		releaseRxText();
 	});
 	installClearMenu(m_tx, [this] {
 		if (engine_up()) {
@@ -3375,21 +3429,20 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	m_rxLevel->setToolTip(QStringLiteral(
 		"TCI receive attenuator (dB). Lowers a hot fixed receiver output. "
 		"0 dB leaves the level unchanged. Shown while TCI audio is in use."));
-	{
-		QSettings settings;
-		double rxDb = settings.value(QStringLiteral("tciRxLevel"), 0.0).toDouble();
-		if (rxDb > 0.0)
-			rxDb = 0.0;
-		if (rxDb < -30.0)
-			rxDb = -30.0;
-		m_rxLevel->setValue(rxDb);
-	}
+	// Both attenuators are kept here. The engine's own copies are not saved
+	// when this window quits, so the saved values are applied once it is up.
+	auto savedLevel = [](const QString& key, double* db) {
+		const QVariant v = QSettings().value(key);
+		if (!v.isValid())
+			return false;
+		*db = qBound(-30.0, v.toDouble(), 0.0);
+		return true;
+	};
 	connect(m_rxLevel, qOverload<double>(&QDoubleSpinBox::valueChanged),
 		this, [this](double value) {
 			if (m_applying)
 				return;
-			QSettings settings;
-			settings.setValue(QStringLiteral("tciRxLevel"), value);
+			QSettings().setValue(QStringLiteral("tciRxLevel"), value);
 			if (engine_up())
 				engine_set_rx_db(value);
 		});
@@ -3407,6 +3460,7 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 		this, [this](double value) {
 			if (m_applying || !engine_up())
 				return;
+			QSettings().setValue(QStringLiteral("tciTxLevel"), value);
 			engine_set_tx_db(value);
 		});
 	levelCol->addWidget(m_rxLevel);
@@ -3487,6 +3541,12 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 
 	if (engine_up()) {
 		pushOperator();
+		// No saved value leaves the engine's level, and the next tick shows it.
+		double db = 0.0;
+		if (savedLevel(QStringLiteral("tciRxLevel"), &db))
+			engine_set_rx_db(db);
+		if (savedLevel(QStringLiteral("tciTxLevel"), &db))
+			engine_set_tx_db(db);
 		browserPane->setPickHandler([](int row) { engine_browser_pick(row); });
 		browserPane->setClearHandler(
 			[](int row) { engine_browser_clear_line(row); },
@@ -3691,14 +3751,10 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 			char chunk[8192];
 			const int got = engine_rx_delta(chunk, (int)sizeof chunk);
 			if (got < 0) {
+				m_rxHeld.clear();
 				m_rx->clear();
 			} else if (got > 0) {
-				QScrollBar* bar = m_rx->verticalScrollBar();
-				const bool follow = bar->value() >= bar->maximum() - 4;
-				m_rx->moveCursor(QTextCursor::End);
-				m_rx->insertPlainText(QString::fromUtf8(chunk, got));
-				if (follow)
-					bar->setValue(bar->maximum());
+				addRxText(QString::fromUtf8(chunk, got));
 			}
 			const bool picture = engine_rx_is_picture() != 0;
 			rxPane->setPicture(picture);
@@ -3761,6 +3817,7 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 				waterfall->setFrame(frame.copy(), view.hz_low, view.hz_high,
 					view.carrier_hz, view.bandwidth_hz, view.wf_mode);
 			}
+			waterfall->setTxLock(view.locked != 0, view.tx_carrier_hz);
 			m_applying = false;
 		});
 		timer->start(40);
@@ -3835,13 +3892,19 @@ void MainWindow::buildMenus()
 
 	auto* helpMenu = menuBar()->addMenu(QStringLiteral("Help"));
 	helpMenu->addAction(QStringLiteral("About"), this, [this] {
-		QMessageBox::about(this, QString::fromUtf8(TCIDIGI_NAME),
-			QString::fromUtf8(
-				TCIDIGI_NAME " " TCIDIGI_VERSION " is a Qt interface for fldigi.\n\n"
-				"Appearance follows the system light or dark setting, "
-				"or a pinned Light or Dark choice. "
-				"The older FLTK scheme list is not part of this interface.\n\n"
-				"Based on fldigi. GPL-3.0-or-later."));
+		// szAbout in dialogs/htmlstrings.cxx is the About text. Its body
+		// colors are for the FLTK help window, so the theme's are used here.
+		QString html = QString::fromLatin1(szAbout);
+		html.replace(QRegularExpression(QStringLiteral("<body[^>]*>"),
+			QRegularExpression::CaseInsensitiveOption), QStringLiteral("<body>"));
+		html.replace(QRegularExpression(QStringLiteral("</?font[^>]*>"),
+			QRegularExpression::CaseInsensitiveOption), QString());
+		QMessageBox box(this);
+		box.setWindowTitle(QStringLiteral("About ") + QString::fromUtf8(TCIDIGI_NAME));
+		box.setTextFormat(Qt::RichText);
+		box.setText(html);
+		box.setIconPixmap(windowIcon().pixmap(64, 64));
+		box.exec();
 	});
 }
 
@@ -3860,6 +3923,34 @@ void MainWindow::setTciAudio(bool on)
 {
 	if (m_rxLevel)
 		m_rxLevel->setVisible(on);
+}
+
+static bool atBottom(const QPlainTextEdit* edit)
+{
+	const QScrollBar* bar = edit->verticalScrollBar();
+	return bar->value() >= bar->maximum() - 4;
+}
+
+void MainWindow::addRxText(const QString& text)
+{
+	if (!m_rx || text.isEmpty())
+		return;
+	m_rxHeld += text;
+	releaseRxText();
+}
+
+void MainWindow::releaseRxText()
+{
+	if (!m_rx || m_rxHeld.isEmpty() || !atBottom(m_rx))
+		return;
+	const QString text = m_rxHeld;
+	m_rxHeld.clear();
+	// A cursor of its own: the view's cursor and any selection stay put.
+	QTextCursor end(m_rx->document());
+	end.movePosition(QTextCursor::End);
+	end.insertText(text);
+	QScrollBar* bar = m_rx->verticalScrollBar();
+	bar->setValue(bar->maximum());
 }
 
 void MainWindow::holdStatus(const QString& text)

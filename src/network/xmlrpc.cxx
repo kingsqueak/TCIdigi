@@ -1281,8 +1281,8 @@ public:
 	{
 		LOG_INFO("[%s] main.get_afc: %s",
 			 XmlRpc::client_id.c_str(),
-			 (btnAFC->value() ? "ON" : "OFF"));
-		*retval = xmlrpc_c::value_boolean(btnAFC->value());
+			 (progStatus.afconoff ? "ON" : "OFF"));
+		*retval = xmlrpc_c::value_boolean(progStatus.afconoff);
 	}
 };
 
@@ -1297,11 +1297,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = btnAFC->value();
+		bool v = progStatus.afconoff;
 		LOG_INFO("[%s] main.set_afc: %s",
 			XmlRpc::client_id.c_str(),
 			(v ? "ON" : "OFF"));
-		REQ(set_button, btnAFC, params.getBoolean(0));
+		REQ(set_afc, params.getBoolean(0));
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1317,11 +1317,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = !btnAFC->value();
+		bool v = !progStatus.afconoff;
 		LOG_INFO("[%s] main.toggle_afc: %s",
 			XmlRpc::client_id.c_str(),
 			(v ? "ON" : "OFF"));
-		REQ(set_button, btnAFC, v);
+		REQ(set_afc, v);
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1340,8 +1340,8 @@ public:
 	{
 		LOG_INFO("[%s] main.get_sql: %s",
 			 XmlRpc::client_id.c_str(),
-			 (btnSQL->value() ? "ON" : "OFF"));
-		*retval = xmlrpc_c::value_boolean(btnSQL->value());
+			 (progStatus.sqlonoff ? "ON" : "OFF"));
+		*retval = xmlrpc_c::value_boolean(progStatus.sqlonoff);
 	}
 };
 
@@ -1356,11 +1356,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = btnSQL->value();
+		bool v = progStatus.sqlonoff;
 		LOG_INFO("[%s] main.set_sql: %s",
 			 XmlRpc::client_id.c_str(),
-			 (btnSQL->value() ? "ON" : "OFF"));
-		REQ(set_button, btnSQL, params.getBoolean(0));
+			 (progStatus.sqlonoff ? "ON" : "OFF"));
+		REQ(set_sql, params.getBoolean(0));
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1376,11 +1376,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = !btnSQL->value();
+		bool v = !progStatus.sqlonoff;
 		LOG_INFO("[%s] main.toggle_sql: %s",
 			 XmlRpc::client_id.c_str(),
 			 (v ? "ON" : "OFF"));
-		REQ(set_button, btnSQL, v);
+		REQ(set_sql, v);
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1399,8 +1399,8 @@ public:
 	{
 		LOG_INFO("[%s] main.get_sql_level: %f",
 			 XmlRpc::client_id.c_str(),
-			 sldrSquelch->value());
-		*retval = xmlrpc_c::value_double(sldrSquelch->value());
+			 squelch_level());
+		*retval = xmlrpc_c::value_double(squelch_level());
 	}
 };
 
@@ -1415,11 +1415,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		double v = sldrSquelch->value();
+		double v = squelch_level();
 		LOG_INFO("[%s] main.set_sql_level: %f",
 			XmlRpc::client_id.c_str(),
 			v);
-		REQ(set_valuator, sldrSquelch, params.getDouble(0, sldrSquelch->maximum(), sldrSquelch->minimum()));
+		REQ(set_squelch_level, params.getDouble(0, 0.0, 100.0));
 		*retval = xmlrpc_c::value_double(v);
 	}
 };
@@ -1435,12 +1435,15 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		double v = sldrSquelch->value();
+		double v = squelch_level();
 		LOG_INFO("[%s] main.inc_sql_level: %f",
 			XmlRpc::client_id.c_str(),
 			v);
-		REQ(set_valuator, sldrSquelch, v + params.getDouble(0)); // FIXME: check range
-		*retval = xmlrpc_c::value_double(sldrSquelch->value());
+		v += params.getDouble(0);
+		if (v < 0.0) v = 0.0;
+		if (v > 100.0) v = 100.0;
+		REQ(set_squelch_level, v);
+		*retval = xmlrpc_c::value_double(v);
 	}
 };
 
@@ -1517,8 +1520,8 @@ public:
 	{
 		LOG_INFO("[%s] main.get_lock: %s",
 			 XmlRpc::client_id.c_str(),
-			 (wf->xmtlock->value() ? "ON" : "OFF"));
-		*retval = xmlrpc_c::value_boolean(wf->xmtlock->value());
+			 (tx_lock_on() ? "ON" : "OFF"));
+		*retval = xmlrpc_c::value_boolean(tx_lock_on());
 	}
 };
 
@@ -1533,11 +1536,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = wf->xmtlock->value();
+		bool v = tx_lock_on();
 		LOG_INFO("[%s] main.set_lock: %s",
 			 XmlRpc::client_id.c_str(),
 			 (v ? "ON" : "OFF"));
-		REQ(set_button, wf->xmtlock, params.getBoolean(0));
+		REQ(set_tx_lock, params.getBoolean(0));
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1553,11 +1556,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = !wf->xmtlock->value();
+		bool v = !tx_lock_on();
 		LOG_INFO("[%s] main.toggle_lock: %s",
 			 XmlRpc::client_id.c_str(),
 			 (v ? "ON" : "OFF"));
-		REQ(set_button, wf->xmtlock, v);
+		REQ(set_tx_lock, v);
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1575,8 +1578,8 @@ public:
 	{
 		LOG_INFO("[%s] main.get_txid: %s",
 			 XmlRpc::client_id.c_str(),
-			 (btnTxRSID->value() ? "ON" : "OFF"));
-		*retval = xmlrpc_c::value_boolean(btnTxRSID->value());
+			 (progdefaults.TransmitRSid ? "ON" : "OFF"));
+		*retval = xmlrpc_c::value_boolean(progdefaults.TransmitRSid);
 	}
 };
 
@@ -1591,11 +1594,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = btnTxRSID->value();
+		bool v = progdefaults.TransmitRSid;
 		LOG_INFO("[%s] main.set_txid: %s",
 			 XmlRpc::client_id.c_str(),
 			 (v ? "ON" : "OFF"));
-		REQ(set_button, btnTxRSID, params.getBoolean(0));
+		REQ(set_txid, params.getBoolean(0));
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1611,11 +1614,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = !btnTxRSID->value();
+		bool v = !progdefaults.TransmitRSid;
 		LOG_INFO("[%s] main.toggle_txid: %s",
 			 XmlRpc::client_id.c_str(),
 			 (v ? "ON" : "OFF"));
-		REQ(set_button, btnTxRSID, v);
+		REQ(set_txid, v);
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1632,8 +1635,8 @@ public:
 	{
 		LOG_INFO("[%s] main.get_rsid: %s",
 			 XmlRpc::client_id.c_str(),
-			 (btnRSID->value() ? "ON" : "OFF"));
-		*retval = xmlrpc_c::value_boolean(btnRSID->value());
+			 (progdefaults.rsid ? "ON" : "OFF"));
+		*retval = xmlrpc_c::value_boolean(progdefaults.rsid);
 	}
 };
 
@@ -1648,11 +1651,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = btnRSID->value();
+		bool v = progdefaults.rsid;
 		LOG_INFO("[%s] main.set_rsid: %s",
 			 XmlRpc::client_id.c_str(),
 			 (v ? "ON" : "OFF"));
-		REQ(set_button, btnRSID, params.getBoolean(0));
+		REQ(set_rxid, params.getBoolean(0));
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1668,11 +1671,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = !btnRSID->value();
+		bool v = !progdefaults.rsid;
 		LOG_INFO("[%s] main.toggle_rsid: %s",
 			 XmlRpc::client_id.c_str(),
 			 (v ? "ON" : "OFF"));
-		REQ(set_button, btnRSID, v);
+		REQ(set_rxid, v);
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };
@@ -1711,11 +1714,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		if (!wf->xmtrcv->value()) {
+		if (!tr_pressed()) {
 			LOG_INFO("[%s] %s",
 				XmlRpc::client_id.c_str(),
 				"main.tx");
-			REQ(set_button, wf->xmtrcv, true);
+			REQ(request_tr, true);
 		}
 		*retval = xmlrpc_c::value_nil();
 	}
@@ -1732,11 +1735,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		if (!btnTune->value()) {
+		if (!tune_pressed()) {
 			LOG_INFO("[%s] %s",
 				XmlRpc::client_id.c_str(),
 				"main.tune");
-			REQ(set_button, btnTune, !btnTune->value());
+			REQ(request_tune, true);
 		}
 		*retval = xmlrpc_c::value_nil();
 	}
@@ -1753,11 +1756,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		if (wf->xmtrcv->value()) {
+		if (tr_pressed()) {
 			LOG_INFO("[%s] %s",
 				XmlRpc::client_id.c_str(),
 				"main.rx");
-			REQ(set_button, wf->xmtrcv, false);
+			REQ(request_tr, false);
 		}
 		*retval = xmlrpc_c::value_nil();
 	}
@@ -2090,11 +2093,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		if (!(wf->xmtrcv->value() || btnTune->value() || btnRSID->value())) {
+		if (!(tr_pressed() || tune_pressed() || progdefaults.rsid)) {
 			LOG_INFO("[%s] main.rsid: %s",
 				XmlRpc::client_id.c_str(),
 				"ENABLE");
-			REQ(set_button, btnRSID, true);
+			REQ(set_rxid, true);
 		}
 		*retval = xmlrpc_c::value_nil();
 	}
@@ -3800,8 +3803,8 @@ public:
 	{
 		LOG_INFO("[%s] Spot.get_auto: %s",
 			XmlRpc::client_id.c_str(),
-			(btnAutoSpot->value() ? "ON" : "OFF"));
-		*retval = xmlrpc_c::value_boolean(btnAutoSpot->value());
+			(progStatus.spot_recv ? "ON" : "OFF"));
+		*retval = xmlrpc_c::value_boolean(progStatus.spot_recv);
 	}
 };
 
@@ -3816,8 +3819,8 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = btnAutoSpot->value();
-		REQ(set_button, (Fl_Button *) btnAutoSpot, params.getBoolean(0));
+		bool v = progStatus.spot_recv;
+		REQ(set_autospot, params.getBoolean(0));
 		LOG_INFO("[%s] Spot.set_auto: %s",
 			XmlRpc::client_id.c_str(),
 			(v ? "ON" : "OFF"));
@@ -3836,11 +3839,11 @@ public:
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
 	{
 		XMLRPC_LOCK;
-		bool v = !btnAutoSpot->value();
+		bool v = !progStatus.spot_recv;
 		LOG_INFO("[%s] Spot.toggle_auto: %s",
 			XmlRpc::client_id.c_str(),
 			(v ? "ON" : "OFF"));
-		REQ(set_button, (Fl_Button *) btnAutoSpot, v);
+		REQ(set_autospot, v);
 		*retval = xmlrpc_c::value_boolean(v);
 	}
 };

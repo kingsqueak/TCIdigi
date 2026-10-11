@@ -25,6 +25,7 @@
 #include "qrunner.h"
 #include "pskrep.h"
 #include "tcidigi_tx.h"
+#include "main.h"
 
 #include <FL/Fl.H>
 
@@ -39,6 +40,8 @@ public:
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -70,6 +73,51 @@ void store_text(const StoredQrg& m, char* buf, int cap)
 			name, m.rf, m.usb ? '+' : '-', m.carrier);
 	else
 		std::snprintf(buf, (size_t)cap, "%s  %d", name, m.carrier);
+}
+
+// One entry per line: dial Hz, audio Hz, mode short name, 1 for USB.
+// The mode is saved by name so a renumbered mode table still loads.
+std::string store_path()
+{
+	return HomeDir + "stored_qrg.txt";
+}
+
+void store_save()
+{
+	if (HomeDir.empty())
+		return;
+	std::ofstream out(store_path().c_str(), std::ios::trunc);
+	if (!out)
+		return;
+	for (const StoredQrg& m : g_store) {
+		if (m.mode < 0 || m.mode >= NUM_MODES || !mode_info[m.mode].sname)
+			continue;
+		out << m.rf << ' ' << m.carrier << ' ' << mode_info[m.mode].sname
+			<< ' ' << m.usb << '\n';
+	}
+}
+
+void store_load()
+{
+	g_store.clear();
+	std::ifstream in(store_path().c_str());
+	std::string line;
+	while (in && std::getline(in, line) && g_store.size() < 30) {
+		std::istringstream fields(line);
+		StoredQrg m;
+		std::string name;
+		if (!(fields >> m.rf >> m.carrier >> name >> m.usb))
+			continue;
+		m.mode = -1;
+		for (int i = 0; i < NUM_MODES; ++i) {
+			if (mode_info[i].sname && name == mode_info[i].sname) {
+				m.mode = i;
+				break;
+			}
+		}
+		if (m.mode >= 0)
+			g_store.push_back(m);
+	}
 }
 
 void copy_str(char* dst, int cap, const char* src)
@@ -248,16 +296,14 @@ int engine_start(int argc, char** argv)
 		tcidigi_tx_use(true);
 		psk_browser_keep_text(true);
 		// Saved configs clear a channel after 15 seconds. Keep the QSO for 5 minutes.
-		// The hidden spinner was filled from the file before this override.
 		if (progdefaults.VIEWERtimeout != 300) {
 			progdefaults.VIEWERtimeout = 300;
 			progdefaults.changed = true;
 		}
-		if (cntTimeout)
-			cntTimeout->value(progdefaults.VIEWERtimeout);
 		stopMacroTimer();
 		macro_idle_on = false;
 		progStatus.skip_sked_macro = false;
+		store_load();
 	}
 	return g_up;
 }
@@ -321,6 +367,7 @@ void engine_view(EngineView* out)
 		if (out->bandwidth_hz < 1)
 			out->bandwidth_hz = 1;
 		out->locked = active_modem->freqlocked() ? 1 : 0;
+		out->tx_carrier_hz = (int)std::lround(active_modem->get_txfreq());
 	}
 	out->afc = progStatus.afconoff ? 1 : 0;
 	out->afc_ok = (active_modem && (active_modem->get_cap() & modem::CAP_AFC)) ? 1 : 0;
@@ -634,20 +681,12 @@ void engine_set_rig_filter(const char* name)
 
 void engine_set_afc(int on)
 {
-	progStatus.afconoff = on ? true : false;
-	if (active_modem)
-		modeband.set_mode_afc(progStatus.afconoff);
-	if (btnAFC)
-		btnAFC->value(on ? 1 : 0);
+	set_afc(on != 0);
 }
 
 void engine_set_sql(int on)
 {
-	progStatus.sqlonoff = on ? true : false;
-	if (active_modem)
-		modeband.set_mode_squelch_onoff(progStatus.sqlonoff);
-	if (btnSQL)
-		btnSQL->value(on ? 1 : 0);
+	set_sql(on != 0);
 }
 
 static char g_spot_error[180];
@@ -666,9 +705,7 @@ int engine_set_spot(int on)
 {
 	g_spot_error[0] = 0;
 	if (!on) {
-		progStatus.spot_recv = false;
-		if (btnAutoSpot)
-			btnAutoSpot->value(0);
+		set_autospot(false);
 		return 1;
 	}
 	if (!g_up) {
@@ -689,15 +726,11 @@ int engine_set_spot(int on)
 			spot_fail("PSK Reporter needs a 6-character grid such as FN43cb. Set Grid in Configure, Station.");
 		else
 			spot_fail(err && err[0] ? err : "PSK Reporter did not start.");
-		progStatus.spot_recv = false;
-		if (btnAutoSpot)
-			btnAutoSpot->value(0);
+		set_autospot(false);
 		return 0;
 	}
 	progdefaults.usepskrep = true;
-	progStatus.spot_recv = true;
-	if (btnAutoSpot)
-		btnAutoSpot->value(1);
+	set_autospot(true);
 	return 1;
 }
 
@@ -722,17 +755,13 @@ static void show_qt_status(const char* msg, double seconds)
 
 void engine_set_rxid(int on)
 {
-	progdefaults.rsid = on ? true : false;
 	// fldigi's RxID right-click is "Passband". Without it the detector
 	// only watches about 200 Hz around the carrier, so a waterfall full
 	// of IDs looks like the button does nothing.
 	if (on)
 		progdefaults.rsidWideSearch = true;
+	set_rxid(on != 0);
 	progdefaults.changed = true;
-	if (btnRSID)
-		btnRSID->value(on ? 1 : 0);
-	if (chkRSidWideSearch)
-		chkRSidWideSearch->value(progdefaults.rsidWideSearch ? 1 : 0);
 	if (on)
 		show_qt_status("RxID is searching the waterfall.", 6.0);
 	else
@@ -741,10 +770,8 @@ void engine_set_rxid(int on)
 
 void engine_set_txid(int on)
 {
-	progdefaults.TransmitRSid = on ? true : false;
+	set_txid(on != 0);
 	progdefaults.changed = true;
-	if (btnTxRSID)
-		btnTxRSID->value(on ? 1 : 0);
 	if (!on) {
 		show_qt_status("TxID is off.", 4.0);
 		return;
@@ -765,12 +792,6 @@ static void copy_station(char* dst, int cap, const std::string& src)
 	if (!dst || cap < 1)
 		return;
 	std::snprintf(dst, (size_t)cap, "%s", src.c_str());
-}
-
-static void assign_box(Fl_Input2* box, const std::string& text)
-{
-	if (box)
-		box->value(text.c_str());
 }
 
 void engine_station(EngineStation* out)
@@ -826,21 +847,12 @@ void engine_set_station(const EngineStation* in)
 		progdefaults.pskrep_port.assign(in->psk_port);
 	progdefaults.pskrep_qrg = in->psk_qrg != 0;
 	progdefaults.changed = true;
-	assign_box(inpMyCallsign, progdefaults.myCall);
-	assign_box(inpOperCallsign, progdefaults.operCall);
-	assign_box(inpMyName, progdefaults.myName);
-	assign_box(inpMyQth, progdefaults.myQth);
-	assign_box(inpMyLocator, progdefaults.myLocator);
-	assign_box(inpMyAntenna, progdefaults.myAntenna);
 	// An open reporter keeps the call, grid, and host it was started with.
 	if (reporter && progStatus.spot_recv) {
 		pskrep_stop();
 		progdefaults.pskrep_auto = true;
-		if (!pskrep_start()) {
-			progStatus.spot_recv = false;
-			if (btnAutoSpot)
-				btnAutoSpot->value(0);
-		}
+		if (!pskrep_start())
+			set_autospot(false);
 	}
 }
 
@@ -853,16 +865,13 @@ void engine_tune(int on)
 			return;
 		active_modem->set_stopflag(true);
 		trx_tune();
-		if (btnTune)
-			btnTune->value(1);
+		show_tune(true);
 		return;
 	}
 	if (trx_state == STATE_TUNE)
 		trx_receive();
-	if (btnTune)
-		btnTune->value(0);
-	if (wf && wf->xmtrcv)
-		wf->xmtrcv->value(0);
+	show_tune(false);
+	show_tr(false);
 }
 
 void engine_transmit(int on)
@@ -874,14 +883,12 @@ void engine_transmit(int on)
 			return;
 		active_modem->set_stopflag(false);
 		trx_transmit();
-		if (wf && wf->xmtrcv)
-			wf->xmtrcv->value(1);
+		show_tr(true);
 		return;
 	}
 	if (trx_state == STATE_TUNE) {
 		trx_receive();
-		if (btnTune)
-			btnTune->value(0);
+		show_tune(false);
 	} else if (trx_state == STATE_TX) {
 		queue_reset();
 		active_modem->set_stopflag(true);
@@ -891,8 +898,7 @@ void engine_transmit(int on)
 		// Drop the state here so a second click always returns to receive.
 		trx_receive();
 	}
-	if (wf && wf->xmtrcv)
-		wf->xmtrcv->value(0);
+	show_tr(false);
 }
 
 void engine_abort()
@@ -907,10 +913,8 @@ void engine_abort()
 	active_modem->set_stopflag(true);
 	if (TransmitText)
 		TransmitText->clear();
-	if (btnTune)
-		btnTune->value(0);
-	if (wf && wf->xmtrcv)
-		wf->xmtrcv->value(0);
+	show_tune(false);
+	show_tr(false);
 	// Restarts the modem in receive and leaves the transmit loop at once.
 	trx_start_modem(active_modem);
 }
@@ -961,15 +965,7 @@ void engine_set_tci(int enable, int audio, const char* host, const char* port, i
 
 void engine_set_squelch(int value)
 {
-	if (value < 0)
-		value = 0;
-	if (value > 100)
-		value = 100;
-	progStatus.sldrSquelchValue = value;
-	if (active_modem)
-		modeband.set_mode_squelch(value);
-	if (sldrSquelch)
-		sldrSquelch->value(value);
+	set_squelch_level(value);
 }
 
 void engine_set_viewer_sql(double db)
@@ -1032,9 +1028,7 @@ void engine_set_lock(int on)
 {
 	if (!active_modem)
 		return;
-	active_modem->set_freqlock(on ? true : false);
-	if (wf && wf->xmtlock)
-		wf->xmtlock->value(on ? 1 : 0);
+	set_tx_lock(on != 0);
 }
 
 void engine_wf_mode(int mode)
@@ -1081,8 +1075,6 @@ void engine_wf_center()
 void engine_wf_ref(int db)
 {
 	progdefaults.wfRefLevel = db;
-	if (wf && wf->wfRefLevel)
-		wf->wfRefLevel->value(db);
 }
 
 void engine_wf_span(int db)
@@ -1122,6 +1114,7 @@ int engine_store(char* buf, int cap)
 	if ((int)g_store.size() >= 30)
 		g_store.erase(g_store.begin());
 	g_store.push_back(mark);
+	store_save();
 	char body[160];
 	store_text(mark, body, (int)sizeof body);
 	if (buf && cap > 0)
@@ -1166,6 +1159,7 @@ void engine_store_select(int index)
 void engine_store_clear()
 {
 	g_store.clear();
+	store_save();
 }
 
 int engine_waterfall(unsigned char* rgbx, int cap, int* width, int* height)
@@ -1295,12 +1289,6 @@ void engine_set_operator(const char* call, const char* locator, const char* ante
 		progdefaults.myLocator.assign(locator);
 	if (antenna)
 		progdefaults.myAntenna.assign(antenna);
-	if (inpMyCallsign)
-		inpMyCallsign->value(progdefaults.myCall.c_str());
-	if (inpMyLocator)
-		inpMyLocator->value(progdefaults.myLocator.c_str());
-	if (inpMyAntenna)
-		inpMyAntenna->value(progdefaults.myAntenna.c_str());
 }
 
 static void set_input(Fl_Input2* box, const char* text)

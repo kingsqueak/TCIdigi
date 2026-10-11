@@ -51,6 +51,15 @@ void WaterfallView::setFrame(const QImage& image, int hzLow, int hzHigh, int car
 	update();
 }
 
+void WaterfallView::setTxLock(bool locked, int txHz)
+{
+	if (locked == m_locked && txHz == m_txHz)
+		return;
+	m_locked = locked;
+	m_txHz = txHz;
+	update();
+}
+
 // The hidden waterfall is a short strip. Stretching this pane used to scale
 // those rows. Keep each spectrum one pixel tall and scroll the older rows down.
 void WaterfallView::remember(const QImage& image)
@@ -346,6 +355,22 @@ void WaterfallView::paintEvent(QPaintEvent*)
 		vline(centerHz, center);
 	};
 	drawSpan(carrier, QColor(255, 0, 0), mark);
+	// Lk: amber span where transmit is held, and a TX tab at the top so the
+	// lock still shows when receive sits on the same spot.
+	if (m_locked && live && m_txHz >= hzLow && m_txHz <= hzHigh) {
+		const QColor amber(255, 176, 0);
+		if (m_txHz != carrier)
+			drawSpan(m_txHz, amber, amber);
+		const QString tag = QStringLiteral("TX");
+		const int tw = fm.horizontalAdvance(tag) + 8;
+		const int th = fm.height() + 2;
+		int tx = xOf(m_txHz) - tw / 2;
+		tx = qBound(plot.left(), tx, qMax(plot.left(), plot.right() - tw + 1));
+		const QRect tab(tx, plot.top(), tw, th);
+		p.fillRect(tab, amber);
+		p.setPen(QColor(0, 0, 0));
+		p.drawText(tab, Qt::AlignCenter, tag);
+	}
 	if (m_hoverHz >= hzLow && m_hoverHz <= hzHigh)
 		drawSpan(m_hoverHz, QColor(255, 255, 255), QColor(255, 255, 255));
 }
