@@ -1,4 +1,4 @@
-
+# Deprecated repo - project current is on Sourceforge.
 
 ======================================
 
