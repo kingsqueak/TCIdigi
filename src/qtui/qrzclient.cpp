@@ -91,6 +91,11 @@ QString formValue(const QByteArray& body, const char* key)
 	return {};
 }
 
+} // namespace
+
+// Shared with the eQSL upload.
+namespace qsoadif {
+
 QString normalizeCall(const QString& raw)
 {
 	QString out;
@@ -177,6 +182,12 @@ long long signalHz(const QrzQso& qso)
 	const long long hz = lower ? qso.dialHz - audio : qso.dialHz + audio;
 	return hz > 0 ? hz : 0;
 }
+
+} // namespace qsoadif
+
+using namespace qsoadif;
+
+namespace {
 
 QByteArray buildAdif(const QrzQso& qso, QString* error)
 {

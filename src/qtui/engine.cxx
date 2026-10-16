@@ -287,6 +287,30 @@ void engine_qrz_account(char* user, int user_cap, char* password, int pass_cap,
 	put(antenna, antenna_cap, progdefaults.myAntenna);
 }
 
+void engine_eqsl_account(char* user, int user_cap, char* password, int pass_cap,
+	char* nickname, int nick_cap, char* message, int message_cap, int* when_logged)
+{
+	auto put = [](char* dst, int cap, const std::string& src) {
+		if (!dst || cap < 1)
+			return;
+		std::snprintf(dst, (size_t)cap, "%s", src.c_str());
+	};
+	put(user, user_cap, "");
+	put(password, pass_cap, "");
+	put(nickname, nick_cap, "");
+	put(message, message_cap, "");
+	if (when_logged)
+		*when_logged = 0;
+	if (!g_up)
+		return;
+	put(user, user_cap, progdefaults.eqsl_id);
+	put(password, pass_cap, progdefaults.eqsl_pwd);
+	put(nickname, nick_cap, progdefaults.eqsl_nick);
+	put(message, message_cap, progdefaults.eqsl_default_message);
+	if (when_logged)
+		*when_logged = progdefaults.eqsl_when_logged ? 1 : 0;
+}
+
 int engine_start(int argc, char** argv)
 {
 	g_mode_n = -1;
@@ -454,11 +478,13 @@ void engine_view(EngineView* out)
 	copy_str(out->status, (int)sizeof out->status, line.empty() ? state : line.c_str());
 }
 
-int engine_rx_delta(char* buf, int cap)
+int engine_rx_delta(char* buf, char* kinds, int cap)
 {
+	static_assert(ENGINE_RX_RECV == TCIDIGI_RX_RECV && ENGINE_RX_XMIT == TCIDIGI_RX_XMIT
+		&& ENGINE_RX_NOTE == TCIDIGI_RX_NOTE, "receive kinds differ");
 	if (!g_up)
 		return 0;
-	return tcidigi_rx_take(buf, cap);
+	return tcidigi_rx_take(buf, kinds, cap);
 }
 
 void engine_clear_rx()

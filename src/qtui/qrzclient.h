@@ -47,6 +47,20 @@ struct QrzQso {
 	QString comment; // ADIF COMMENT, empty means omit
 };
 
+// ADIF pieces shared by the QRZ and eQSL uploads.
+namespace qsoadif {
+// Upper case, letters, digits and '/', reduced to the base call.
+QString normalizeCall(const QString& raw);
+// "<NAME:len>value", or nothing when value is blank.
+QByteArray adif(const char* name, const QString& value);
+// "20m" and so on, or empty outside the amateur bands.
+QString bandName(long long hz);
+// fldigi modem name to ADIF MODE and SUBMODE.
+void adifMode(const QString& modem, QString* mode, QString* submode);
+// Signal frequency: dial plus or minus the audio carrier.
+long long signalHz(const QrzQso& qso);
+}
+
 class QrzClient : public QObject
 {
 	Q_OBJECT

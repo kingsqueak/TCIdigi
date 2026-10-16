@@ -57,6 +57,8 @@ qt_add_executable(fldigi-qt
   mainwindow.cpp
   qrzclient.h
   qrzclient.cpp
+  eqslclient.h
+  eqslclient.cpp
   waterfallview.h
   waterfallview.cpp
   ${FLDIGI_MODEM_OBJECTS}

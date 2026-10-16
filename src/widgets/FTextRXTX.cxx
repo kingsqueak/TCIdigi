@@ -2227,6 +2227,8 @@ struct RxStream {
 	bool cleared;
 	std::string text;
 	std::string pending;
+	// One kind byte (TCIDIGI_RX_*) for each byte of pending.
+	std::string kinds;
 	pthread_mutex_t lock;
 
 	RxStream() : on(false), cleared(false)
@@ -2257,10 +2259,22 @@ void rx_erase_locked()
 	// Erase pending text in place. A character the window already took
 	// needs a '\b' it can apply.
 	n = last_char_start(g_rx.pending);
-	if (n != std::string::npos && g_rx.pending[n] != '\b')
+	if (n != std::string::npos && g_rx.pending[n] != '\b') {
 		g_rx.pending.erase(n);
-	else
+		g_rx.kinds.erase(n);
+	} else {
 		g_rx.pending += '\b';
+		g_rx.kinds += char(TCIDIGI_RX_NOTE);
+	}
+}
+
+char rx_kind(int attr)
+{
+	if (attr == FTextBase::RECV)
+		return TCIDIGI_RX_RECV;
+	if (attr == FTextBase::XMIT)
+		return TCIDIGI_RX_XMIT;
+	return TCIDIGI_RX_NOTE;
 }
 
 } // namespace
@@ -2271,6 +2285,7 @@ void tcidigi_rx_use(bool on)
 	g_rx.on = on;
 	g_rx.text.clear();
 	g_rx.pending.clear();
+	g_rx.kinds.clear();
 	g_rx.cleared = false;
 }
 
@@ -2298,6 +2313,7 @@ void tcidigi_rx_add(unsigned int c, int attr)
 		add = char(c);
 	g_rx.text += add;
 	g_rx.pending += add;
+	g_rx.kinds.append(add.size(), rx_kind(attr));
 	// Past the limit, keep the newest three quarters from a line start.
 	if (g_rx.text.size() > kRxKeep) {
 		size_t cut = g_rx.text.find('\n', g_rx.text.size() - kRxKeep * 3 / 4);
@@ -2320,12 +2336,13 @@ void tcidigi_rx_clear()
 		return;
 	g_rx.text.clear();
 	g_rx.pending.clear();
+	g_rx.kinds.clear();
 	g_rx.cleared = true;
 }
 
-int tcidigi_rx_take(char* buf, int cap)
+int tcidigi_rx_take(char* buf, char* kinds, int cap)
 {
-	if (!buf || cap < 2)
+	if (!buf || !kinds || cap < 2)
 		return 0;
 	TxLock guard(&g_rx.lock);
 	buf[0] = 0;
@@ -2343,8 +2360,10 @@ int tcidigi_rx_take(char* buf, int cap)
 			--n;
 	}
 	std::memcpy(buf, g_rx.pending.data(), n);
+	std::memcpy(kinds, g_rx.kinds.data(), n);
 	buf[n] = 0;
 	g_rx.pending.erase(0, n);
+	g_rx.kinds.erase(0, n);
 	return (int)n;
 }
 

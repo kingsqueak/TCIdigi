@@ -66,11 +66,18 @@ void engine_stop();
 void engine_qrz_account(char* user, int user_cap, char* password, int pass_cap,
 	char* call, int call_cap, char* grid, int grid_cap,
 	char* antenna, int antenna_cap);
+// fldigi's eQSL settings: user ID, password, QTH nickname, default QSL
+// message, and whether a logged contact is also sent to eQSL.
+void engine_eqsl_account(char* user, int user_cap, char* password, int pass_cap,
+	char* nickname, int nick_cap, char* message, int message_cap, int* when_logged);
 void engine_tick();
 void engine_view(EngineView* out);
 
 // Newly received bytes. Returns -1 when the receive buffer was cleared.
-int engine_rx_delta(char* buf, int cap);
+// kinds gets one byte per byte of buf: ENGINE_RX_RECV, ENGINE_RX_XMIT for
+// the echo of sent text, or ENGINE_RX_NOTE for anything else.
+enum { ENGINE_RX_RECV = 0, ENGINE_RX_XMIT = 1, ENGINE_RX_NOTE = 2 };
+int engine_rx_delta(char* buf, char* kinds, int cap);
 void engine_clear_rx();
 void engine_clear_tx();
 int engine_tx_text(char* buf, int cap);

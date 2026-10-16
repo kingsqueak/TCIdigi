@@ -14,6 +14,7 @@
 #include "mainwindow.h"
 
 #include "engine.h"
+#include "eqslclient.h"
 #include "qrzclient.h"
 #include "waterfallview.h"
 #include "tcidigi_version.h"
@@ -25,6 +26,7 @@
 #include <QByteArray>
 #include <QCheckBox>
 #include <QCloseEvent>
+#include <QColorDialog>
 #include <QContextMenuEvent>
 #include <QComboBox>
 #include <QCursor>
@@ -42,6 +44,7 @@
 #include <QGuiApplication>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QImage>
 #include <QKeyEvent>
 #include <QKeySequence>
@@ -55,6 +58,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPaintEvent>
+#include <QPixmap>
 #include <QPlainTextEdit>
 #include <QRegularExpression>
 #include <QStyleOption>
@@ -73,6 +77,7 @@
 #include <QStyledItemDelegate>
 #include <QStyle>
 #include <QStyleOptionButton>
+#include <QTextBlock>
 #include <QTextCharFormat>
 #include <QTextCursor>
 #include <QTimer>
@@ -1701,13 +1706,115 @@ bool editQrzAccount(QWidget* parent)
 	return dialog.exec() == QDialog::Accepted;
 }
 
-QWidget* qrzLogRow(QWidget* parent, QrzClient* client, const std::function<void(const QString&)>& needAccount)
+struct EqslAccount {
+	QString user;
+	QString password;
+	QString nickname;
+	QString message;
+	bool whenLogged = false;
+};
+
+// fldigi's eQSL settings, with anything saved in this window on top.
+EqslAccount eqslAccount()
+{
+	EqslAccount account;
+	if (engine_up()) {
+		char user[80];
+		char password[80];
+		char nickname[120];
+		char message[400];
+		int whenLogged = 0;
+		engine_eqsl_account(user, (int)sizeof user, password, (int)sizeof password,
+			nickname, (int)sizeof nickname, message, (int)sizeof message, &whenLogged);
+		account.user = QString::fromUtf8(user);
+		account.password = QString::fromUtf8(password);
+		account.nickname = QString::fromUtf8(nickname);
+		account.message = QString::fromUtf8(message);
+		account.whenLogged = whenLogged != 0;
+	}
+	QSettings settings;
+	const auto take = [&settings](const char* key, QString* field) {
+		const QString name = QString::fromLatin1(key);
+		if (settings.contains(name))
+			*field = settings.value(name).toString();
+	};
+	take("eqsl/user", &account.user);
+	take("eqsl/password", &account.password);
+	take("eqsl/nickname", &account.nickname);
+	take("eqsl/message", &account.message);
+	if (settings.contains(QStringLiteral("eqsl/whenLogged")))
+		account.whenLogged = settings.value(QStringLiteral("eqsl/whenLogged")).toBool();
+	return account;
+}
+
+// True when a logged contact should also go to eQSL.
+bool applyEqslAccount(EqslClient* client)
+{
+	const EqslAccount account = eqslAccount();
+	client->setAccount(account.user, account.password, account.nickname, account.message);
+	return account.whenLogged;
+}
+
+bool editEqslAccount(QWidget* parent)
+{
+	const EqslAccount current = eqslAccount();
+	QDialog dialog(parent);
+	dialog.setWindowTitle(QStringLiteral("eQSL account"));
+	dialog.setMinimumWidth(460);
+	auto* form = new QFormLayout(&dialog);
+	auto* about = new QLabel(QStringLiteral(
+		"Log sends the contact to eQSL.cc when this is turned on, along with QRZ "
+		"when a QRZ logbook key is set. The QTH nickname picks the eQSL location "
+		"when your account has more than one. In the message, {CALL}, {NAME} and "
+		"{MODE} are filled in from the contact."));
+	about->setWordWrap(true);
+	form->addRow(about);
+
+	auto* send = new QCheckBox(QStringLiteral("Send to eQSL when logging"));
+	send->setChecked(current.whenLogged);
+	auto* user = new QLineEdit(current.user);
+	user->setPlaceholderText(QStringLiteral("Your eQSL user ID, usually your call"));
+	auto* password = new QLineEdit(current.password);
+	password->setEchoMode(QLineEdit::Password);
+	auto* nickname = new QLineEdit(current.nickname);
+	nickname->setPlaceholderText(QStringLiteral("Optional"));
+	auto* message = new QLineEdit(current.message);
+	message->setPlaceholderText(QStringLiteral("Tnx {NAME} for the {MODE} QSO"));
+	form->addRow(send);
+	form->addRow(QStringLiteral("eQSL user ID"), user);
+	form->addRow(QStringLiteral("eQSL password"), password);
+	form->addRow(QStringLiteral("QTH nickname"), nickname);
+	form->addRow(QStringLiteral("QSL message"), message);
+
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Close);
+	form->addRow(buttons);
+	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, [&] {
+		QSettings settings;
+		settings.setValue(QStringLiteral("eqsl/whenLogged"), send->isChecked());
+		settings.setValue(QStringLiteral("eqsl/user"), user->text().trimmed().toUpper());
+		settings.setValue(QStringLiteral("eqsl/password"), password->text());
+		settings.setValue(QStringLiteral("eqsl/nickname"), nickname->text().trimmed());
+		settings.setValue(QStringLiteral("eqsl/message"), message->text().trimmed());
+		dialog.accept();
+	});
+	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	return dialog.exec() == QDialog::Accepted;
+}
+
+// needAccount gets "QRZ username and password", "QRZ logbook key" or
+// "eQSL account" for the account that is missing.
+QWidget* qrzLogRow(QWidget* parent, QrzClient* client, EqslClient* eqsl,
+	const std::function<void(const QString&)>& needAccount)
 {
 	auto* host = new QWidget(parent);
 	host->setObjectName(QStringLiteral("qrzRow"));
-	auto* row = new QHBoxLayout(host);
-	row->setContentsMargins(0, 0, 0, 0);
-	row->setSpacing(6);
+	// Two rows that line up with the two header rows beside it:
+	//   Call  Lookup  Name          QTH
+	//   Grid  Log     Sent  Rcvd    status
+	auto* row = new QGridLayout(host);
+	row->setContentsMargins(12, 0, 12, 0);
+	row->setHorizontalSpacing(6);
+	row->setVerticalSpacing(4);
 
 	auto* call = new QLineEdit;
 	call->setObjectName(QStringLiteral("qrzCall"));
@@ -1736,7 +1843,7 @@ QWidget* qrzLogRow(QWidget* parent, QrzClient* client, const std::function<void(
 	grid->setPlaceholderText(QStringLiteral("Grid"));
 	grid->setToolTip(QStringLiteral("Maidenhead grid from QRZ."));
 	grid->setMaxLength(8);
-	grid->setFixedWidth(84);
+	grid->setFixedWidth(110);
 
 	auto* rstOut = new QLineEdit(QStringLiteral("599"));
 	rstOut->setObjectName(QStringLiteral("qrzRstOut"));
@@ -1753,25 +1860,51 @@ QWidget* qrzLogRow(QWidget* parent, QrzClient* client, const std::function<void(
 	rstIn->setFixedWidth(58);
 
 	auto* log = stripButton(QStringLiteral("Log"),
-		QStringLiteral("Upload this contact to the QRZ logbook."));
+		QStringLiteral("Send this contact to the QRZ logbook, and to eQSL when that is turned on."));
 	log->setObjectName(QStringLiteral("qrzLog"));
 
 	auto* result = new QLabel(QStringLiteral("QRZ"));
 	result->setObjectName(QStringLiteral("qrzResult"));
-	result->setMinimumWidth(160);
+	result->setMinimumWidth(120);
 	result->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	result->setCursor(Qt::PointingHandCursor);
 	result->setTextInteractionFlags(Qt::NoTextInteraction);
 
-	row->addWidget(call);
-	row->addWidget(lookup);
-	row->addWidget(name, 1);
-	row->addWidget(qth, 1);
-	row->addWidget(grid);
-	row->addWidget(rstOut);
-	row->addWidget(rstIn);
-	row->addWidget(log);
-	row->addWidget(result, 1);
+	const auto caption = [](const QString& text, QWidget* buddy) {
+		auto* label = new QLabel(text);
+		label->setObjectName(QStringLiteral("qrzCaption"));
+		label->setForegroundRole(QPalette::PlaceholderText);
+		label->setBuddy(buddy);
+		return label;
+	};
+	auto* reports = new QHBoxLayout;
+	reports->setSpacing(6);
+	reports->addWidget(caption(QStringLiteral("Sent"), rstOut));
+	reports->addWidget(rstOut);
+	reports->addSpacing(6);
+	reports->addWidget(caption(QStringLiteral("Rcvd"), rstIn));
+	reports->addWidget(rstIn);
+	reports->addStretch(1);
+
+	row->addWidget(call, 0, 0);
+	row->addWidget(lookup, 0, 1);
+	row->addWidget(name, 0, 2);
+	row->addWidget(qth, 0, 3);
+	row->addWidget(grid, 1, 0);
+	row->addWidget(log, 1, 1);
+	row->addLayout(reports, 1, 2);
+	row->addWidget(result, 1, 3);
+	row->setColumnStretch(2, 1);
+	row->setColumnStretch(3, 1);
+	// Boxes as tall as the buttons, so both rows line up with the button
+	// rows to the left and right of this block.
+	// The window stylesheet sets the button size. The row is not in the
+	// window yet, so measure once it is.
+	QTimer::singleShot(0, host, [=] {
+		const int lineHeight = lookup->sizeHint().height();
+		for (QWidget* box : std::initializer_list<QWidget*>{ call, name, qth, grid, rstOut, rstIn, lookup, log, result })
+			box->setFixedHeight(lineHeight);
+	});
 
 	// UTC of the lookup, plus the comment for this entry. The time is cleared
 	// when the call is edited, so a later Log uses the time of the lookup
@@ -1782,6 +1915,14 @@ QWidget* qrzLogRow(QWidget* parent, QrzClient* client, const std::function<void(
 		QString comment;
 		QString status;
 		QString statusTip;
+		// One Log can go to QRZ and eQSL. Each reports here; the boxes clear
+		// once every upload that was asked for has gone through.
+		QString qrzNote;
+		QString eqslNote;
+		bool waitQrz = false;
+		bool waitEqsl = false;
+		bool qrzOk = false;
+		bool eqslOk = false;
 		std::function<void()> onDoubleClick;
 		using QObject::QObject;
 		bool eventFilter(QObject* watched, QEvent* event) override
@@ -1850,10 +1991,13 @@ QWidget* qrzLogRow(QWidget* parent, QrzClient* client, const std::function<void(
 
 	auto setBusy = [=](bool busy) {
 		lookup->setEnabled(!busy);
-		log->setEnabled(!busy);
+		log->setEnabled(!busy && !eqsl->busy());
 		call->setReadOnly(busy);
 	};
 	QObject::connect(client, &QrzClient::busyChanged, host, setBusy);
+	QObject::connect(eqsl, &EqslClient::busyChanged, host, [=](bool busy) {
+		log->setEnabled(!busy && lookup->isEnabled());
+	});
 
 	auto showWorked = [=](bool worked) {
 		call->setProperty("worked", worked);
@@ -1895,13 +2039,17 @@ QWidget* qrzLogRow(QWidget* parent, QrzClient* client, const std::function<void(
 		const QDateTime now = QDateTime::currentDateTimeUtc();
 		stamp->date = now.toString(QStringLiteral("yyyyMMdd"));
 		stamp->time = now.toString(QStringLiteral("HHmmss"));
+		// Name and QTH are in their boxes already. The status names the
+		// country, which has no box of its own.
 		QString text = station.call;
 		if (!station.name.isEmpty())
 			text += QStringLiteral("  ") + station.name;
 		if (!station.qth.isEmpty())
 			text += QStringLiteral(", ") + station.qth;
-		stamp->status = text;
-		stamp->statusTip = station.country.isEmpty() ? text : station.country;
+		stamp->status = station.country.isEmpty() ? station.call
+			: station.call + QStringLiteral("  ·  ") + station.country;
+		stamp->statusTip = station.country.isEmpty() ? text
+			: text + QLatin1Char('\n') + station.country;
 		paintResult();
 	});
 	QObject::connect(client, &QrzClient::workedBefore, host, [=](const QString& workedCall, bool worked) {
@@ -1916,12 +2064,22 @@ QWidget* qrzLogRow(QWidget* parent, QrzClient* client, const std::function<void(
 		stamp->statusTip = QStringLiteral("This station is already in the QRZ logbook.");
 		paintResult();
 	});
-	QObject::connect(client, &QrzClient::logged, host, [=](const QString& logId) {
+	auto showLog = [=] {
+		QStringList notes;
+		if (!stamp->qrzNote.isEmpty())
+			notes << stamp->qrzNote;
+		if (!stamp->eqslNote.isEmpty())
+			notes << stamp->eqslNote;
+		stamp->status = notes.join(QStringLiteral("  ·  "));
+		stamp->statusTip = notes.join(QLatin1Char('\n'));
+		paintResult();
+		if (stamp->waitQrz || stamp->waitEqsl)
+			return;
+		const bool wantedQrz = !stamp->qrzNote.isEmpty();
+		const bool wantedEqsl = !stamp->eqslNote.isEmpty();
+		if ((wantedQrz && !stamp->qrzOk) || (wantedEqsl && !stamp->eqslOk))
+			return;
 		stamp->comment.clear();
-		stamp->status = logId.isEmpty()
-			? QStringLiteral("Logged to QRZ.")
-			: QStringLiteral("Logged to QRZ. ") + logId;
-		stamp->statusTip = stamp->status;
 		paintResult();
 		call->clear();
 		name->clear();
@@ -1930,16 +2088,48 @@ QWidget* qrzLogRow(QWidget* parent, QrzClient* client, const std::function<void(
 		stamp->date.clear();
 		stamp->time.clear();
 		showWorked(false);
+	};
+	QObject::connect(client, &QrzClient::logged, host, [=](const QString& logId) {
+		stamp->waitQrz = false;
+		stamp->qrzOk = true;
+		stamp->qrzNote = logId.isEmpty()
+			? QStringLiteral("Logged to QRZ.")
+			: QStringLiteral("Logged to QRZ. ") + logId;
+		showLog();
 	});
 	QObject::connect(client, &QrzClient::failed, host, [=](const QString& message) {
+		if (stamp->waitQrz) {
+			stamp->waitQrz = false;
+			stamp->qrzNote = message;
+			showLog();
+			return;
+		}
 		stamp->status = message;
 		stamp->statusTip = message;
 		paintResult();
 	});
+	QObject::connect(eqsl, &EqslClient::sent, host, [=](const QString&) {
+		stamp->waitEqsl = false;
+		stamp->eqslOk = true;
+		stamp->eqslNote = QStringLiteral("eQSL sent.");
+		showLog();
+	});
+	QObject::connect(eqsl, &EqslClient::failed, host, [=](const QString& message) {
+		stamp->waitEqsl = false;
+		stamp->eqslNote = message;
+		showLog();
+	});
 
 	QObject::connect(log, &QPushButton::clicked, host, [=] {
 		applyQrzAccount(client);
-		if (!client->hasLogKey()) {
+		const bool eqslOn = applyEqslAccount(eqsl);
+		const bool toQrz = client->hasLogKey();
+		const bool toEqsl = eqslOn && eqsl->hasLogin();
+		if (eqslOn && !eqsl->hasLogin()) {
+			needAccount(QStringLiteral("eQSL account"));
+			return;
+		}
+		if (!toQrz && !toEqsl) {
 			needAccount(QStringLiteral("QRZ logbook key"));
 			return;
 		}
@@ -1964,9 +2154,17 @@ QWidget* qrzLogRow(QWidget* parent, QrzClient* client, const std::function<void(
 		qso.dateOn = stamp->date;
 		qso.timeOn = stamp->time;
 		qso.comment = stamp->comment;
-		stamp->status = QStringLiteral("Logging…");
-		paintResult();
-		client->insert(qso);
+		stamp->waitQrz = toQrz;
+		stamp->waitEqsl = toEqsl;
+		stamp->qrzOk = false;
+		stamp->eqslOk = false;
+		stamp->qrzNote = toQrz ? QStringLiteral("QRZ…") : QString();
+		stamp->eqslNote = toEqsl ? QStringLiteral("eQSL…") : QString();
+		showLog();
+		if (toQrz)
+			client->insert(qso);
+		if (toEqsl)
+			eqsl->upload(qso);
 	});
 
 	auto* actions = new QrzRowActions(host);
@@ -3099,21 +3297,35 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	head->addWidget(m_freq, 0, 0, 1, 2);
 	head->addWidget(rigMode, 1, 0);
 	head->addWidget(rigFilter, 1, 1);
-	head->addWidget(m_mode, 0, 2, Qt::AlignBottom);
-	head->addWidget(browser, 1, 2);
+	// The modem chooser and Browser stack like the ID and tune buttons on
+	// the right, centered on the header, so their rows line up.
+	browser->ensurePolished();
+	m_mode->setFixedHeight(browser->sizeHint().height());
+	auto* modeColumn = new QVBoxLayout;
+	modeColumn->setSpacing(4);
+	modeColumn->addWidget(m_mode);
+	modeColumn->addWidget(browser);
+	head->addLayout(modeColumn, 0, 2, 2, 1, Qt::AlignVCenter);
 	head->setColumnStretch(3, 1);
 	head->addLayout(ops, 0, 4, 2, 1, Qt::AlignRight | Qt::AlignVCenter);
 	root->addLayout(head);
 
+	// The lookup and log fields fill the header between the mode controls
+	// and the ID and tune buttons.
 	auto* qrz = new QrzClient(this);
 	applyQrzAccount(qrz);
-	auto* qrzRow = qrzLogRow(central, qrz, [this, qrz](const QString&) {
+	auto* eqsl = new EqslClient(this);
+	auto* qrzRow = qrzLogRow(central, qrz, eqsl, [this, qrz](const QString& missing) {
+		if (missing.startsWith(QLatin1String("eQSL"))) {
+			editEqslAccount(this);
+			return;
+		}
 		if (editQrzAccount(this)) {
 			applyQrzAccount(qrz);
 			pushOperator();
 		}
 	});
-	root->addWidget(qrzRow);
+	head->addWidget(qrzRow, 0, 3, 2, 1, Qt::AlignVCenter);
 	auto* rxCalls = new RxCallFilter(m_rx);
 	rxCalls->onCall = [qrzRow](const QString& call) { qrzApplyCall(qrzRow, call); };
 	m_rx->viewport()->installEventFilter(rxCalls);
@@ -3519,6 +3731,10 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 			font.setPointSize(qBound(8, points, 72));
 			applyTextFont(font);
 		}
+		m_rxColor = QColor(settings.value(QStringLiteral("textColor/rx")).toString());
+		m_txColor = QColor(settings.value(QStringLiteral("textColor/tx"),
+			QStringLiteral("#e5534b")).toString());
+		applyTextColors();
 	}
 	auto* logMenu = new QMenu(QStringLiteral("Log"), this);
 	logMenu->addAction(QStringLiteral("QRZ account…"), this, [this, qrz] {
@@ -3526,6 +3742,9 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 			applyQrzAccount(qrz);
 			pushOperator();
 		}
+	});
+	logMenu->addAction(QStringLiteral("eQSL account…"), this, [this] {
+		editEqslAccount(this);
 	});
 	const QList<QAction*> bar = menuBar()->actions();
 	if (bar.isEmpty())
@@ -3760,13 +3979,28 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 			dropRate->setText(QString::fromLatin1(speedName));
 
 			char chunk[8192];
-			const int got = engine_rx_delta(chunk, (int)sizeof chunk);
+			char kinds[8192];
+			const int got = engine_rx_delta(chunk, kinds, (int)sizeof chunk);
 			if (got < 0) {
 				m_rxHeld.clear();
+				m_rxHeldKinds.clear();
 				m_rxErase = 0;
 				m_rx->clear();
 			} else if (got > 0) {
-				addRxText(QString::fromUtf8(chunk, got));
+				// Decode each run of one kind on its own. A character's bytes
+				// all share a kind, so no run splits a character.
+				QString text;
+				QByteArray textKinds;
+				for (int at = 0; at < got;) {
+					int end = at + 1;
+					while (end < got && kinds[end] == kinds[at])
+						++end;
+					const QString run = QString::fromUtf8(chunk + at, end - at);
+					text += run;
+					textKinds.append(run.size(), kinds[at]);
+					at = end;
+				}
+				addRxText(text, textKinds);
 			}
 			const bool picture = engine_rx_is_picture() != 0;
 			rxPane->setPicture(picture);
@@ -3905,7 +4139,7 @@ void MainWindow::buildMenus()
 	configureMenu->addAction(QStringLiteral("TCI…"), this, [this] {
 		editTci(this);
 	});
-	configureMenu->addAction(QStringLiteral("Text font…"), this, [this] {
+	configureMenu->addAction(QStringLiteral("Text font and colors…"), this, [this] {
 		chooseTextFont();
 	});
 
@@ -3950,24 +4184,49 @@ static bool atBottom(const QPlainTextEdit* edit)
 	return bar->value() >= bar->maximum() - 4;
 }
 
-void MainWindow::addRxText(const QString& text)
+namespace {
+
+// Marks each run in the receive pane with its ENGINE_RX_* kind so a color
+// change can find the text it applies to.
+const int kRxKindProperty = QTextFormat::UserProperty + 1;
+
+QTextCharFormat rxKindFormat(QTextCharFormat format, int kind, const QColor& rx, const QColor& tx)
+{
+	format.setProperty(kRxKindProperty, kind);
+	const QColor color = kind == ENGINE_RX_RECV ? rx
+		: kind == ENGINE_RX_XMIT ? tx : QColor();
+	if (color.isValid())
+		format.setForeground(color);
+	else
+		format.clearForeground();
+	return format;
+}
+
+} // namespace
+
+void MainWindow::addRxText(const QString& text, const QByteArray& kinds)
 {
 	if (!m_rx || text.isEmpty())
 		return;
 	// A backspace erases the newest character: held text first, then text
 	// already in the pane once it is released.
-	for (const QChar ch : text) {
+	for (int i = 0; i < text.size(); ++i) {
+		const QChar ch = text.at(i);
 		if (ch != QLatin1Char('\b')) {
 			m_rxHeld += ch;
+			m_rxHeldKinds += i < kinds.size() ? kinds.at(i) : char(ENGINE_RX_RECV);
 			continue;
 		}
 		if (m_rxHeld.isEmpty()) {
 			++m_rxErase;
 			continue;
 		}
-		m_rxHeld.chop(1);
-		if (!m_rxHeld.isEmpty() && m_rxHeld.back().isHighSurrogate())
-			m_rxHeld.chop(1);
+		int drop = 1;
+		if (m_rxHeld.size() > 1 && m_rxHeld.back().isLowSurrogate()
+			&& m_rxHeld.at(m_rxHeld.size() - 2).isHighSurrogate())
+			drop = 2;
+		m_rxHeld.chop(drop);
+		m_rxHeldKinds.chop(drop);
 	}
 	releaseRxText();
 }
@@ -3977,15 +4236,54 @@ void MainWindow::releaseRxText()
 	if (!m_rx || (m_rxHeld.isEmpty() && !m_rxErase) || !atBottom(m_rx))
 		return;
 	const QString text = m_rxHeld;
+	const QByteArray kinds = m_rxHeldKinds;
 	m_rxHeld.clear();
+	m_rxHeldKinds.clear();
 	// A cursor of its own: the view's cursor and any selection stay put.
 	QTextCursor end(m_rx->document());
 	end.movePosition(QTextCursor::End);
 	for (; m_rxErase > 0; --m_rxErase)
 		end.deletePreviousChar();
-	end.insertText(text);
+	for (int at = 0; at < text.size();) {
+		int stop = at + 1;
+		while (stop < text.size() && kinds.at(stop) == kinds.at(at))
+			++stop;
+		end.insertText(text.mid(at, stop - at),
+			rxKindFormat(QTextCharFormat(), kinds.at(at), m_rxColor, m_txColor));
+		at = stop;
+	}
 	QScrollBar* bar = m_rx->verticalScrollBar();
 	bar->setValue(bar->maximum());
+}
+
+void MainWindow::applyTextColors()
+{
+	if (m_rx) {
+		// Gather the runs first: setting a format can merge fragments.
+		struct Run { int start; int length; QTextCharFormat format; };
+		QList<Run> runs;
+		for (QTextBlock block = m_rx->document()->begin(); block.isValid(); block = block.next()) {
+			for (auto it = block.begin(); !it.atEnd(); ++it) {
+				const QTextFragment fragment = it.fragment();
+				if (fragment.isValid())
+					runs.append({ fragment.position(), fragment.length(), fragment.charFormat() });
+			}
+		}
+		QTextCursor cursor(m_rx->document());
+		cursor.beginEditBlock();
+		for (const Run& run : runs) {
+			const QVariant kind = run.format.property(kRxKindProperty);
+			if (!kind.isValid())
+				continue;
+			cursor.setPosition(run.start);
+			cursor.setPosition(run.start + run.length, QTextCursor::KeepAnchor);
+			cursor.setCharFormat(rxKindFormat(run.format, kind.toInt(), m_rxColor, m_txColor));
+		}
+		cursor.endEditBlock();
+	}
+	// The transmit box takes its color from the id rule applyTextFont writes.
+	if (m_rx)
+		applyTextFont(m_rx->font());
 }
 
 void MainWindow::holdStatus(const QString& text)
@@ -4030,7 +4328,12 @@ void MainWindow::applyTextFont(const QFont& font)
 		// The window stylesheet sets every widget to 13px. An id rule on the
 		// widget itself is what actually changes the size. The document font
 		// is what the receive and transmit text draws with.
-		widget->setStyleSheet(QStringLiteral("#%1 { %2 }").arg(widget->objectName(), rule));
+		QString own = rule;
+		// The placeholder keeps its gray; it would follow color otherwise.
+		if (widget == m_tx && m_txColor.isValid())
+			own += QStringLiteral(" color: %1; placeholder-text-color: %2;").arg(m_txColor.name(),
+				QApplication::palette().color(QPalette::PlaceholderText).name());
+		widget->setStyleSheet(QStringLiteral("#%1 { %2 }").arg(widget->objectName(), own));
 		widget->setFont(sized);
 		if (auto* edit = qobject_cast<QPlainTextEdit*>(widget)) {
 			edit->document()->setDefaultFont(sized);
@@ -4094,31 +4397,99 @@ void MainWindow::chooseTextFont()
 		}
 	};
 
+	const QColor startRx = m_rxColor;
+	const QColor startTx = m_txColor;
+
 	QFont current = m_rx ? m_rx->font()
 		: QFontDatabase::systemFont(QFontDatabase::FixedFont);
 	if (current.pointSize() < 1)
 		current.setPointSize(13);
 
-	// The macOS font panel has no Save button and returns without applying.
-	QFontDialog dialog(current, this);
-	dialog.setWindowTitle(QStringLiteral("Text font"));
-	dialog.setOption(QFontDialog::DontUseNativeDialog, true);
-	const auto labelSave = [&dialog] {
-		if (auto* box = dialog.findChild<QDialogButtonBox*>()) {
-			if (QPushButton* save = box->button(QDialogButtonBox::Ok))
-				save->setText(QStringLiteral("Save"));
-		}
-	};
-	labelSave();
-	connect(&dialog, &QFontDialog::currentFontChanged, this, [this](const QFont& font) {
+	QDialog dialog(this);
+	dialog.setWindowTitle(QStringLiteral("Text font and colors"));
+	auto* layout = new QVBoxLayout(&dialog);
+
+	// The macOS font panel has no Save button and returns without applying,
+	// so the Qt chooser is embedded here with the color choices under it.
+	auto* fonts = new QFontDialog(current, &dialog);
+	fonts->setOptions(QFontDialog::DontUseNativeDialog | QFontDialog::NoButtons);
+	fonts->setWindowFlags(Qt::Widget);
+	layout->addWidget(fonts, 1);
+	connect(fonts, &QFontDialog::currentFontChanged, this, [this](const QFont& font) {
 		applyTextFont(font);
 	});
-	QTimer::singleShot(0, &dialog, labelSave);
+
+	auto* colorBox = new QHBoxLayout;
+	colorBox->setSpacing(8);
+	const auto swatch = [&dialog](const QColor& color) {
+		QColor shown = color.isValid() ? color
+			: dialog.palette().color(QPalette::Text);
+		QPixmap chip(14, 14);
+		chip.fill(shown);
+		return QIcon(chip);
+	};
+	auto* rxButton = new QPushButton(QStringLiteral("Received text"));
+	rxButton->setToolTip(QStringLiteral("Color of received text in the receive pane."));
+	auto* txButton = new QPushButton(QStringLiteral("Transmitted text"));
+	txButton->setToolTip(QStringLiteral(
+		"Color of sent text in the receive pane and of the transmit box."));
+	auto* resetButton = new QPushButton(QStringLiteral("Default colors"));
+	resetButton->setToolTip(QStringLiteral(
+		"Received text follows the theme. Transmitted text is red."));
+	auto* note = new QLabel(QStringLiteral("Notices such as RSID keep the theme text color."));
+	note->setEnabled(false);
+	const auto paintButtons = [=] {
+		rxButton->setIcon(swatch(m_rxColor));
+		txButton->setIcon(swatch(m_txColor));
+	};
+	paintButtons();
+	colorBox->addWidget(rxButton);
+	colorBox->addWidget(txButton);
+	colorBox->addWidget(resetButton);
+	colorBox->addStretch(1);
+	layout->addLayout(colorBox);
+	layout->addWidget(note);
+
+	const auto pick = [&, paintButtons](QColor* target, const QString& title) {
+		const QColor before = *target;
+		QColorDialog picker(before.isValid() ? before
+			: dialog.palette().color(QPalette::Text), &dialog);
+		picker.setWindowTitle(title);
+		picker.setOption(QColorDialog::DontUseNativeDialog, true);
+		connect(&picker, &QColorDialog::currentColorChanged, this, [&](const QColor& color) {
+			*target = color;
+			applyTextColors();
+		});
+		*target = picker.exec() == QDialog::Accepted ? picker.selectedColor() : before;
+		applyTextColors();
+		paintButtons();
+	};
+	connect(rxButton, &QPushButton::clicked, &dialog, [&] {
+		pick(&m_rxColor, QStringLiteral("Received text color"));
+	});
+	connect(txButton, &QPushButton::clicked, &dialog, [&] {
+		pick(&m_txColor, QStringLiteral("Transmitted text color"));
+	});
+	connect(resetButton, &QPushButton::clicked, &dialog, [&] {
+		m_rxColor = QColor();
+		m_txColor = QColor(QStringLiteral("#e5534b"));
+		applyTextColors();
+		paintButtons();
+	});
+
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
+	layout->addWidget(buttons);
+	connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
 	if (dialog.exec() != QDialog::Accepted) {
+		m_rxColor = startRx;
+		m_txColor = startTx;
 		restore();
+		applyTextColors();
 		return;
 	}
-	QFont chosen = dialog.selectedFont();
+	QFont chosen = fonts->currentFont();
 	int points = chosen.pointSize();
 	if (points < 1)
 		points = 13;
@@ -4128,6 +4499,10 @@ void MainWindow::chooseTextFont()
 	QSettings settings;
 	settings.setValue(QStringLiteral("textFont/family"), chosen.family());
 	settings.setValue(QStringLiteral("textFont/pointSize"), points);
+	settings.setValue(QStringLiteral("textColor/rx"),
+		m_rxColor.isValid() ? m_rxColor.name() : QString());
+	settings.setValue(QStringLiteral("textColor/tx"),
+		m_txColor.isValid() ? m_txColor.name() : QString());
 }
 
 #include "mainwindow.moc"

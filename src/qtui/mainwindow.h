@@ -16,6 +16,8 @@
 
 #include "theme.h"
 
+#include <QByteArray>
+#include <QColor>
 #include <QMainWindow>
 #include <QString>
 
@@ -46,12 +48,16 @@ private:
 	void holdStatus(const QString& text);
 	void applyTextFont(const QFont& font);
 	void chooseTextFont();
+	// Received text and the echo of sent text take these colors in the
+	// receive pane; sent text also in the transmit box. An invalid color
+	// follows the theme. Notices always follow the theme.
+	void applyTextColors();
 	// Copy the modem transmit buffer into the transmit box, including while
 	// that box has focus. m_txSeen is the last text taken from the modem.
 	void showEngineTxText();
 	// New receive text waits in m_rxHeld while the pane is scrolled back,
 	// so reading history is not interrupted. Reaching the bottom adds it.
-	void addRxText(const QString& text);
+	void addRxText(const QString& text, const QByteArray& kinds);
 	void releaseRxText();
 
 	Theme* m_theme = nullptr;
@@ -63,6 +69,10 @@ private:
 	QLabel* m_status = nullptr;
 	QPlainTextEdit* m_rx = nullptr;
 	QString m_rxHeld;
+	// One ENGINE_RX_* kind for each QChar of m_rxHeld.
+	QByteArray m_rxHeldKinds;
+	QColor m_rxColor;
+	QColor m_txColor;
 	// Received backspaces for text already in the pane, applied on release.
 	int m_rxErase = 0;
 	QPlainTextEdit* m_tx = nullptr;

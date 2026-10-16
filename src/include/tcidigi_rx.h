@@ -15,6 +15,11 @@
 
 #include <string>
 
+// What a received character is, for the Qt shell to color it: received
+// text, the echo of transmitted text, or anything else fldigi writes there
+// (RSID and QSY marks, macro and program notices).
+enum { TCIDIGI_RX_RECV = 0, TCIDIGI_RX_XMIT = 1, TCIDIGI_RX_NOTE = 2 };
+
 void tcidigi_rx_use(bool on);
 bool tcidigi_rx_active();
 // One character as FTextRX::add receives it. '\b' erases one character.
@@ -23,8 +28,9 @@ void tcidigi_rx_clear();
 // Text added since the last take, split on a UTF-8 boundary. A '\b' in the
 // result erases the character before it, which may be one taken earlier.
 // Returns the byte count, or -1 once after a clear; the text added after
-// that clear comes with the next take.
-int tcidigi_rx_take(char* buf, int cap);
+// that clear comes with the next take. kinds gets one TCIDIGI_RX_* byte for
+// each byte in buf and must hold cap bytes.
+int tcidigi_rx_take(char* buf, char* kinds, int cap);
 // Everything received, backspaces applied. The oldest text is dropped past
 // a few megabytes.
 std::string tcidigi_rx_text();
