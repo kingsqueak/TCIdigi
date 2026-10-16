@@ -1327,6 +1327,13 @@
         ELEM_(bool, eqsl_show_delivery, "EQSL_SHOW_DELIVERY",                           \
               "Show timed delivery message for successful eQSL upload",                 \
               true)                                                                     \
+        /* QRZ logbook */                                                               \
+        ELEM_(std::string, qrz_log_key, "QRZ_LOG_APIKEY",                               \
+              "QRZ Logbook XML API key",                                                \
+              "")                                                                       \
+        ELEM_(bool, qrz_when_logged, "QRZ_WHEN_LOGGED",                                 \
+              "Send the QSO to QRZ.com when logged",                                    \
+              false)                                                                    \
         /* tqsl automatic log submission */                                             \
         ELEM_(bool, submit_lotw, "SUBMIT_LOTW",                                         \
               "Send adif record to LoTW",                                               \

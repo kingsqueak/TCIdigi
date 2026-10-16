@@ -1,6 +1,24 @@
 // ----------------------------------------------------------------------------
 // tci.cxx  --  TCI 2.0 client for Zeus and ExpertSDR3
 //
+// Copyright (C) 2026
+//		Chris, KC2RGW
+//
+// This file is part of fldigi.
+//
+// Fldigi is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Fldigi is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
+//
 // One WebSocket carries CAT text frames and RX/TX PCM binary frames.
 // Dial frequency is VFO:<receiver>,<channel>,<Hz>;  channel 0 is VFO A.
 // A two-argument form is accepted on input for older servers.
@@ -39,6 +57,7 @@
 #include "configuration.h"
 #include "debug.h"
 #include "fl_digi.h"
+#include "gettext.h"
 #include "macros.h"
 #include "status.h"
 #include "modem.h"
@@ -71,7 +90,7 @@ static bool tci_drop_socket = false;
 static Socket* tci_sock = 0;
 
 static std::string tci_status = "TCI idle";
-static unsigned long tci_freq = 0;
+static unsigned long long tci_freq = 0;
 static std::string tci_mode = "USB";
 static bool tci_freq_dirty = false;
 static bool tci_mode_dirty = false;
@@ -82,7 +101,7 @@ static int tci_filt_hi = 0;
 static int tci_filt_sent_lo = -999999;
 static int tci_filt_sent_hi = -999999;
 static bool tci_filt_dirty = false;
-static unsigned long tci_last_sent_freq = 0;
+static unsigned long long tci_last_sent_freq = 0;
 static std::string tci_last_sent_mode;
 static std::string tci_device;
 
@@ -384,7 +403,7 @@ static void subscribe_audio()
 	ws_send_text(start);
 }
 
-static unsigned long parse_hz(const std::string& s)
+static unsigned long long parse_hz(const std::string& s)
 {
 	if (s.empty())
 		return 0;
@@ -392,10 +411,10 @@ static unsigned long parse_hz(const std::string& s)
 	double v = strtod(s.c_str(), &end);
 	if (end == s.c_str() || v < 1.0 || v > 25000000000.0)
 		return 0;
-	return (unsigned long)(v + 0.5);
+	return (unsigned long long)(v + 0.5);
 }
 
-static void note_remote_freq(unsigned long hz)
+static void note_remote_freq(unsigned long long hz)
 {
 	if (hz == 0)
 		return;
@@ -404,7 +423,7 @@ static void note_remote_freq(unsigned long hz)
 		tci_freq = hz;
 		tci_last_sent_freq = hz;
 		tci_freq_dirty = true;
-		LOG_INFO("TCI dial %lu Hz", hz);
+		LOG_INFO("TCI dial %llu Hz", hz);
 	}
 	pthread_mutex_unlock(&tci_mutex);
 }
@@ -515,7 +534,7 @@ static void handle_text(const std::string& msg)
 			if (rxi != rx)
 				continue;
 			int channel = 0;
-			unsigned long hz = 0;
+			unsigned long long hz = 0;
 			if (av.size() >= 3) {
 				channel = atoi(av[1].c_str());
 				hz = parse_hz(av[2]);
@@ -807,7 +826,7 @@ static void* tci_thread_main(void*)
 	while (!tci_quit) {
 		if (!progdefaults.tci_enable) {
 			close_sock();
-			set_status("TCI disabled");
+			set_status(_("TCI disabled"));
 			MilliSleep(200);
 			continue;
 		}
@@ -815,7 +834,7 @@ static void* tci_thread_main(void*)
 		std::string port = progdefaults.tci_port;
 		if (host.empty()) host = "127.0.0.1";
 		if (port.empty()) port = "40001";
-		set_status("TCI connecting to " + host + ":" + port);
+		set_status(std::string(_("TCI connecting to ")) + host + ":" + port);
 		tci_drop_socket = false;
 		Socket* s = 0;
 		std::string preload;
@@ -825,13 +844,13 @@ static void* tci_thread_main(void*)
 			s->connect();
 			if (!s->is_connected()) {
 				delete s;
-				set_status("TCI connect failed");
+				set_status(_("TCI connect failed"));
 				MilliSleep(2000);
 				continue;
 			}
 			if (!handshake(*s, host, port, preload)) {
 				delete s;
-				set_status("TCI handshake failed");
+				set_status(_("TCI handshake failed"));
 				MilliSleep(2000);
 				continue;
 			}
@@ -839,7 +858,7 @@ static void* tci_thread_main(void*)
 			s->set_timeout(0.2);
 		} catch (const SocketException& e) {
 			delete s;
-			set_status(std::string("TCI: ") + e.what());
+			set_status(std::string(_("TCI: ")) + e.what());
 			LOG_ERROR("TCI connect: %s", e.what());
 			MilliSleep(2000);
 			continue;
@@ -848,7 +867,7 @@ static void* tci_thread_main(void*)
 		tci_sock = s;
 		tci_connected = true;
 		pthread_mutex_unlock(&tci_mutex);
-		set_status("TCI connected " + host + ":" + port);
+		set_status(std::string(_("TCI connected ")) + host + ":" + port);
 		LOG_INFO("TCI connected %s:%s rx %d", host.c_str(), port.c_str(), progdefaults.tci_rx);
 		subscribe_audio();
 		{
@@ -868,7 +887,7 @@ static void* tci_thread_main(void*)
 		pthread_mutex_unlock(&tci_mutex);
 		reader_loop(*s, preload);
 		close_sock();
-		set_status("TCI disconnected");
+		set_status(_("TCI disconnected"));
 		LOG_INFO("%s", "TCI disconnected");
 		if (!tci_quit)
 			MilliSleep(1000);
@@ -915,13 +934,13 @@ void tci_set_ptt(bool on)
 		subscribe_audio();
 }
 
-void tci_set_freq(unsigned long hz)
+void tci_set_freq(unsigned long long hz)
 {
 	if (!tci_is_active() || hz == 0)
 		return;
 	int rx = progdefaults.tci_rx;
 	char cmd[80];
-	snprintf(cmd, sizeof(cmd), "vfo:%d,0,%lu;", rx, hz);
+	snprintf(cmd, sizeof(cmd), "vfo:%d,0,%llu;", rx, hz);
 	pthread_mutex_lock(&tci_mutex);
 	tci_last_sent_freq = hz;
 	if (tci_freq != hz) {
@@ -1051,13 +1070,13 @@ static void tci_fill_filter_menu(int lo, int hi)
 	if (!have_live)
 		qso_opBW->add(live);
 	qso_opBW->activate();
-	qso_opBW->tooltip("Receiver filter, Hz");
+	qso_opBW->tooltip(_("Receiver filter, Hz"));
 	qso_opBW->value(std::string(live));
 }
 
 static void tci_ui_tick(void*)
 {
-	unsigned long hz = 0;
+	unsigned long long hz = 0;
 	std::string mode;
 	std::string modes;
 	std::string st;
@@ -1098,7 +1117,7 @@ static void tci_ui_tick(void*)
 	}
 
 	if (progdefaults.tci_enable && wf) {
-		if (freq_dirty && hz > 0 && (unsigned long)wf->rfcarrier() != hz) {
+		if (freq_dirty && hz > 0 && (unsigned long long)wf->rfcarrier() != hz) {
 			wf->rfcarrier(hz);
 			wf->movetocenter();
 			show_frequency(hz);
@@ -1141,7 +1160,7 @@ void tci_copy_status(char* buf, int cap)
 	std::string text = tci_status;
 	pthread_mutex_unlock(&tci_mutex);
 	if (text.empty())
-		text = progdefaults.tci_enable ? "TCI idle" : "TCI disabled";
+		text = progdefaults.tci_enable ? _("TCI idle") : _("TCI disabled");
 	std::snprintf(buf, (size_t)cap, "%s", text.c_str());
 }
 
@@ -1155,19 +1174,19 @@ static void tci_apply_cb(Fl_Widget*, void*)
 void tci_show_dialog()
 {
 	if (!tci_dlg) {
-		tci_dlg = new Fl_Window(420, 280, "TCI  --  Zeus / ExpertSDR3");
-		tci_ck_en = new Fl_Check_Button(20, 16, 380, 24, "Enable TCI rig control");
-		tci_ck_au = new Fl_Check_Button(20, 42, 380, 24, "Use TCI for RX and TX audio (no virtual cable)");
-		tci_in_host = new Fl_Input(110, 78, 280, 24, "Host");
-		tci_in_port = new Fl_Input(110, 108, 120, 24, "Port");
-		tci_in_rx = new Fl_Input(110, 138, 80, 24, "Receiver");
-		tci_status_box = new Fl_Box(20, 168, 380, 22, "TCI idle");
+		tci_dlg = new Fl_Window(420, 280, _("TCI  --  Zeus / ExpertSDR3"));
+		tci_ck_en = new Fl_Check_Button(20, 16, 380, 24, _("Enable TCI rig control"));
+		tci_ck_au = new Fl_Check_Button(20, 42, 380, 24, _("Use TCI for RX and TX audio (no virtual cable)"));
+		tci_in_host = new Fl_Input(110, 78, 280, 24, _("Host"));
+		tci_in_port = new Fl_Input(110, 108, 120, 24, _("Port"));
+		tci_in_rx = new Fl_Input(110, 138, 80, 24, _("Receiver"));
+		tci_status_box = new Fl_Box(20, 168, 380, 22, _("TCI idle"));
 		tci_status_box->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
 		Fl_Box* note = new Fl_Box(20, 192, 380, 44,
-			"Click Apply to connect. ExpertSDR3 needs a short tune to start audio.");
+			_("Click Apply to connect. Receiver and transmitter audio use the TCI stream."));
 		note->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_WRAP);
 		note->labelsize(12);
-		Fl_Button* apply = new Fl_Button(300, 244, 90, 26, "Apply");
+		Fl_Button* apply = new Fl_Button(300, 244, 90, 26, _("Apply"));
 		apply->callback(tci_apply_cb);
 		tci_dlg->end();
 	}
@@ -1264,7 +1283,7 @@ size_t SoundTCI::Read(float* buf, size_t count)
 	}
 	pthread_mutex_unlock(&tci_mutex);
 
-	// Same law as the transmit attenuator: dB of amplitude, 0 is unity.
+	// dB of amplitude, 0 is unity.
 	// Only TCI receive audio is scaled. A sound-card input is left alone.
 	double db = progdefaults.tci_rx_level;
 	if (db > 0.0) db = 0.0;

@@ -411,7 +411,7 @@ int cb_qso_opBW2()
 void sendFreq(unsigned long long f)
 {
 	if (tci_is_active())
-		tci_set_freq((unsigned long)f);
+		tci_set_freq(f);
 	else
 		noCAT_setfreq(f);
 

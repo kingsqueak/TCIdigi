@@ -10611,6 +10611,7 @@ void set_default_btn_color()
 		btn_submit_lotw,
 		btn_show_lotw_delivery,
 		btnEnCloudlog,
+		btn_qrz_when_logged,
 		btnNagMe,
 		btnClearOnSave,
 		btnCallUpperCase,

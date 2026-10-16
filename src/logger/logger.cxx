@@ -448,6 +448,258 @@ static void send_IPC_log(cQsoRec &rec)
 
 #endif
 
+//======================================================================
+// QRZ logbook
+//======================================================================
+
+static const char *QRZ_LOG_URL = "https://logbook.qrz.com/api";
+
+struct qrz_job {
+	std::string key;
+	std::string adif;
+	std::string call;
+};
+
+static std::string qrz_trim(const std::string &in)
+{
+	size_t b = 0;
+	size_t e = in.size();
+	while (b < e && (in[b] == ' ' || in[b] == '\t' || in[b] == '\r' || in[b] == '\n'))
+		b++;
+	while (e > b && (in[e - 1] == ' ' || in[e - 1] == '\t' || in[e - 1] == '\r' || in[e - 1] == '\n'))
+		e--;
+	return in.substr(b, e - b);
+}
+
+static std::string qrz_url_encode(const std::string &in)
+{
+	static const char *hex = "0123456789ABCDEF";
+	std::string out;
+	out.reserve(in.size() * 3);
+	for (size_t i = 0; i < in.size(); i++) {
+		unsigned char c = (unsigned char)in[i];
+		if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+		    (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.' || c == '~')
+			out += (char)c;
+		else {
+			out += '%';
+			out += hex[c >> 4];
+			out += hex[c & 0x0F];
+		}
+	}
+	return out;
+}
+
+static int qrz_hex(char c)
+{
+	if (c >= '0' && c <= '9') return c - '0';
+	if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+	if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+	return -1;
+}
+
+static std::string qrz_url_decode(const std::string &in)
+{
+	std::string out;
+	out.reserve(in.size());
+	for (size_t i = 0; i < in.size(); i++) {
+		if (in[i] == '+')
+			out += ' ';
+		else if (in[i] == '%' && i + 2 < in.size()) {
+			int hi = qrz_hex(in[i + 1]);
+			int lo = qrz_hex(in[i + 2]);
+			if (hi >= 0 && lo >= 0) {
+				out += (char)((hi << 4) | lo);
+				i += 2;
+			} else
+				out += in[i];
+		} else
+			out += in[i];
+	}
+	return out;
+}
+
+static bool qrz_key_eq(const std::string &part, const char *key)
+{
+	size_t n = strlen(key);
+	if (part.size() < n)
+		return false;
+	for (size_t i = 0; i < n; i++) {
+		char a = part[i];
+		char b = key[i];
+		if (a >= 'a' && a <= 'z') a = (char)(a - 32);
+		if (b >= 'a' && b <= 'z') b = (char)(b - 32);
+		if (a != b)
+			return false;
+	}
+	return true;
+}
+
+static std::string qrz_param(const std::string &reply, const char *name)
+{
+	std::string key = name;
+	key += '=';
+	size_t p = 0;
+	while (p < reply.size()) {
+		size_t amp = reply.find('&', p);
+		size_t nl = reply.find('\n', p);
+		size_t end = reply.size();
+		if (amp != std::string::npos && amp < end) end = amp;
+		if (nl != std::string::npos && nl < end) end = nl;
+		std::string part = reply.substr(p, end - p);
+		if (!part.empty() && part[part.size() - 1] == '\r')
+			part.erase(part.size() - 1);
+		if (qrz_key_eq(part, key.c_str()))
+			return qrz_url_decode(part.substr(key.size()));
+		if (end >= reply.size())
+			break;
+		p = end + 1;
+	}
+	return "";
+}
+
+static void qrz_adif(int num, const char *s, std::string &str)
+{
+	if (!s || !*s)
+		return;
+	putadif(num, s, str);
+}
+
+static void qrz_comment(const char *s, std::string &str)
+{
+	if (!s || !*s)
+		return;
+	std::string notes = s;
+	for (size_t n = 0; n < notes.length(); n++)
+		if (notes[n] == '\n' || notes[n] == '\r')
+			notes[n] = ' ';
+	if (notes.empty())
+		return;
+	char hdr[40];
+	int n = snprintf(hdr, sizeof(hdr), "<COMMENT:%d>", (int)notes.length());
+	if (n > 0)
+		str.append(hdr).append(notes);
+}
+
+static void qrz_hide_key(std::string &text, const std::string &key)
+{
+	if (key.empty())
+		return;
+	size_t p;
+	while ((p = text.find(key)) != std::string::npos)
+		text.replace(p, key.size(), "(key)");
+}
+
+static void *qrz_send(void *arg)
+{
+	qrz_job *job = (qrz_job *)arg;
+	std::string body = "KEY=";
+	body.append(qrz_url_encode(job->key));
+	body.append("&ACTION=INSERT&ADIF=");
+	body.append(qrz_url_encode(job->adif));
+
+	Url target;
+	std::string reply;
+	int err = target.post_form(QRZ_LOG_URL,
+		"application/x-www-form-urlencoded", body, reply);
+	if (err != 0) {
+		LOG_ERROR("QRZ logbook: cannot connect (%s)", job->call.c_str());
+	} else {
+		std::string result = qrz_param(reply, "RESULT");
+		if (result == "OK") {
+			std::string id = qrz_param(reply, "LOGID");
+			if (id.empty())
+				LOG_INFO("QRZ logbook: logged %s", job->call.c_str());
+			else
+				LOG_INFO("QRZ logbook: logged %s, id %s", job->call.c_str(), id.c_str());
+		} else if (result == "AUTH") {
+			LOG_ERROR("QRZ logbook: API key was rejected");
+		} else {
+			std::string reason = qrz_param(reply, "REASON");
+			qrz_hide_key(reason, job->key);
+			if (reason.empty())
+				LOG_ERROR("QRZ logbook: upload failed");
+			else
+				LOG_ERROR("QRZ logbook: %s", reason.c_str());
+		}
+	}
+	delete job;
+	return NULL;
+}
+
+void submit_qrzlog(cQsoRec &rec)
+{
+	if (!progdefaults.qrz_when_logged)
+		return;
+
+	std::string key = qrz_trim(progdefaults.qrz_log_key);
+	if (key.empty()) {
+		LOG_ERROR("QRZ logbook: no API key");
+		return;
+	}
+
+	const char *call = rec.getField(CALL);
+	if (!call || !*call) {
+		LOG_ERROR("QRZ logbook: no call sign");
+		return;
+	}
+
+	std::string adif;
+	qrz_adif(CALL, call, adif);
+
+	std::string mode = adif2export(rec.getField(ADIF_MODE));
+	if (mode.empty())
+		mode = rec.getField(ADIF_MODE);
+	qrz_adif(ADIF_MODE, mode.c_str(), adif);
+	qrz_adif(SUBMODE, adif2submode(rec.getField(ADIF_MODE)).c_str(), adif);
+
+	std::string freq = rec.getField(FREQ);
+	if (!freq.empty())
+		freq = comma2period(freq);
+	qrz_adif(FREQ, freq.c_str(), adif);
+	qrz_adif(BAND, rec.getField(BAND), adif);
+
+	std::string date = rec.getField(QSO_DATE);
+	if (date.empty())
+		date = sDate_on;
+	qrz_adif(QSO_DATE, date.c_str(), adif);
+	qrz_adif(QSO_DATE_OFF, rec.getField(QSO_DATE_OFF), adif);
+
+	qrz_adif(TIME_ON, rec.getField(TIME_ON), adif);
+	qrz_adif(TIME_OFF, rec.getField(TIME_OFF), adif);
+	qrz_adif(RST_SENT, rec.getField(RST_SENT), adif);
+	qrz_adif(RST_RCVD, rec.getField(RST_RCVD), adif);
+	qrz_adif(NAME, rec.getField(NAME), adif);
+	qrz_adif(QTH, rec.getField(QTH), adif);
+	qrz_adif(GRIDSQUARE, rec.getField(GRIDSQUARE), adif);
+
+	const char *sta = rec.getField(STA_CALL);
+	if (!sta || !*sta)
+		sta = progdefaults.myCall.c_str();
+	qrz_adif(STA_CALL, sta, adif);
+
+	const char *grid = rec.getField(MY_GRID);
+	if (!grid || !*grid)
+		grid = progdefaults.myLocator.c_str();
+	qrz_adif(MY_GRID, grid, adif);
+
+	qrz_comment(rec.getField(NOTES), adif);
+	adif.append("<EOR>");
+
+	qrz_job *job = new qrz_job;
+	job->key = key;
+	job->adif = adif;
+	job->call = call;
+
+	pthread_t tid;
+	if (pthread_create(&tid, NULL, qrz_send, job) == 0)
+		pthread_detach(tid);
+	else {
+		LOG_PERROR("pthread_create");
+		delete job;
+	}
+}
+
 void submit_record(cQsoRec &rec)
 {
 #if !defined(__WOE32__) && !defined(__APPLE__)
@@ -458,6 +710,8 @@ void submit_record(cQsoRec &rec)
 		submit_lotw(rec);
 	if (progdefaults.eqsl_when_logged)
 		submit_eQSL(rec, "");
+	if (progdefaults.qrz_when_logged)
+		submit_qrzlog(rec);
 	if (progdefaults.EnCloudlog)
 		submit_cloudlog(rec);
 	if (progdefaults.enable_udp_logging)

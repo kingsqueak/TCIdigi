@@ -3442,11 +3442,11 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 		"0 dB leaves the level unchanged. Shown while TCI audio is in use."));
 	// Both attenuators are kept here. The engine's own copies are not saved
 	// when this window quits, so the saved values are applied once it is up.
-	auto savedLevel = [](const QString& key, double* db) {
+	auto savedLevel = [](const QString& key, double floor, double* db) {
 		const QVariant v = QSettings().value(key);
 		if (!v.isValid())
 			return false;
-		*db = qBound(-30.0, v.toDouble(), 0.0);
+		*db = qBound(floor, v.toDouble(), 0.0);
 		return true;
 	};
 	connect(m_rxLevel, qOverload<double>(&QDoubleSpinBox::valueChanged),
@@ -3554,9 +3554,9 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 		pushOperator();
 		// No saved value leaves the engine's level, and the next tick shows it.
 		double db = 0.0;
-		if (savedLevel(QStringLiteral("tciRxLevel"), &db))
+		if (savedLevel(QStringLiteral("tciRxLevel"), -50.0, &db))
 			engine_set_rx_db(db);
-		if (savedLevel(QStringLiteral("tciTxLevel"), &db))
+		if (savedLevel(QStringLiteral("tciTxLevel"), -30.0, &db))
 			engine_set_tx_db(db);
 		browserPane->setPickHandler([](int row) { engine_browser_pick(row); });
 		browserPane->setClearHandler(

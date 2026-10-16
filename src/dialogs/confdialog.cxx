@@ -2897,6 +2897,28 @@ static void cb_TEST(Fl_Button*, void*) {
   udp_test();
 }
 
+Fl_Input2 *inpQRZ_log_key=(Fl_Input2 *)0;
+
+static void cb_inpQRZ_log_key(Fl_Input2* o, void*) {
+  progdefaults.qrz_log_key = o->value();
+  progdefaults.changed = true;
+}
+
+Fl_Button *btnQRZ_log_key_show=(Fl_Button *)0;
+
+static void cb_btnQRZ_log_key_show(Fl_Button* o, void*) {
+  inpQRZ_log_key->type(inpQRZ_log_key->type() ^ FL_SECRET_INPUT);
+  inpQRZ_log_key->redraw();
+  o->label((inpQRZ_log_key->type() & FL_SECRET_INPUT) ? _("Show") : _("Hide"));
+}
+
+Fl_Check_Button *btn_qrz_when_logged=(Fl_Check_Button *)0;
+
+static void cb_btn_qrz_when_logged(Fl_Check_Button* o, void*) {
+  progdefaults.qrz_when_logged = o->value();
+  progdefaults.changed = true;
+}
+
 Fl_Check_Button *btnNagMe=(Fl_Check_Button *)0;
 
 static void cb_btnNagMe(Fl_Check_Button* o, void*) {
@@ -11984,6 +12006,44 @@ Fl_Double_Window* ConfigureDialog() {
       CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Logging/Cloud-UDP"));
       config_pages.push_back(p);
       tab_tree->add(_("Logging/Cloud-UDP"));
+      o->end();
+    } // Fl_Group* o
+    { Fl_Group* o = new Fl_Group(200, 0, 600, 350, gettext("Logging/QRZ"));
+      o->box(FL_ENGRAVED_BOX);
+      o->align(Fl_Align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE));
+      o->hide();
+      { Fl_Box* o = new Fl_Box(220, 18, 560, 40, gettext("User ID and password must be entered\nin the Call/Lookup QRZ.com options."));
+        o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
+      } // Fl_Box* o
+      { Fl_Input2* o = inpQRZ_log_key = new Fl_Input2(360, 78, 280, 24, gettext("XML API key"));
+        inpQRZ_log_key->tooltip(gettext("QRZ Logbook XML API key"));
+        inpQRZ_log_key->box(FL_DOWN_BOX);
+        inpQRZ_log_key->color(FL_BACKGROUND2_COLOR);
+        inpQRZ_log_key->selection_color(FL_SELECTION_COLOR);
+        inpQRZ_log_key->labeltype(FL_NORMAL_LABEL);
+        inpQRZ_log_key->labelfont(0);
+        inpQRZ_log_key->labelsize(14);
+        inpQRZ_log_key->labelcolor(FL_FOREGROUND_COLOR);
+        inpQRZ_log_key->callback((Fl_Callback*)cb_inpQRZ_log_key);
+        inpQRZ_log_key->align(Fl_Align(FL_ALIGN_LEFT));
+        inpQRZ_log_key->when(FL_WHEN_RELEASE);
+        o->value(progdefaults.qrz_log_key.c_str());
+        o->type(FL_SECRET_INPUT);
+        o->labelsize(FL_NORMAL_SIZE);
+      } // Fl_Input2* inpQRZ_log_key
+      { btnQRZ_log_key_show = new Fl_Button(650, 78, 70, 24, gettext("Show"));
+        btnQRZ_log_key_show->tooltip(gettext("Show key in plain text"));
+        btnQRZ_log_key_show->callback((Fl_Callback*)cb_btnQRZ_log_key_show);
+      } // Fl_Button* btnQRZ_log_key_show
+      { Fl_Check_Button* o = btn_qrz_when_logged = new Fl_Check_Button(250, 130, 420, 20, gettext("send when logged (log button, <LOG>, <LNW>)"));
+        btn_qrz_when_logged->tooltip(gettext("automatic data upload"));
+        btn_qrz_when_logged->down_box(FL_DOWN_BOX);
+        btn_qrz_when_logged->callback((Fl_Callback*)cb_btn_qrz_when_logged);
+        o->value(progdefaults.qrz_when_logged);
+      } // Fl_Check_Button* btn_qrz_when_logged
+      CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Logging/QRZ"));
+      config_pages.push_back(p);
+      tab_tree->add(_("Logging/QRZ"));
       o->end();
     } // Fl_Group* o
     { Fl_Group* o = new Fl_Group(200, 0, 600, 350, gettext("Logging/QSO logging"));

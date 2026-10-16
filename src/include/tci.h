@@ -2,6 +2,7 @@
 // tci.h  --  ExpertSDR3 / Zeus TCI client (rig + RX/TX audio)
 //
 // Copyright (C) 2026
+//		Chris, KC2RGW
 //
 // This file is part of fldigi.
 //
@@ -9,6 +10,14 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// Fldigi is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
 // ----------------------------------------------------------------------------
 
 #ifndef TCI_H_
@@ -37,7 +46,7 @@ bool tci_is_active();
 bool tci_audio_wanted();
 
 void tci_set_ptt(bool on);
-void tci_set_freq(unsigned long hz);
+void tci_set_freq(unsigned long long hz);
 void tci_set_mode(const char* fldigi_mode);
 void tci_set_filter(const char* label);
 

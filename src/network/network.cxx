@@ -879,10 +879,23 @@ exit:
 
 int Url::https_post(std::string apikey, int profile_id, std::string adifdata, std::string &response)
 {
+	std::ostringstream PAYLOAD;
+
+	PAYLOAD <<
+"{" <<
+"\"key\":\"" << apikey << "\"," <<
+"\"station_profile_id\":\"" << profile_id << "\"," <<
+"\"type\":\"adif\"," <<
+"\"string\":\"" << adifdata << "\"" <<
+"}";
+	return https_send("application/json; charset=utf-8", PAYLOAD.str(), response, true);
+}
+
+int Url::https_send(const std::string &content_type, const std::string &payload, std::string &response, bool log_payload)
+{
 	int ret = 1, len;
 	_err = MBEDTLS_EXIT_SUCCESS;
 	std::ostringstream REQUEST;
-	std::ostringstream PAYLOAD;
 
 	mbedtls_entropy_context entropy;
 	mbedtls_ctr_drbg_context ctr_drbg;
@@ -1062,21 +1075,14 @@ int Url::https_post(std::string apikey, int profile_id, std::string adifdata, st
 		debug_file.flush();
 	}
 
-	PAYLOAD <<
-"{" <<
-"\"key\":\"" << apikey << "\"," <<
-"\"station_profile_id\":\"" << profile_id << "\"," <<
-"\"type\":\"adif\"," <<
-"\"string\":\"" << adifdata << "\"" <<
-"}";
-	len = PAYLOAD.str().length();
+	len = payload.length();
 
 	REQUEST << "POST " << _request << " HTTP/1.1\r\n" <<
-"Content-Type: application/json; charset=utf-8\r\n" <<
+"Content-Type: " << content_type << "\r\n" <<
 "User-Agent: fldigi " << FLDIGI_VERSION << "\r\n" <<
 "Host: " << _host << "\r\n" <<
 "Content-Length: " << len << "\r\n" <<
-"Connection: Keep-Alive\r\n\r\n" << PAYLOAD.str();
+"Connection: Keep-Alive\r\n\r\n" << payload;
 
 	len = REQUEST.str().length();
 
@@ -1094,7 +1100,10 @@ int Url::https_post(std::string apikey, int profile_id, std::string adifdata, st
 
 	len = ret;
 	if (debug_file) {
-		debug_file << len << " bytes written\n\"" << REQUEST.str() << "\"";
+		if (log_payload)
+			debug_file << len << " bytes written\n\"" << REQUEST.str() << "\"";
+		else
+			debug_file << len << " bytes written\n";
 		debug_file.flush();
 	}
 	/*
@@ -1197,6 +1206,18 @@ int Url::post(std::string url, std::string apikey, int profile_id, std::string a
 		ret = http_post(apikey, profile_id, adifdata, response);
 
 	return ret;
+}
+
+int Url::post_form(std::string url, std::string content_type, std::string body, std::string &response)
+{
+	if (url.empty())
+		return -1;
+
+	parse(url);
+	if (!_https)
+		return -1;
+
+	return https_send(content_type, body, response, false);
 }
 
 int Url::test(std::string url, std::string apiKey)

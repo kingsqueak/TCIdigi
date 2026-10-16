@@ -154,6 +154,7 @@ class Url {
 	int http_post(std::string apikey, int profile_id, std::string adifdata, std::string &response);
 	int http_test(std::string apikey);
 	int https_post(std::string apikey, int profile_id, std::string adifdata, std::string &response);
+	int https_send(const std::string &content_type, const std::string &payload, std::string &response, bool log_payload);
 	int https_test(std::string apikey);
 
 public:
@@ -204,6 +205,7 @@ public:
 	int get(std::string url, std::string &response);
 	int post(std::string response);
 	int post(std::string url, std::string apikey, int profile_id, std::string adifdata, std::string &response);
+	int post_form(std::string url, std::string content_type, std::string body, std::string &response);
 	int test(std::string url, std::string apikey);
 
 	void timeout(double t) { _timeout = t; }

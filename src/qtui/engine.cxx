@@ -872,8 +872,8 @@ void engine_set_rx_db(double db)
 {
 	if (db > 0.0)
 		db = 0.0;
-	if (db < -30.0)
-		db = -30.0;
+	if (db < -50.0)
+		db = -50.0;
 	progdefaults.tci_rx_level = db;
 }
 

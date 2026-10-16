@@ -3608,6 +3608,43 @@ progdefaults.changed = true;}
       }
     }
     Fl_Group {} {
+      label {Logging/QRZ}
+      xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
+      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Logging/QRZ"));}
+      code1 {config_pages.push_back(p);}
+      code2 {tab_tree->add(_("Logging/QRZ"));}
+    } {
+      Fl_Box {} {
+        label {User ID and password must be entered
+in the Call/Lookup QRZ.com options.}
+        xywh {220 18 560 40} align 20
+      }
+      Fl_Input inpQRZ_log_key {
+        label {XML API key}
+        callback {progdefaults.qrz_log_key = o->value();
+progdefaults.changed = true;}
+        tooltip {QRZ Logbook XML API key} xywh {360 78 280 24}
+        code0 {o->value(progdefaults.qrz_log_key.c_str());}
+        code1 {o->type(FL_SECRET_INPUT);}
+        code2 {o->labelsize(FL_NORMAL_SIZE);}
+        class Fl_Input2
+      }
+      Fl_Button btnQRZ_log_key_show {
+        label Show
+        callback {inpQRZ_log_key->type(inpQRZ_log_key->type() ^ FL_SECRET_INPUT);
+inpQRZ_log_key->redraw();
+o->label((inpQRZ_log_key->type() & FL_SECRET_INPUT) ? _("Show") : _("Hide"));}
+        tooltip {Show key in plain text} xywh {650 78 70 24}
+      }
+      Fl_Check_Button btn_qrz_when_logged {
+        label {send when logged (log button, <LOG>, <LNW>)}
+        callback {progdefaults.qrz_when_logged = o->value();
+progdefaults.changed = true;}
+        tooltip {automatic data upload} xywh {250 130 420 20} down_box DOWN_BOX
+        code0 {o->value(progdefaults.qrz_when_logged);}
+      }
+    }
+    Fl_Group {} {
       label {Logging/QSO logging}
       xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
       code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("Logging/QSO logging"));}
