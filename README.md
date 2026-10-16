@@ -2,13 +2,18 @@
 
 TCIdigi is a Qt 6 interface on fldigi’s modems. Radio control and modem audio use TCI, the protocol used by ZeusSDR and ExpertSDR3. This build does not include hamlib, rigCAT, flrig, or the sound-card backends.
 
-It is based on fldigi 4.1.23, commit 61b97f41. The license is GPL-3.0-or-later. See `COPYING`. The About box says “Based on fldigi.”
+It is based on fldigi 4.2.13, commit 38708315. The license is GPL-3.0-or-later. See `COPYING`. The About box says “Based on fldigi.”
 
 This repository is TCIdigi. It is not the upstream fldigi project.
 
 ## Build
 
-The engine is built with the fldigi autotools files. The Qt shell is built with CMake after that, because it links the engine objects and the link line from `src/Makefile`.
+One build from this tree produces two programs:
+
+- **fldigi**, the FLTK program, built by the fldigi autotools files (`make -C src`). It is fldigi with the TCI and QRZ changes. `flarq` is built with it.
+- **TCIdigi**, the Qt 6 program, built by CMake after that. It links the engine objects that `make -C src` compiled and uses the link line from `src/Makefile`, so fldigi has to be built first.
+
+The two programs keep separate settings. fldigi uses `~/.fldigi` and TCIdigi uses `~/.tcidigi`.
 
 On macOS, Homebrew packages that satisfy a build here are autoconf, automake, pkg-config, fltk, libsamplerate, libsndfile, libpng, jpeg-turbo, gettext, and Qt 6. `glibtoolize` comes from the libtool formula. The shell has been built with the macOS deployment target set to 14.4.
 
@@ -22,9 +27,20 @@ cmake -S src/qtui -B build-qt \
 cmake --build build-qt --target fldigi-qt
 ```
 
-The program is `build-qt/TCIdigi-<version>.app`, where the version comes from `src/include/tcidigi_version.h`. Installing it with `cmake --install build-qt --prefix /Applications` puts `/Applications/TCIdigi-<version>.app` there. Bundles from older versions are left in place.
+### Where the programs are after the build
 
-A launch with no `--config-dir` uses `~/.tcidigi`. TCIdigi does not read `~/.fldigi`.
+| Program | Path after the build | How to run it |
+|---|---|---|
+| fldigi (FLTK) | `src/fldigi` | `./src/fldigi` |
+| flarq | `src/flarq` | `./src/flarq` |
+| TCIdigi (Qt), macOS | `build-qt/TCIdigi-<version>.app` | `open build-qt/TCIdigi-<version>.app`, or `./build-qt/TCIdigi` from a shell |
+| TCIdigi (Qt), Linux | `build-qt/TCIdigi-<version>` | `./build-qt/TCIdigi-<version>` |
+
+The version comes from `src/include/tcidigi_version.h`. On macOS, `build-qt/TCIdigi` is a small script that runs the current bundle, because a shell cannot run the `.app` directory itself.
+
+Installing TCIdigi with `cmake --install build-qt --prefix /Applications` puts `/Applications/TCIdigi-<version>.app` there. Bundles from older versions are left in place. `make -C src install` installs fldigi and flarq under the configure prefix (`/usr/local/bin` by default).
+
+A TCIdigi launch with no `--config-dir` uses `~/.tcidigi`. TCIdigi does not read `~/.fldigi`.
 
 `src/dialogs/confdialog.cxx` is already generated. Do not run `fluid` on `confdialog.fl` unless you mean to regenerate that file.
 
