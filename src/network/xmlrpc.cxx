@@ -508,6 +508,13 @@ public:
 			macros.saveMacroFile();
 		macros.changed = false;
 
+		// This runs inside qrunner::execute. Quitting from here deletes
+		// the qrunner queues (exit_process) while execute is still reading
+		// one. Quit from a timer instead, once execute has returned.
+		Fl::add_timeout(0.0, quit_cb, 0);
+	}
+	static void quit_cb(void*)
+	{
 		fl_digi_main->do_callback();
 	}
 	void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
