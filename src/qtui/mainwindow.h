@@ -49,6 +49,10 @@ private:
 	// Copy the modem transmit buffer into the transmit box, including while
 	// that box has focus. m_txSeen is the last text taken from the modem.
 	void showEngineTxText();
+	// New receive text waits in m_rxHeld while the pane is scrolled back,
+	// so reading history is not interrupted. Reaching the bottom adds it.
+	void addRxText(const QString& text);
+	void releaseRxText();
 
 	Theme* m_theme = nullptr;
 	bool m_applying = false;
@@ -58,6 +62,9 @@ private:
 	FreqReadout* m_freq = nullptr;
 	QLabel* m_status = nullptr;
 	QPlainTextEdit* m_rx = nullptr;
+	QString m_rxHeld;
+	// Received backspaces for text already in the pane, applied on release.
+	int m_rxErase = 0;
 	QPlainTextEdit* m_tx = nullptr;
 	QString m_txSeen;
 	QTimer* m_statusTimer = nullptr;

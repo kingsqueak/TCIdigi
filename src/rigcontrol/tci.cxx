@@ -466,24 +466,6 @@ static void send_tx_frame(size_t nsamp, int chrono_rate, int fmt, int ch)
 	if (have < 2)
 		return;
 
-	if (have > 200 && chrono_rate > 0) {
-		int crosses = 0;
-		for (size_t i = 1; i < have; i++) {
-			if (samps[i - 1] <= 0.f && samps[i] > 0.f)
-				crosses++;
-		}
-		if (crosses > 1) {
-			int hz = (int)((double)crosses * chrono_rate / (double)have + 0.5);
-			static int shown = -1;
-			if (shown < 0 || hz > shown + 40 || hz < shown - 40) {
-				shown = hz;
-				char msg[64];
-				snprintf(msg, sizeof(msg), "TCI TX audio %d Hz", hz);
-				put_status(msg, 10.0);
-			}
-		}
-	}
-
 	uint32_t hdr[16];
 	memset(hdr, 0, sizeof(hdr));
 	hdr[0] = (uint32_t)progdefaults.tci_rx;
@@ -634,7 +616,6 @@ static void handle_binary(const unsigned char* data, size_t n)
 	// Zeus writes zeros in the channel field and sends left = right.
 	// Treating that as mono counts every sample twice, so a 3000 Hz
 	// edge shows up near 1500 Hz. ExpertSDR3 fills the field in.
-	bool lineout = false;
 	if (type == TCI_RX_AUDIO) {
 		pthread_mutex_lock(&tci_mutex);
 		tci_last_rx_audio = time(0);
@@ -647,7 +628,6 @@ static void handle_binary(const unsigned char* data, size_t n)
 		time_t now = time(0);
 		if (last != 0 && now >= last && now - last < 2)
 			return;
-		lineout = true;
 		if (!tci_lineout_logged) {
 			tci_lineout_logged = 1;
 			LOG_INFO("TCI line-out frame rate %u fmt %u len %u ch %u bytes %zu",
@@ -728,15 +708,6 @@ static void handle_binary(const unsigned char* data, size_t n)
 		mono[i] = acc / (float)nch;
 	}
 	push_rx_samples(&mono[0], mono.size());
-	static int shown = 0;
-	if (++shown >= 50) {
-		shown = 0;
-		char msg[64];
-		int rr = rate >= 8000 ? (int)rate : tci_dev_rate;
-		snprintf(msg, sizeof(msg), "%s %d Hz, %d ch",
-			lineout ? "TCI line-out" : "TCI RX audio", rr, chans);
-		put_status(msg, 2.0);
-	}
 }
 
 static void reader_loop(Socket& s, const std::string& preload)
@@ -1033,7 +1004,7 @@ static void tci_show_rig_menus()
 }
 
 static const char* tci_filter_presets[] = {
-	"0-5000",
+	"0-4000",
 	"80-3000",
 	"80-2000",
 	"950-2050",
@@ -1297,7 +1268,7 @@ size_t SoundTCI::Read(float* buf, size_t count)
 	// Only TCI receive audio is scaled. A sound-card input is left alone.
 	double db = progdefaults.tci_rx_level;
 	if (db > 0.0) db = 0.0;
-	if (db < -30.0) db = -30.0;
+	if (db < -50.0) db = -50.0;
 	if (db != 0.0) {
 		float gain = (float)pow(10.0, db / 20.0);
 		for (size_t i = 0; i < count; i++)

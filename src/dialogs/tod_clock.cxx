@@ -77,8 +77,7 @@ static int macro_time = -1;
 
 void kill_tx(void *)
 {
-	wf->xmtrcv->value(0);
-	xmtrcv_cb(wf->xmtrcv, 0);
+	request_tr(false);
 	fl_alert2("TX timeout expired!\nAre you awake?");
 }
 

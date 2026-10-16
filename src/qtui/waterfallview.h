@@ -31,6 +31,8 @@ public:
 	// mode 0 scrolls the waterfall. mode 1 draws an FFT of the newest row.
 	// mode 2 shows the time-domain scope image stretched to the plot.
 	void setFrame(const QImage& image, int hzLow, int hzHigh, int carrierHz, int bandwidthHz, int mode);
+	// Lk holds transmit at txHz. The view marks it while locked.
+	void setTxLock(bool locked, int txHz);
 
 signals:
 	void tuned(int hz);
@@ -55,6 +57,8 @@ private:
 	int m_carrier = 1500;
 	int m_bandwidth = 31;
 	int m_hoverHz = -1;
+	bool m_locked = false;
+	int m_txHz = 0;
 };
 
 #endif

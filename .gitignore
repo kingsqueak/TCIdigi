@@ -55,3 +55,6 @@
 # Qt shell build
 /build-qt/
 *.app
+
+# Local planning notes
+MILESTONES.md

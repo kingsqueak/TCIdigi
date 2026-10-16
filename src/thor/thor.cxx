@@ -24,6 +24,7 @@
 
 
 #include <config.h>
+#include "tcidigi_version.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -74,7 +75,7 @@ void thor::tx_init()
 	videoText();
 	strSecXmtText = progdefaults.THORsecText;
 	if (strSecXmtText.length() == 0)
-		strSecXmtText = "fldigi " PACKAGE_VERSION " ";
+		strSecXmtText = TCIDIGI_NAME " " TCIDIGI_VERSION " ";
 	cptr = 0;
 }
 

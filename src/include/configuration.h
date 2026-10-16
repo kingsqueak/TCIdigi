@@ -1805,7 +1805,7 @@
               "TCI receiver index",                                                     \
               0)                                                                        \
         ELEM_(double, tci_rx_level, "TCI_RX_LEVEL",                                     \
-              "TCI receive attenuator (dB), -30 .. 0. Lowers a hot fixed output.",      \
+              "TCI receive attenuator (dB), -50 .. 0. Lowers a hot fixed output.",      \
               0.0)                                                                      \
         ELEM_(std::string, OSSdevice, "OSSDEVICE",                                      \
               "OSS device name",                                                        \

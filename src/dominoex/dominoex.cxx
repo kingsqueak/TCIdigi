@@ -26,6 +26,7 @@
 // ----------------------------------------------------------------------------
 
 #include <config.h>
+#include "tcidigi_version.h"
 
 #include <stdlib.h>
 
@@ -63,7 +64,7 @@ void dominoex::tx_init()
 
 	strSecXmtText = progdefaults.secText;
 	if (strSecXmtText.length() == 0)
-		strSecXmtText = "fldigi " PACKAGE_VERSION " ";
+		strSecXmtText = TCIDIGI_NAME " " TCIDIGI_VERSION " ";
 
 	videoText();
 }

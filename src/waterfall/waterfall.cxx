@@ -151,6 +151,7 @@ static pthread_mutex_t waterfall_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 WFdisp::WFdisp (int x0, int y0, int w0, int h0, char *lbl) :
 			  Fl_Widget(x0,y0,w0,h0,"") {
+	fixed_width = 0;
 	disp_width = w();
 	if (disp_width > progdefaults.HighFreqCutoff/4)
 		disp_width = progdefaults.HighFreqCutoff/4;
@@ -215,14 +216,17 @@ WFdisp::WFdisp (int x0, int y0, int w0, int h0, char *lbl) :
 
 	int error = 0;
 
-// use fastest sync converter
+// The configured converter, as RsID uses. Only modems that do not run at
+// WF_SAMPLERATE go through it; sig_data copies 8 kHz audio straight in.
+// SRC_SINC_FASTEST passes about 80% of Nyquist, which darkened the top
+// 800 Hz of a 4 kHz waterfall.
 //	SRC_SINC_BEST_QUALITY		= 0,
 //	SRC_SINC_MEDIUM_QUALITY		= 1,
 //	SRC_SINC_FASTEST			= 2,
 //	SRC_ZERO_ORDER_HOLD			= 3,
 //	SRC_LINEAR					= 4,
 
-	src_state = src_new(2, 1, &error);
+	src_state = src_new(progdefaults.sample_converter, 1, &error);
 	if (error) {
 		LOG_ERROR("src_new error %d: %s", error, src_strerror(error));
 		abort();
@@ -722,6 +726,22 @@ void WFdisp::sig_data( double *sig, int len )
 		src_set_ratio(src_state, src_data.src_ratio);
 		LOG_INFO("Waterfall sample rate ratio %f", src_ratio);
 	}
+	// Already at the waterfall rate: no conversion, and no filter edge.
+	if (src_ratio == 1.0) {
+		for (int n = 0; n < len; n++) {
+			outsamples[genptr++] = sig[n];
+			if (genptr < WF_BLOCKSIZE)
+				continue;
+			for (int k = 0; k < WF_BLOCKSIZE; k++) audio_block.sig[k] = outsamples[k];
+			{
+				guard_lock data_lock (&data_mutex);
+				audio_blocks.push(audio_block);
+			}
+			genptr = 0;
+		}
+		return;
+	}
+
 	for (int n = 0; n < len; n++) insamples[n] = sig[n];
 
 	while (srclen > 0) {
@@ -911,9 +931,19 @@ int WFdisp::carrier() {
 	return carrierfreq;
 }
 
+void WFdisp::setFixedWidth(int px)
+{
+	if (px > IMAGE_WIDTH)
+		px = IMAGE_WIDTH;
+	fixed_width = px > 0 ? px : 0;
+	checkWidth();
+	checkoffset();
+	makeScale();
+}
+
 void WFdisp::checkWidth()
 {
-	disp_width = w();
+	disp_width = fixed_width > 0 ? fixed_width : w();
 	if (mag == MAG_1) step = 4;
 	if (mag == MAG_1 && disp_width > progdefaults.HighFreqCutoff/4)
 		disp_width = progdefaults.HighFreqCutoff/4;
@@ -1566,8 +1596,7 @@ void do_qsy(bool dir)
 	static std::vector<qrg_mode_t> qsy_stack;
 	qrg_mode_t m;
 
-	wf->xmtlock->value(0);
-	wf->xmtlock->do_callback();
+	set_tx_lock(false);
 
 	if (dir) {
 // store
@@ -1672,16 +1701,31 @@ void rate_cb(Fl_Widget *w, void *v) {
 
 //extern void reset_xmlchars();
 
-void xmtrcv_cb(Fl_Widget *w, void *vi)
+static bool g_tr = false;
+
+bool tr_pressed()
 {
-	if (!active_modem) return;
-	Fl_Light_Button *b = (Fl_Light_Button *)w;
-	int v = b->value();
-	if (!(active_modem->get_cap() & modem::CAP_TX)) {
-		b->value(0);
-		restoreFocus();		return;
+	return g_tr;
+}
+
+void show_tr(bool on)
+{
+	g_tr = on;
+	if (wf && wf->xmtrcv) {
+		wf->xmtrcv->value(on);
+		wf->xmtrcv->redraw();
 	}
-	if (v == 1) {
+}
+
+void request_tr(bool on)
+{
+	show_tr(on);
+	if (!active_modem) return;
+	if (!(active_modem->get_cap() & modem::CAP_TX)) {
+		show_tr(false);
+		return;
+	}
+	if (on) {
 		killMacroTimer();
 		active_modem->set_stopflag(false);
 
@@ -1694,10 +1738,8 @@ void xmtrcv_cb(Fl_Widget *w, void *vi)
 			xmtrcv_selection_color(RGBCOLOR( XmtColor ));
 		}
 
-		if (btnTune->value()) {
-			btnTune->value(0);
-			btnTune->do_callback();
-		}
+		if (tune_pressed())
+			request_tune(false);
 		else {
 			TransmitText->clear();
 			if (active_modem->get_mode() == MODE_FSQ && fsq_tx_text)
@@ -1722,6 +1764,11 @@ void xmtrcv_cb(Fl_Widget *w, void *vi)
 			active_modem->set_stopflag(true);
 		}
 	}
+}
+
+void xmtrcv_cb(Fl_Widget *w, void *vi)
+{
+	request_tr(static_cast<Fl_Light_Button *>(w)->value() == 1);
 	restoreFocus();
 }
 
@@ -1736,11 +1783,9 @@ void xmtlock_cb(Fl_Widget *w, void *vi)
 
 void waterfall::set_XmtRcvBtn(bool val)
 {
-	xmtrcv->value(val);
-	if (!val && btnTune->value()) {
-		btnTune->value(0);
-		btnTune->labelcolor(FL_FOREGROUND_COLOR);
-	}
+	show_tr(val);
+	if (!val && tune_pressed())
+		show_tune(false);
 }
 
 void set_wf_mode(void)
@@ -2553,8 +2598,7 @@ int WFdisp::handle(int event)
 		case FL_MIDDLE_MOUSE:
 			if (event == FL_DRAG)
 				break;
-			btnAFC->value(!btnAFC->value());
-			btnAFC->do_callback();
+			set_afc(!progStatus.afconoff);
 		}
 		break;
 	case FL_RELEASE:
@@ -2710,14 +2754,14 @@ void waterfall::handle_mouse_wheel(int what, int d)
 	}
 
 	if (what == WF_SQUELCH) {
-		val = sldrSquelch->value();
+		val = (int)squelch_level();
 		if (d > 0 ) val--;
 		else 		val++;
 		if (val < 0) val = 0;
 		if (val > 100) val = 100;
 		snprintf(msg, sizeof(msg), "Squelch: %d", val);
 		put_status(msg, 5.0);
-		sldrSquelch->value(val);
+		set_squelch_level(val);
 		return;
 	}
 

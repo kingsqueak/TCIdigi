@@ -284,13 +284,13 @@ static int create_default_script(char *file_name)
 	if(add_command(fd, (char *)CMD_FLDIGI_FREQ,    (double) qsoFreqDisp->value(),          1)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_FLDIGI_MODE,    (char *) qso_opMODE->value(),           1)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_FLDIGI_WFHZ,    (int)    wf->Carrier(),                 1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_FLDIGI_RXID,    (bool)   btnRSID->value(),              1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_FLDIGI_TXID,    (bool)   btnTxRSID->value(),            1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_FLDIGI_SPOT,    (bool)   btnAutoSpot->value(),          1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_FLDIGI_RXID,    (bool)   progdefaults.rsid,              1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_FLDIGI_TXID,    (bool)   progdefaults.TransmitRSid,            1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_FLDIGI_SPOT,    (bool)   progStatus.spot_recv,          1)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_FLDIGI_REV,     (bool)   wf->btnRev->value(),           1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_FLDIGI_AFC,     (bool)   btnAFC->value(),               1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_FLDIGI_LOCK,    (bool)   wf->xmtlock->value(),          1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_FLDIGI_SQL,     (bool)   btnSQL->value(),               1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_FLDIGI_AFC,     (bool)   progStatus.afconoff,               1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_FLDIGI_LOCK,    (bool)   tx_lock_on(),          1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_FLDIGI_SQL,     (bool)   progStatus.sqlonoff,               1)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_FLDIGI_KPSQL,   (bool)   btnPSQL->value(),              1)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_FLDIGI_MODEM,   (char *) active_modem->get_mode_name(), 1)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_END_CMD,        0)) return fclose(fd);
@@ -298,11 +298,11 @@ static int create_default_script(char *file_name)
 
 	// OPERATOR
 	if(add_command(fd, (char *)CMD_OPERATOR,  0)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_CALLSIGN,  (char *) inpMyCallsign->value(), 1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_QTH,       (char *) inpMyName->value(),     1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_NAME,      (char *) inpMyQth->value(),      1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_LOCATOR,   (char *) inpMyLocator->value(),  1)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_ANTENNA,   (char *) inpMyAntenna->value(),  1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_CALLSIGN,  (char *) progdefaults.myCall.c_str(), 1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_QTH,       (char *) progdefaults.myName.c_str(),     1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_NAME,      (char *) progdefaults.myQth.c_str(),      1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_LOCATOR,   (char *) progdefaults.myLocator.c_str(),  1)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_ANTENNA,   (char *) progdefaults.myAntenna.c_str(),  1)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_END_CMD,   0)) return fclose(fd);
 
 	// AUDIO DEVICE
@@ -473,7 +473,7 @@ static int create_default_script(char *file_name)
 	if(add_command(fd, (char *)CMD_ID,                    0)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_ID_RSID,               1)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_ID_RSID_NOTIFY,        (bool)   chkRSidNotifyOnly->value(),    2)) return fclose(fd);
-	if(add_command(fd, (char *)CMD_ID_RSID_SRCH_BP,       (bool)   chkRSidWideSearch->value(),    2)) return fclose(fd);
+	if(add_command(fd, (char *)CMD_ID_RSID_SRCH_BP,       (bool)   progdefaults.rsidWideSearch,    2)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_ID_RSID_MARK_PREV,     (bool)   chkRSidMark->value(),          2)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_ID_RSID_DETECTOR,      (bool)   chkRSidAutoDisable->value(),   2)) return fclose(fd);
 	if(add_command(fd, (char *)CMD_ID_RSID_ALRT_DIALOG,   (bool)   chkRSidShowAlert->value(),     2)) return fclose(fd);

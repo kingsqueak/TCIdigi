@@ -367,6 +367,30 @@ extern bool csma_idling;
 
 extern void toggleRSID();
 
+// The setting is the state. A widget, when there is one, only shows it.
+// Macros, XML-RPC, the waterfall, and the Qt shell change these here.
+extern void set_afc(bool on);
+extern void set_sql(bool on);
+extern void set_rxid(bool on);
+extern void set_txid(bool on);
+extern void set_autospot(bool on);
+// The slider level, or the power-squelch level when that is in use.
+extern double squelch_level();
+extern void set_squelch_level(double value);
+
+// T/R, TUNE, and Lk. These flags were the button values, and they change at
+// the same moments. T/R can read off while the modem still drains its buffer.
+extern bool tr_pressed();
+extern bool tune_pressed();
+extern bool tx_lock_on();
+// show_* records what the operator sees. It starts and stops nothing.
+extern void show_tr(bool on);
+extern void show_tune(bool on);
+// request_* does what pressing that button did.
+extern void request_tr(bool on);
+extern void request_tune(bool on);
+extern void set_tx_lock(bool on);
+
 extern int rightof(Fl_Widget* w);
 extern int leftof(Fl_Widget* w);
 extern int above(Fl_Widget* w);
@@ -427,6 +451,14 @@ extern void put_MODEstatus(const char* fmt, ...) format__(printf, 1, 2);
 extern void put_MODEstatus(trx_mode mode);
 extern void put_Status1(const char *msg, double timeout = 0.0, status_timeout action = STATUS_CLEAR);
 extern void put_Status2(const char *msg, double timeout = 0.0, status_timeout action = STATUS_CLEAR);
+
+// The status bar, Status1, and Status2 as text, set at the same points as
+// the FLTK boxes. A timeout is applied when the text is read: STATUS_CLEAR
+// empties the line, STATUS_DIM keeps it.
+enum status_line_id { STATUS_LINE_BAR, STATUS_LINE_1, STATUS_LINE_2 };
+extern std::string status_line(status_line_id which);
+extern void set_status_line(status_line_id which, const char *msg,
+	double timeout = 0.0, status_timeout action = STATUS_CLEAR);
 extern void show_clock(bool);
 
 extern void show_frequency(unsigned long long);

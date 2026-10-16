@@ -21,6 +21,7 @@
 // ----------------------------------------------------------------------------
 
 #include <config.h>
+#include "tcidigi_version.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -880,7 +881,7 @@ void fsq::parse_carat(std::string relay)
 {
 	std::string response = station_calling;
 	if (!relay.empty()) response.append(";").append(relay);
-	response.append(" fldigi ").append(PACKAGE_VERSION);
+	response.append(" " TCIDIGI_NAME " " TCIDIGI_VERSION);
 	reply(response);
 	display_fsq_rx_text(toprint.append(rx_text).append("\n"), FTextBase::FSQ_DIR);
 }

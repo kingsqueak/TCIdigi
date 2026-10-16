@@ -127,6 +127,9 @@ public:
 	int imageWidth() const { return disp_width; }
 	int imageHeight() const { return image_height; }
 	int pixelHz() const { return step > 0 ? step : 1; }
+	// Image width in pixels at x1, used in place of the widget width. The Qt
+	// shell's hidden widget is sized by a window nobody sees. 0 uses w().
+	void setFixedWidth(int px);
 	// Time-domain scope. The hidden widget paints this only from draw(),
 	// which does not run under the Qt window.
 	const unsigned char* scopeImage() const { return sig_img; }
@@ -185,6 +188,7 @@ public:
 
 private:
 	int disp_width;
+	int fixed_width;
 	int image_width;
 	int scale_width;
 	int RGBwidth;
@@ -350,6 +354,7 @@ public:
 	int imageWidth() const { return wfdisp ? wfdisp->imageWidth() : 0; }
 	int imageHeight() const { return wfdisp ? wfdisp->imageHeight() : 0; }
 	int pixelHz() const { return wfdisp ? wfdisp->pixelHz() : 1; }
+	void setFixedWidth(int px) { if (wfdisp) wfdisp->setFixedWidth(px); }
 	const unsigned char* scopeImage() const { return wfdisp ? wfdisp->scopeImage() : 0; }
 	int scopeOffset() const { return wfdisp ? wfdisp->scopeOffset() : 0; }
 	int scopeHeight() const { return wfdisp ? wfdisp->scopeHeight() : 0; }

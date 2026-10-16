@@ -15,6 +15,8 @@
 struct EngineView {
 	long long frequency_hz;
 	int carrier_hz;
+	// Where transmit goes. Differs from carrier_hz while Lk holds it.
+	int tx_carrier_hz;
 	int bandwidth_hz;
 	int hz_low;
 	int hz_high;
@@ -147,6 +149,7 @@ void engine_wf_span(int db);
 void engine_qsy();
 
 // Remember the current mode, dial, and audio frequency. Right-click recalls.
+// The list is kept in stored_qrg.txt in the configuration directory.
 // Recalling a different dial frequency moves the radio.
 // engine_store writes a short status line into buf. Returns the list length,
 // 0 when that triple was already stored, or -1 when the modem is down.

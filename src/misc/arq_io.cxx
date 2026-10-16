@@ -246,10 +246,10 @@ void parse_arqtext(std::string &toparse)
 			PskMailLogName.append("gMFSK.log");
 			Maillogfile = new cLogfile(PskMailLogName.c_str());
 			Maillogfile->log_to_file_start();
-			REQ(set_button, wf->xmtlock, 1);
 			if (progdefaults.PSKmailSweetSpot)
 				active_modem->set_freq(progdefaults.PSKsweetspot);
 			active_modem->set_freqlock(true);
+			REQ(set_tx_lock, true);
 			LOG_INFO("%s", "ARQ is set to pskmail server");
 		} else if (strCmdText == "client" && mailclient == false && mailserver == false) {
 			mailclient = true;
@@ -259,8 +259,8 @@ void parse_arqtext(std::string &toparse)
 			PskMailLogName.append("gMFSK.log");
 			Maillogfile = new cLogfile(PskMailLogName.c_str());
 			Maillogfile->log_to_file_start();
-			REQ(set_button, wf->xmtlock, 0);
 			active_modem->set_freqlock(false);
+			REQ(set_tx_lock, false);
 			LOG_INFO("%s", "ARQ is set to pskmail client");
 		} else if (strCmdText == "normal") {
 			mailserver = false;
@@ -269,8 +269,8 @@ void parse_arqtext(std::string &toparse)
 				delete Maillogfile;
 				Maillogfile = 0;
 			}
-			REQ(set_button, wf->xmtlock, 0);
 			active_modem->set_freqlock(false);
+			REQ(set_tx_lock, false);
 			LOG_INFO("%s", "ARQ is reset to normal ops");
 		} else if ((idxSubCmd = strCmdText.find("<mode>")) != std::string::npos) {
 			idxSubCmdEnd = strCmdText.find("</mode>");
