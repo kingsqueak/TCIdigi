@@ -7,8 +7,8 @@ The appearance is modernized and somewhat streamlined.
 All the sound card and CAT functionality has been removed from fldigi.
 
 I refer to this as my "daily driver" for chatting over keyboard modes. 
-I enabled the basic functional modems popularly used and the lookup 
-and logging is just QRZ for the moment. I may add eQSL in the future.
+I enabled the basic functional modems popularly used. Call sign lookup 
+is QRZ, and logging can go to the QRZ logbook, to eQSL.cc, or to both.
 
 I have also submitted patches for fldigi to enable TCI and also QRZ 
 logging to the main project. This will be more useful for people that 
@@ -56,6 +56,16 @@ default 40001 or an IP for the server that is not localhost, make your
 changes there.
 
 There is a dialogue box to configure QRZ credentials for lookup and logging.
+
+There is also an eQSL account dialog under the Log menu. Turn on "Send to 
+eQSL when logging" and enter your eQSL user ID and password. The QTH 
+nickname is optional and picks the eQSL location if your account has more 
+than one. The QSL message can use {CALL}, {NAME} and {MODE}. If you set 
+eQSL up in fldigi before, those settings are used as the starting values.
+
+The Log button sends the contact to the QRZ logbook when a QRZ logbook key 
+is set, and to eQSL when that is turned on. The status box next to the 
+reports shows the result from each one.
 
 These are not forced on initial startup yet, but will be eventually.
 

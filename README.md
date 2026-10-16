@@ -6,6 +6,12 @@ It is based on fldigi 4.2.13, commit 38708315. The license is GPL-3.0-or-later. 
 
 This repository is TCIdigi. It is not the upstream fldigi project.
 
+## Lookup and logging
+
+Call sign lookup uses QRZ (Log, QRZ account). The Log button sends the contact to the QRZ logbook when a QRZ logbook key is set, and to eQSL.cc when Log, eQSL account has “Send to eQSL when logging” turned on. The status box next to the reports shows the result from each one.
+
+The eQSL account dialog takes the eQSL user ID, password, an optional QTH nickname (for accounts with more than one location), and a QSL message where `{CALL}`, `{NAME}` and `{MODE}` are filled in from the contact. It starts from fldigi’s eQSL settings when those are set. The upload is the one fldigi makes, sent over https.
+
 ## Build
 
 One build from this tree produces two programs:
