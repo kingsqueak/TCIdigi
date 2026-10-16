@@ -88,6 +88,8 @@ static bool tci_connected = false;
 static bool tci_drop_socket = false;
 
 static Socket* tci_sock = 0;
+// Set when the server sends READY; at the end of its greeting.
+static bool tci_ready = false;
 
 static std::string tci_status = "TCI idle";
 static unsigned long long tci_freq = 0;
@@ -106,6 +108,8 @@ static std::string tci_last_sent_mode;
 static std::string tci_device;
 
 static int tci_dev_rate = 48000;
+// TX_CHRONO carries the rate the server plays our TX audio at.
+static int tci_tx_rate = 48000;
 static int tci_sample_type = 3; // FLOAT32
 static int tci_channels = 2;
 static int tci_wire_channels = 2;
@@ -388,8 +392,9 @@ static void subscribe_audio()
 	snprintf(line, sizeof(line), "line_out_start:%d;", rx);
 	ws_send_text(line);
 	LOG_INFO("TCI audio_start and line_out_start rx %d", rx);
-	if (!zeus_device())
-		return;
+	// Pin the stream for every server, not just Zeus. The spec applies
+	// these to the TX stream too, and the TX path writes 48 kHz float32.
+	// The server's replies update the format if it picks something else.
 	pthread_mutex_lock(&tci_mutex);
 	tci_wire_channels = 2;
 	pthread_mutex_unlock(&tci_mutex);
@@ -440,29 +445,29 @@ static void push_rx_samples(const float* s, size_t n)
 	pthread_mutex_unlock(&tci_mutex);
 }
 
-static void send_tx_frame(size_t nsamp, int chrono_rate, int fmt, int ch)
+static void send_tx_frame(size_t nsamp, int chrono_rate, int ch)
 {
-	(void)fmt;
-	(void)ch;
 	// One chrono is one block of real time: 2048 samples at 48 kHz. Send
 	// exactly that many, every time. A skipped or short block is a hole in
 	// the RF, and the station copying us loses the symbol clock even though
 	// the tone still sounds right.
-	if (nsamp < 2)
+	if (nsamp < 1)
 		return;
 	if (chrono_rate < 8000)
 		chrono_rate = 48000;
-	nsamp &= ~1u;
-	size_t frames = nsamp / 2;
+	// length counts samples across all channels. Zeus leaves the channel
+	// field at zero and means two.
+	int chrono_ch = (ch == 1) ? 1 : 2;
+	size_t frames = nsamp / (size_t)chrono_ch;
 	if (frames < 64)
 		frames = 2048;
 	if (frames > 65536)
 		frames = 65536;
 
-	// A short chrono is still a request for audio. Dropping it, which we
-	// did when the queue was not already full, makes ExpertSDR3 stop
-	// asking. Send the real samples on hand. Never hold the last sample
-	// flat: that erases the PSK phase changes.
+	// A short chrono is still a request for audio. Dropping it makes
+	// ExpertSDR3 stop asking. Send the real samples on hand and pad the
+	// rest with zeros, which the spec names as the preferred answer.
+	// Never hold the last sample flat: that erases the PSK phase changes.
 	for (int w = 0; w < 20; w++) {
 		pthread_mutex_lock(&tci_mutex);
 		bool enough = tci_tx_q.size() >= frames;
@@ -475,37 +480,56 @@ static void send_tx_frame(size_t nsamp, int chrono_rate, int fmt, int ch)
 
 	std::vector<float> samps(frames, 0.f);
 	size_t have = 0;
+	int fmt = 3;
 	pthread_mutex_lock(&tci_mutex);
 	have = tci_tx_q.size() < frames ? tci_tx_q.size() : frames;
 	for (size_t i = 0; i < have; i++) {
 		samps[i] = tci_tx_q.front();
 		tci_tx_q.pop_front();
 	}
+	fmt = tci_sample_type;
 	pthread_mutex_unlock(&tci_mutex);
-	if (have < 2)
-		return;
+	if (fmt < 0 || fmt > 3)
+		fmt = 3;
 
+	// The server expects TX audio in the format set by
+	// audio_stream_sample_type, the same one the RX stream uses.
 	uint32_t hdr[16];
 	memset(hdr, 0, sizeof(hdr));
 	hdr[0] = (uint32_t)progdefaults.tci_rx;
 	hdr[1] = (uint32_t)chrono_rate;
-	hdr[2] = 3; // float32
+	hdr[2] = (uint32_t)fmt;
 	int chans = wire_channels();
-	hdr[5] = (uint32_t)(chans == 1 ? have : have * 2);
+	hdr[5] = (uint32_t)(frames * (size_t)chans);
 	hdr[6] = TCI_TX_AUDIO;
 	hdr[7] = (uint32_t)chans;
 
-	size_t nbytes = (size_t)chans * 4;
-	std::vector<unsigned char> payload(64 + have * nbytes);
+	int bps = sample_bytes(fmt);
+	size_t nbytes = (size_t)chans * (size_t)bps;
+	std::vector<unsigned char> payload(64 + frames * nbytes);
 	memcpy(&payload[0], hdr, 64);
-	for (size_t i = 0; i < have; i++) {
+	for (size_t i = 0; i < frames; i++) {
 		float s = samps[i];
 		if (s > 1.f) s = 1.f;
 		if (s < -1.f) s = -1.f;
+		unsigned char enc[4];
+		if (fmt == 0) {
+			int16_t v = (int16_t)lrintf(s * 32767.f);
+			memcpy(enc, &v, 2);
+		} else if (fmt == 1) {
+			int32_t v = (int32_t)lrintf(s * 8388607.f);
+			enc[0] = v & 0xff;
+			enc[1] = (v >> 8) & 0xff;
+			enc[2] = (v >> 16) & 0xff;
+		} else if (fmt == 2) {
+			int32_t v = (int32_t)lrint((double)s * 2147483647.0);
+			memcpy(enc, &v, 4);
+		} else {
+			memcpy(enc, &s, 4);
+		}
 		unsigned char* d = &payload[64 + i * nbytes];
-		memcpy(d, &s, 4);
-		if (chans == 2)
-			memcpy(d + 4, &s, 4);
+		for (int c = 0; c < chans; c++)
+			memcpy(d + c * bps, enc, bps);
 	}
 	ws_send(2, &payload[0], payload.size());
 }
@@ -529,7 +553,12 @@ static void handle_text(const std::string& msg)
 			av.push_back(trim_copy(item));
 
 		int rx = progdefaults.tci_rx;
-		if (name == "vfo" && av.size() >= 2) {
+		if (name == "ready") {
+			// The greeting is over. Subscriptions sent during it can be
+			// ignored by ExpertSDR3, so this is the point to (re)send them.
+			tci_ready = true;
+			subscribe_audio();
+		} else if (name == "vfo" && av.size() >= 2) {
 			int rxi = atoi(av[0].c_str());
 			if (rxi != rx)
 				continue;
@@ -548,8 +577,9 @@ static void handle_text(const std::string& msg)
 			int rxi = atoi(av[0].c_str());
 			if (rxi != rx)
 				continue;
+			// Case never matters in TCI. Zeus replies digu to our DIGU.
 			pthread_mutex_lock(&tci_mutex);
-			if (av[1] != tci_last_sent_mode) {
+			if (lower_copy(av[1]) != lower_copy(tci_last_sent_mode)) {
 				tci_mode = av[1];
 				tci_mode_dirty = true;
 			}
@@ -635,6 +665,7 @@ static void handle_binary(const unsigned char* data, size_t n)
 	// Zeus writes zeros in the channel field and sends left = right.
 	// Treating that as mono counts every sample twice, so a 3000 Hz
 	// edge shows up near 1500 Hz. ExpertSDR3 fills the field in.
+	bool lineout = false;
 	if (type == TCI_RX_AUDIO) {
 		pthread_mutex_lock(&tci_mutex);
 		tci_last_rx_audio = time(0);
@@ -653,16 +684,15 @@ static void handle_binary(const unsigned char* data, size_t n)
 				rate, fmt, length, ch, n);
 		}
 		type = TCI_RX_AUDIO;
+		lineout = true;
 	}
 
+	// Line-out is always float32, so only the receiver stream tells us
+	// the format the server expects back on TX.
 	if (rate >= 8000 && rate <= 384000 && type == TCI_RX_AUDIO) {
 		pthread_mutex_lock(&tci_mutex);
 		tci_dev_rate = (int)rate;
-		if (fmt <= 3) tci_sample_type = (int)fmt;
-		pthread_mutex_unlock(&tci_mutex);
-	} else if (rate >= 8000 && rate <= 384000 && type == TCI_TX_CHRONO) {
-		pthread_mutex_lock(&tci_mutex);
-		if (fmt <= 3) tci_sample_type = (int)fmt;
+		if (fmt <= 3 && !lineout) tci_sample_type = (int)fmt;
 		pthread_mutex_unlock(&tci_mutex);
 	}
 
@@ -670,8 +700,11 @@ static void handle_binary(const unsigned char* data, size_t n)
 		int chrono_rate = 48000;
 		if (rate >= 8000 && rate <= 384000)
 			chrono_rate = (int)rate;
+		pthread_mutex_lock(&tci_mutex);
+		tci_tx_rate = chrono_rate;
+		pthread_mutex_unlock(&tci_mutex);
 		if (tci_tx_on && length < 200000)
-			send_tx_frame(length > 1 ? length : 4096, chrono_rate, 3, (int)ch);
+			send_tx_frame(length > 0 ? length : 4096, chrono_rate, (int)ch);
 		return;
 	}
 	if (type != TCI_RX_AUDIO)
@@ -681,8 +714,9 @@ static void handle_binary(const unsigned char* data, size_t n)
 	if (bps <= 0)
 		return;
 	size_t avail = (n - 64) / (size_t)bps;
-	// ExpertSDR3: length is the sample count and the payload holds
-	// length * channels floats. Zeus: length is already the float count.
+	// The spec counts length across all channels, so the payload holds
+	// length samples. Older ExpertSDR3 builds counted per channel and
+	// sent length * channels; both layouts are accepted below.
 	int chans = (ch == 1 || ch == 2) ? (int)ch : (zeus_device() ? 2 : 1);
 	size_t frames = 0;
 	bool sample_count = chans > 1 && length > 0 && length * (size_t)chans <= avail;
@@ -738,9 +772,9 @@ static void reader_loop(Socket& s, const std::string& preload)
 	std::vector<unsigned char> acc(preload.begin(), preload.end());
 	unsigned char buf[8192];
 	while (!tci_quit && !tci_drop_socket && progdefaults.tci_enable) {
-		// ExpertSDR3 ignores audio_start during its greeting. Send it
-		// again once that burst has had a second to finish. No transmit.
-		if (!late_audio && time(0) - audio_armed_at >= 1) {
+		// READY; normally triggers the subscription. A server that never
+		// sends it still gets audio_start again once its greeting is over.
+		if (!late_audio && !tci_ready && time(0) - audio_armed_at >= 2) {
 			late_audio = 1;
 			subscribe_audio();
 		}
@@ -866,6 +900,7 @@ static void* tci_thread_main(void*)
 		pthread_mutex_lock(&tci_mutex);
 		tci_sock = s;
 		tci_connected = true;
+		tci_ready = false;
 		pthread_mutex_unlock(&tci_mutex);
 		set_status(std::string(_("TCI connected ")) + host + ":" + port);
 		LOG_INFO("TCI connected %s:%s rx %d", host.c_str(), port.c_str(), progdefaults.tci_rx);
@@ -912,6 +947,17 @@ void tci_start()
 	}
 }
 
+void tci_stop()
+{
+	if (!tci_thread_started)
+		return;
+	tci_quit = true;
+	tci_drop_socket = true;
+	pthread_join(tci_thread, 0);
+	tci_thread_started = false;
+	Fl::remove_timeout(tci_ui_tick, 0);
+}
+
 void tci_set_ptt(bool on)
 {
 	if (!tci_is_active())
@@ -929,9 +975,10 @@ void tci_set_ptt(bool on)
 		tci_tx_rs_modem = 0;
 	}
 	pthread_mutex_unlock(&tci_mutex);
-	ws_send_text(cmd);
+	// The spec wants the audio stream running before trx:...,tci.
 	if (on)
 		subscribe_audio();
+	ws_send_text(cmd);
 }
 
 void tci_set_freq(unsigned long long hz)
@@ -992,6 +1039,17 @@ void tci_set_filter(const char* label)
 		lo = hi;
 		hi = t;
 	}
+	// The menu shows the passband as positive audio offsets. In the lower
+	// sideband modes the server wants it below the carrier, as negative
+	// numbers: 80-3000 goes out as -3000,-80.
+	pthread_mutex_lock(&tci_mutex);
+	bool lsb = mode_is_lsb(tci_mode);
+	pthread_mutex_unlock(&tci_mutex);
+	if (lsb && lo >= 0) {
+		int t = lo;
+		lo = -hi;
+		hi = -t;
+	}
 	int rx = progdefaults.tci_rx;
 	char cmd[96];
 	snprintf(cmd, sizeof(cmd), "rx_filter_band:%d,%d,%d;", rx, lo, hi);
@@ -1034,6 +1092,24 @@ static const char* tci_filter_presets[] = {
 	0
 };
 
+// The menu holds the server's spelling, which may differ in case from
+// the mode we are asked to show.
+static int tci_mode_index(const std::string& mode)
+{
+	if (!qso_opMODE || mode.empty())
+		return -1;
+	int i = qso_opMODE->find_index(mode.c_str());
+	if (i < 0)
+		i = qso_opMODE->find_index(lower_copy(mode).c_str());
+	if (i < 0) {
+		std::string up = mode;
+		for (size_t k = 0; k < up.size(); k++)
+			up[k] = (char)toupper((unsigned char)up[k]);
+		i = qso_opMODE->find_index(up.c_str());
+	}
+	return i;
+}
+
 static void tci_fill_mode_menu(const std::string& list, const std::string& current)
 {
 	if (!qso_opMODE || list.empty())
@@ -1047,8 +1123,9 @@ static void tci_fill_mode_menu(const std::string& list, const std::string& curre
 			qso_opMODE->add(item.c_str());
 	}
 	qso_opMODE->activate();
-	if (!current.empty() && qso_opMODE->find_index(current.c_str()) >= 0)
-		qso_opMODE->value(current);
+	int cur = tci_mode_index(current);
+	if (cur >= 0)
+		qso_opMODE->index(cur);
 	else if (qso_opMODE->lsize() > 0)
 		qso_opMODE->index(0);
 }
@@ -1058,6 +1135,13 @@ static void tci_fill_filter_menu(int lo, int hi)
 	if (!qso_opBW)
 		return;
 	tci_show_rig_menus();
+	// A lower sideband passband arrives as negative numbers. Show it as
+	// positive offsets so it lines up with the presets.
+	if (lo < 0 && hi <= 0) {
+		int t = lo;
+		lo = -hi;
+		hi = -t;
+	}
 	char live[64];
 	snprintf(live, sizeof(live), "%d-%d", lo, hi);
 	qso_opBW->clear();
@@ -1109,8 +1193,9 @@ static void tci_ui_tick(void*)
 		if (modes_dirty)
 			tci_fill_mode_menu(modes, mode);
 		if (mode_dirty && qso_opMODE && !mode.empty()) {
-			if (qso_opMODE->find_index(mode.c_str()) >= 0)
-				qso_opMODE->value(mode);
+			int i = tci_mode_index(mode);
+			if (i >= 0)
+				qso_opMODE->index(i);
 		}
 		if (filt_dirty)
 			tci_fill_filter_menu(flo, fhi);
@@ -1304,14 +1389,15 @@ size_t SoundTCI::Write(double* buf, size_t count)
 
 	int modem = sample_frequency > 0 ? sample_frequency : 8000;
 	pthread_mutex_lock(&tci_mutex);
-	const int dev = 48000;
+	// Resample to the rate TX_CHRONO asks for; 48 kHz until one arrives.
+	const int dev = tci_tx_rate > 0 ? tci_tx_rate : 48000;
 	if (tci_tx_rs_modem != modem) {
 		tci_tx_hist = 0.f;
 		tci_tx_pos = 0.0;
 		tci_tx_rs_modem = modem;
 	}
 	// 48000 / 8000 = 6. Emit that many samples for each modem sample so a
-	// 1500 Hz PSK31 tone is still 1500 Hz when Zeus plays the block at 48 kHz.
+	// 1500 Hz PSK31 tone is still 1500 Hz when the radio plays the block.
 	int ratio = dev / modem;
 	if (ratio >= 1 && modem * ratio == dev) {
 		float prev = tci_tx_hist;

@@ -4734,6 +4734,9 @@ LOG_INFO("Close rigCAT");
 LOG_INFO("Close ADIF i/o");
 	ADIF_RW_close();
 
+LOG_INFO("Stop TCI client");
+	tci_stop();
+
 LOG_INFO("Close T/R processing");
 	trx_close();
 

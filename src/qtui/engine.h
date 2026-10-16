@@ -57,6 +57,9 @@ struct EngineView {
 
 int engine_up();
 int engine_start(int argc, char** argv);
+// Unkey, then stop the TCI and receive threads. Call once after the Qt
+// event loop returns: the threads otherwise run on while globals are freed.
+void engine_stop();
 
 // QRZ XML login and the operator call from the fldigi configuration.
 // Empty strings when the engine is down. Buffers are always terminated.

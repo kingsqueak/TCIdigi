@@ -18,6 +18,7 @@
 #include "globals.h"
 #include "macros.h"
 #include "tci.h"
+#include "ptt.h"
 #include "squelch_status.h"
 #include "rigsupport.h"
 #include "psk_browser.h"
@@ -313,6 +314,23 @@ int engine_start(int argc, char** argv)
 		store_load();
 	}
 	return g_up;
+}
+
+// The part of fldigi's clean_exit the Qt app needs: drop PTT, then stop
+// the threads that touch the waterfall and audio queues.
+void engine_stop()
+{
+	if (!g_up)
+		return;
+	g_up = 0;
+	if (trx_state != STATE_RX) {
+		if (push2talk)
+			push2talk->set(false);
+		trx_receive();
+		MilliSleep(200);
+	}
+	tci_stop();
+	trx_close();
 }
 
 // fldigi also paints bandwidth tracks into the waterfall image. Those

@@ -28,6 +28,10 @@ class Fl_Widget;
 // Start the background client. Safe to call once from the FLTK main thread.
 void tci_start();
 
+// Stop the background client and wait for its thread to exit. Call at
+// shutdown, before global objects are destroyed.
+void tci_stop();
+
 // Open the setup dialog (Configure menu).
 void tci_show_dialog();
 void cb_mnu_tci(Fl_Widget*, void*);

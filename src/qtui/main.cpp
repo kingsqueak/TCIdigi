@@ -181,5 +181,7 @@ int main(int argc, char* argv[])
 	if (exit_after > 0)
 		QTimer::singleShot(exit_after * 1000, &app, &QCoreApplication::quit);
 
-	return app.exec();
+	const int rc = app.exec();
+	engine_stop();
+	return rc;
 }
