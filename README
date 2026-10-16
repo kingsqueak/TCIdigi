@@ -25,6 +25,13 @@ I am intentionally leaving all the legacy fldigi documentation in this
 repo for now as functionally, with the features I have implemented, 
 the operation and most of the modem capability is the same between the apps.
 
+The Mac DMG runs on macOS 26.0 or newer (Apple silicon). Version 0.29
+is the first that runs on macOS 26; 0.26 to 0.28 needed macOS 27.
+The app is not notarized. If macOS says it "can't be opened", run this
+once in Terminal and then open it as usual:
+
+  xattr -dr com.apple.quarantine /Applications/TCIdigi-<version>.app
+
 This should build for linux as it is now, the instructions are
 in the README.md file
 

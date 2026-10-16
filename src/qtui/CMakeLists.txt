@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
 if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "14.4" CACHE STRING "Minimum macOS version" FORCE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "26.0" CACHE STRING "Minimum macOS version" FORCE)
 endif()
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Widgets Network)
@@ -72,6 +72,10 @@ qt_add_resources(fldigi-qt "qtui_icons"
 target_include_directories(fldigi-qt PRIVATE "${FLDIGI_SRC}/include")
 target_link_libraries(fldigi-qt PRIVATE fldigi_qt_entry Qt6::Widgets Qt6::Network)
 if(APPLE)
+  # The engine's link line carries the autotools -mmacosx-version-min. Drop
+  # it so CMAKE_OSX_DEPLOYMENT_TARGET sets the minimum for the app.
+  string(REGEX REPLACE "-mmacosx-version-min=[0-9.]+" ""
+         FLDIGI_ENGINE_LINK_LINE "${FLDIGI_ENGINE_LINK_LINE}")
   # SHELL keeps -framework and -weak_framework intact. CMake otherwise treats
   # those flags as its own keywords and links the framework name as a file.
   target_link_options(fldigi-qt PRIVATE "SHELL:${FLDIGI_ENGINE_LINK_LINE}")

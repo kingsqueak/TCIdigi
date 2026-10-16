@@ -6,6 +6,16 @@ It is based on fldigi 4.2.13, commit 38708315. The license is GPL-3.0-or-later. 
 
 This repository is TCIdigi. It is not the upstream fldigi project.
 
+## macOS download
+
+The Mac DMG needs macOS 26.0 or newer on Apple silicon. DMGs 0.26 to 0.28 ran only on macOS 27; 0.29 is the first that runs on macOS 26.
+
+Drag TCIdigi into Applications. The app is not notarized, so macOS can refuse to open it with “can’t be opened”. Clear the download quarantine once from Terminal, then open it as usual:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/TCIdigi-<version>.app
+```
+
 ## Lookup and logging
 
 Call sign lookup uses QRZ (Log, QRZ account). The Log button sends the contact to the QRZ logbook when a QRZ logbook key is set, and to eQSL.cc when Log, eQSL account has “Send to eQSL when logging” turned on. The status box next to the reports shows the result from each one.
@@ -21,7 +31,7 @@ One build from this tree produces two programs:
 
 The two programs keep separate settings. fldigi uses `~/.fldigi` and TCIdigi uses `~/.tcidigi`.
 
-On macOS, Homebrew packages that satisfy a build here are autoconf, automake, pkg-config, fltk, libsamplerate, libsndfile, libpng, jpeg-turbo, gettext, and Qt 6. `glibtoolize` comes from the libtool formula. The shell has been built with the macOS deployment target set to 14.4.
+On macOS, Homebrew packages that satisfy a build here are autoconf, automake, pkg-config, fltk, libsamplerate, libsndfile, libpng, jpeg-turbo, gettext, and Qt 6. `glibtoolize` comes from the libtool formula. The Qt program targets macOS 26.0 (the engine objects are compiled for 14.4).
 
 ```sh
 autoreconf -fi
@@ -29,7 +39,7 @@ autoreconf -fi
 make -C src
 cmake -S src/qtui -B build-qt \
   -DCMAKE_PREFIX_PATH="$(brew --prefix qt)" \
-  -DCMAKE_OSX_DEPLOYMENT_TARGET=14.4
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0
 cmake --build build-qt --target fldigi-qt
 ```
 
@@ -53,3 +63,5 @@ A TCIdigi launch with no `--config-dir` uses `~/.tcidigi`. TCIdigi does not read
 Linux can use the same steps when Qt 6 and FLTK are installed. A Windows build from this tree has not been made.
 
 Generated configure output, object files, and `build-qt/` are gitignored.
+
+Before shipping a Mac DMG, run `scripts/mac-audit-bundle.py <App.app>`. It checks every library in the bundle against the macOS 26.5 SDK and fails if one imports a function macOS 26 does not have. Homebrew’s glib bottle uses `pipe2` from macOS 27, so the DMG carries a glib rebuilt from source with the macOS 26.5 SDK and `MACOSX_DEPLOYMENT_TARGET=26.0`.
