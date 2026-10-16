@@ -466,6 +466,7 @@ public:
 		for (int i = 0; i < kCount; ++i) {
 			auto* button = new QPushButton(this);
 			button->setObjectName(QStringLiteral("macroButton"));
+			button->setProperty("middle", i >= 4 && i < 8);
 			button->setFocusPolicy(Qt::NoFocus);
 			button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 			button->setContextMenuPolicy(Qt::CustomContextMenu);

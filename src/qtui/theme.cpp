@@ -144,9 +144,9 @@ QPalette Theme::makePalette(bool dark)
 	return p;
 }
 
-QString Theme::styleSheet()
+QString Theme::styleSheet(bool dark)
 {
-	return QStringLiteral(
+	QString sheet = QStringLiteral(
 		"QWidget { font-size: 13px; }"
 		"QMainWindow { background: palette(window); }"
 		"QMenuBar { background: palette(window); border: none; padding: 2px 4px; }"
@@ -403,6 +403,18 @@ QString Theme::styleSheet()
 		"  padding: 4px 6px;"
 		"}"
 	);
+	// F5-F8 sit a shade off the other macro buttons so the three groups of
+	// four read at a glance: lighter in dark mode, darker in light mode.
+	sheet += dark
+		? QStringLiteral(
+			"QPushButton#macroButton[middle=\"true\"] { background: #4a4e57; }"
+			"QPushButton#macroButton[middle=\"true\"]:hover { background: #535760; }"
+			"QPushButton#macroButton[middle=\"true\"]:pressed { background: #5c6069; }")
+		: QStringLiteral(
+			"QPushButton#macroButton[middle=\"true\"] { background: #c6cbd4; }"
+			"QPushButton#macroButton[middle=\"true\"]:hover { background: #bcc2cc; }"
+			"QPushButton#macroButton[middle=\"true\"]:pressed { background: #b1b7c2; }");
+	return sheet;
 }
 
 void Theme::apply()
@@ -410,6 +422,6 @@ void Theme::apply()
 	if (!qobject_cast<QApplication*>(QCoreApplication::instance()))
 		return;
 	QApplication::setPalette(makePalette(darkEffective()));
-	qApp->setStyleSheet(styleSheet());
+	qApp->setStyleSheet(styleSheet(darkEffective()));
 	m_applied = true;
 }

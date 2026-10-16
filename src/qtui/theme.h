@@ -39,7 +39,7 @@ private:
 	void apply();
 	bool darkEffective() const;
 	static QPalette makePalette(bool dark);
-	static QString styleSheet();
+	static QString styleSheet(bool dark);
 
 	Mode m_mode = Mode::System;
 	bool m_applied = false;
