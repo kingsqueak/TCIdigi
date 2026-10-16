@@ -9,8 +9,8 @@
 #ifndef TCIDIGI_VERSION_H
 #define TCIDIGI_VERSION_H
 
-// This build is 0.25. The next build is 0.26, then 0.27, and so on.
+// This build is 0.26. The next build is 0.27, then 0.28, and so on.
 #define TCIDIGI_NAME "TCIdigi"
-#define TCIDIGI_VERSION "0.25"
+#define TCIDIGI_VERSION "0.26"
 
 #endif
