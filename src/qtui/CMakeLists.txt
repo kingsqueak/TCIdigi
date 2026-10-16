@@ -69,9 +69,15 @@ qt_add_resources(fldigi-qt "qtui_icons"
 
 target_include_directories(fldigi-qt PRIVATE "${FLDIGI_SRC}/include")
 target_link_libraries(fldigi-qt PRIVATE fldigi_qt_entry Qt6::Widgets Qt6::Network)
-# SHELL keeps -framework and -weak_framework intact. CMake otherwise treats
-# those flags as its own keywords and links the framework name as a file.
-target_link_options(fldigi-qt PRIVATE "SHELL:${FLDIGI_ENGINE_LINK_LINE}")
+if(APPLE)
+  # SHELL keeps -framework and -weak_framework intact. CMake otherwise treats
+  # those flags as its own keywords and links the framework name as a file.
+  target_link_options(fldigi-qt PRIVATE "SHELL:${FLDIGI_ENGINE_LINK_LINE}")
+else()
+  # Link options land before the objects. GNU ld defaults to --as-needed on
+  # Ubuntu and drops a library named before anything references it.
+  target_link_libraries(fldigi-qt PRIVATE ${FLDIGI_ENGINE_LINK_OPTIONS})
+endif()
 
 file(READ "${FLDIGI_SRC}/include/tcidigi_version.h" TCIDIGI_VERSION_H)
 string(REGEX MATCH "#define TCIDIGI_VERSION \"([^\"]+)\"" _tcidigi_ver "${TCIDIGI_VERSION_H}")

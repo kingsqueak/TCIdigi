@@ -8243,8 +8243,16 @@ void place_tci_rx_attenuator()
 	int want = tci_audio_wanted() ? Hstatus : 0;
 	int delta = want - rx_atten_extra;
 	if (delta != 0) {
+		// With a resizable set, the window gives the new height to
+		// center_group and pushes the status row down, off the bottom.
+		// Clear it so the window only gains room under the status row.
+		Fl_Widget* grow = fl_digi_main->resizable();
+		fl_digi_main->resizable(0);
 		fl_digi_main->size(fl_digi_main->w(), fl_digi_main->h() + delta);
-		status_group->size(status_group->w(), Hstatus + want);
+		fl_digi_main->resizable(grow);
+		// Fl_Group::resize would scale every child to the new height.
+		status_group->Fl_Widget::resize(status_group->x(), status_group->y(),
+			status_group->w(), Hstatus + want);
 		rx_atten_extra = want;
 	}
 	int top = status_group->y();
