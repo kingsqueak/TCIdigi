@@ -25,8 +25,24 @@ I am intentionally leaving all the legacy fldigi documentation in this
 repo for now as functionally, with the features I have implemented, 
 the operation and most of the modem capability is the same between the apps.
 
-This should build for linux as it is now, the instructions are 
+This should build for linux as it is now, the instructions are
 in the README.md file
+
+The build makes two programs from this tree. "make -C src" builds
+fldigi (the FLTK program, with the TCI and QRZ changes) and flarq.
+CMake then builds TCIdigi (the Qt 6 program) from those engine objects,
+so fldigi has to be built first.
+
+After the build the programs are here:
+
+  fldigi                 src/fldigi
+  flarq                  src/flarq
+  TCIdigi (macOS)        build-qt/TCIdigi-<version>.app
+                         (or run build-qt/TCIdigi from a shell)
+  TCIdigi (Linux)        build-qt/TCIdigi-<version>
+
+fldigi keeps its settings in ~/.fldigi and TCIdigi uses ~/.tcidigi,
+so the two do not share a configuration.
 
 It will be a while before I make any extensive changes as this was 
 a fairly expensive endeavor in tokens and I am not currently working.
