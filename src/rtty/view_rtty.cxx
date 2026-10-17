@@ -36,6 +36,7 @@
 #include "digiscope.h"
 #include "Viewer.h"
 #include "qrunner.h"
+#include "psk_browser.h"
 
 //=====================================================================
 // Baudot support
@@ -87,6 +88,9 @@ void view_rtty::rx_init()
 		channel[ch].rxmode = LETTERS;
 		channel[ch].phaseacc = 0;
 		channel[ch].timeout = 0;
+		channel[ch].textage = 0;
+		channel[ch].held = false;
+		channel[ch].textfreq = NULLFREQ;
 		channel[ch].frequency = NULLFREQ;
 		channel[ch].poserr = channel[ch].negerr = 0.0;
 
@@ -173,6 +177,9 @@ void view_rtty::restart()
 
 		channel[ch].state = IDLE;
 		channel[ch].timeout = 0;
+		channel[ch].textage = 0;
+		channel[ch].held = false;
+		channel[ch].textfreq = NULLFREQ;
 		channel[ch].freqerr = 0.0;
 		channel[ch].metric = 0.0;
 		channel[ch].sigpwr = 0.0;
@@ -365,8 +372,17 @@ bool view_rtty::rx(int ch, bool bit)
 				if (channel[ch].metric > rtty_squelch) {
 					c = decode_char(ch);
 // print this RTTY_CHANNEL
-					if ( c != 0 )
+					if ( c != 0 ) {
+						// A different station in this slot replaces the text kept
+						// from the last one. The same station keeps its QSO.
+						if (channel[ch].held) {
+							if (fabs(channel[ch].textfreq - channel[ch].frequency) > rtty_baud)
+								REQ(&viewclearchannel, ch);
+							channel[ch].held = false;
+							channel[ch].textfreq = NULLFREQ;
+						}
 						REQ(&viewaddchr, ch, (int)channel[ch].frequency, c, mode);
+					}
 				}
 				flag = true;
 			}
@@ -395,26 +411,71 @@ void view_rtty::Metric(int ch)
 
 	if (channel[ch].state == RCVNG)
 		if (channel[ch].metric < rtty_squelch) {
-			channel[ch].timeout = progdefaults.VIEWERtimeout * samplerate / WF_BLOCKSIZE;
+			channel[ch].timeout = decode_hold();
 			channel[ch].state = WAITING;
 		}
+	// The same station back within the hold carries on decoding.
+	if (channel[ch].state == WAITING && channel[ch].metric >= rtty_squelch) {
+		channel[ch].timeout = 0;
+		channel[ch].state = RCVNG;
+	}
 
 	if (channel[ch].timeout) {
 		channel[ch].timeout--;
 		if (!channel[ch].timeout) {
+			bool keep = psk_browser_keeps_text() && channel[ch].textage > 0;
+			if (keep && !channel[ch].held) {
+				channel[ch].held = true;
+				channel[ch].textfreq = channel[ch].frequency;
+			}
 			channel[ch].frequency = NULLFREQ;
 			channel[ch].metric = 0;
 			channel[ch].freqerr = 0;
 			channel[ch].state = IDLE;
-			REQ(&viewclearchannel, ch);
+			if (!keep)
+				clear_text(ch);
 		}
 	}
+}
+
+// With the Qt browser keeping text, a channel that lost its signal searches
+// again after VDECODEHOLD seconds and its text stays until VIEWERtimeout.
+// Otherwise both use VIEWERtimeout. Metric counts the hold down.
+int view_rtty::decode_hold()
+{
+	int secs = progdefaults.VIEWERtimeout;
+	if (psk_browser_keeps_text() && secs > VDECODEHOLD)
+		secs = VDECODEHOLD;
+	return secs * samplerate / WF_BLOCKSIZE;
+}
+
+// find_signals counts this down, once per block.
+int view_rtty::text_hold()
+{
+	return progdefaults.VIEWERtimeout * samplerate / WF_BLOCKSIZE;
+}
+
+void view_rtty::clear_text(int ch)
+{
+	channel[ch].held = false;
+	channel[ch].textage = 0;
+	channel[ch].textfreq = NULLFREQ;
+	REQ(&viewclearchannel, ch);
 }
 
 void view_rtty::find_signals()
 {
 	double spwrhi = 0.0, spwrlo = 0.0, npwr = 0.0;
 	double rtty_squelch = pow(10, progStatus.VIEWER_rttysquelch / 10.0);
+	for (int i = 0; i < progdefaults.VIEWERchannels; i++) {
+		if (channel[i].state == RCVNG)
+			channel[i].textage = text_hold();
+		else if (channel[i].textage) {
+			channel[i].textage--;
+			if (!channel[i].textage && channel[i].held && channel[i].state == IDLE)
+				clear_text(i);
+		}
+	}
 	for (int i = 0; i < progdefaults.VIEWERchannels; i++) {
 		if (channel[i].state != IDLE) continue;
 		int cf = progdefaults.LowFreqCutoff + 100 * i;
@@ -433,17 +494,25 @@ void view_rtty::find_signals()
 				channel[i].frequency = chf;
 				channel[i].sigsearch = SIGSEARCH;
 				channel[i].state = SRCHG;
-				REQ(&viewaddchr, i, (int)channel[i].frequency, 0, mode);
+				// Held text keeps its frequency until this one decodes.
+				if (!channel[i].held)
+					REQ(&viewaddchr, i, (int)channel[i].frequency, 0, mode);
 				break;
 			}
 		}
 	}
+	// Two idle channels both read NULLFREQ and match here. Reset them
+	// without touching the text a held channel still shows.
 	for (int i = 1; i < progdefaults.VIEWERchannels; i++ )
-		if (fabs(channel[i].frequency - channel[i-1].frequency) < rtty_baud/2)
-			clearch(i);
+		if (fabs(channel[i].frequency - channel[i-1].frequency) < rtty_baud/2) {
+			if (channel[i].frequency == NULLFREQ)
+				reset_channel(i);
+			else
+				clearch(i);
+		}
 }
 
-void view_rtty::clearch(int ch)
+void view_rtty::reset_channel(int ch)
 {
 	channel[ch].state = IDLE;
 	channel[ch].rxstate = RTTY_RX_STATE_IDLE;
@@ -451,7 +520,12 @@ void view_rtty::clearch(int ch)
 	channel[ch].phaseacc = 0;
 	channel[ch].frequency = NULLFREQ;
 	channel[ch].poserr = channel[ch].negerr = 0.0;
-	REQ( &viewclearchannel, ch);
+}
+
+void view_rtty::clearch(int ch)
+{
+	reset_channel(ch);
+	clear_text(ch);
 }
 
 void view_rtty::clear()
@@ -463,6 +537,9 @@ void view_rtty::clear()
 		channel[ch].phaseacc = 0;
 		channel[ch].frequency = NULLFREQ;
 		channel[ch].poserr = channel[ch].negerr = 0.0;
+		channel[ch].textage = 0;
+		channel[ch].held = false;
+		channel[ch].textfreq = NULLFREQ;
 	}
 }
 

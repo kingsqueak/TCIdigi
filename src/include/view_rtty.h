@@ -105,6 +105,11 @@ struct RTTY_CHANNEL {
 	int			poscnt;
 	int			negcnt;
 	int			timeout;
+	// Text stays on screen this long after the last signal.
+	int			textage;
+	// Released to search again, with the last station's text still shown.
+	bool		held;
+	double		textfreq;
 
 	double		mark_mag;
 	double		space_mag;
@@ -168,6 +173,10 @@ struct RTTY_CHANNEL {
 	int rttyxprocess();
 	char baudot_dec(int ch, unsigned char data);
 	void Metric(int ch);
+	int decode_hold();
+	int text_hold();
+	void reset_channel(int ch);
+	void clear_text(int ch);
 public:
 	view_rtty(trx_mode mode);
 	~view_rtty();

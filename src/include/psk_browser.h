@@ -108,5 +108,10 @@ public:
 // The Qt shell keeps each channel's decoded text. The FLTK app leaves this off,
 // so its viewer still follows the on-screen width.
 void psk_browser_keep_text(bool on);
+bool psk_browser_keeps_text();
+
+// While the browser keeps text, a PSK or RTTY viewer channel searches again
+// after this many seconds without a signal. The text stays for VIEWERtimeout.
+#define VDECODEHOLD 15
 
 #endif

@@ -33,6 +33,7 @@
 
 #include "fl_digi.h"
 #include "viewpsk.h"
+#include "psk_browser.h"
 #include "pskeval.h"
 #include "pskcoeff.h"
 #include "pskvaricode.h"
@@ -115,6 +116,9 @@ void viewpsk::init()
 		channel[i].frequency = NULLFREQ;
 		channel[i].reset = false;
 		channel[i].acquire = 0;
+		channel[i].textage = 0;
+		channel[i].held = false;
+		channel[i].textfreq = NULLFREQ;
 		for (int j = 0; j < 16; j++)
 			channel[i].syncbuf[j] = 0.0;
 	}
@@ -430,19 +434,55 @@ void viewpsk::clear()
 	evalpsk->clear();
 }
 
+// Called while a channel decodes. With the Qt browser keeping text, the
+// channel searches again after VDECODEHOLD seconds without a signal and
+// its text stays until VIEWERtimeout. Otherwise both use VIEWERtimeout.
+void viewpsk::hold(int ch)
+{
+	int secs = progdefaults.VIEWERtimeout;
+	if (psk_browser_keeps_text() && secs > VDECODEHOLD)
+		secs = VDECODEHOLD;
+	channel[ch].timeout = secs * VPSKSAMPLERATE / WF_BLOCKSIZE;
+	channel[ch].textage = progdefaults.VIEWERtimeout * VPSKSAMPLERATE / WF_BLOCKSIZE;
+}
+
+void viewpsk::clear_text(int ch)
+{
+	channel[ch].held = false;
+	channel[ch].textage = 0;
+	channel[ch].textfreq = NULLFREQ;
+	REQ(&viewclearchannel, ch);
+	REQ(&viewaddchr, ch, NULLFREQ, 0, viewmode);
+}
+
 inline void viewpsk::timeout_check()
 {
 	for (int ch = 0; ch < nchannels; ch++) {
 		if (channel[ch].timeout) channel[ch].timeout--;
-		if (channel[ch].frequency == NULLFREQ) continue;
-		if (channel[ch].reset || (!channel[ch].timeout && !channel[ch].acquire) ||
-			(ch && (fabs(channel[ch-1].frequency - channel[ch].frequency) < bandwidth))) {
+		if (channel[ch].textage) channel[ch].textage--;
+		if (channel[ch].frequency == NULLFREQ) {
+			if (channel[ch].reset) {
+				channel[ch].reset = false;
+				if (channel[ch].held)
+					clear_text(ch);
+			} else if (channel[ch].held && !channel[ch].textage)
+				clear_text(ch);
+			continue;
+		}
+		bool dup = ch && (fabs(channel[ch-1].frequency - channel[ch].frequency) < bandwidth);
+		if (channel[ch].reset || dup || (!channel[ch].timeout && !channel[ch].acquire)) {
+			bool keep = !channel[ch].reset && !dup &&
+				psk_browser_keeps_text() && channel[ch].textage > 0;
+			if (keep && !channel[ch].held) {
+				channel[ch].held = true;
+				channel[ch].textfreq = channel[ch].frequency;
+			}
 			channel[ch].reset = false;
 			channel[ch].dcd = 0;
 			channel[ch].frequency = NULLFREQ;
 			channel[ch].acquire = 0;
-			REQ(&viewclearchannel, ch);
-			REQ(&viewaddchr, ch, NULLFREQ, 0, viewmode);
+			if (!keep)
+				clear_text(ch);
 		}
 	}
 }
@@ -560,7 +600,7 @@ void viewpsk::rx_symbol(int ch, cmplx symbol)
 			channel[ch].dcd = 1;
 			channel[ch].quality = cmplx (1.0, 0.0);
 			channel[ch].metric = 100;
-			channel[ch].timeout = progdefaults.VIEWERtimeout * VPSKSAMPLERATE / WF_BLOCKSIZE;
+			hold(ch);
 			channel[ch].acquire = 0;
 			break;
 
@@ -572,7 +612,7 @@ void viewpsk::rx_symbol(int ch, cmplx symbol)
 			channel[ch].dcd = 1;
 			channel[ch].quality = cmplx (1.0, 0.0);
 			channel[ch].metric = 100;
-			channel[ch].timeout = progdefaults.VIEWERtimeout * VPSKSAMPLERATE / WF_BLOCKSIZE;
+			hold(ch);
 			channel[ch].acquire = 0;
 			break;
 
@@ -596,7 +636,17 @@ void viewpsk::rx_symbol(int ch, cmplx symbol)
 	}
 
 	if (channel[ch].dcd == true) {
-		channel[ch].timeout = progdefaults.VIEWERtimeout * VPSKSAMPLERATE / WF_BLOCKSIZE;
+		// A different station in this slot replaces the text kept from the
+		// last one. The same station coming back keeps its QSO.
+		if (channel[ch].held) {
+			if (fabs(channel[ch].textfreq - channel[ch].frequency) > bandwidth) {
+				REQ(&viewclearchannel, ch);
+				REQ(&viewaddchr, ch, (int)channel[ch].frequency, 0, viewmode);
+			}
+			channel[ch].held = false;
+			channel[ch].textfreq = NULLFREQ;
+		}
+		hold(ch);
 		if (_qpsk) rx_qpsk(ch, channel[ch].bits);
 		else if (_pskr) rx_pskr(ch, softbit);
 		else rx_bit(ch, !channel[ch].bits);

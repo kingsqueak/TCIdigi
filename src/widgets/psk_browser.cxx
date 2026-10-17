@@ -219,6 +219,11 @@ void psk_browser_keep_text(bool on)
 	psk_keep_text = on;
 }
 
+bool psk_browser_keeps_text()
+{
+	return psk_keep_text;
+}
+
 void pskBrowser::addchr(int ch, int freq, unsigned char c, int md, bool signal_alert)
 {
 	if (ch < 0 || ch >= MAXCHANNELS)

@@ -80,6 +80,11 @@ struct CHANNEL {
 	int				timeout;
 	bool			reset;
 	int				acquire;
+	// Text stays on screen this long after the last signal.
+	int				textage;
+	// Released to search again, with the last station's text still shown.
+	bool			held;
+	double			textfreq;
 
 };
 
@@ -123,6 +128,8 @@ private:
 	bool		is_valid_char(int &c);
 
 	inline void		timeout_check();
+	void		hold(int ch);
+	void		clear_text(int ch);
 	inline void		insert();
 
 public:

@@ -327,7 +327,11 @@ int engine_start(int argc, char** argv)
 		if (wf)
 			wf->setFixedWidth(WF_SAMPLERATE / 2 / 4);
 		psk_browser_keep_text(true);
-		// Saved configs clear a channel after 15 seconds. Keep the QSO for 5 minutes.
+		// Saved configs clear a channel after 15 seconds. Keep the QSO text for
+		// 5 minutes. The PSK viewer still searches again after 15 seconds
+		// without a signal (VDECODEHOLD); only the text is kept longer.
+		// RTTY does the same. CW channels sit on fixed frequencies and never stop
+		// decoding, so there the timeout only clears text.
 		if (progdefaults.VIEWERtimeout != 300) {
 			progdefaults.VIEWERtimeout = 300;
 			progdefaults.changed = true;
