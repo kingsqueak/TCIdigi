@@ -1,0 +1,229 @@
+/**
+\page cw_page CW
+
+\tableofcontents
+
+\section cw_audio_keying CW Audio
+
+Fldigi generates CW in one of several ways:
+<ul>
+<li>inserting a keyed tone at the current waterfall audio frequency, </li>
+<li>\ref cw_winkeyer_page keyline control via a Winkeyer (or compatible) unit, </li>
+<li>\ref nanoIO_page keyline control via a Mortty or NanoIO unit, </li>
+<li>\ref cw_dtr_rts_keying keyline control via DTR or RTS on a serial port, </li>
+</ul>
+The inserted keyed tone CW carrier frequency is the USB carrier + the audio 
+frequency, or the LSB carrier - the audio frequency.  If fldigi is tracking and receiving a CW
+signal on the waterfall your transmitted signal will be exactly on the
+frequency of the other operator.  You probably cannot use your
+transceivers CW filter unless that filter can be used with the SSB mode.<br>
+<br>
+
+\section qsk_tab_key QSK and the TAB KEY
+
+If you are operating QSK with a separate transmitter / receiver you can
+very quickly stop your transmit signal with the TAB key.  In
+the CW mode only the TAB key causes the program to skip over the remaining
+text in the transmit text buffer.  The text that is skipped will
+be color coded blue.  The program remains in the transmit mode
+(PTT enabled), but since the buffer is now empty no A2 CW signal is
+generated.  Code transmission will then restart with the very
+next keyboard closure of a valid CW character.
+<br>
+
+\section pause_transmit Pausing transmit
+
+The Pause/Break momentarily key stops sending text.  Pressing it again
+resumes transmission.
+<br>
+
+\section abort_transmit Aborting transmit
+
+The Escape key is used to immediately stop text transmission.  The Tx buffer
+is cleared.
+<br>
+
+\section wpm_adjustements WPM adjustment
+
+In CW mode the status bar is changed to include a transmit WPM adjuster.  Use
+the arrow buttons or the mouse. Mouse wheel up/down changes transmit WPM
+by +/- 1.  Hold the shift and mouse mouse wheel changes transmit WPM
+by +/- 10.  The "*" button immediately to the right of the WPM adjuster is
+used to toggle between the current and the default transmit WPM.
+<br>
+
+The transmit WPM can also be adjusted with three hot keys:
+<br>
+
+<ul>
+<li>Numeric keypad "+" increases the transmit WPM by 1</li>
+<li>Numeric keypad "-" decreases the transmit WPM by 1</li>
+<li>Numeric keypad "*" toggles between the selected transmit WPM and the
+default transmit WPM</li>
+</ul>
+
+The "Default" control on the CW tab sets that default value.  If during a
+QSO you needed to slow down to give the other op a better chance to
+copy what you are sending, just hit the "*" on the numeric keypad and
+the CW code will immediately switch to sending CW at the set default
+value (18 wpm in this example).  Press the "*" again to return to
+back to the CW speed that you were previously using.
+<br>
+
+Each time the transmit WPM is changed the receive decoder WPM tracking
+is reset to the new transmit WPM.  This allows you to quickly
+force the decoder to a new WPM range.
+<br>
+
+\image html cw_status_1.png "The Rx and Tx WPM are shown in the status bar."
+\image latex cw_status_1.png "The Rx and Tx WPM are shown in the status bar." width=2.2in
+
+<br>
+
+\image html cw_status_2.png "* indicates that default WPM is selected"
+\image latex cw_status_2.png "* indicates that default WPM is selected" width=3.0in
+
+\section sec_farnsworth Farnsworth keying
+
+You might want to use farnsworth keying to provide a character rate that is
+faster than the word per minute rate.<br>
+
+\image html farnsworth.png "Farnworth Timing"
+\image latex farnsworth.png "Farnworth Timing" width=5.0in
+<br>
+
+Set the F-WPM slider to tthe character rate and enable the Use
+Farnsworth timing check box.  When the TX WPM is set to a speed
+below the Farnsworth value then the character rate will be at the
+Farnsworth setting and the word rate will be at the TX WPM rate.
+You can also set the TX WPM and F-WPM from within a \ref macros_sub_page.
+<br>
+
+\section cw_config CW configuration
+
+The \ref cw_configuration_page is easily reached from the Config menu or
+by right clicking on  the left  most entry in the status bar (CW).
+<br>
+
+\section sub_prosigns Prosigns
+
+The prosigns are configurable \(see \ref cw_configuration_page \).  The
+defaults are:
+<br>
+
+PROSIGN  | KEYBOARD  | DISPLAYED AS
+:------: | :-------: | :--------:
+BT       | =         | \<BT\>
+AA	     | ~         | \<AA\>
+AR       | >         | \<AR\>
+AS       | <         | \<AS\>
+HM       | {         | \<HM\>
+INT      | &         | \<INT\>
+SK       | %         | \<SK\>
+KN       | +         | \<KN\>
+VE       | }         | \<VE\>
+
+\section cw_breakin Operating Break-in
+
+fldigi is not designed to operate full break in CW, but it does not prevent you 
+from operating the transceiver in full or semi break-in mode.  fldigi is always 
+in one of three states: receive, transmit, or tune.  Using either a 
+<ul>
+<li>Winkeyer-USB,</li>
+<li>Mortty</li>,
+<li>or a homebrew nanoIO CW interface</li>
+</ul>
+I operate both full and semi break-in as follows:
+
+<ul>
+<li>fldigi mode set to CW with appropiate interface enabled (config CW / Winkeyer / nanoCW)</li>
+<li>transceiver set to CW, either full or semi break in ( I operate both IC7200 and FT-897D with no change in procedure)
+ disable CAT Ptt</li>
+<li>press the keyboard Pause/Break (P/B) key to toggle fldigi between Rx and Tx states</li>
+<li>Alt/Meta-R will perform the same function as the Pause/Break key</li>
+<li>in the Tx state you can enter keyboard text and it will immediately begin sending</li>
+<li>in the Rx state you can enter keyboard text and it will begin sending when the P/B key toggles to Tx</li>
+<li>toggling the P/B key will immediately change state</li>
+<li>toggling to Rx using the P/B key does not clear the transmit buffer, transmit text begins again at the transmit cursor position</li>
+<li>to clear the Tx panel use the right-click popup menu in the Tx panel, if transmitting, press the T/R button to return to Rx and clear the panel</li>
+<li>create a clear Tx panel macro button</li>
+<li>add a "^r" or "^R" two character sequence to the end of the Rx text to automatically return to Rx and clear the Tx panel buffers.</li>
+<li>during transmit you can modify any text that has not yet been sent.</li>
+<li>during transmit you can left click on the remaining text to move the text insert cursor to that point.</li>
+<li>during transmit you can press the "Home" key to put the transmit cursor at the beginning of the transmit buffer, transmission will pause when the insert cursor point is reached</li>
+<li>characters will be sent as soon as entered from the keyboard, moving remaining text to the right for subsequent transmission</li>
+<li>pressing the "End" key will move the transmit text insert cursor to the end of the text and the reaming transmit buffer text will begin transmission.</li>
+<li>During transmit you can skip all remaining text by pressing the "Tab" key.  Keyboard entry is enabled as above.</li>
+<li>During transmit you can press the "Esc" key to abort transmission.  The Tx text buffers are cleared.</li>
+<li>Pressing the control-r will insert the "^r" sequence.</li>
+<li>Pressing control-t is the same as pressing the T/R key.</li>
+<li>Pressing control-Tab will toggle the transmit insert cursor between end-of-text and the current transmit character point.  Easiest way to insert text at current transmit point.<br>
+    Keypad '+' increases WPM by 1 for each closure<br>
+    Keypad '-' decreases WPM by 1 for each closure</li>
+</ul>
+
+If the transceiver is set to full break in you will hear Rx between code elements.  If it is set to semi break in you will probably hear Rx after the delay interval set in the transceiver. 
+
+You will need to modify your operating paridigm to fit the above model.
+
+\section cw_macros CW Macros
+
+Macros used for CW should be formated with attention to removing undesireable 
+white space.  White space includes SPACE, CR and LF.<br>
+
+fldigi will send each and every white space encountered in the macro string.  Sending a space in CW takes time and may add undesired delays to the signal generation.<br>
+
+Each space requires 7 dot intervals to complete. At 30 WPM each dot is 1200 / WPM millisecond in duration.  The space character causes an effective pause of 7 x 40 or 280 millisecond at 30 WPM.  Three spaces equals 740 millisecond.  The space occupies a period of time determined by the WPM setting.<br>
+
+WPM  |  SPACE DELAY
+:--: | :------
+10   | 840 msec
+20   | 420 msec
+30   | 280 msec
+40   | 210 msec
+
+Here is an example of a CLEAR-ALL macro that looks inoccuous, but can result in a surprising delay in subsequent text tramission.<br>
+
+"<CLRRX> <CLRTX> <LOCK:off> <AFC:on>"<br>
+
+Each of the macro tags are referred to as immediate execute.  The contents of the macro is parsed by the macro interpreter thusly:<br>
+
+MACRO TAG       |  EFFECT
+:-------------: | :-----------------------
+"<CLRRX> "      | clears the receive screen and deletes the <CLRRX> from the macro string, leaving the space
+" <CLRTX> "     | clears the transmit screen deletes the <CLRTX> from the macro string, leaving two spaces
+"  <LOCK:off> " | unlocks the transmit frequency audio insertion point, deletes the <LOCK:off> from the maro string and leaves three spaces
+"   <AFC:on> "  | turns AFC to ON (useless for CW since AFC is meaningless in the current implementation), deletes the <AFC:on> and leaves three spaces
+
+The macro string is left with three spaces which are then appended to the now clear TX panel.  The next macro you try to execute appends it's text (less any immediate execute tag substitutions).  For example the next macro you press might be the QRL macro.<br>
+
+"<TX>QRL de WA1SXK K<RX>"<br>
+
+The <TX> is immediate, it turns on the transmit processing.  The macro string then becomes<br>
+
+"QRL de WA1SXK K<RX>"<br>
+
+The <RX> is processed by adding the command to restore receive in a first-in, first-out command queue.  A hidden character (no space in transmit timing) is then added to the macro string.<br>
+
+"QRL de WA1SXK K_" where '_' represents the hidden character.<br>
+
+The result is then appended to the transmit buffer, which has the 3 spaces in place:<br>
+
+"   QRL de WA1SXK K_"<br>
+
+and transmit begins with a 3 space delay before the first Q in QRL.<br>
+ 
+Remove the unnecessary spaces from the CLEAR-ALL macro.<br>
+ 
+"<CLRRX><CLRTX><LOCK:off><AFC:on>"<br>
+
+The transmit pending buffer is now left empty and subsequent macro or keyboard entries will not have the bonus 3 space start sequence.<br>
+
+SPACES count!<br>
+
+\ref cw_page "Return to Top of Page"
+<br>
+\ref main_page "Return to Main Page"
+
+
+*/

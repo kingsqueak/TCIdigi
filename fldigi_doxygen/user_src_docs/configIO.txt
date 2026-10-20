@@ -1,0 +1,172 @@
+/**
+\page  config_io_page Configure ARQ/KISS I/O
+
+\tableofcontents
+
+<br>
+\image html config-io.png "ARQ/KISS IO Configuration Panel"
+\image latex config-io.png "ARQ/KISS IO Configuration Panel" width=5.5in
+<br>
+
+<br>
+\image html config-io-locked.png "Locked IO Configuration Panel"
+\image latex config-io-locked.png "Locked IO Configuration Panel" width=5.5in
+<br>
+
+\section sConfigIO I/O Configuration
+
+I/O configuration panel as seen above allows the user to select one of the IO
+interfaces.  Each of the two interface options are used for different
+purpose(s). ARQ is selected when the user requires the use of the
+FLDIGI suite of programs (FLARQ, FLMSG, FLAMP, etc). The KISS interface
+is used to tranfers 8 bit binary data over wireless pathways using HDLC encoded
+frames.  With this interconnectivity multiple host programs are available to
+leverage this option. See
+\ref kiss_host_prgs_page "KISS Host Program(s) and FLDIGI"
+
+
+\par Note:
+Any changes to the IP Address and/or port numbers requires FLDIGI restart.
+
+<br>
+
+\subsection ssArqIO ARQ I/O
+
+<br>
+\image html config-io-arq.png "ARQ IO Panel Options"
+\image latex config-io-arq.png "ARQ IO Panel Options" width=5.5in
+<br>
+
+To select ARQ I/O, mouse click on the [ ] Enable ARQ check box. If the
+checkbox is grayed out, this indicated the panel is locked. Deselect the
+[ ] Lock checkbox to gain access.
+
+The ARQ section of the configuration panel allow the user to set the
+IP address and port number.  Pressing the [Default] button set the fields
+to their startup values. In order for communications to occur both FLDIGI
+and the FLDIGI suite of program must be assign the same IP address and port
+number if the programs are used on the same computer. If the program are
+running on different machines then the IP Address must be set accordingly
+while maintaining the same port number. The IP Address entered is the
+destination Address for the recipiente program/host computer.
+
+\subsection ssKissIO KISS I/O
+
+\image html config-io-kiss.png "KISS IO Panel Options"
+\image latex config-io-kiss.png "KISS IO Panel Options" width=5.5in
+<br>
+
+To select KISS I/O, mouse click on the [ ] Enable KISS check box.
+
+Setting and configuring IP address and ports numbers are described in the ARQ
+section.
+
+\subsection ssAx25Decode Ax25 Decoding
+
+If the data received is using Ax25 protocol enabling this option translates
+the protocol into human readable form. Only available when KISS I/O selected.
+
+\par NOTE:
+	When actived, only valid ax25 data will be displayed to the receive
+	panel. No un-squelched random characters will be seen.
+
+\subsection ssKISS KISS over IP
+
+FLDIGI supports KISS data tranfers over two types of IP communications.
+UDP (connectionles) and TCP (connection). Each method have is avantages
+and disavantages.  If you wish to know more about the differences performing
+a search on the internet using key words:
+
+"TCP/IP UDP/IP"
+
+If you are a programmer a good source and free documentation on the subject
+can be found by performing a search on these keywords:
+
+"Beej's Guide to Network Programming"
+
+\subsubsection ssUDPIP Connectionless UDP/IP [UDP]
+
+Selecting UDP/IP envoks a connectionless communications path. Host software
+must support UDP/IP data transfers in order to use this option.
+
+\subsubsection ssDualPort Dual Port [DP]
+
+Used with UDP/IP communications and does not functions with TCP/IP
+connections.
+
+Since the data exchange protocol is based on UDP/IP (connectionless) a
+loopback issue can arise if the two programs are hosted on the same machine.
+By allowing more then one port number the loopback condition can be avoided.
+Host programs must support dual port for proper communications.
+
+\subsubsection ssTCPIP Connection TCP/IP [TCP]
+
+TCP connections are far more reliable then UDP since the protocol confirms data
+transfers between programs.  UDP communications on the same machine is
+generally a non issue though. It's normally an issues when distance and
+congestion comes into play as packet might timeout in the transfer process.
+TCP/IP can resend the data where UDP doesn't.
+
+Select TCP/IP if the host program supports it.
+
+\subsubsection ssLISTEN_BIND Listen/Bind
+
+When selected (checked) with TCP/IP the interface will wait/listen for TCP/IP
+connections from the host program. If unchecked the user will press the start
+button and FLDIGI will attempt to connect to the host program multiple time
+over a ten second period.
+
+If the connection fails the user should ensure the FLDIGI/host program is
+running and configured correctly.
+
+The Binding is a operating system process for a given IP address and port
+number. The binding of an address/port number can only occur once on the same
+machine no matter how many programs use the same address and port number. If
+you are getting errors as a results of binding it's possible another program
+on the same machine has bound the address/port number already. Unchecking this
+option may help in this circumstance.  Listen/Bind is required if you want
+FLDIGI to wait for connections.
+
+To start the Listening state pressing the start button is required. In the
+event the host programs disconnects FLDIGI will return to Listen state unless
+the user selects the Stop button. The Start and Stop button is the same button
+that is renamed depending the connection state.
+
+\subsubsection ssAutoConnect Auto Connect [AC]
+
+Auto connect is used to connect to the host program on start up. Configure
+KISS interface as needed then enable (check) the [x] AC option. Press the
+[Save] button at the botton of the configuration panel in order for it to
+take effect on the next restart. This is a useful option in the event of
+power failures.
+
+\subsubsection ssInhibit7bit Inhibit 7bit Modem
+
+Selecting this option will disable the warning message reported by FLDIGI
+in the event there is a change to a modem type that is not KISS IO compatible.
+The invalid modem will be ignored and FLDIGI will remain in the current valid
+modem.  Deselecting this option allows the operator to approve the modem
+change.
+
+This is an option that should be disabled when FLDIGI is used in an automated
+state as FLDIGI will wait indefinitely for a response from the operator.
+
+\subsection ssXmlRpcIO XMLRPC I/O
+
+<br>
+\image html config-io-xmlrpc.png "XMLRPC IO Panel Options"
+\image latex config-io-xmlrpc.png "XMLRPC IO Panel Options" width=5.5in
+<br>
+
+Setting and configuring IP address and ports numbers are described in the ARQ
+section.
+
+
+
+<br>
+\ref config_io_page "Return to Top of Page"
+<br>
+\ref main_page "Return to Main Page"
+
+*/
+

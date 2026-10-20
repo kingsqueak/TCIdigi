@@ -1,0 +1,171 @@
+# Copyright (C) 2013 Robert Stiles, KK5VD.
+#           (c) 2020 David Freese, W1HKJ
+#
+# Permission to use, copy, modify, and distribute this software and its
+# documentation under the terms of the GNU General Public License is hereby
+# granted. No representations are made about the suitability of this software
+# for any purpose. It is provided "as is" without express or implied warranty.
+# See the GNU General Public License for more details.
+#
+# Documents produced by Doxygen are derivative works derived from the
+# input used in their production; they are not affected by this license.
+
+PROJECT_NAME         = "Fldigi Users Manual"
+PROJECT_NUMBER       = 4.2.00
+PROJECT_BRIEF        =
+ALLEXTERNALS         = NO
+CASE_SENSE_NAMES     = YES
+DISABLE_INDEX        = NO
+DOXYFILE_ENCODING    = UTF-8
+INPUT_ENCODING       = UTF-8
+ENABLE_PREPROCESSING = NO
+ENABLED_SECTIONS     = logo_on
+EXTRACT_ALL          = NO
+EXTRACT_PRIVATE      = NO
+EXTRA_PACKAGES       = graphicx caption subcaption float
+FILE_PATTERNS        = *.cpp *.h *.txt
+GENERATE_HTML        = YES
+GENERATE_HTMLHELP    = NO
+GENERATE_LATEX       = YES
+GENERATE_MAN         = NO
+GENERATE_RTF         = YES
+GENERATE_TREEVIEW    = YES
+GENERATE_XML         = NO
+HTML_COLORSTYLE_SAT  = 0
+HTML_FOOTER          =
+HTML_HEADER          =
+IMAGE_PATH           = ../images ../images/w4tv
+
+INPUT                = \
+index.txt \
+table_of_contents.txt \
+New-Install.txt \
+Wizard.txt \
+Installing.txt \
+WindowsOS.txt \
+thumb_drive.txt \
+fldigi_configuration.txt \
+fldigi_developer.txt \
+colorsandfonts.txt \
+audio-adjust.txt \
+audio_alerts.txt \
+rx_monitor.txt \
+configAutostart.txt \
+configcallsigndb.txt \
+configContestia.txt \
+configCW.txt \
+config-cw-dtr-keying.txt \
+config-cw-cat-keying.txt \
+configDomEX.txt \
+configFH.txt \
+configFSQ.txt \
+configIFKP.txt \
+ConfigID.txt \
+configIO.txt \
+configPSM.txt \
+ConfigMisc.txt \
+configMT63.txt \
+configOlivia.txt \
+ConfigOperator.txt \
+configPSK.txt \
+configRIG.txt \
+configRTTY.txt \
+configThor.txt \
+ConfigUI-browser.txt \
+ConfigUI-general.txt \
+ConfigUI-logging.txt \
+contesting.txt \
+ConfigUI-contest.txt \
+ConfigUI-macros.txt \
+configUITouch.txt \
+ConfigUI-WF-controls.txt \
+ConfigWaterfall.txt \
+configure_scripting.txt \
+kiss_io_command.txt \
+SoundCardSetup.txt \
+cabrilloreporter.txt \
+Logbook.txt \
+dxcluster.txt \
+fdserver.txt \
+maclogger.txt \
+n3fjp_logs.txt \
+Cloudlog.txt \
+LogExports.txt \
+Contest-How-To.txt \
+lotw_interface.txt \
+working_logs.txt \
+Macros.txt \
+InlineMacroTags.txt \
+atMacroTags.txt \
+advanced_qsy.txt \
+execmacro.txt CW.txt \
+DominoEX.txt \
+DomExMicro.txt \
+hell.txt \
+Contestia.txt \
+MFSK.txt MT63.txt \
+FSQ.txt IFKP.txt \
+Navtex.txt \
+psk.txt \
+OFDM.txt \
+Olivia.txt \
+RTTYFSK.txt \
+Thor.txt \
+ThorMicro.txt \
+throb.txt \
+FrequencyAnalysis.txt \
+FMT.txt \
+WWV-xmt.txt \
+WEFAX.txt \
+DigiscopeDisplay.txt \
+DigiWWV.txt \
+spectrum_viewer.txt \
+MousingKeyboardShortcuts.txt \
+Multiples.txt \
+Notifier.txt \
+OperatingControls.txt \
+RST-RSQ.txt \
+Spotter.txt \
+Synop.txt \
+TransceiverControl.txt \
+UTF8.txt \
+pskmail_config.txt \
+PskViewer.txt DXCC_list.txt \
+KeyboardAndKeys.txt \
+xchar.txt psm.txt \
+KML.txt \
+support_data.txt \
+Menus.txt \
+ModeTable.txt \
+CWkeying.txt \
+CWwinkeyer.txt \
+nanoIO.txt \
+nanoIO_diagram.txt \
+navigator.txt \
+PseudoFSK.txt \
+w5zit-interface.txt \
+rigxml.txt \
+commandline.txt \
+buildinfo.txt \
+xmlrpc-control.txt \
+parseUALR.txt \
+ualr-telnet.txt \
+map.txt License.txt \
+Recognitions.txt \
+kiss_host_prgs.txt
+
+INCLUDE_PATH         = .
+EXAMPLE_PATH         = .
+OUTPUT_DIRECTORY     = ../user_docs
+OUTPUT_LANGUAGE      = English
+PDF_HYPERLINKS       = YES
+QUIET                = YES
+RECURSIVE            = NO
+SEARCHENGINE         = NO
+STRIP_CODE_COMMENTS  = NO
+TAGFILES             =
+USE_PDFLATEX         = YES
+WARNINGS             = NO
+HTML_EXTRA_STYLESHEET = custom.css
+
+

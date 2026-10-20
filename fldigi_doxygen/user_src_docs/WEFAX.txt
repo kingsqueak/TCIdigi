@@ -1,0 +1,180 @@
+/**
+\page  wefax_page WEFAX
+
+\tableofcontents
+
+
+This modem is able to receive and transmit HF-Fax images, traditionally used
+for weather reports.
+<br>
+
+More technical information is available on the wikipedia
+article <a href="http://en.wikipedia.org/wiki/Radiofax">Radiofax</a>.
+<br>
+
+Two modes are implemented IOC=576 or 288. The focus is made on
+black-and-white images, color mode is still experimental.
+<br>
+
+Many frequencies are available
+at <a href="http://www.hffax.com">http://www.hffax.com/</a> for example.
+<br>
+
+\section wefax_config Configuration.
+As for any modem, weather fax has its own tab in the configuration window.
+<br>
+
+\image html Wefax-Configuration.png "WEFAX Configuration"
+\image latex Wefax-Configuration.png "WEFAX Configuration" width=6.0in
+<br>
+
+\subsection logging_adif Logging messages to ADIF file
+
+Each time an image is saved, it is possible to log this event, with the
+frequency and reception time, to the Adif file. This option is disabled by
+default.
+
+\subsection fsk_adjust Frequency shift adjustment
+
+The default frequency is 800 Hz. However, it is possible to adjust for
+example to 850 Hz for Deutsche Wetter Dienst.
+<br>
+
+\subsection center_freq Center Frequency
+
+Wefax transmissions are USB, with the center of the frequency modulated audio
+signal center at 1900 Hertz.  This is the default value.
+
+\subsection max_rows Maximum rows number
+
+It non-continuous (Non non-stop) reception mode, an image is
+automatically saved when it has more than this number of lines
+(Default 2500 lines). Once this number of rows is reached, the image
+is saved and a new image is read with the same parameters. This feature
+has two applications:
+<br>
+
+<ul>
+	<li>In automatic mode (APT control), if an image end is not detected, we
+	can guarantee that the result will take no more than, for example, the
+	size of two faxes. Typical faxes have about 1300 lines, so the max lines
+	parameters can be tuned to, for example, 200 lines.</li>
+	<li>In manual mode, where images are read continuously, this cuts the
+	received images into chunks of equal size.</li>
+</ul>
+
+\subsection auto_align Auto-align
+
+The Wefax signal has start, stop, and phasing components to the transmission.  The 
+decoder searches for the start signal, the stop signal and the phasing signal.  The 
+phasing signal is used for auto alignment of the image.  You can specify the start, stop,
+and interval for the alignment.<br>
+<br>
+Wefax images have a strong line to line correlation.  This correlation is used to 
+detect a signal loss to prevent printing noise.  The image display is stopped when 
+the correlation falls below the threshold as detected over the specified number of lines.
+
+\subsection wefax_decoder_filter FIR filter
+
+Select an input FIR (Finite Impulse Response) filter:
+<ul>
+<li> narrow</li>
+<li> medium</li>
+<li> wide</li>
+</ul>
+There is rarely any QRM on a government WEFAX broadcast, but the filter selection might
+improve the decoded signal to noise ratio.  Start with the medium filter setting.
+<br>
+\image html wefax-filter-impulse.png ""
+\image latex wefax-filter-impulse.png "" width=5.0in
+<br>
+\image html wefax-filter-freq.png ""
+\image latex wefax-filter-freq.png "" width=5.0in
+
+\subsection dest_dir Destination directory for saved images
+
+Received images are saved in the default folder
+
+<tt>$HOME/.fldigi/images (Linux) or \<defaultpath\>/fldigi.files/images (Windows).</tt>
+<br>
+
+Additionally, they can be saved manually, at any time, using the button 'Save'.
+<br>
+
+\section rx_image Receiving an image
+<br>
+
+\image html Wefax-Rx.png "Reception"
+\image latex Wefax-Rx.png "Reception" width=6.0in
+<br>
+
+A blank image is initially displayed. Several controls
+are available:
+<br>
+
+<ul>
+	<li>Save: This allows to save the current image as a PNG file at any
+	moment.</li>
+	<li>Clear: Clear the image</li>
+	<li>Cont': At any moment, the image reception can be paused
+	and resumed (State is displayed in the reception window label).</li>
+	<li>Mag: Change the displayed magnification of the wefax image.</li>
+	<li>Row: The number of the row (line) currently received.</li>
+	<li>Tilt: This is used to adjust the slant of the image due to a part per
+	million difference between the pc clock and the transmitting station
+	clock. This value is saved in the configuration file, so it is
+	not	needed to reenter it each time.</li>
+	<li>Align: Used to manually adjust the horizontal center of
+	the image, if it could not be detected in the phasing step.  The alignment
+	value will be displayed if auto detected.</li>
+	<li>Auto: When this button is set, the image will be automatically centered. This
+	process occurs during the phasing interval of the wefax signal.</li>
+	<li>Noise: Enable noise filtering.  This option eliminates short-lived noise, 
+individual pixels with a different value from their horizontal neighbors. They are 
+modified using median values. This is based on the fact that no line should be narrower than
+two pixels, otherwise such an image would not be broadcast, because not
+correctly readable. It is therefore impossible to have one single
+pixel, simultaneously very different from its left and right neighbors.</li>
+	<li>Bin: convert to binary image using the assocated level.  A weather fax 
+can be stored as binary or grey level images. The cutoff level between
+black and white (Default 128) can be adjusted. No information is lost
+until the image is saved, therefore this level can be freely modified
+until image end. The purpose of this option is to save disk space.
+</li>
+</ul>
+
+\subsection display_files Displaying received files
+
+Each time the end of an image is detected, an image file is created and stored
+in the default Wefax image folder.  Open the folder with the system file finder 
+using the menu item "File / Folder / WEFAX images...".  The images are saved
+as a Portable Network Graphics file, with the extension ".png".  Use the system
+image viewer to view the images.<br>
+<br>
+
+\section tx_image Transmitting an Image
+
+To open the transmit window, select the menu item "View/Weather Fax Image TX"
+
+Load an image file using the button "Load".
+<br>
+
+\image html Transmit_A.png "Transmitting"
+\image latex Transmit_A.png "Transmitting" width=6.0in
+<br>
+
+Click "Tx B/W" to start the transmission. During transmission, image reception is
+paused. The window will display each image line as it is sent. Please
+be patient, this may take a while. You might note that FlDigi status
+line displays the estimation transmit time, and the current stage
+(Start, phasing etc...).
+<br>
+
+\image html Wefax-Sending.png "Sending"
+\image latex Wefax-Sending.png "Sending" width=6.0in
+
+\ref wefax_page "Return to Top of Page"
+<br>
+\ref main_page "Return to Main Page"
+
+*/

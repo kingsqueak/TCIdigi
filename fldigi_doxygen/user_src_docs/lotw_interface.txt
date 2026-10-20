@@ -1,0 +1,127 @@
+/**
+\page lotw_interface_page  LoTW
+\tableofcontents
+<br>
+
+fldigi does not have a direct connection for uploading and downloading LoTW
+records.  Instead, it uses the tqsl program that each LoTW user will have on
+his or her computer.  The tqsl program is usually used with it's graphics
+user interface, especially on Windows and OS X computers.  But it also can
+be opened in a 'command line' mode in which the user dialog is never visible.
+fldigi passes the logbook records as a batch adif file via tqsl using this
+command line mode.
+
+Open the LoTW configuration dialog from the Logbook menu:
+
+\image html lotw-menu.png ""
+\image latex lotw-menu.png "" width=1.0in
+<br>
+\image html lotw-dialog.png ""
+\image latex lotw-dialog.png "" width=5.0in
+
+\section LOTW_configuration LoTW configuration
+
+Use the "Locate" button to open an OS file finder dialog to locate the tqsl
+binary.  Click on it when found.  The above image shows this on a Linux
+computer.  On OS X you need to open the Applications folder,
+and then drag and drop the tqsl icon on to the 'tqsl:' control.  You will see
+/Applications/tqsl.app in that control after the drag and drop.
+
+The Callsign Certificate used to digitally sign QSOs being uploaded (and 
+typically specified in a Station Location) can optionally be password protected 
+if the user is running TQSL on a public or physically unprotected computer. For 
+typical home use, this is unnecessary; instructions for removing a password from 
+a Callsign Certificate are here:
+\verbatim
+<https://lotw.arrl.org/lotw-help/removecertificatepassword/>
+\endverbatim
+If you use are using a password protected certificate you need to enter that 
+in the Password control and also enable the "Use password..." check button.
+
+Many users will need only one "Callsign Certificate", but those who operate 
+using club or contest callsigns, who occasionally operate /P or /QRP, or who 
+operate from other DXCC entities will have more than one. Users who operate 
+from more than one geographic location, e.g. county or NPOTA or SOTA activators, 
+must define a "Station Location" for each such location. When submitting a group 
+QSOs to LoTW via TQSL's command line interface, you must specify a 
+Station Location; if the specified Station Location doesn't specify a 
+Callsign Certificate, you must also specify a Callsign Certificate.  All QSOs 
+in the submitted group must thus have been made using the same over the air 
+callsign and from the same geographic location.
+
+Leave the "Quiet mode" unchecked until you are comfortable with fldigi's LoTW
+interface.  If unchecked the tqsl dialog will open each time the "Send" button
+is selected.  Checked and the tqsl dialog will not open.
+
+If you never tweak the logbook entries, then enable the "Send QSO data..." check
+box.  If checked each saved logbook entry will be sent individually to LoTW via
+the tqsl interface.  Leave it unchecked if you want to review and possibly modify
+the records before the LoTW upload.  When unchecked, fldigi will accumulate the
+adif records in an adif upload file.  This file is not on disk.  It is only a
+memory image of the file and is therefore volatile.  Exit fldigi before submitting
+the LoTW records for upload and the memory image is lost.  BUT the data is still
+available for LoTW upload.
+
+\section LOTW_usage LoTW usage
+
+fldigi sends adif records to LoTW via the tqsl command line interface.  tqsl acts
+upon a set of adif records in an upload file that fldigi creates for that purpose.
+All update files are in the fldigi files sub-folder "LOTW".  The upload file is
+created when the Send button is pressed and the tqsl binary is invoked.
+
+An in memory image of that file is created as described above and can be reviewed and
+edited using the Check button.  The LoTW Review dialog will only appear if there are
+records ready for upload.
+
+\image html lotw-review.png ""
+\image latex lotw-review.png "" width=5.0in
+
+The text box is an fairly complete text editor.  You can modify or delete a record line, or
+just clear the entire image file contents.  If you modify the file then you must
+save it before taking any subsequent action to upload the file to LoTW.  Be sure
+you fully understand how to change the ADIF record before attempting to make
+changes.  tqsl will reject mangled records.
+
+You can create a new update file image, or append new (or corrected) records using the Export
+button.  This will open the Export dialog:
+
+\image html lotw-export.png ""
+\image latex lotw-export.png "" width=5.0in
+
+Press the LoTW button to present the field selection.  Then select the desired records
+either individually, all, or within a date block.  The above image shows a date
+selection of all records between July 1 and October 31 of this year.  When OK
+is pressed the upload image file will either be newly created or appended with the
+selected records.
+
+View the upload image file again to insure you have not duplicated any records.
+tqsl will reject any that are duplicates if you forget this step.
+
+When all looks OK you can upload the records using the Send button on the LoTW config
+dialog.
+
+\section LoTW_verification Matching with online LoTW records
+
+Download a set of adif records from LoTW using the LoTW web interface.  Save
+the download file to a convenient location.  Then press the "Match" button and fldigi will
+try to match your records with each LoTW download record; updating each
+matched record's LoTW date received data element.  If the LoTW download was
+make using an extended format than fldigi will also update these adif fields
+if present in the LoTW record:
+<ul>
+  <li>LOTWRDATE - LoTW received date</li>
+  <li>DXCC - dxcc entity number</li>
+  <li>CNTY - county name</li>
+  <li>COUNTRY - country name</li>
+  <li>CQZ - CQ zone number</li>
+  <li>GRIDSQUARE - Maidenhead grid square reported by QSL's station</li>
+</ul>
+A brief report will be given in a message dialog at the conclusion of the matching effort.
+<br>
+
+\ref callsign_db_configuration_page "Return to Top of Page"
+<br>
+\ref main_page "Return to Main Page"
+
+
+*/

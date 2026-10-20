@@ -1,0 +1,172 @@
+TCIdigi is a fork from fldigi https://www.w1hkj.org/
+
+The purpose of TCIdigi is to have a Mac and Linux TCI only version of fldigi in Qt6.
+
+The appearance is modernized and somewhat streamlined.
+
+All the sound card and CAT functionality has been removed from fldigi.
+
+I refer to this as my "daily driver" for chatting over keyboard modes. 
+I enabled the basic functional modems popularly used. Call sign lookup 
+is QRZ, and logging can go to the QRZ logbook, to eQSL.cc, or to both.
+
+I have also submitted patches for fldigi to enable TCI and also QRZ 
+logging to the main project. This will be more useful for people that 
+use the full suite of flmsg flarq etc for NBEMS and other uses.  I 
+didn't want to do that full merge in this client.
+
+This project was done using an AI agent as I have no ability to work 
+this many changes on a code base this size independently.
+
+I am new to git, github and Sourceforge so things will be pretty messy 
+as I figure this all out.
+
+I am intentionally leaving all the legacy fldigi documentation in this 
+repo for now as functionally, with the features I have implemented, 
+the operation and most of the modem capability is the same between the apps.
+
+The Mac DMG runs on macOS 26.0 or newer (Apple silicon). Version 0.29
+is the first that runs on macOS 26; 0.26 to 0.28 needed macOS 27.
+The app is not notarized. If macOS says it "can't be opened", run this
+once in Terminal and then open it as usual:
+
+  xattr -dr com.apple.quarantine /Applications/TCIdigi-<version>.app
+
+This should build for linux as it is now, the instructions are
+in the README.md file
+
+The build makes two programs from this tree. "make -C src" builds
+fldigi (the FLTK program, with the TCI and QRZ changes) and flarq.
+CMake then builds TCIdigi (the Qt 6 program) from those engine objects,
+so fldigi has to be built first.
+
+After the build the programs are here:
+
+  fldigi                 src/fldigi
+  flarq                  src/flarq
+  TCIdigi (macOS)        build-qt/TCIdigi-<version>.app
+                         (or run build-qt/TCIdigi from a shell)
+  TCIdigi (Linux)        build-qt/TCIdigi-<version>
+
+fldigi keeps its settings in ~/.fldigi and TCIdigi uses ~/.tcidigi,
+so the two do not share a configuration.
+
+It will be a while before I make any extensive changes as this was 
+a fairly expensive endeavor in tokens and I am not currently working.
+
+========================
+Configuration tips
+========================
+
+There is a Configuration dialog for TCI, if you use ports other than the 
+default 40001 or an IP for the server that is not localhost, make your 
+changes there.
+
+There is a dialogue box to configure QRZ credentials for lookup and logging.
+
+There is also an eQSL account dialog under the Log menu. Turn on "Send to 
+eQSL when logging" and enter your eQSL user ID and password. The QTH 
+nickname is optional and picks the eQSL location if your account has more 
+than one. The QSL message can use {CALL}, {NAME} and {MODE}. If you set 
+eQSL up in fldigi before, those settings are used as the starting values.
+
+The Log button sends the contact to the QRZ logbook when a QRZ logbook key 
+is set, and to eQSL when that is turned on. The status box next to the 
+reports shows the result from each one.
+
+These are not forced on initial startup yet, but will be eventually.
+
+There is an Rx attenuator at the bottom right that allows attenuation of 
+overly strong TCI Rx audio streams. As of right now a SunSDR2dx with 
+ExpertSDR3 defaults to a fixed output level over TCI that is too strong 
+so you can apply 20db or so attenuation to put it in better range for decoding.
+
+The signal strength meter at the bottom will indicate blue if not enough 
+Rx audio is received, green with enough and red when you are reaching the 
+upper limits.
+
+The Ctr button was added to return the tune to the 1500Hz sweet spot, handy 
+when AFC drifts around too much.
+
+I added pre-defined filters centered on 1500 for 80, 100, 250, 500, and 1kHz 
+widths with some padding.
+
+The Browser works in PSK modes and you can undock the browser as a separate 
+window.
+
+There are tooltips for most things if you hover over them.
+
+I hope people find this useful
+
+I can be reached via my email on QRZ.
+
+73 de KC2RGW
+
+===============================================================================
+Fldigi is a software modem for Amateur Radio use. It is a sound card based
+program that is used for both transmitting and receiving data in any of the
+following modes:
+
+BPSK and QPSK        31, 63, 125, 250 (both), and 63F and 500 (BPSK only)
+PSKR                 125, 250, and 500
+CW                   speeds from 5 to 200 wpm
+DominoEX             4, 5, 8, 11, 16 and 22; also with FEC
+FSQ
+Hellschreiber        Feld Hell, Slow Hell, Hell x5/x9, FSKHell(-105) and Hell 80
+IFKP
+MFSK                 4, 8, 11, 16, 22, 31, 32 and 64; most with image support
+MT63                 500, 1000 and 2000
+OLIVIA               various tones and bandwidths
+RTTY                 various baud rates, shifts, nbr. of data bits, etc.
+THOR                 4, 5, 8, 11, 16 and 22
+Throb and ThrobX     1, 2, and 4
+WWV                  receive only - calibrate your sound card to WWV
+Frequency Analysis   receive only - measure the frequency of a carrier
+
+Fldigi can also control a transceiver using Hamlib or RigCAT I/O, perform online
+or cdrom QRZ queries, log QSOs with the built-in logbook or Xlog, and send
+reception reports to the PSK Automatic Propagation Reporter.
+
+If the Portaudio library is available then fldigi can process audio for
+  . alert outputs for various event announcements
+  . monitor and bandpass filter received audio
+
+The latest version can always be found at:
+
+  https://www.w1hkj.org/
+
+Visit this page for extensive documentation and an archive of XML files for
+transceivers supported by RigCAT.
+
+The wiki page contains FAQs and HOWTOs, as well as links to all Fldigi
+resources:
+
+  https://fedorahosted.org/fldigi/
+
+The GIT repository can be found at:
+
+  https://sourceforge.net/p/fldigi/fldigi/ci/master/tree/
+
+For support, news and updates, join one or more of the following mailing lists
+and Yahoo groups.  Stable releases are announced to all lists and groups; test
+(alpha) releases are announced to fldigi-alpha and fldigi-announce.
+
+  * linuxham group
+    General discussion on fldigi, related software and other ham radio topics
+    https://groups.io/g/linuxham
+
+  * win-fldigi group
+    For Windows users of fldigi
+    https://groups.io/g/winfldigi
+
+  * NBEMSham group
+    Special focus on NBEMS operation
+    https://groups.io/g/nbems
+
+  * fldigi-alpha list
+    Discussion of fldigi testing and related subjects
+    https://sourceforge.net/p/fldigi/mailman/fldigi-alpha/
+
+  * fldigi-devel list
+    Fldigi development topics
+    https://sourceforge.net/p/fldigi/mailman/fldigi-devel/

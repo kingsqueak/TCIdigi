@@ -1,0 +1,121 @@
+/**
+\page  ui_configuration_contest_page  User Interface Configuration - Contest
+
+\tableofcontents
+
+\image html config-ui-contest.png "UI Contest"
+\image latex config-ui-contest.png "UI Contest" width=5.0in
+<br>
+
+Fldigi supports a full range of contests. Each contest's unique data
+exchange is captured either in a generic multi word exchange field, or in
+contest specific fields that are displayed in the main dialog logging group.
+
+<ul>
+<li>Generic contest</li>
+<li>Africa All-Mode International</li>
+<li>ARRL Field Day</li>
+<li>ARRL International DX (cw)</li>
+<li>ARRL Jamboree on the Air</li>
+<li>ARRL Kids Day</li>
+<li>ARRL Rookie Roundup</li>
+<li>ARRL RTTY Roundup</li>
+<li>ARRL School Club Roundup</li>
+<li>ARRL November Sweepstakes</li>
+<li>ARRL Winter FD</li>
+<li>BARTG RTTY contest</li>
+<li>CQ WPX</li>
+<li>CQ WW DX</li>
+<li>CQ WW DX RTTY</li>
+<li>Italian A.R.I. International DX</li>
+<li>North American QSO Party</li>
+<li>North American Sprint</li>
+<li>Ten Ten</li>
+<li>VHF</li>
+</ul>
+<br>
+State QSO parties
+<ul>
+<li>Alabama QSO Party, ALQP (Out of State)</li>
+<li>Arizona QSO Party, AZQP (Out of State)</li>
+<li>Arkansas QSO Party, ARQP (Out of State)</li>
+<li>British Columbia QSO Party, BCQP (Out of Province)</li>
+<li>California QSO Party, CAQP (Out of State)</li>
+<li>Colorado QSO Party, COQP (Out of State)</li>
+<li>Delaware QSO Party, DEQP (Out of State)</li>
+<li>Florida QSO Party, FLQP (Out of State)</li>
+<li>Georgia QSO Party, GAQP (Out of State)</li>
+<li>Hawaii QSO Party, HIQP (Out of State)</li>
+<li>Idaho QSO Party, IDQP (Out of State)</li>
+<li>Illinois QSO Party, ILQP (Out of State)</li>
+<li>Indiana QSO Party, INQP (Out of State)</li>
+<li>Iowa QSO Party, IAQP (Out of State)</li>
+<li>Kansas QSO Party, KSQP (Out of State)</li>
+<li>Kentucky QSO Party, KYQP (Out of State)</li>
+<li>Louisiana QSO Party, LAQP (Out of State)</li>
+<li>Maine QSO Party, MEQP (Out of State)</li>
+<li>Maryland QSO Party, MDQP (Out of State)</li>
+<li>Michigan QSO Party, MIQP (Out of State)</li>
+<li>Minnesota QSO Party, MNQP (Out of State)</li>
+<li>Missouri QSO Party, MOQP (Out of State)</li>
+<li>Mississippi QSO Party, MSQP (Out of State)</li>
+<li>Montana QSO Party, MTQP (Out of State)</li>
+<li>North Carolina QSO Party, NCQP (Out of State)</li>
+<li>Nebraska QSO Party, NEQP (Out of State)</li>
+<li>New Jersey QSO Party, NJQP (Out of State)</li>
+<li>New Mexico QSO Party, NMQP (Out of State)</li>
+<li>New York QSO Party, NYQP (Out of State)</li>
+<li>North Dakota QSO Party, NDQP (Out of State)</li>
+<li>Ohio QSO Party, OHQP (Out of State)</li>
+<li>Oklahoma QSO Party, OKQP (Out of State)</li>
+<li>Ontario QSO Party, ONQP (Out of Province)</li>
+<li>Pennsylvania QSO Party, PAQP (Out of State)</li>
+<li>South Carolina QSO Party, SCQP (Out of State)</li>
+<li>South Dakota QSO Party, SDQP (Out of State)</li>
+<li>Tennessee QSO Party, TNQP (Out of State)</li>
+<li>Texas QSO Party, TXQP (Out of State)</li>
+<li>Vermont QSO Party, VTQP (Out of State)</li>
+<li>Virginia QSO Party, VAQP (Out of State)</li>
+<li>Washington Salmon Run QSO Party, WAQP (Out of State)</li>
+<li>Wisconsin QSO Party, WIQP (Out of State)</li>
+<li>West Virginia QSO Party, WVQP (Out of State)</li>
+<li>7QP QSO Party, 7QP (Out of Region)</li>
+<li>New England QSO Party, NEQP (Out of Region)</li>
+</ul>
+
+Select the contest type from the Contest combo:
+
+\image html config-ui-contest-select.png "UI Contest"
+\image latex config-ui-contest-select.png "UI Contest" width=5.0in
+<br>
+
+If you select the State QSO parties, you need to make a second selection
+for the specific state, area, region contest in which you be participating.
+
+\image html config-ui-contest-select-SQSO.png "UI Contest"
+\image latex config-ui-contest-select-SQSO.png "UI Contest" width=5.0in
+
+Enter the exchange you want to send. You can force
+the RST in/out to always be 599. That seems to be a norm for many
+contests. When operating in a CW contest you can have fldigi send
+cut numbers, T for 0, N for nine.
+<br>
+The serial number can be set to use leading zeros.  You can specify the
+starting number for the sequence and how many digits are sent, ie:
+0024. Pressing Reset will set the starting number to the QSO logging
+serial out field. See \ref contest_how_to_page "Contest How To" for more
+info.
+<br>
+
+You can check for duplicates by any combination of the specified named
+fields. You can also specify that the duplicate had to occur with a
+given time interval. Some VHF contests allow a duplicate CALL after
+a given time interval.
+<br>
+
+\ref ui_configuration_contest_page "Return to Top of Page"
+<br>
+\ref main_page "Return to Main Page"
+
+
+*/

@@ -1,0 +1,23 @@
+/**
+\page  maclogger_page  Mac Logger Setup
+
+\tableofcontents
+
+\section maclogger_config Config Maclogger
+
+This logbook interface only applies to OS X users who want fldigi to connect
+to and share data with the application MacLogger.
+<br>
+Open the configuration dialog and select the Maclogger configure item from the tree menu.
+
+\image html maclogger.png ""
+\image latex maclogger.png "" width=4.5in
+
+Enable the “Connect to MacLogger” check box and fldigi should find Maclogger and begin data 
+exchanges.  UDP socket streams will be displayed in the logging text control.
+<br>
+
+\ref main_page "Return to Main Page"
+
+*/
+ 

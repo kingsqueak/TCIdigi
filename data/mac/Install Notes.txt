@@ -1,0 +1,23 @@
+TCIdigi for macOS - Install Notes
+=================================
+
+Requirements: macOS 26.0 or newer, Apple silicon Mac.
+
+1. Drag TCIdigi into the Applications folder in this window.
+   If an older TCIdigi is in Applications, you can drag it to the Trash.
+
+2. TCIdigi is not notarized by Apple, so the first time you open it
+   macOS may say the application "can't be opened". To allow it, open
+   Terminal (Applications > Utilities > Terminal), paste this line,
+   and press Return:
+
+     xattr -dr com.apple.quarantine /Applications/TCIdigi-*.app
+
+   This removes the download quarantine flag from TCIdigi only. You
+   only need to do it once per version.
+
+3. Open TCIdigi from Applications as usual.
+
+Settings are kept in ~/.tcidigi and carry over between versions.
+
+73 de KC2RGW

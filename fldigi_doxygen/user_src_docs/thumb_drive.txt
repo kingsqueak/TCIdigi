@@ -1,0 +1,87 @@
+/**
+\page  installing_on_thumb_drive_page Installing fldigi on a thumb drive
+\tableofcontents
+
+Installing fldigi (and any of the other NBEMS flxxxx applications) on a thumb
+drive is very simple.  Create a folder on the thumb drive named FL_APPS.  Then
+copy the fldigi executable to that folder.  Note that folder FL_APPS may reside
+on any hard drive, or removable drive (including a rewritable CD/DVD) on your
+system.  Copy the executable for flarq, flrig, flmsg, flamp, etc to that same
+folder if you want to have a complete NBEMS installation on that device:
+
+<ul>
+	<li>fldigi.exe</li>
+	<li>flarq.exe</li>
+	<li>flmsg.exe</li>
+	<li>flamp.exe</li>
+	<li>flrig.exe</li>
+</ul>
+
+The key to using the applications thus installed is to execute the program from
+that folder.  This is best accomplished by opening the FL_APPS folder using the
+system files explorer.  Then start the application by double clicking on it's
+icon.
+
+You will be guided through the new install wizard the first time you do this and
+fldigi will place all of it's configuration folders in the same folder from which
+it was started.  For example, if the thumb drive were on an XP system and the
+drive was system device "H:"
+
+<ul>
+	<li>H:\\FL_APPS\\fldigi.exe</li>
+	<li>H:\\FL_APPS\\fldigi.files</li>
+	<li>H:\\FL_APPS\\fldigi.files\\fldigi_def.xml</li>
+	<li>etc ...</li>
+</ul>
+
+\section moving_thumb_drive Moving thumb drive between computers
+
+If this removable drive installation is to be used on several computers or you
+expect that the hardware configuration might change then you should follow these
+steps each and every time that you exit the program.  This will insure that
+fldigi will restart correctly.
+
+<ul>
+	<li>select sound card as \"File I/O only\"</li>
+	<li>deselect all transceiver control (be sure to Initialize any changes)</li>
+	<li>   note: you do not have to disable xmlrpc rig control
+	<li>save the configuration</li>
+</ul>
+
+<br>
+You will follow a similar procedure when you shut down flrig.  The purpose is to
+remove all configuration items which are hardware specific.  Reconfiguring the
+sound card and transceiver control only takes a few steps the next time fldigi is
+executed.
+
+\section uncooperative_OS Extended Character Set Install
+
+This installation technique works equally well on the C:\\ drive, and it should be
+used when the operating system uses an extended character set for folder names and
+user login names such as Björn.  fldigi will try to convert that user name to a UTF-8
+character sequence which the OS (typically Microsoft) will not be able to use to
+create the fldigi.files folder, etc.
+
+Create the folder c:\\FL_APPS
+<br>
+Copy fldigi, flarq, flrig, flmsg, etc executables to the newly created folder and then
+either
+<ul>
+<li>delete the original desktop icon for the flxxx application, and create a new one for the copied file(s), or</li>
+<li>modify the properties dialog of the original desktop icon so that the "Target:" entry points to the newly copied file(s)</li>
+</ul>
+
+The fldigi.files, NBEMS.files, flrig.files, etc. folders will be created
+as sub-folders in the c:\\FL_APPS folder the first time that the respective
+application is executed.
+<br>
+Configure each application.  If you already have logs, macro files, etc.
+copy these to the respective places in the c:\\FL_APPS tree.
+<br>
+When you upgrade fldigi you will only need to copy the new executable to
+that c:\\FL_APPS folder, perhaps renaming the existing file as fldigi.exe.bak
+so that it can be recovered if necessary.
+
+\ref main_page "Return to Main Page"
+
+*/
