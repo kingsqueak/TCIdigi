@@ -195,6 +195,7 @@
 #include "config.h"
 #include "configuration.h"
 #include "fl_digi.h"
+#include "trx.h"
 #include "debug.h"
 #include "gettext.h"
 #include "navtex.h"
@@ -1759,6 +1760,12 @@ public:
 		return res;
 	}
 
+	/// True when Abort, a mode change or anything else ended the transmission.
+	bool tx_aborted() const
+	{
+		return trx_state != STATE_TX;
+	}
+
 	void tx_flush()
 	{
 		if( m_tx_counter != 0 ) {
@@ -1786,6 +1793,7 @@ public:
 		double ratio = 2.0 * M_PI * (double)freq / (double)m_ptr_navtex->get_samplerate() ;
 		for (int i = 0; i < nb_samples ; ++i )
 		{
+			if( m_tx_counter == 0 && tx_aborted() ) return ;
 			add_sample( max_level * sin( phase += ratio));//i * ratio ) );
 			if (phase > 2.0 * M_PI) phase -= 2.0*M_PI;
 		}
@@ -1808,6 +1816,7 @@ public:
 
 		for( size_t i = 0, sz = sevenbits.size(); i < sz; i++ )
 		{
+			if( tx_aborted() ) return ;
 			char tmp_stat[64];
 			snprintf( tmp_stat, sizeof(tmp_stat), "Transmission %d%%", (int)( 100.0  * ( i + 1.0 ) / sz ) );
 			put_status( tmp_stat );
@@ -1844,12 +1853,12 @@ public:
 
 			// 5 or more seconds of phasing signal and another message starting with "ZCZC" or
 			// an end of emission idle signal alpha for at least 2 seconds.  */
-			if( is_last ) {
+			if( is_last && ! tx_aborted() ) {
 				put_status( "Trailer" );
 				send_phasing(2.0);
 			}
 		}
-		tx_flush();
+		if( ! tx_aborted() ) tx_flush();
 		put_status( "" );
 	}
 
@@ -1870,6 +1879,10 @@ public:
 		{
 			guard_lock g( &m_mutex_tx );
 
+			if( tx_aborted() ) {
+				m_tx_msg_queue.clear();
+				break ;
+			}
 			TxMsgQueueT::iterator it = m_tx_msg_queue.begin(), en = m_tx_msg_queue.end();
 			if( it == en ) break ;
 			TxMsgQueueT::iterator it_next = it ;
