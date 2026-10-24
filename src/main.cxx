@@ -2017,6 +2017,11 @@ void set_platform_ui(void)
 #else
 	   FL_NORMAL_SIZE = 12;
 #endif
+	// The menu bar and the buttons beside it use the menu font. Its
+	// default of 16 made the top bar much larger than the rest of the
+	// window; start it at the size everything else uses. A size saved in
+	// the configuration still wins.
+	progdefaults.MenuFontsize = FL_NORMAL_SIZE;
 }
 
 // Convert 1 second of 1-channel silence from IN_RATE Hz to OUT_RATE Hz,
