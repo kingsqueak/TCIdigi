@@ -32,10 +32,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include <string>
 #include <vector>
 
 #include "sigid.h"
+#include "sigid_signatures.h"
+#include "sigid_internal.h"
 
 // sigid-scan links only the core, not globals.cxx, so it has no mode_info
 // table. Hits name the mode by its signature name and enum value.
@@ -119,23 +122,37 @@ static void on_hit(const sigid_hit &h, void *arg)
 	       h.confidence, (int)h.alternate);
 }
 
+static int top_n = 0;
+
 static void print_candidates(const char *file, double t, const SigId &sigid)
 {
 	sigid_candidate c[64];
 	size_t n = sigid.candidates(c, 64);
+	for (size_t i = 0; i < n && i < 64 && top_n > 0; i++) {
+		const char *names[16];
+		double scores[16];
+		size_t k = sigid.top_matches(c[i].id, names, scores, std::min(top_n, 16));
+		printf("#  %.0f Hz:", c[i].center);
+		for (size_t j = 0; j < k; j++)
+			printf(" %s %.3f", names[j], scores[j]);
+		printf("\n");
+	}
 	for (size_t i = 0; i < n && i < 64; i++)
 		printf("{\"file\":\"%s\",\"t\":%.2f,\"cand\":%d,\"lo\":%.1f,\"hi\":%.1f,"
-		       "\"center\":%.1f,\"snr\":%.1f,\"age\":%.1f,\"parts\":%d}\n",
+		       "\"center\":%.1f,\"snr\":%.1f,\"age\":%.1f,\"parts\":%d,"
+		       "\"mode\":\"%s\",\"conf\":%.2f,\"alt\":%d}\n",
 		       file, t, c[i].id, c[i].lo, c[i].hi, c[i].center, c[i].snr,
-		       c[i].age, c[i].parts);
+		       c[i].age, c[i].parts, c[i].name, c[i].confidence, (int)c[i].alternate);
 }
 
 static void usage()
 {
 	fprintf(stderr, "usage: sigid-scan [--block N] [--candidates] [--every S] FILE.wav...\n"
+		"       sigid-scan --signatures\n"
 		"Runs the SigID core over each file and prints hits as JSON lines.\n"
 		"--candidates also prints the signals found, at the end of each file\n"
-		"and every S seconds when --every is given.\n");
+		"and every S seconds when --every is given.\n"
+		"--signatures prints the signature table as JSON lines.\n");
 }
 
 int main(int argc, char **argv)
@@ -149,8 +166,27 @@ int main(int argc, char **argv)
 			block = (size_t)atoi(argv[++i]);
 		else if (!strcmp(argv[i], "--candidates"))
 			show_candidates = true;
+		else if (!strcmp(argv[i], "--trace"))
+			sigid::trace = true;
+		else if (!strcmp(argv[i], "--top") && i + 1 < argc) {
+			top_n = atoi(argv[++i]);
+			show_candidates = true;
+		}
 		else if (!strcmp(argv[i], "--every") && i + 1 < argc)
 			every = atof(argv[++i]);
+		else if (!strcmp(argv[i], "--signatures")) {
+			static const char *fam[] = { "OOK", "HELL_OOK", "FSK2", "MFSK", "OLIVIA", "IFK",
+				"THROB", "PSK", "PSK_MULTI", "MT63" };
+			for (int k = 0; k < sigid::signature_count; k++) {
+				const sigid::signature &s = sigid::signatures[k];
+				printf("{\"row\":%d,\"mode\":%d,\"name\":\"%s\",\"family\":\"%s\","
+				       "\"tones\":%d,\"spacing\":%.4f,\"baud\":%.4f,\"bw\":%.2f,"
+				       "\"order\":%d,\"group\":%d}\n",
+				       k, (int)s.mode, s.name, fam[s.fam], s.tones, s.spacing, s.baud,
+				       s.bandwidth, s.order, s.group);
+			}
+			return 0;
+		}
 		else if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
 			usage();
 			return 0;
@@ -190,6 +226,12 @@ int main(int argc, char **argv)
 		       "\"analysed\":%llu,\"hits\":%d}\n",
 		       files[n], rate, (double)audio.size() / rate,
 		       sigid.samples_seen(), st.hits);
+	}
+	if (sigid::trace) {
+		static const char *fam[] = { "OOK", "HELL_OOK", "FSK2", "MFSK", "OLIVIA", "IFK",
+			"THROB", "PSK", "PSK_MULTI", "MT63" };
+		for (int k = 0; k < sigid::FAM_COUNT; k++)
+			fprintf(stderr, "cpu %-10s %.2f s\n", fam[k], sigid::family_seconds[k]);
 	}
 	return failed ? 1 : 0;
 }

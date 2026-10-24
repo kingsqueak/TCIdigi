@@ -22,8 +22,8 @@
 // ----------------------------------------------------------------------------
 
 // The only SigID file that uses fldigi's configuration and logging. The trx
-// thread feeds audio here. Until classification arrives, the signals found
-// are written to the event log when they change.
+// thread feeds audio here. Until the receive pane shows them (Phase 4),
+// the signals found and their modes go to the event log when they change.
 
 #include <config.h>
 
@@ -71,10 +71,10 @@ void sigid_receive(const float *buf, size_t len, int samplerate)
 	sigid_candidate c[32];
 	size_t n = SigID->candidates(c, 32);
 	std::string text;
-	char one[64];
+	char one[96];
 	for (size_t i = 0; i < n && i < 32; i++) {
 		// Round so small wobbles do not count as a change.
-		snprintf(one, sizeof(one), " %.0f-%.0f Hz", c[i].lo / 10, c[i].hi / 10);
+		snprintf(one, sizeof(one), " %s %.0f", c[i].name, (c[i].lo + c[i].hi) / 20);
 		text += one;
 	}
 	if (text == last_logged)
@@ -82,8 +82,9 @@ void sigid_receive(const float *buf, size_t len, int samplerate)
 	last_logged = text;
 	text.clear();
 	for (size_t i = 0; i < n && i < 32; i++) {
-		snprintf(one, sizeof(one), " [%.0f Hz, %.0f wide, %+.0f dB]",
-			c[i].center, c[i].hi - c[i].lo, c[i].snr);
+		snprintf(one, sizeof(one), " [%s %.0f Hz, %.0f wide, %+.0f dB, %.0f%%]",
+			*c[i].name ? c[i].name : "?", c[i].center, c[i].hi - c[i].lo,
+			c[i].snr, 100 * c[i].confidence);
 		text += one;
 	}
 	LOG_INFO("SigID: %d signal%s%s", (int)n, n == 1 ? "" : "s", text.c_str());

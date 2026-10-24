@@ -96,6 +96,39 @@ void merge_regions(std::vector<region> &regions, const short_history &history);
 
 double correlation(const std::vector<double> &a, const std::vector<double> &b);
 
+// A candidate as classification sees it.
+struct candidate_view {
+	double lo;
+	double hi;
+	double center;
+	int parts;
+};
+
+struct classification {
+	// Row of signatures[], or -1 for none.
+	int index;
+	double score;
+	// Best row of the same look-alike group, or -1.
+	int alternate;
+	// How far the winner is ahead of the best row outside its group, 0..1.
+	double confidence;
+	classification() : index(-1), score(0), alternate(-1), confidence(0) {}
+};
+
+// Scores every signature against the candidate, from the last n samples
+// of 8 kHz audio. scores gets one entry per signature row, 0..1.
+void score_signatures(const float *x, size_t n, const candidate_view &c,
+                      std::vector<double> &scores);
+
+// When set, score_signatures prints each row's measurements to stderr.
+// For the test tool only.
+extern bool trace;
+// CPU seconds spent testing each family, for the test tool.
+extern double family_seconds[];
+
+// Picks the winner from a score per signature row.
+void decide(const std::vector<double> &scores, classification &out);
+
 } // namespace sigid
 
 #endif // SIGID_INTERNAL_H

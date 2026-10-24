@@ -261,7 +261,7 @@ class Worker:
         carrier = TX_FIXED_HZ.get(mode, r.modem.get_carrier())
         seconds = SLOW_SECONDS.get(mode.upper(), self.args.seconds)
         r.text.clear_tx()
-        r.text.add_tx(TEXT * 20)
+        r.text.add_tx(TEXT * 100)  # enough that no mode runs dry and idles
         self.srv.start_recording()
         r.main.tx()
         time.sleep(seconds + 1.0)

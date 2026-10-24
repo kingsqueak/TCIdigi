@@ -25,8 +25,10 @@
 // spectra are kept: a fine one, averaged over about 1.5 s, to find where
 // signals sit, and a coarse, fast one to see how their parts move in time.
 // Every quarter second the fine spectrum is split into signals and those
-// are matched to the candidates already being tracked. Classification
-// comes in a later phase; see SIGID-PLAN.md.
+// are matched to the candidates already being tracked. Each candidate is
+// scored against the signature table once it is a few seconds old and
+// every couple of seconds after that, from the last stretch of audio; the
+// scores are averaged over time and the best row is its mode.
 
 #include <config.h>
 
@@ -40,6 +42,7 @@
 #include "gfft.h"
 #include "sigid.h"
 #include "sigid_internal.h"
+#include "sigid_signatures.h"
 
 using namespace sigid;
 
@@ -51,6 +54,25 @@ static const int SEGMENT_EVERY = 8;
 // it has been missing this long.
 static const double REPORT_AFTER_S = 1.0;
 static const double DROP_AFTER_S = 3.0;
+// Audio kept for classification, and how much of it one pass uses.
+static const int KEEP_S = 16;
+static const double CLASSIFY_MAX_S = 10.0;
+// Narrow signals are often slow (Throb, MFSK4, THOR Micro): give them all
+// the audio kept, for enough symbols. Wide ones are fast and costly to
+// test: a shorter stretch holds plenty of symbols.
+static const double NARROW_HZ = 150.0;
+static const double WIDE_HZ = 1000.0;
+static const double WIDE_MAX_S = 6.0;
+// First classification at this age, then this often.
+static const double CLASSIFY_AFTER_S = 3.0;
+static const double CLASSIFY_EVERY_S = 3.0;
+// Once the same answer has come back this many times with at least this
+// confidence, check it only this often.
+static const int SETTLED_AFTER = 3;
+static const double SETTLED_CONFIDENCE = 0.3;
+static const double SETTLED_EVERY_S = 8.0;
+// Weight of a new pass in the running score.
+static const double VOTE_WEIGHT = 0.4;
 
 struct track {
 	int id;
@@ -60,6 +82,10 @@ struct track {
 	double first_s;
 	double last_s;
 	int parts;
+	double next_classify_s;
+	std::vector<double> votes;
+	classification cls;
+	int same_answers;
 };
 
 struct sigid_impl {
@@ -88,12 +114,17 @@ struct sigid_impl {
 	std::vector<track> tracks;
 	int next_id;
 
+	// Last KEEP_S seconds of 8 kHz audio.
+	std::vector<float> ring;
+	size_t ring_at;
+	size_t ring_have;
+
 	sigid_impl()
 		: src(0), src_rate(0), long_at(0), short_at(0), seen(0),
 		  long_fft(LONG_N), short_fft(SHORT_N),
 		  long_win(LONG_N), short_win(SHORT_N), buf(LONG_N),
 		  avg(LONG_BINS, 0.0), avg_started(false), frames_since_segment(0),
-		  next_id(1)
+		  next_id(1), ring(KEEP_S * RATE, 0.0f), ring_at(0), ring_have(0)
 	{
 		for (int i = 0; i < LONG_N; i++)
 			long_win[i] = 0.5 - 0.5 * cos(2 * M_PI * i / (LONG_N - 1));
@@ -119,6 +150,7 @@ struct sigid_impl {
 		frames_since_segment = 0;
 		history.clear();
 		tracks.clear();
+		ring_at = ring_have = 0;
 		if (src)
 			src_reset(src);
 	}
@@ -133,8 +165,26 @@ struct sigid_impl {
 			out[k] = std::norm(buf[k]);
 	}
 
+	// Takes audio a hop at a time, so the clock, the kept audio and every
+	// segmentation inside one large block see only what the FFTs have
+	// reached, whatever the caller's block size.
 	void add(const double *x, size_t n)
 	{
+		while (n > 0) {
+			size_t part = std::min(n, (size_t)LONG_HOP);
+			add_part(x, part);
+			x += part;
+			n -= part;
+		}
+	}
+
+	void add_part(const double *x, size_t n)
+	{
+		for (size_t i = 0; i < n; i++) {
+			ring[ring_at] = (float)x[i];
+			ring_at = (ring_at + 1) % ring.size();
+		}
+		ring_have = std::min(ring.size(), ring_have + n);
 		pending.insert(pending.end(), x, x + n);
 		seen += n;
 		double p[LONG_BINS];
@@ -186,6 +236,59 @@ struct sigid_impl {
 		find_regions(excess, kmin, kmax, regions);
 		merge_regions(regions, history);
 		update_tracks(regions);
+		classify_tracks();
+	}
+
+	// The last n samples, oldest first.
+	void recent(size_t n, std::vector<float> &out) const
+	{
+		n = std::min(n, ring_have);
+		out.resize(n);
+		size_t start = (ring_at + ring.size() - n) % ring.size();
+		for (size_t i = 0; i < n; i++)
+			out[i] = ring[(start + i) % ring.size()];
+	}
+
+	void classify_tracks()
+	{
+		double t = now_s();
+		std::vector<float> audio;
+		std::vector<double> scores;
+		for (size_t i = 0; i < tracks.size(); i++) {
+			track &tr = tracks[i];
+			double age = tr.last_s - tr.first_s;
+			if (tr.last_s < t || age < CLASSIFY_AFTER_S || t < tr.next_classify_s)
+				continue;
+
+			double width = tr.hi_hz - tr.lo_hz;
+			double span = width < NARROW_HZ ? KEEP_S
+				: width > WIDE_HZ ? WIDE_MAX_S : CLASSIFY_MAX_S;
+			recent((size_t)(std::min(age, span) * RATE), audio);
+			candidate_view c;
+			c.lo = tr.lo_hz;
+			c.hi = tr.hi_hz;
+			c.center = (tr.lo_hz + tr.hi_hz) / 2;
+			c.parts = tr.parts;
+			score_signatures(audio.empty() ? 0 : &audio[0], audio.size(), c, scores);
+			if (tr.votes.size() != scores.size())
+				tr.votes = scores;
+			else
+				for (size_t k = 0; k < scores.size(); k++)
+					tr.votes[k] += VOTE_WEIGHT * (scores[k] - tr.votes[k]);
+			int before = tr.cls.index;
+			decide(tr.votes, tr.cls);
+			// Settled means the same answer, clearly ahead and clearly a
+			// match: a lone weak score has full confidence but proves
+			// little.
+			if (tr.cls.index == before && tr.cls.confidence >= SETTLED_CONFIDENCE
+			    && tr.cls.score >= SETTLED_CONFIDENCE)
+				tr.same_answers++;
+			else
+				tr.same_answers = 0;
+			// A pass that breaks the streak is followed up soon.
+			bool settled = tr.same_answers >= SETTLED_AFTER;
+			tr.next_classify_s = t + (settled ? SETTLED_EVERY_S : CLASSIFY_EVERY_S);
+		}
 	}
 
 	// A region continues the track it overlaps most, when they overlap by
@@ -316,6 +419,27 @@ void SigId::receive(const float *buf, size_t len, int samplerate)
 		impl->add(&x[0], x.size());
 }
 
+size_t SigId::top_matches(int id, const char **names, double *scores, size_t max) const
+{
+	for (size_t i = 0; i < impl->tracks.size(); i++) {
+		const track &tr = impl->tracks[i];
+		if (tr.id != id)
+			continue;
+		std::vector<int> order(tr.votes.size());
+		for (size_t k = 0; k < order.size(); k++)
+			order[k] = (int)k;
+		std::sort(order.begin(), order.end(),
+			[&tr](int a, int b) { return tr.votes[a] > tr.votes[b]; });
+		size_t n = std::min(max, order.size());
+		for (size_t k = 0; k < n; k++) {
+			names[k] = signatures[order[k]].name;
+			scores[k] = tr.votes[order[k]];
+		}
+		return n;
+	}
+	return 0;
+}
+
 size_t SigId::candidates(sigid_candidate *out, size_t max) const
 {
 	double t = impl->now_s();
@@ -333,6 +457,11 @@ size_t SigId::candidates(sigid_candidate *out, size_t max) const
 			c.snr = tr.snr;
 			c.age = tr.last_s - tr.first_s;
 			c.parts = tr.parts;
+			const classification &k = tr.cls;
+			c.mode = k.index >= 0 ? signatures[k.index].mode : NUM_MODES;
+			c.name = k.index >= 0 ? signatures[k.index].name : "";
+			c.confidence = k.index >= 0 ? k.confidence : 0;
+			c.alternate = k.alternate >= 0 ? signatures[k.alternate].mode : NUM_MODES;
 		}
 		n++;
 	}

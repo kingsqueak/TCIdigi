@@ -65,6 +65,13 @@ struct sigid_candidate {
 	// How many separate spectral pieces were joined to make it: FSK and
 	// MFSK tones, or the carriers of a multi-carrier PSK mode.
 	int parts;
+	// Best match so far: the modem, or NUM_MODES when there is none yet;
+	// its name ("" when none); how far it leads, 0..1; and the best other
+	// member of its look-alike group (NUM_MODES when none).
+	trx_mode mode;
+	const char *name;
+	double confidence;
+	trx_mode alternate;
 };
 
 struct sigid_impl;
@@ -84,6 +91,10 @@ public:
 	// Copies up to max current candidates into out and returns how many
 	// there are in all.
 	size_t candidates(sigid_candidate *out, size_t max) const;
+
+	// The best-scoring signatures for candidate id, highest first: up to
+	// max names and scores. Returns how many were written.
+	size_t top_matches(int id, const char **names, double *scores, size_t max) const;
 
 	// Samples taken in at the analysis rate, for the test tool.
 	unsigned long long samples_seen() const;
