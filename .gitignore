@@ -58,3 +58,10 @@
 
 # Local planning notes
 MILESTONES.md
+
+# make check outputs
+/src/sigid-scan
+/src/test-suite.log
+/scripts/tests/*.log
+/scripts/tests/*.trs
+__pycache__/
