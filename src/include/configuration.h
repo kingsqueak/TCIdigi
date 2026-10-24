@@ -107,6 +107,24 @@
         ELEM_(bool, sigid, "SIGID",                                                     \
               "Identify signals in the passband without an ID (SigID)",                 \
               false)                                                                    \
+        ELEM_(bool, sigid_marks, "SIGIDMARKS",                                          \
+              "Write a clickable mark in the receive pane for each signal SigID names", \
+              true)                                                                     \
+        ELEM_(bool, sigid_center, "SIGIDCENTER",                                        \
+              "Clicking a SigID mark moves the rig so the signal sits at sigid_center_hz",\
+              true)                                                                     \
+        ELEM_(int, sigid_center_hz, "SIGIDCENTERHZ",                                    \
+              "Audio frequency a clicked SigID signal is put at",                       \
+              1500)                                                                     \
+        ELEM_(int, sigid_min_conf, "SIGIDMINCONF",                                      \
+              "Smallest SigID confidence (percent) that gets a mark",                   \
+              10)                                                                       \
+        ELEM_(bool, sigid_ambiguous, "SIGIDAMBIGUOUS",                                  \
+              "Mark look-alike modes (THOR or DominoEX) before SigID tells them apart", \
+              true)                                                                     \
+        ELEM_(int, sigid_repeat_s, "SIGIDREPEAT",                                       \
+              "Seconds before the same signal is marked again",                         \
+              300)                                                                      \
         ELEM_(bool, TransmitRSid, "TRANSMITRSID",                                       \
               "Send RSID at beginning and end of transmission",                         \
               false)                                                                    \

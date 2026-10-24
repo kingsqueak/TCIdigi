@@ -140,10 +140,11 @@ static void print_candidates(const char *file, double t, const SigId &sigid)
 	for (size_t i = 0; i < n && i < 64; i++)
 		printf("{\"file\":\"%s\",\"t\":%.2f,\"cand\":%d,\"lo\":%.1f,\"hi\":%.1f,"
 		       "\"center\":%.1f,\"snr\":%.1f,\"age\":%.1f,\"parts\":%d,"
-		       "\"mode\":\"%s\",\"conf\":%.2f,\"alt\":\"%s\",\"ambiguous\":%d}\n",
+		       "\"mode\":\"%s\",\"conf\":%.2f,\"alt\":\"%s\",\"ambiguous\":%d,"
+		       "\"stable\":%d}\n",
 		       file, t, c[i].id, c[i].lo, c[i].hi, c[i].center, c[i].snr,
 		       c[i].age, c[i].parts, c[i].name, c[i].confidence,
-		       c[i].alternate_name, c[i].ambiguous);
+		       c[i].alternate_name, c[i].ambiguous, c[i].stable);
 }
 
 static void usage()

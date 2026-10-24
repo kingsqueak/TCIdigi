@@ -209,7 +209,7 @@ plugged in, and the optional ONNX backend added.
 | 1 Segmentation | done 2026-10-24 | See the Phase 1 notes below |
 | 2 Classification | done 2026-10-24 | Family 93% and group 92% at 3 dB; see the Phase 2 notes |
 | 3 Look-alikes | done 2026-10-24 | 90–95% exact in groups with a check; see the Phase 3 notes |
-| 4 FLTK marks | not started | |
+| 4 FLTK marks | done 2026-10-24 | Marks, click target, SigID toggle (FLTK and Qt), settings page; see the Phase 4 notes |
 | 5 Qt shell | not started | |
 | 6 Waterfall and polish | not started | |
 | 7 Upstream | not started | |
@@ -553,6 +553,109 @@ turns". Joining should require matching structure (Phase 6).
 
 CPU is unchanged at about 1.4% of a core over the corpus. The checks
 mostly run once per signal, then every 12 s.
+
+### Phase 4 notes (2026-10-24)
+
+What was built:
+- **Toggle:** a SigID light button beside RxID and TxID in both FLTK
+  layouts (the menu bar gives up the room), and in the Qt shell's ID
+  cluster (`engine_set_sigid`, `EngineView.sigid`). It's off by default,
+  since SigID uses CPU, and it matches the switch on the settings page.
+  Switching it on starts SigID from a clean slate (`sigid_enable`; the trx
+  thread does the reset).
+- **Marks:** `sigid_trx.cxx` (trx thread) checks the named signals once a
+  second. A signal gets a mark when:
+  - its answer is stable: the same mode for three passes in a row, whatever
+    the confidence (a new or changing signal is often named wrongly at
+    first);
+  - its confidence is at least the setting (10%);
+  - it isn't the mode and frequency being received right now;
+  - it isn't the same track and label as before, or the same label within
+    half its bandwidth within the repeat time (300 s).
+
+  A look-alike pair is marked "A or B" and gets a second mark once
+  decided. `note_sigid()` (GUI thread, through `REQ`) writes
+  `<<hh:mm:ssZ SigID: MODE at NNNN Hz (NN%)>>` in fldigi's QSY style and
+  logs where a click goes.
+- **Click:** SigID marks are kept in their own store (`sigid_marks`): the
+  mode, where the signal was heard, and the dial and sideband at the time.
+  The target is worked out when the mark is clicked, through the shared
+  `activate_qrg_mark(text)`, which also serves RsID marks and, in Phase 5,
+  the Qt shell. It:
+  - allows for any dial change since the mark was made;
+  - with centering on and a rig that really tunes (`tci_is_active()` in
+    TCIdigi; upstream would also count hamlib, rigCAT and flrig), switches
+    mode, puts the modem at the center, reads back where it actually sits
+    (MT63's centered options don't move), and moves the dial once so the
+    signal lands there;
+  - otherwise moves only the carrier to the signal;
+  - does nothing when you're already on the target.
+
+  Keys carry the date, the first of two identical keys is kept, and the
+  oldest are forgotten past 500.
+- **Settings:** an "IDs/SigID" page in `confdialog.fl`, with: on/off, marks,
+  marking look-alike pairs, center on click and the center frequency,
+  minimum confidence, and repeat time. New configuration elements:
+  `SIGIDMARKS`, `SIGIDCENTER`, `SIGIDCENTERHZ`, `SIGIDMINCONF`,
+  `SIGIDAMBIGUOUS`, `SIGIDREPEAT`.
+- **confdialog:** regenerated with fluid 1.4.5. TCIdigi had hand-edited the
+  generated files (removed the audio-alert callbacks and include, and
+  renamed PortAudio to "Audio"), so the `.fl` was brought in line first. It
+  now regenerates to the committed code, apart from the SigID page and six
+  callbacks that were already empty. An upstream patch needs only the
+  SigID page hunk of the `.fl`.
+
+Checked live, with FLTK fldigi on the fake TCI server and four
+look-alikes at 10 dB:
+- All four are marked at their true frequencies (375, 1252, 2108 and
+  2859 Hz), and both pairs are re-marked once decided.
+- The logged click targets are exact. With the dial at 14,070,000 USB, the
+  Olivia mark at 375 Hz targets 14,068,875 with the carrier at 1500 (a
+  1125 Hz move), and likewise for the other three.
+- The click path was run end to end with a temporary hook, since removed,
+  that activated a mark 5 s after it was written. Clicking THOR22 (heard at
+  1252 Hz, dial 14,070,000 USB) gave THOR22, carrier 1500, dial
+  14,069,752, sent to the fake server as `vfo:0,0,14069752`. Then clicking
+  DominoEX 16 (heard at 2859 on the old dial) worked out that it was now at
+  3107 Hz, and gave dial 14,071,359, carrier 1500.
+
+Found and fixed on the way:
+- **Linear upsampling in `tci_fake.py`** tilted the live audio by about
+  8 dB, which made the floor merge THOR22 with BPSK63F. It now uses
+  band-limited windowed-sinc upsampling, flat within 0.2 dB to 3.5 kHz.
+- **Passband edges:** a receiver's rolled-off edges pulled the floor down
+  across the band. Edges are now left out of the fit, but only a real
+  stopband counts: within 500 Hz of the band's end, and with the end at
+  least 6 dB under the quietest level inside. A first version compared
+  with a typical level, and cut the noise beside wide signals.
+- **Tone joining:** the "tones take turns" join now also needs both pieces
+  strongly keyed and within 6 dB of each other, with correlation below
+  −0.4. A steady carrier beside a hopping signal no longer joins it.
+- **The FLTK top bar** used fldigi's 16-point menu font against 12 for the
+  rest of the window on macOS. The menu font now defaults to the platform's
+  normal size; a size already saved in a configuration still wins. (This is
+  a TCIdigi change; upstream also defaults to 16.)
+
+Grok's read-only review found five problems, all fixed:
+- Centering moved the displayed dial even with no rig to tune (the dial
+  reads 14,070,000 without TCI). It now needs a rig that tunes.
+- `qsy()` could add the shift a second time when the modem didn't go where
+  it was asked (frequency lock, MT63). It's replaced by the click-time
+  logic above.
+- A look-alike already being copied as its alternate was still marked, and
+  clicking would have switched away from a good copy.
+- Mark keys had no date, so they collided after 24 hours, and the map
+  never shrank.
+- Qt's SigID toggle didn't update the FLTK settings checkbox. The Qt
+  receive pane can't activate marks yet; that's Phase 5.
+
+The review had to run without a shell, because headless Grok can't get
+approval for commands. The user has since said Grok may use
+`--always-approve`.
+
+Scores are in line with Phase 3. At 10 dB: exact 83%, group 97%, family
+98%. At 3 dB: 80%, 93%, 93%. Segmentation on the tilted set improved
+(whole 97%, center 96%, width 90%).
 
 ## Appendix: native mode signal parameters
 

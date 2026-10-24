@@ -37,6 +37,11 @@ static const double NOISE_MARGIN_DB = 1.0;
 // The floor is never put lower than this far under the strongest bin, so
 // a noiseless input does not turn sidelobes into signals.
 static const double MAX_RANGE_DB = 50.0;
+// Passband edges more than this far under the typical noise level are left
+// out of the floor fit.
+static const double EDGE_DROP_DB = 3.0;
+static const double EDGE_MAX_HZ = 500.0;
+static const double EDGE_STOP_DB = 6.0;
 // A run starts where the smoothed excess reaches SEED_DB and spreads to
 // neighbours down to EXTEND_DB.
 static const double SEED_DB = 3.0;
@@ -50,7 +55,13 @@ static const double JOIN_GAP_HZ = 32.0;
 static const double JOIN_GAP_SHARE = 0.2;
 // Tones that take turns are joined up to this far apart (RTTY 850).
 static const double TURNS_GAP_HZ = 900.0;
-static const double TURNS_CORR = -0.25;
+static const double TURNS_CORR = -0.4;
+// Tones that take turns are each keyed hard (their power varies by at
+// least this share of its mean) and sent at about the same power. A steady
+// carrier beside a hopping signal is neither, however their power happens
+// to correlate.
+static const double TURNS_KEYED = 0.5;
+static const double TURNS_POWER_DB = 6.0;
 // Carriers of a comb are joined up to this far apart (2xPSK1000).
 static const double COMB_GAP_HZ = 600.0;
 
@@ -178,7 +189,7 @@ static void mark_noise(const double *y, const double *fl, int n, std::vector<cha
 // each bin's floor becomes the mean of the nearby noise bins, the window
 // widening until it holds enough of them, which follows curvature and a
 // filter's roll-off and still bridges a wide signal from both sides.
-void noise_floor(const double *pdb, int kmin, int kmax, double *floor_db)
+static void noise_floor_within(const double *pdb, int kmin, int kmax, double *floor_db)
 {
 	int n = kmax - kmin + 1;
 	if (n < 1)
@@ -223,6 +234,47 @@ void noise_floor(const double *pdb, int kmin, int kmax, double *floor_db)
 	}
 	for (int i = 0; i < n; i++)
 		fl[i] = std::max(fl[i], peak - MAX_RANGE_DB);
+}
+
+// A receiver's passband rolls off at its edges. Bins out there sit well
+// below the noise inside, and fitting the floor through them pulls it down
+// across the whole band, so that the noise between signals looks like
+// signal. Leave such edges out of the floor fit, and give them a floor
+// equal to their own level (never a signal).
+void noise_floor(const double *pdb, int kmin, int kmax, double *floor_db)
+{
+	int n = kmax - kmin + 1;
+	if (n < 16) {
+		noise_floor_within(pdb, kmin, kmax, floor_db);
+		return;
+	}
+	std::vector<double> smooth(n);
+	for (int i = 0; i < n; i++) {
+		int a = std::max(0, i - 4), b = std::min(n - 1, i + 4);
+		double s = 0;
+		for (int j = a; j <= b; j++)
+			s += pdb[kmin + j];
+		smooth[i] = s / (b - a + 1);
+	}
+	// Only the outer EDGE_MAX_HZ, and only a real stopband: a filter
+	// edge falls below any noise inside the band, so the band's last bin
+	// must sit EDGE_STOP_DB under the quietest level inside. (Comparing
+	// with a typical level instead cut the noise beside wide signals that
+	// fill most of the band.)
+	int reach = std::min(n / 4, (int)(EDGE_MAX_HZ / BIN_HZ));
+	double inner = *std::min_element(smooth.begin() + reach, smooth.end() - reach);
+	int lo = 0, hi = n - 1;
+	if (smooth[0] < inner - EDGE_STOP_DB)
+		while (lo < reach && smooth[lo] < inner - EDGE_DROP_DB)
+			lo++;
+	if (smooth[n - 1] < inner - EDGE_STOP_DB)
+		while (hi > n - 1 - reach && smooth[hi] < inner - EDGE_DROP_DB)
+			hi--;
+	noise_floor_within(pdb, kmin + lo, kmin + hi, floor_db);
+	for (int i = 0; i < lo; i++)
+		floor_db[kmin + i] = pdb[kmin + i];
+	for (int i = hi + 1; i < n; i++)
+		floor_db[kmin + i] = pdb[kmin + i];
 }
 
 //----------------------------------------------------------------------
@@ -320,13 +372,33 @@ static void join(region &a, const region &b)
 	a.last_center_hz = b.last_center_hz;
 }
 
+// Standard deviation of a power series over its mean.
+static double keying_depth(const std::vector<double> &v)
+{
+	if (v.size() < 8)
+		return 0;
+	double m = 0, q = 0;
+	for (size_t i = 0; i < v.size(); i++)
+		m += v[i];
+	m /= v.size();
+	if (m <= 0)
+		return 0;
+	for (size_t i = 0; i < v.size(); i++)
+		q += (v[i] - m) * (v[i] - m);
+	return sqrt(q / v.size()) / m;
+}
+
 static bool take_turns(const region &a, const region &b, const short_history &h)
 {
 	if (h.frames() < HISTORY / 2)
 		return false;
+	if (fabs(a.excess_db - b.excess_db) > TURNS_POWER_DB)
+		return false;
 	std::vector<double> sa, sb;
 	h.band_series(a.lo_hz, a.hi_hz, sa);
 	h.band_series(b.lo_hz, b.hi_hz, sb);
+	if (keying_depth(sa) < TURNS_KEYED || keying_depth(sb) < TURNS_KEYED)
+		return false;
 	return correlation(sa, sb) < TURNS_CORR;
 }
 

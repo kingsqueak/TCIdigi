@@ -94,6 +94,9 @@ decl {\#include "notify.h"} {private local
 decl {\#include "debug.h"} {private local
 }
 
+decl {\#include "sigid.h"} {private local
+}
+
 decl {\#include "status.h"} {private local
 }
 
@@ -3003,6 +3006,75 @@ OFF - limit search to BW selector} xywh {601 316 93 20} down_box DOWN_BOX
 progdefaults.rsid_min_bw = 200;
 progdefaults.changed = true;}
           xywh {696 315 70 20}
+        }
+      }
+    }
+    Fl_Group {} {
+      label {IDs/SigID}
+      xywh {200 0 600 350} box ENGRAVED_BOX align 21 hide
+      code0 {CONFIG_PAGE *p = new CONFIG_PAGE(o, _("IDs/SigID"));}
+      code1 {config_pages.push_back(p);}
+      code2 {tab_tree->add(_("IDs/SigID"));}
+    } {
+      Fl_Group {} {
+        label {Signal identification (SigID)}
+        xywh {216 20 560 310} box ENGRAVED_FRAME align 21
+      } {
+        Fl_Check_Button chkSigID {
+          label {Identify the signals in the passband}
+          callback {sigid_enable(o->value());
+if (btnSigID) btnSigID->value(progdefaults.sigid);}
+          tooltip {Also the SigID button beside RxID. Uses some CPU, so it is off by default.} xywh {236 48 330 20} down_box DOWN_BOX
+          code0 {o->value(progdefaults.sigid);}
+        }
+        Fl_Check_Button chkSigIDMarks {
+          label {Mark each signal in the receive pane}
+          callback {progdefaults.sigid_marks = o->value();
+progdefaults.changed = true;}
+          tooltip {Click a mark to switch to that mode and move to the signal} xywh {236 78 330 20} down_box DOWN_BOX
+          code0 {o->value(progdefaults.sigid_marks);}
+        }
+        Fl_Check_Button chkSigIDAmbiguous {
+          label {Mark look-alike modes before they are told apart}
+          callback {progdefaults.sigid_ambiguous = o->value();
+progdefaults.changed = true;}
+          tooltip {Modes that are the same signal on the air (THOR or DominoEX, Olivia or Contestia) are marked as "A or B" until SigID decodes enough to tell} xywh {236 108 400 20} down_box DOWN_BOX
+          code0 {o->value(progdefaults.sigid_ambiguous);}
+        }
+        Fl_Check_Button chkSigIDCenter {
+          label {Clicking a mark tunes the rig so the signal sits at}
+          callback {progdefaults.sigid_center = o->value();
+progdefaults.changed = true;}
+          tooltip {Without rig control, or with this off, only the audio carrier moves} xywh {236 138 360 20} down_box DOWN_BOX
+          code0 {o->value(progdefaults.sigid_center);}
+        }
+        Fl_Counter cntSigIDCenterHz {
+          label Hz
+          callback {progdefaults.sigid_center_hz = (int)o->value();
+progdefaults.changed = true;}
+          xywh {600 138 110 21} align 8 minimum 200 maximum 3500 step 10
+          code0 {o->value(progdefaults.sigid_center_hz);}
+          code1 {o->lstep(100);}
+        }
+        Fl_Counter cntSigIDMinConf {
+          label {Lowest confidence to mark (%)}
+          callback {progdefaults.sigid_min_conf = (int)o->value();
+progdefaults.changed = true;}
+          tooltip {How far SigID's best match must lead the next unrelated mode} xywh {236 178 110 21} align 8 minimum 0 maximum 100 step 1
+          code0 {o->value(progdefaults.sigid_min_conf);}
+          code1 {o->lstep(10);}
+        }
+        Fl_Counter cntSigIDRepeat {
+          label {Mark the same signal again after (seconds)}
+          callback {progdefaults.sigid_repeat_s = (int)o->value();
+progdefaults.changed = true;}
+          xywh {236 213 110 21} align 8 minimum 10 maximum 3600 step 10
+          code0 {o->value(progdefaults.sigid_repeat_s);}
+          code1 {o->lstep(60);}
+        }
+        Fl_Box {} {
+          label {SigID names signals without an RsID or TxID: every mode fldigi can receive. A signal you are already receiving is not marked. Look-alike modes are told apart by decoding a few seconds of the signal.}
+          xywh {236 250 520 60} align 149
         }
       }
     }
@@ -6934,7 +7006,7 @@ progdefaults.BELL_RING_MENU = o->value();} open
         } {}
         Fl_Button btn_test_bell_ring_wav {
           label Test
-          callback {audio_alert->alert(progdefaults.BELL_RING.c_str());}
+          callback {}
           xywh {728 312 59 24}
         }
         Fl_Check_Button chk_ITA2 {
@@ -10151,9 +10223,8 @@ progdefaults.REGEX_ALERT_MENU = o->value();} open
         }
         Fl_Button btn_test_regex_wav {
           label Test
-          callback {audio_alert->alert(progdefaults.BWSR_REGEX_MATCH.c_str());}
+          callback {}
           xywh {718 52 60 24}
-          code0 {\#include "audio_alert.h"}
         }
       }
       Fl_Group {} {open
@@ -10215,7 +10286,7 @@ progdefaults.MYCALL_ALERT_MENU = o->value();} open
         }
         Fl_Button btn_test_mycall_wav {
           label Test
-          callback {audio_alert->alert(progdefaults.BWSR_MYCALL_MATCH.c_str());}
+          callback {}
           xywh {718 114 60 24}
         }
       }
@@ -10278,7 +10349,7 @@ progdefaults.RSID_ALERT_MENU = o->value();} open
         }
         Fl_Button btn_test_rsid_wav {
           label Test
-          callback {audio_alert->alert(progdefaults.RSID_MATCH.c_str());}
+          callback {}
           xywh {718 177 60 24}
         }
       }
@@ -10341,7 +10412,7 @@ progdefaults.RX_EXTRACT_ALERT_MENU = o->value();} open
         }
         Fl_Button btn_test_flmsg_extract_wav {
           label Test
-          callback {audio_alert->alert(progdefaults.RX_EXTRACT_MSG_RCVD.c_str());}
+          callback {}
           xywh {718 238 60 24}
         }
         Fl_File_Input inp_wav_flmsg_timed_out {
@@ -10394,7 +10465,7 @@ progdefaults.TIMED_OUT_ALERT_MENU = o->value();} open
         } {}
         Fl_Button btn_test_rx_extract_timed_out {
           label Test
-          callback {audio_alert->alert(progdefaults.RX_EXTRACT_TIMED_OUT.c_str());}
+          callback {}
           xywh {718 293 60 24}
         }
         Fl_Check_Button btn_enable_flmsg_time_out_wav {
@@ -10444,11 +10515,11 @@ progdefaults.changed = true;} open
         xywh {255 65 500 79} box ENGRAVED_FRAME
       } {
         Fl_Round_Button {btnAudioIO[1]} {
-          label PortAudio
+          label Audio
           callback {sound_update(SND_IDX_PORT);
 progdefaults.changed = true;
 resetSoundCard();}
-          tooltip {Use Port Audio server} xywh {267 93 95 25} down_box DOWN_BOX selection_color 1
+          tooltip {WASAPI, Core Audio, JACK, PulseAudio, or ALSA} xywh {267 93 95 25} down_box DOWN_BOX selection_color 1
         }
         Fl_Choice menuPortInDev {
           label {Capture:}

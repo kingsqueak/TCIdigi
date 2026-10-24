@@ -45,6 +45,7 @@
 #include <chrono>
 #include <fstream>
 #include <algorithm>
+#include <deque>
 #include <map>
 #include <set>
 #include <sstream>
@@ -212,6 +213,7 @@ extern Fl_Scroll       *wefax_pic_rx_scroll;
 #include "contest.h"
 
 #include "tabdefs.h"
+#include "sigid.h"
 
 #define CB_WHEN FL_WHEN_CHANGED | FL_WHEN_NOT_CHANGED | FL_WHEN_ENTER_KEY_ALWAYS | FL_WHEN_RELEASE_ALWAYS
 
@@ -284,6 +286,7 @@ Fl_Box				*tx_timer = (Fl_Box *)0;
 Fl_Light_Button		*btn_EnableVideo_ID = (Fl_Light_Button *)0;
 Fl_Light_Button		*btnAutoSpot = (Fl_Light_Button *)0;
 Fl_Light_Button		*btnTune = (Fl_Light_Button *)0;
+Fl_Light_Button		*btnSigID = (Fl_Light_Button *)0;
 Fl_Light_Button		*btnRSID = (Fl_Light_Button *)0;
 Fl_Light_Button		*btnTxRSID = (Fl_Light_Button *)0;
 Fl_Button			*btnMacroTimer = (Fl_Button *)0;
@@ -3023,6 +3026,18 @@ void cbRSID(Fl_Widget *w, void *)
 	btnRSID->selection_color(clr);
 	btnRSID->redraw();
 	restoreFocus(11);
+}
+
+// SigID: name the signals in the passband. Off by default, since it costs
+// CPU; the same switch is on the IDs/SigID configuration page.
+void cbSigID(Fl_Widget *w, void *)
+{
+	sigid_enable(btnSigID->value());
+	if (chkSigID)
+		chkSigID->value(progdefaults.sigid);
+	btnSigID->redraw();
+	if (Fl::focus() == btnSigID)
+		restoreFocus(26);
 }
 
 void cbTxRSID(Fl_Widget *w, void*)
@@ -10313,6 +10328,123 @@ void qsy(unsigned long long rfc, int fmid)
 std::map<std::string, qrg_mode_t> qrg_marks;
 qrg_mode_t last_marked_qrg;
 
+// SigID marks: what was heard, kept so the click works out its target
+// when it happens (the dial or sideband may have changed since).
+struct sigid_mark_t {
+	trx_mode mode;
+	int heard;			// audio frequency of the signal, Hz
+	long long dial;		// dial when it was heard, 0 for none
+	bool usb;
+};
+static std::map<std::string, sigid_mark_t> sigid_marks;
+static std::deque<std::string> sigid_mark_order;
+// Oldest marks are forgotten past this many; their text stays in the pane.
+static const size_t SIGID_MARKS_MAX = 500;
+
+// Whether the dial really tunes a radio. TCIdigi tunes only over TCI; on
+// other rigs the dial is a display. (Upstream fldigi would also count
+// hamlib, rigCAT and flrig here.)
+static bool sigid_can_tune()
+{
+	return tci_is_active();
+}
+
+// Switches to the marked mode and moves to the signal. With centering on
+// and a rig to tune, the modem goes to the center frequency first and the
+// dial then moves once by the difference between where the signal is and
+// where the modem actually sits (some modems, such as MT63 with its
+// centered option, do not go where they are asked). Otherwise only the
+// carrier moves, to the signal.
+static void activate_sigid_mark(const sigid_mark_t &k)
+{
+	long long dial = wf->rfcarrier();
+	bool usb = wf->USB();
+	// Where the signal is now, in audio, if the dial has moved since.
+	int heard = k.heard;
+	if (k.dial > 0 && dial > 0 && dial != k.dial) {
+		long long rf = k.usb ? k.dial + k.heard : k.dial - k.heard;
+		heard = (int)(usb ? rf - dial : dial - rf);
+	}
+	bool tune = progdefaults.sigid_center && sigid_can_tune() && dial > 0;
+	int target = tune ? progdefaults.sigid_center_hz : heard;
+	if (active_modem->get_mode() == k.mode && fabs(active_modem->get_freq() - target) < 2
+	    && (!tune || heard == target))
+		return;	// already there
+	if (active_modem->get_mode() != k.mode)
+		init_modem_sync(k.mode);
+	if (active_modem->freqlocked())
+		active_modem->set_freqlock(false);
+	if (!tune) {
+		qsy(0, heard);
+		return;
+	}
+	active_modem->set_freq(target);
+	int actual = (int)floor(active_modem->get_freq() + 0.5);
+	long long rf = usb ? dial + heard : dial - heard;
+	long long next = usb ? rf - actual : rf + actual;
+	LOG_INFO("SigID click: %s, signal at %d Hz, dial %lld -> %lld, carrier %d",
+		mode_info[k.mode].sname, heard, dial, next, actual);
+	qsy(next, actual);
+}
+
+// Acts on a clickable mark (RsID's "<<... MODE @ freq>>" or SigID's) by
+// its text: switches to its mode and moves to its frequency. Returns false
+// for text that is not a mark. Shared by the FLTK receive pane and the Qt
+// shell.
+bool activate_qrg_mark(const std::string &text)
+{
+	std::map<std::string, sigid_mark_t>::const_iterator s = sigid_marks.find(text);
+	if (s != sigid_marks.end()) {
+		activate_sigid_mark(s->second);
+		return true;
+	}
+	std::map<std::string, qrg_mode_t>::const_iterator i = qrg_marks.find(text);
+	if (i == qrg_marks.end())
+		return false;
+	const qrg_mode_t& m = i->second;
+	if (active_modem->get_mode() != m.mode)
+		init_modem_sync(m.mode);
+	qsy(m.rfcarrier, m.carrier);
+	return true;
+}
+
+
+// A clickable mark for a signal SigID named. Clicking it goes through
+// activate_sigid_mark.
+void note_sigid(trx_mode mode, std::string label, double audio_freq, int confidence)
+{
+	if (!ReceiveText || !wf || mode >= NUM_MODES)
+		return;
+	sigid_mark_t k;
+	k.mode = mode;
+	k.heard = (int)floor(audio_freq + 0.5);
+	k.dial = wf->rfcarrier() > 0 ? wf->rfcarrier() : 0;
+	k.usb = wf->USB();
+
+	char buf[160];
+	time_t t = time(NULL);
+	struct tm tm;
+	gmtime_r(&t, &tm);
+	snprintf(buf, sizeof(buf), "<<%04d-%02d-%02dT%02d:%02d:%02dZ SigID: %s at %d Hz (%d%%)>>",
+		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+		label.c_str(), k.heard, confidence);
+	// The same text twice in one second is the same signal: keep the first.
+	if (sigid_marks.count(buf))
+		return;
+	sigid_marks[buf] = k;
+	sigid_mark_order.push_back(buf);
+	if (sigid_mark_order.size() > SIGID_MARKS_MAX) {
+		sigid_marks.erase(sigid_mark_order.front());
+		sigid_mark_order.pop_front();
+	}
+	LOG_INFO("%s: heard at %d Hz, dial %lld %s", buf, k.heard, k.dial, k.usb ? "USB" : "LSB");
+	ReceiveText->addstr("\n");
+	ReceiveText->addstr(buf, FTextBase::QSY);
+	ReceiveText->mark();
+	ReceiveText->addstr("\n");
+}
+
+
 void note_qrg(bool no_dup, const char* prefix, const char* suffix, trx_mode mode, unsigned long long rfc, int afreq)
 {
 	qrg_mode_t m;
@@ -12101,6 +12233,11 @@ void change_menu_fonts( Fl_Font font, int size)
 	btnRSID->labelfont(font);
 	btnRSID->redraw_label();
 	btnRSID->redraw();
+
+	btnSigID->labelsize(size);
+	btnSigID->labelfont(font);
+	btnSigID->redraw_label();
+	btnSigID->redraw();
 
 	btnAutoSpot->labelsize(size);
 	btnAutoSpot->labelfont(font);

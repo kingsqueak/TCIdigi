@@ -28,6 +28,7 @@
 #include "tcidigi_tx.h"
 #include "tcidigi_rx.h"
 #include "main.h"
+#include "sigid.h"
 
 #include <FL/Fl.H>
 
@@ -428,6 +429,7 @@ void engine_view(EngineView* out)
 	out->spot = progStatus.spot_recv ? 1 : 0;
 	out->rx_id = progdefaults.rsid ? 1 : 0;
 	out->tx_id = progdefaults.TransmitRSid ? 1 : 0;
+	out->sigid = progdefaults.sigid ? 1 : 0;
 	out->tuning = (trx_state == STATE_TUNE) ? 1 : 0;
 	out->transmitting = (trx_state == STATE_TX) ? 1 : 0;
 	out->macro_timer = progStatus.timer > 0 ? progStatus.timer : 0;
@@ -754,6 +756,19 @@ void engine_set_rxid(int on)
 		show_qt_status("RxID is searching the waterfall.", 6.0);
 	else
 		show_qt_status("RxID is off.", 4.0);
+}
+
+void engine_set_sigid(int on)
+{
+	sigid_enable(on != 0);
+	if (btnSigID)
+		btnSigID->value(on != 0);
+	if (chkSigID)
+		chkSigID->value(on != 0);
+	if (on)
+		show_qt_status("SigID is naming the signals in the passband.", 6.0);
+	else
+		show_qt_status("SigID is off.", 4.0);
 }
 
 void engine_set_txid(int on)

@@ -516,16 +516,7 @@ int FTextRX::handle_clickable(int x, int y)
 void FTextRX::handle_qsy(int start, int end)
 {
 	char* text = tbuf->text_range(start, end);
-
-	extern std::map<std::string, qrg_mode_t> qrg_marks;
-	std::map<std::string, qrg_mode_t>::const_iterator i;
-	if ((i = qrg_marks.find(text)) != qrg_marks.end()) {
-		const qrg_mode_t& m = i->second;
-		if (active_modem->get_mode() != m.mode)
-			init_modem_sync(m.mode);
-		qsy(m.rfcarrier, m.carrier);
-	}
-
+	activate_qrg_mark(text);
 	free(text);
 }
 

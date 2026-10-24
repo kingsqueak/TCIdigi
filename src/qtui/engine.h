@@ -27,6 +27,8 @@ struct EngineView {
 	int spot;
 	int rx_id;
 	int tx_id;
+	// 1 while SigID is identifying the signals in the passband.
+	int sigid;
 	int tuning;
 	int transmitting;
 	// Seconds left on <TIMER:nn>. 0 when no macro timer is running.
@@ -107,6 +109,8 @@ int engine_set_spot(int on);
 const char* engine_spot_error();
 void engine_set_rxid(int on);
 void engine_set_txid(int on);
+// SigID: name the signals in the passband. Off by default (it uses CPU).
+void engine_set_sigid(int on);
 
 // Operator, station, and PSK Reporter. Buffers are always terminated.
 struct EngineStation {

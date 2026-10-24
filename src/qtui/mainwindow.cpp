@@ -3109,12 +3109,16 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 		m_mode->setCurrentId(QString::fromUtf8(opened.modem));
 	}
 
-	// Same cluster as fldigi's menu bar: Spot, RxID, TxID, TUNE.
+	// Same cluster as fldigi's menu bar: Spot, SigID, RxID, TxID, TUNE.
 	auto* spot = toggleButton(QStringLiteral("Spot"),
 		QStringLiteral("Send received call signs to PSK Reporter. Click again to stop."), false);
 	auto* rxId = toggleButton(QStringLiteral("RxID"),
 		QStringLiteral("Listen for RSID across the waterfall and follow that mode and audio frequency."), false);
 	rxId->setObjectName(QStringLiteral("rxId"));
+	auto* sigId = toggleButton(QStringLiteral("SigID"),
+		QStringLiteral("Name the signals in the passband without an RSID (SigID). "
+			"Uses some CPU, so it is off by default."), false);
+	sigId->setObjectName(QStringLiteral("sigId"));
 	auto* macroTimer = stripButton(QStringLiteral("0"),
 		QStringLiteral("Seconds until the macro repeats. Click to stop it and return to receive."));
 	macroTimer->setObjectName(QStringLiteral("macroTimer"));
@@ -3133,7 +3137,7 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 		QStringLiteral("Send a tune tone. Click again to stop."));
 	tune->setObjectName(QStringLiteral("tuneButton"));
 	tune->setCheckable(true);
-	for (QPushButton* button : {spot, rxId, txId, tune})
+	for (QPushButton* button : {spot, sigId, rxId, txId, tune})
 		button->setMinimumWidth(62);
 	connect(spot, &QPushButton::toggled, this, [this, spot](bool on) {
 		if (m_applying)
@@ -3159,6 +3163,17 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 			return;
 		}
 		engine_set_rxid(on ? 1 : 0);
+	});
+	connect(sigId, &QPushButton::toggled, this, [this, sigId](bool on) {
+		if (m_applying)
+			return;
+		if (!engine_up()) {
+			notConnected(QStringLiteral("SigID"));
+			QSignalBlocker block(sigId);
+			sigId->setChecked(false);
+			return;
+		}
+		engine_set_sigid(on ? 1 : 0);
 	});
 	connect(txId, &QPushButton::toggled, this, [this](bool on) {
 		if (m_applying)
@@ -3186,6 +3201,7 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	ops->setVerticalSpacing(4);
 	ops->addWidget(txId, 0, 1);
 	ops->addWidget(tune, 0, 2);
+	ops->addWidget(sigId, 1, 0);
 	ops->addWidget(rxId, 1, 1);
 	ops->addWidget(spot, 1, 2);
 	ops->setColumnStretch(0, 1);
@@ -3893,6 +3909,7 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 			};
 			mark(spot, view.spot);
 			mark(rxId, view.rx_id);
+			mark(sigId, view.sigid);
 			mark(txId, view.tx_id);
 			if (macroTimer) {
 				const bool counting = view.macro_timer > 0;

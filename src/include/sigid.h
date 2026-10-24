@@ -31,6 +31,8 @@
 
 #include <stddef.h>
 
+#include <string>
+
 #include "globals.h"
 
 struct sigid_hit {
@@ -77,6 +79,9 @@ struct sigid_candidate {
 	// it as "mode or alternate".
 	int ambiguous;
 	const char *alternate_name;
+	// 1 once the same mode has come back from several classification
+	// passes in a row: worth showing to the operator.
+	int stable;
 };
 
 struct sigid_impl;
@@ -121,5 +126,12 @@ extern SigId *SigID;
 void sigid_start();
 void sigid_stop();
 void sigid_receive(const float *buf, size_t len, int samplerate);
+// Switches SigID on or off from the GUI; on starts it from a clean slate.
+void sigid_enable(bool on);
+// Writes a clickable mark for a signal SigID named into the receive pane.
+// GUI thread; defined in fl_digi.cxx. Clicking it switches to mode and
+// moves to the signal, so that it sits at the SigID center frequency when
+// that option is on and the rig can be tuned.
+void note_sigid(trx_mode mode, std::string label, double audio_freq, int confidence);
 
 #endif // SIGID_H

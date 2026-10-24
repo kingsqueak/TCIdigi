@@ -342,6 +342,7 @@ extern Fl_Light_Button		*btnAFC;
 extern Fl_Light_Button		*btnSQL;
 extern Fl_Light_Button		*btnPSQL;
 extern Fl_Box				*rsid_status;
+extern Fl_Light_Button		*btnSigID;
 extern Fl_Light_Button		*btnRSID;
 extern Fl_Light_Button		*btnTxRSID;
 extern Fl_Light_Button		*btnTune;
@@ -646,6 +647,7 @@ extern void toggle_visible_modes(Fl_Widget*, void*);
 
 extern void qsy(unsigned long long rfc, int fmid = -1);
 
+extern bool activate_qrg_mark(const std::string &text);
 extern void note_qrg(bool no_dup = true, const char* prefix = " ", const char* suffix = " ",
 	      trx_mode mode = NUM_MODES, unsigned long long rfc = 0ULL, int afreq = 0);
 

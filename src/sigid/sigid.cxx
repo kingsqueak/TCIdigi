@@ -73,6 +73,9 @@ static const double CLASSIFY_EVERY_S = 3.0;
 static const int SETTLED_AFTER = 3;
 static const double SETTLED_CONFIDENCE = 0.3;
 static const double SETTLED_EVERY_S = 8.0;
+// A candidate is stable, worth marking, once this many passes in a row
+// after its first have named the same mode.
+static const int STABLE_PASSES = 2;
 // Weight of a new pass in the running score.
 static const double VOTE_WEIGHT = 0.4;
 // Look-alike checks decode a little of the signal, so they run less often:
@@ -93,6 +96,8 @@ struct track {
 	std::vector<double> votes;
 	classification cls;
 	int same_answers;
+	// Consecutive passes with the same winner, whatever its confidence.
+	int same_index;
 	// Row the look-alike check picked (-1: none yet) and when to check
 	// again.
 	int verified;
@@ -299,6 +304,7 @@ struct sigid_impl {
 				tr.votes[k] += VOTE_WEIGHT * (scores[k] - tr.votes[k]);
 		int before = tr.cls.index;
 		decide(tr.votes, tr.cls);
+		tr.same_index = tr.cls.index == before ? tr.same_index + 1 : 0;
 		// Settled means the same answer, clearly ahead and clearly a
 		// match: a lone weak score has full confidence but proves little.
 		if (tr.cls.index == before && tr.cls.confidence >= SETTLED_CONFIDENCE
@@ -545,6 +551,7 @@ size_t SigId::candidates(sigid_candidate *out, size_t max) const
 			c.alternate_name = alt >= 0 ? signatures[alt].name : "";
 			c.ambiguous = row >= 0 && signatures[row].group
 				&& !(checked && tr.verified_settled);
+			c.stable = tr.same_index >= STABLE_PASSES;
 		}
 		n++;
 	}

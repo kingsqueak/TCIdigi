@@ -441,7 +441,7 @@ void create_fl_digi_main_primary() {
 
 { // mnuFrame
 		mnuFrame = new Fl_Group(0,0, W, Hmenu);
-			mnu = new Fl_Menu_Bar(0, 0, W - 375, Hmenu);
+			mnu = new Fl_Menu_Bar(0, 0, W - 435, Hmenu);
 			// do some more work on the menu
 			for (int i = 0; i < main_menu_size; i++) {
 				// set the icon label for items with the multi label type
@@ -468,7 +468,16 @@ void create_fl_digi_main_primary() {
 			btnAutoSpot->labelsize(FL_NORMAL_SIZE - 1);
 			btnAutoSpot->labelfont(lfont);
 
-			btnRSID = new Fl_Light_Button(rightof(btnAutoSpot), 0, 60, Hmenu, "RxID");
+			btnSigID = new Fl_Light_Button(rightof(btnAutoSpot), 0, 60, Hmenu, "SigID");
+			btnSigID->tooltip(_("Identify the signals in the passband (SigID).\n"
+				"Uses some CPU; off by default."));
+			btnSigID->selection_color(RGBCOLOR(RxIDColor));
+			btnSigID->value(progdefaults.sigid);
+			btnSigID->callback(cbSigID, 0);
+			btnSigID->labelsize(FL_NORMAL_SIZE - 1);
+			btnSigID->labelfont(lfont);
+
+			btnRSID = new Fl_Light_Button(rightof(btnSigID), 0, 60, Hmenu, "RxID");
 			btnRSID->tooltip("Receive RSID");
 			btnRSID->selection_color(
 				progdefaults.rsidWideSearch ? RGBCOLOR( RxIDwideColor ) : RGBCOLOR( RxIDColor ) );
@@ -4014,7 +4023,7 @@ void create_fl_digi_main_WF_only() {
 
 		mnuFrame = new Fl_Group(0, 0, W, Hmenu);
 
-			mnu = new Fl_Menu_Bar(0, 0, W - 275 - pad, Hmenu);
+			mnu = new Fl_Menu_Bar(0, 0, W - 325 - pad, Hmenu);
 // do some more work on the menu
 			for (size_t i = 0; i < sizeof(alt_menu_)/sizeof(alt_menu_[0]); i++) {
 // FL_NORMAL_SIZE may have changed; update the menu items
@@ -4028,16 +4037,23 @@ void create_fl_digi_main_WF_only() {
 			mnu->menu(alt_menu_);
 
 			btn_EnableVideo_ID = new Fl_Light_Button(
-				W - 275 - pad, 0, 75 - pad, Hmenu, "Video");
+				W - 325 - pad, 0, 75 - pad, Hmenu, "Video");
 			btn_EnableVideo_ID->selection_color( RGBCOLOR( SpotColor ) );
 			btn_EnableVideo_ID->callback(cbEnableVideo_ID, 0);
 			btn_EnableVideo_ID->value(progStatus.EnableVideo_ID);
 			btn_EnableVideo_ID->tooltip(_("Enable video ID in transmit signal"));
 
-			btnAutoSpot = new Fl_Light_Button(W - 200 - pad, 0, 50, Hmenu, "Spot");
+			btnAutoSpot = new Fl_Light_Button(W - 250 - pad, 0, 50, Hmenu, "Spot");
 			btnAutoSpot->selection_color(RGBCOLOR(SpotColor));
 			btnAutoSpot->callback(cbAutoSpot, 0);
 			btnAutoSpot->deactivate();
+
+			btnSigID = new Fl_Light_Button(W - 200 - pad, 0, 50, Hmenu, "SigID");
+			btnSigID->tooltip(_("Identify the signals in the passband (SigID).\n"
+				"Uses some CPU; off by default."));
+			btnSigID->selection_color(RGBCOLOR(RxIDColor));
+			btnSigID->value(progdefaults.sigid);
+			btnSigID->callback(cbSigID, 0);
 
 			btnRSID = new Fl_Light_Button(W - 150 - pad, 0, 50, Hmenu, "RxID");
 			btnRSID->tooltip("Receive RSID");
