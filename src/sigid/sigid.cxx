@@ -35,6 +35,8 @@
 #include <algorithm>
 #include <cmath>
 #include <complex>
+#include <cstdio>
+#include <string>
 #include <vector>
 
 #include <samplerate.h>
@@ -55,7 +57,7 @@ static const int SEGMENT_EVERY = 8;
 static const double REPORT_AFTER_S = 1.0;
 static const double DROP_AFTER_S = 3.0;
 // Audio kept for classification, and how much of it one pass uses.
-static const int KEEP_S = 16;
+static const int KEEP_S = 20;
 static const double CLASSIFY_MAX_S = 10.0;
 // Narrow signals are often slow (Throb, MFSK4, THOR Micro): give them all
 // the audio kept, for enough symbols. Wide ones are fast and costly to
@@ -73,6 +75,11 @@ static const double SETTLED_CONFIDENCE = 0.3;
 static const double SETTLED_EVERY_S = 8.0;
 // Weight of a new pass in the running score.
 static const double VOTE_WEIGHT = 0.4;
+// Look-alike checks decode a little of the signal, so they run less often:
+// again this soon while undecided, this rarely once decided.
+static const double VERIFY_RETRY_S = 4.0;
+static const double VERIFY_EVERY_S = 12.0;
+static const double VERIFY_SKIP_S = 2.0;
 
 struct track {
 	int id;
@@ -86,6 +93,12 @@ struct track {
 	std::vector<double> votes;
 	classification cls;
 	int same_answers;
+	// Row the look-alike check picked (-1: none yet) and when to check
+	// again.
+	int verified;
+	bool verified_settled;
+	int verified_group;
+	double next_verify_s;
 };
 
 struct sigid_impl {
@@ -257,38 +270,84 @@ struct sigid_impl {
 		for (size_t i = 0; i < tracks.size(); i++) {
 			track &tr = tracks[i];
 			double age = tr.last_s - tr.first_s;
-			if (tr.last_s < t || age < CLASSIFY_AFTER_S || t < tr.next_classify_s)
+			if (tr.last_s < t || age < CLASSIFY_AFTER_S)
 				continue;
-
-			double width = tr.hi_hz - tr.lo_hz;
-			double span = width < NARROW_HZ ? KEEP_S
-				: width > WIDE_HZ ? WIDE_MAX_S : CLASSIFY_MAX_S;
-			recent((size_t)(std::min(age, span) * RATE), audio);
 			candidate_view c;
 			c.lo = tr.lo_hz;
 			c.hi = tr.hi_hz;
 			c.center = (tr.lo_hz + tr.hi_hz) / 2;
 			c.parts = tr.parts;
-			score_signatures(audio.empty() ? 0 : &audio[0], audio.size(), c, scores);
-			if (tr.votes.size() != scores.size())
-				tr.votes = scores;
-			else
-				for (size_t k = 0; k < scores.size(); k++)
-					tr.votes[k] += VOTE_WEIGHT * (scores[k] - tr.votes[k]);
-			int before = tr.cls.index;
-			decide(tr.votes, tr.cls);
-			// Settled means the same answer, clearly ahead and clearly a
-			// match: a lone weak score has full confidence but proves
-			// little.
-			if (tr.cls.index == before && tr.cls.confidence >= SETTLED_CONFIDENCE
-			    && tr.cls.score >= SETTLED_CONFIDENCE)
-				tr.same_answers++;
-			else
-				tr.same_answers = 0;
-			// A pass that breaks the streak is followed up soon.
-			bool settled = tr.same_answers >= SETTLED_AFTER;
-			tr.next_classify_s = t + (settled ? SETTLED_EVERY_S : CLASSIFY_EVERY_S);
+			if (t >= tr.next_classify_s)
+				classify(tr, c, age, t, audio, scores);
+			if (tr.cls.index >= 0)
+				verify(tr, c, age, t);
 		}
+	}
+
+	void classify(track &tr, const candidate_view &c, double age, double t,
+	              std::vector<float> &audio, std::vector<double> &scores)
+	{
+		double width = tr.hi_hz - tr.lo_hz;
+		double span = width < NARROW_HZ ? KEEP_S
+			: width > WIDE_HZ ? WIDE_MAX_S : CLASSIFY_MAX_S;
+		recent((size_t)(std::min(age, span) * RATE), audio);
+		score_signatures(audio.empty() ? 0 : &audio[0], audio.size(), c, scores);
+		if (tr.votes.size() != scores.size())
+			tr.votes = scores;
+		else
+			for (size_t k = 0; k < scores.size(); k++)
+				tr.votes[k] += VOTE_WEIGHT * (scores[k] - tr.votes[k]);
+		int before = tr.cls.index;
+		decide(tr.votes, tr.cls);
+		// Settled means the same answer, clearly ahead and clearly a
+		// match: a lone weak score has full confidence but proves little.
+		if (tr.cls.index == before && tr.cls.confidence >= SETTLED_CONFIDENCE
+		    && tr.cls.score >= SETTLED_CONFIDENCE)
+			tr.same_answers++;
+		else
+			tr.same_answers = 0;
+		// A pass that breaks the streak is followed up soon.
+		bool settled = tr.same_answers >= SETTLED_AFTER;
+		tr.next_classify_s = t + (settled ? SETTLED_EVERY_S : CLASSIFY_EVERY_S);
+	}
+
+	// A winner with look-alikes: decode a little to pick the member. Runs
+	// on its own schedule: a new group at once, the same group again after
+	// VERIFY_RETRY_S while undecided and VERIFY_EVERY_S once decided.
+	void verify(track &tr, const candidate_view &c, double age, double t)
+	{
+		int best = tr.cls.index;
+		int group = signatures[best].group;
+		if (group != tr.verified_group) {
+			tr.verified = -1;
+			tr.verified_settled = false;
+			tr.verified_group = group;
+			tr.next_verify_s = t;
+		}
+		if (!group || t < tr.next_verify_s)
+			return;
+		// Decoding needs symbols: give it all the audio kept, less the
+		// first seconds of the signal, where preambles (PSK-R's among
+		// them) look unlike the rest.
+		std::vector<float> longer;
+		double usable = std::max(0.0, age - VERIFY_SKIP_S);
+		recent((size_t)(std::min(usable, (double)KEEP_S) * RATE), longer);
+		std::string detail;
+		bool settled = true;
+		int row = verify_group(longer.empty() ? 0 : &longer[0], longer.size(),
+			c, best, settled, trace ? &detail : 0);
+		if (trace)
+			fprintf(stderr, "  verify %s at %.0f Hz: %s -> %s%s\n",
+				signatures[best].name, c.center, detail.c_str(),
+				row >= 0 ? signatures[row].name : "undecided",
+				row >= 0 && !settled ? " (narrowed)" : "");
+		// An inconclusive re-check keeps the last verdict but tries again
+		// soon.
+		if (row >= 0) {
+			tr.verified = row;
+			tr.verified_settled = settled;
+		}
+		tr.next_verify_s = t + (row >= 0 && settled ? VERIFY_EVERY_S : VERIFY_RETRY_S);
 	}
 
 	// A region continues the track it overlaps most, when they overlap by
@@ -325,6 +384,9 @@ struct sigid_impl {
 			} else {
 				tr.id = next_id++;
 				tr.first_s = t;
+				tr.verified = -1;
+				tr.verified_settled = false;
+				tr.verified_group = 0;
 			}
 			tr.lo_hz = r.lo_hz;
 			tr.hi_hz = r.hi_hz;
@@ -458,10 +520,31 @@ size_t SigId::candidates(sigid_candidate *out, size_t max) const
 			c.age = tr.last_s - tr.first_s;
 			c.parts = tr.parts;
 			const classification &k = tr.cls;
-			c.mode = k.index >= 0 ? signatures[k.index].mode : NUM_MODES;
-			c.name = k.index >= 0 ? signatures[k.index].name : "";
-			c.confidence = k.index >= 0 ? k.confidence : 0;
-			c.alternate = k.alternate >= 0 ? signatures[k.alternate].mode : NUM_MODES;
+			// The look-alike check, when it has spoken for this group, picks
+			// the member; the spectral winner is then the alternate.
+			int row = k.index, alt = k.alternate;
+			bool checked = row >= 0 && tr.verified >= 0
+				&& signatures[tr.verified].group == signatures[row].group;
+			if (checked && tr.verified != row) {
+				alt = row;
+				row = tr.verified;
+			}
+			// Narrowed but not settled (MFSK64 or MFSK64L): the alternate
+			// is the other member of the same family.
+			if (checked && !tr.verified_settled)
+				for (int j = 0; j < signature_count; j++)
+					if (j != row && signatures[j].group == signatures[row].group
+					    && signatures[j].fam == signatures[row].fam) {
+						alt = j;
+						break;
+					}
+			c.mode = row >= 0 ? signatures[row].mode : NUM_MODES;
+			c.name = row >= 0 ? signatures[row].name : "";
+			c.confidence = row >= 0 ? k.confidence : 0;
+			c.alternate = alt >= 0 ? signatures[alt].mode : NUM_MODES;
+			c.alternate_name = alt >= 0 ? signatures[alt].name : "";
+			c.ambiguous = row >= 0 && signatures[row].group
+				&& !(checked && tr.verified_settled);
 		}
 		n++;
 	}

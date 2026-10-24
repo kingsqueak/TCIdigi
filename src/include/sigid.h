@@ -72,6 +72,11 @@ struct sigid_candidate {
 	const char *name;
 	double confidence;
 	trx_mode alternate;
+	// 1 while the mode is one of a look-alike group (THOR / DominoEX,
+	// Olivia / Contestia, ...) that decoding has not yet told apart: show
+	// it as "mode or alternate".
+	int ambiguous;
+	const char *alternate_name;
 };
 
 struct sigid_impl;

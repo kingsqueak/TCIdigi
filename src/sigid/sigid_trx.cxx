@@ -82,8 +82,11 @@ void sigid_receive(const float *buf, size_t len, int samplerate)
 	last_logged = text;
 	text.clear();
 	for (size_t i = 0; i < n && i < 32; i++) {
+		std::string name = *c[i].name ? c[i].name : "?";
+		if (c[i].ambiguous && *c[i].alternate_name)
+			name += std::string("/") + c[i].alternate_name;
 		snprintf(one, sizeof(one), " [%s %.0f Hz, %.0f wide, %+.0f dB, %.0f%%]",
-			*c[i].name ? c[i].name : "?", c[i].center, c[i].hi - c[i].lo,
+			name.c_str(), c[i].center, c[i].hi - c[i].lo,
 			c[i].snr, 100 * c[i].confidence);
 		text += one;
 	}

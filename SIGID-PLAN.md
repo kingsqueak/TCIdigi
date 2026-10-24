@@ -208,7 +208,7 @@ plugged in, and the optional ONNX backend added.
 | 0 Corpus and harness | done 2026-10-24 | See the Phase 0 notes below |
 | 1 Segmentation | done 2026-10-24 | See the Phase 1 notes below |
 | 2 Classification | done 2026-10-24 | Family 93% and group 92% at 3 dB; see the Phase 2 notes |
-| 3 Look-alikes | not started | |
+| 3 Look-alikes | done 2026-10-24 | 90–95% exact in groups with a check; see the Phase 3 notes |
 | 4 FLTK marks | not started | |
 | 5 Qt shell | not started | |
 | 6 Waterfall and polish | not started | |
@@ -454,6 +454,105 @@ Mistakes found along the way, all fixed:
 - Random on-off keying has no envelope line at its baud; its edges do.
 - An N-tone grid at the baud spacing gets about 1/N of an even spread on
   any tone, so concentration is measured above that.
+
+### Phase 3 notes (2026-10-24)
+
+What was built: `src/sigid/verify.cxx` decodes a little of a signal to
+pick the member of its look-alike group, using fldigi's own decoders.
+- **Olivia vs Contestia (vs MFSK):** `MFSK_Receiver<double>` from
+  `pj_mfsk.h`, run as Olivia and as Contestia; the larger FEC-sync S/N
+  wins with a clear lead.
+  - A receiver that hasn't locked still reports about 3.5–4.7, so a lock
+    needs 4 (4-tone Contestia locks near 4.7), or 5 in groups shared with
+    MFSK, whose 8- and 16-tone locks are 6 and up.
+  - With neither under 4.6, it's MFSK, but only after about eight blocks
+    of audio and only at 20 baud and up. Slower Contestia can take longer
+    than the audio kept to lock.
+  - No verdict before about five FEC blocks of audio.
+- **THOR vs DominoEX:** read 18-tone IFK symbols (best lattice offset and
+  timing), then decode twice: through THOR's de-interleaver, Viterbi
+  decoder and varicode, and through DominoEX's varicode. The right decoder
+  gives clean text; the wrong one gives junk.
+  - THOR when its text share is at least 0.8 and not below DominoEX's.
+  - DominoEX at 0.97 and up with a 0.15 lead.
+  - For slow speeds, where THOR's interleaver hasn't filled, DominoEX's
+    decode decides alone.
+  - THOR's own Viterbi metric did not separate them.
+- **BPSK vs PSK-R and BPSK63F:** differential demodulation at the baud,
+  then zero runs. Plain PSK varicode puts exactly two zeros between
+  characters, so among runs of 2–6, nearly all are exactly two (1.00);
+  FEC output gives about 0.5.
+  - At least 80 runs.
+  - A "random" (FEC) verdict also needs clean bits (mean |cos| of the phase
+    steps at least 0.85), since bit errors look random too.
+  - fldigi sends 0 as a phase reversal. Counting the other polarity as
+    well was a bug: inverted 1-runs read as random.
+- **Engine:**
+  - The check runs when a track's winner belongs to a group: again after
+    4 s while undecided, 12 s once decided.
+  - It uses all the audio kept, now 20 s (was 16), less the first 2 s of
+    the signal, where preambles look unlike the rest.
+  - Candidates report the verified member, `ambiguous` while undecided,
+    and `alternate_name`; the log shows "A/B".
+- **Test tool:** `sigid-scan` links fldigi's DominoEX, THOR and MFSK
+  varicode, interleave, Viterbi and `misc.cxx` (for `parity`). The
+  receiver already has them.
+
+Results (`score_class.py`, 156 clips per set; "checked" means groups that
+have a test: Olivia/Contestia/MFSK, THOR/DominoEX, BPSK/PSK-R/63F):
+
+| Set | exact overall | exact in all groups | exact in checked groups |
+|---|---|---|---|
+| AWGN 10 dB | 85% (65% in Phase 2) | 78% | 95% |
+| AWGN 3 dB | 80% (63%) | 70% | 90% |
+| AWGN 3 dB, tilt | 79% (61%) | 71% | 92% |
+| AWGN 0 dB | 68% (51%) | 64% | 93% |
+
+The goal was ≥ 90% in groups with a check at SNR ≥ 3 dB; this is 90–92%,
+and 95% at 10 dB. The remaining misses in those groups are slow modes
+still undecided when the 20 s test clip ends: THOR 4 and Micro, and
+Contestia 64-tone. They are flagged ambiguous, not mislabelled; real
+transmissions are longer. THOR Micro and DominoEX Micro (2 baud) never
+fill THOR's interleaver within the 20 s kept, so they always stay a pair.
+PSK1000R at 3 dB and below also stays undecided, because its bit quality
+is too low to judge.
+
+Groups with no check, which stay "A or B": MT63 S/L, MFSK64/64L and
+128/128L, the 8PSK F/FL variants, the multi-carrier C/RC pairs, and
+NAVTEX/SITOR-B. (C vs RC might yield to a per-carrier varicode test if the
+C modes keep a varicode stream per carrier; not checked.)
+
+Live (`live_check.py`, four signals at 10 dB: Olivia 8/250, THOR22,
+BPSK63F, DominoEX 16): each starts as an "A/B" pair and is resolved to
+the right member within about 15 s.
+
+Grok's read-only review of the Phase 3 diff found six real problems, all
+fixed:
+- With no lock, MFSK64L and MFSK128L were reported as confident MFSK64 and
+  MFSK128. A group with two MFSK members is now narrowed to "MFSK64 or
+  MFSK64L" (`settled` false), not decided.
+- The look-alike check ran on every classification pass while undecided,
+  and each run demodulated up to 18 s twice with the full Olivia receiver
+  on the trx thread. It now has its own schedule (a new group at once,
+  then every 4 s while undecided and 12 s once decided), and the receivers
+  get only the audio they need.
+- Contestia's FEC block is 32 symbols, not 64.
+- THOR could win with a text score slightly below DominoEX's.
+- An inconclusive re-check held the old verdict for 12 s; it now retries
+  in 4 s. A group change resets the verdict.
+- THOR Micro and DominoEX Micro could never decide. Lowering the minimums
+  let DominoEX's decode decide alone on too few characters, which was
+  wrong, so Micro stays a pair (above).
+
+The check also stopped waiting for classification passes, which come every
+8 s once settled, so short signals now get their check in time.
+
+Found: segmentation joined THOR16 and Contestia 8/250 when they were 150
+Hz apart into one 720 Hz signal, since their tones looked like "taking
+turns". Joining should require matching structure (Phase 6).
+
+CPU is unchanged at about 1.4% of a core over the corpus. The checks
+mostly run once per signal, then every 12 s.
 
 ## Appendix: native mode signal parameters
 

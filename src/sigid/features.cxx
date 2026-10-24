@@ -53,7 +53,7 @@ typedef std::complex<double> cplx;
 
 // Mixes x down so fc sits at 0 Hz, low-passes to +-bw/2 and decimates so
 // the output rate is at least twice bw. Returns the output rate.
-static double zoom(const float *x, size_t n, double fc, double bw, std::vector<cplx> &z)
+double zoom(const float *x, size_t n, double fc, double bw, std::vector<cplx> &z)
 {
 	bw = std::max(bw, 20.0);
 	int d = std::max(1, (int)floor(RATE / (2.0 * bw)));

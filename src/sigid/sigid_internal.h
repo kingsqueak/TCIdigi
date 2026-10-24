@@ -24,6 +24,8 @@
 #ifndef SIGID_INTERNAL_H
 #define SIGID_INTERNAL_H
 
+#include <complex>
+#include <string>
 #include <vector>
 
 namespace sigid {
@@ -128,6 +130,21 @@ extern double family_seconds[];
 
 // Picks the winner from a score per signature row.
 void decide(const std::vector<double> &scores, classification &out);
+
+// Mixes 8 kHz audio down so fc sits at 0 Hz, low-passes to +-bw/2 and
+// decimates to at least twice bw. Returns the output rate.
+double zoom(const float *x, size_t n, double fc, double bw,
+            std::vector<std::complex<double> > &z);
+
+// Tells the members of a look-alike group apart by decoding a little of
+// the signal: Olivia from Contestia (and MFSK), THOR from DominoEX, plain
+// BPSK from PSK-R and BPSK63F. Returns the row the evidence picks, or -1
+// when it cannot tell (no test for this group, or too little signal).
+// detail, when not null, gets a short description of the evidence.
+// settled is set false when the answer only narrows the group: no lock
+// on a group with MFSK64 and MFSK64L says "one of those MFSK rows".
+int verify_group(const float *x, size_t n, const candidate_view &c, int row,
+                 bool &settled, std::string *detail = 0);
 
 } // namespace sigid
 

@@ -28,11 +28,16 @@ flarq_LDADD = @FLARQ_BUILD_LDADD@
 # SigID core. It has no FLTK or Qt in it, so the offline test tool below
 # builds from the same files as the receiver.
 SIGID_CORE_SRC = sigid/sigid.cxx sigid/segment.cxx sigid/features.cxx \
-	sigid/signatures.cxx sigid/sigid_internal.h sigid/sigid_signatures.h
+	sigid/signatures.cxx sigid/verify.cxx sigid/sigid_internal.h \
+	sigid/sigid_signatures.h
 
 # Runs SigID over WAV files. Built by "make check", never installed.
 check_PROGRAMS = sigid-scan
-sigid_scan_SOURCES = sigid/sigid-scan.cxx $(SIGID_CORE_SRC)
+# verify.cxx decodes a little with the modems' own varicode tables and
+# THOR's FEC; the receiver already links these.
+sigid_scan_SOURCES = sigid/sigid-scan.cxx $(SIGID_CORE_SRC) dominoex/dominovar.cxx \
+	thor/thorvaricode.cxx mfsk/mfskvaricode.cxx mfsk/interleave.cxx \
+	filters/viterbi.cxx misc/misc.cxx
 sigid_scan_CPPFLAGS = -I$(builddir) -I$(srcdir) -I$(srcdir)/include @SAMPLERATE_CFLAGS@
 sigid_scan_LDADD = @SAMPLERATE_LIBS@
 
