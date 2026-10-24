@@ -27,12 +27,13 @@ flarq_LDADD = @FLARQ_BUILD_LDADD@
 
 # SigID core. It has no FLTK or Qt in it, so the offline test tool below
 # builds from the same files as the receiver.
-SIGID_CORE_SRC = sigid/sigid.cxx
+SIGID_CORE_SRC = sigid/sigid.cxx sigid/segment.cxx sigid/sigid_internal.h
 
 # Runs SigID over WAV files. Built by "make check", never installed.
 check_PROGRAMS = sigid-scan
 sigid_scan_SOURCES = sigid/sigid-scan.cxx $(SIGID_CORE_SRC)
-sigid_scan_CPPFLAGS = -I$(builddir) -I$(srcdir) -I$(srcdir)/include
+sigid_scan_CPPFLAGS = -I$(builddir) -I$(srcdir) -I$(srcdir)/include @SAMPLERATE_CFLAGS@
+sigid_scan_LDADD = @SAMPLERATE_LIBS@
 
 if WIN32
 fldigi_CPPFLAGS += -fno-var-tracking
@@ -648,6 +649,8 @@ fldigi_SOURCES += \
 	rigcontrol/serial.cxx \
 	rigcontrol/tci.cxx \
 	rsid/rsid.cxx \
+	$(SIGID_CORE_SRC) \
+	sigid/sigid_trx.cxx \
 	soundcard/sound.cxx \
 	spot/notify.cxx \
 	spot/pskrep.cxx \

@@ -23,7 +23,9 @@
 
 // Built by "make check" and never installed. Feeds each WAV through the
 // SigID core in receiver-sized blocks and prints one JSON line per hit, then
-// a summary line per file. Reads 16-bit PCM WAV only.
+// a summary line per file. With --candidates it also prints the signals
+// found so far, every --every seconds and at the end of each file. Reads
+// 16-bit PCM WAV only.
 
 #include <config.h>
 
@@ -117,19 +119,38 @@ static void on_hit(const sigid_hit &h, void *arg)
 	       h.confidence, (int)h.alternate);
 }
 
+static void print_candidates(const char *file, double t, const SigId &sigid)
+{
+	sigid_candidate c[64];
+	size_t n = sigid.candidates(c, 64);
+	for (size_t i = 0; i < n && i < 64; i++)
+		printf("{\"file\":\"%s\",\"t\":%.2f,\"cand\":%d,\"lo\":%.1f,\"hi\":%.1f,"
+		       "\"center\":%.1f,\"snr\":%.1f,\"age\":%.1f,\"parts\":%d}\n",
+		       file, t, c[i].id, c[i].lo, c[i].hi, c[i].center, c[i].snr,
+		       c[i].age, c[i].parts);
+}
+
 static void usage()
 {
-	fprintf(stderr, "usage: sigid-scan [--block N] FILE.wav...\n"
-		"Runs the SigID core over each file and prints hits as JSON lines.\n");
+	fprintf(stderr, "usage: sigid-scan [--block N] [--candidates] [--every S] FILE.wav...\n"
+		"Runs the SigID core over each file and prints hits as JSON lines.\n"
+		"--candidates also prints the signals found, at the end of each file\n"
+		"and every S seconds when --every is given.\n");
 }
 
 int main(int argc, char **argv)
 {
 	size_t block = 512;
+	bool show_candidates = false;
+	double every = 0;
 	std::vector<const char *> files;
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "--block") && i + 1 < argc)
 			block = (size_t)atoi(argv[++i]);
+		else if (!strcmp(argv[i], "--candidates"))
+			show_candidates = true;
+		else if (!strcmp(argv[i], "--every") && i + 1 < argc)
+			every = atof(argv[++i]);
 		else if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
 			usage();
 			return 0;
@@ -153,10 +174,18 @@ int main(int argc, char **argv)
 		}
 		scan_state st = { files[n], 0 };
 		SigId sigid(on_hit, &st);
+		double next_print = every;
 		for (size_t at = 0; at < audio.size(); at += block) {
 			size_t len = audio.size() - at < block ? audio.size() - at : block;
 			sigid.receive(&audio[at], len, rate);
+			double t = (double)(at + len) / rate;
+			if (show_candidates && every > 0 && t >= next_print) {
+				print_candidates(files[n], t, sigid);
+				next_print += every;
+			}
 		}
+		if (show_candidates)
+			print_candidates(files[n], (double)audio.size() / rate, sigid);
 		printf("{\"file\":\"%s\",\"summary\":true,\"rate\":%d,\"seconds\":%.2f,"
 		       "\"analysed\":%llu,\"hits\":%d}\n",
 		       files[n], rate, (double)audio.size() / rate,

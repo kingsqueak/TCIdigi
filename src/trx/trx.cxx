@@ -57,6 +57,7 @@
 extern fftmon *fft_modem;
 
 #include "spectrum_viewer.h"
+#include "sigid.h"
 
 #if BENCHMARK_MODE
 #  include "benchmark.h"
@@ -357,6 +358,8 @@ void trx_trx_receive_loop()
 						 || active_modem->get_mode() == MODE_OFDM_750F)
 //						 || active_modem->get_mode() == MODE_OFDM_2000F)
 					ReedSolomon->receive(fbuf, numread);  // OFDM modes use RSID as AFC mechanism. Force RxRSID.
+				if (progdefaults.sigid)
+					sigid_receive(fbuf, numread, active_modem->get_samplerate());
 				dtmf->receive(fbuf, numread);
 			} else {
 				bool afc = progStatus.afconoff;
@@ -793,6 +796,7 @@ void trx_start(void)
 	}
 	if (ReedSolomon) delete ReedSolomon;
 	if (dtmf) delete dtmf;
+	sigid_stop();
 
 
 	if (tci_audio_wanted()) {
@@ -806,6 +810,7 @@ void trx_start(void)
 
 	ReedSolomon = new cRsId;
 	dtmf = new cDTMF;
+	sigid_start();
 
 #endif // !BENCHMARK_MODE
 

@@ -104,6 +104,9 @@
         ELEM_(bool, rsid, "RECEIVERSID",                                                \
               "Enable Reed Soloman ID decoding",                                        \
               false)                                                                    \
+        ELEM_(bool, sigid, "SIGID",                                                     \
+              "Identify signals in the passband without an ID (SigID)",                 \
+              false)                                                                    \
         ELEM_(bool, TransmitRSid, "TRANSMITRSID",                                       \
               "Send RSID at beginning and end of transmission",                         \
               false)                                                                    \

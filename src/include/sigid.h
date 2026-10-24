@@ -50,6 +50,25 @@ struct sigid_hit {
 	trx_mode alternate;
 };
 
+// One occupied part of the passband that has lasted long enough to be a
+// signal. Phase 1 output; classification turns these into hits.
+struct sigid_candidate {
+	int id;
+	// Edges and center of the occupied band, Hz.
+	double lo;
+	double hi;
+	double center;
+	// Mean power over the band relative to the noise floor there, dB.
+	double snr;
+	// Seconds since first seen.
+	double age;
+	// How many separate spectral pieces were joined to make it: FSK and
+	// MFSK tones, or the carriers of a multi-carrier PSK mode.
+	int parts;
+};
+
+struct sigid_impl;
+
 class SigId {
 public:
 	typedef void (*hit_callback)(const sigid_hit &hit, void *arg);
@@ -62,18 +81,29 @@ public:
 	// Mono audio at any sample rate. Converted to the analysis rate inside.
 	void receive(const float *buf, size_t len, int samplerate);
 
+	// Copies up to max current candidates into out and returns how many
+	// there are in all.
+	size_t candidates(sigid_candidate *out, size_t max) const;
+
 	// Samples taken in at the analysis rate, for the test tool.
-	unsigned long long samples_seen() const { return seen; }
+	unsigned long long samples_seen() const;
 
 	static const int analysis_rate = 8000;
 
 private:
 	hit_callback callback;
 	void *callback_arg;
-	unsigned long long seen;
+	sigid_impl *impl;
 
 	SigId(const SigId &);
 	SigId &operator=(const SigId &);
 };
+
+// The receiver's SigID, fed from the trx loop when progdefaults.sigid is
+// on. Defined in sigid_trx.cxx, which is not part of the offline tool.
+extern SigId *SigID;
+void sigid_start();
+void sigid_stop();
+void sigid_receive(const float *buf, size_t len, int samplerate);
 
 #endif // SIGID_H

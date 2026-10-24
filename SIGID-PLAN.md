@@ -206,7 +206,7 @@ plugged in, and the optional ONNX backend added.
 | Phase | State | Notes |
 |---|---|---|
 | 0 Corpus and harness | done 2026-10-24 | See the Phase 0 notes below |
-| 1 Segmentation | not started | |
+| 1 Segmentation | done 2026-10-24 | See the Phase 1 notes below |
 | 2 Classification | not started | |
 | 3 Look-alikes | not started | |
 | 4 FLTK marks | not started | |
@@ -249,6 +249,99 @@ plugged in, and the optional ONNX backend added.
 - Grok in headless mode needs explicit `--allow` rules: `Bash(python3*)`,
   `Edit(scripts/sigid/**)`, `Write(scripts/sigid/**)`. Without them it stops
   at its first file write or command.
+
+### Phase 1 notes (2026-10-24)
+
+What was built:
+- **Core:** `src/sigid/segment.cxx` (noise floor, occupied runs, joining
+  runs), `sigid_internal.h`, and the engine in `sigid.cxx`. The engine
+  resamples with libsamplerate, uses fldigi's header-only `g_fft`, and
+  tracks candidates over time. `SigId::candidates()` reports any that have
+  lasted at least 1 s.
+- **Receiver:** `sigid_trx.cxx` is the only SigID file that uses fldigi's
+  configuration and logging. `trx.cxx` gets three lines: start, stop, and
+  `sigid_receive()` in the normal receive path. The feed is the raw receive
+  audio, ahead of the modem and squelch, so SQL cannot affect it. A new
+  configuration element, `SIGID`, is off by default. The event log gets a
+  "SigID: N signals" line at most every 5 s, when the list changes.
+- **Build:** `src/Makefile.am` adds the core and glue to fldigi. The Qt
+  build picks them up after CMake is re-run. Keep its deployment target at
+  26.0.
+- **Scripts:**
+  - `score_segments.py`: scores a corpus set
+  - `impair_corpus.py`: builds the impaired sets; `--tilt` adds a receiver
+    slope
+  - `live_check.py`: plays a WAV into fldigi through `tci_fake.py` and
+    prints the SigID log lines
+
+How it works:
+- **Noise floor:** first a straight line fitted only to bins that look like
+  noise, which gets the passband's level and tilt without wide signals
+  lifting it. Then each bin's floor is the mean of the nearby noise bins,
+  in a window that widens until it holds enough of them.
+- **Edges:** the threshold (seed 3 dB, extend 1.5 dB over a 5-bin average)
+  only finds a signal. Its edges are the 0.5%–99.5% power span, which
+  doesn't grow with SNR the way a threshold crossing does.
+- **Joining:** pieces join when the gap is at most 32 Hz or 20% of the
+  narrower piece; when their short-term power is anti-correlated, for
+  FSK/MFSK/IFK up to 900 Hz apart; or when they form an even comb of equal
+  carriers, for multi-carrier PSK with a plausible carrier count.
+
+Results (`score_segments.py`, 156 clips per set):
+
+| Set | found | whole | center ±5 Hz | width ±15% | extra |
+|---|---|---|---|---|---|
+| AWGN 10 dB | 100% | 97% | 96% | 94% | 9 |
+| AWGN 3 dB | 100% | 96% | 95% | 89% | 2 |
+| AWGN 0 dB | 98% | 92% | 89% | 81% | 0 |
+| AWGN 3 dB, receiver tilt | 99% | 94% | 92% | 87% | 2 |
+
+"Center" allows 10% of the bandwidth for wide signals. "Width" is against
+the clean clip's 99% span, and at least 16 Hz. The goal was ±5 Hz and ±15%
+at 0 dB. Center comes close; width falls short for reasons that are known
+and belong to Phase 2:
+- Four-tone Olivia and Contestia centers sit half a tone low, because
+  Contestia's upper-case text seldom uses the top tone. The tone grid
+  found in Phase 2 gives the true center.
+- Fast PSK (500 baud and up) and the 2000 Hz-wide modes come out narrow at
+  0 dB: their sidelobes and edges are under the noise. Phase 2 can widen
+  them to the signature.
+- Fast multi-carrier PSK ran out of queued text before the end of its clip
+  and went to idle, which is pairs of lines half the baud rate either side
+  of each carrier. Phase 2 needs an "idle PSK" pattern for that.
+- Sidelobes of 1000-baud PSK show up as extra candidates, mostly at 10 dB.
+
+CPU: 59.5 minutes of audio in 1.1 s, about 0.03% of one core, at 8 kHz.
+A 16 kHz modem adds the resampler: about 0.5% of one core.
+
+Grok's review of the diff found three real problems, all fixed:
+- `receive()` ignored libsamplerate's `input_frames_used`, and read `x[0]`
+  from an empty vector when a call produced nothing. Input left over now
+  waits for the next block. Results are now the same for 512-, 32- and
+  7-sample blocks at 8000, 11025 and 16000 Hz.
+- Going from 16 kHz to 8 kHz and back reused a converter still holding old
+  audio. It now resets.
+- A region updated only its best-matching track. Other tracks it covered
+  stayed reported for up to 0.5 s; they are now dropped. A new track is
+  also fully set before it is stored.
+
+Grok also noted that `kmax` wasn't clamped; it is now. Separately, testing
+at 16 kHz showed `SRC_SINC_FASTEST` folding 4–5 kHz noise onto the top of
+the band, so the converter is now `SRC_SINC_BEST_QUALITY`.
+
+Live: with `live_check.py` and three signals at 6 dB, fldigi logs all three
+every 5 s, within 4 Hz of their true centers. The fake server's linear
+upsampling tilts the noise about 10 dB across the band, which is how the
+first floor (flat at the 20th percentile) was found to fail. That's why
+the line fit and the tilted test set were added.
+
+Notes for later phases:
+- fldigi skips the whole `fldigi.prefs` file unless it has `version` and
+  `dual_channels` entries. A fresh config has a log mask of 0, so it logs
+  nothing. `live_check.py` seeds both.
+- Twice, `impair_corpus.py` left an empty manifest beside complete clips.
+  The cause wasn't found, and re-runs worked. The script now checks its
+  manifest and fails loudly.
 
 ## Appendix: native mode signal parameters
 
