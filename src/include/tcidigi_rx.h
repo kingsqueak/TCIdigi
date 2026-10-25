@@ -16,9 +16,10 @@
 #include <string>
 
 // What a received character is, for the Qt shell to color it: received
-// text, the echo of transmitted text, or anything else fldigi writes there
-// (RSID and QSY marks, macro and program notices).
-enum { TCIDIGI_RX_RECV = 0, TCIDIGI_RX_XMIT = 1, TCIDIGI_RX_NOTE = 2 };
+// text, the echo of transmitted text, a clickable mark (RsID and SigID
+// "<<...>>" marks; pass the whole mark to activate_qrg_mark), or anything
+// else fldigi writes there (macro and program notices).
+enum { TCIDIGI_RX_RECV = 0, TCIDIGI_RX_XMIT = 1, TCIDIGI_RX_NOTE = 2, TCIDIGI_RX_LINK = 3 };
 
 void tcidigi_rx_use(bool on);
 bool tcidigi_rx_active();

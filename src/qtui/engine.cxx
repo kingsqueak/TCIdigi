@@ -487,10 +487,18 @@ void engine_view(EngineView* out)
 int engine_rx_delta(char* buf, char* kinds, int cap)
 {
 	static_assert(ENGINE_RX_RECV == TCIDIGI_RX_RECV && ENGINE_RX_XMIT == TCIDIGI_RX_XMIT
-		&& ENGINE_RX_NOTE == TCIDIGI_RX_NOTE, "receive kinds differ");
+		&& ENGINE_RX_NOTE == TCIDIGI_RX_NOTE && ENGINE_RX_LINK == TCIDIGI_RX_LINK,
+		"receive kinds differ");
 	if (!g_up)
 		return 0;
 	return tcidigi_rx_take(buf, kinds, cap);
+}
+
+int engine_rx_mark_click(const char* text)
+{
+	if (!g_up || !text || !*text || !active_modem)
+		return 0;
+	return activate_qrg_mark(text) ? 1 : 0;
 }
 
 void engine_clear_rx()

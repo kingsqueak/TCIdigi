@@ -2716,10 +2716,44 @@ private:
 	std::function<void(long long)> m_commit;
 };
 
+// Each character's receive kind (ENGINE_RX_*) rides on its text format.
+const int kRxKindProperty = QTextFormat::UserProperty + 1;
+
+// The whole run of clickable-mark text around position at, or "" when the
+// character there is not part of one.
+QString rxLinkAt(QPlainTextEdit* edit, int at)
+{
+	const QTextBlock block = edit->document()->findBlock(at);
+	if (!block.isValid())
+		return QString();
+	QString run;
+	bool hit = false;
+	for (auto it = block.begin(); !it.atEnd(); ++it) {
+		const QTextFragment fragment = it.fragment();
+		if (!fragment.isValid())
+			continue;
+		const bool link = fragment.charFormat().property(kRxKindProperty).toInt() == ENGINE_RX_LINK;
+		if (!link) {
+			if (hit)
+				break;
+			run.clear();
+			continue;
+		}
+		run += fragment.text();
+		if (at >= fragment.position() && at < fragment.position() + fragment.length())
+			hit = true;
+	}
+	return hit ? run : QString();
+}
+
+// Clicks in the receive pane: a mark ("<<...>>" from RsID or SigID) moves
+// to that signal; any other word is offered as a call sign. The pointer
+// becomes a hand over a mark.
 class RxCallFilter : public QObject
 {
 public:
 	std::function<void(const QString&)> onCall;
+	std::function<void(const QString&)> onMark;
 	using QObject::QObject;
 
 	bool eventFilter(QObject* watched, QEvent* event) override
@@ -2727,6 +2761,15 @@ public:
 		if (!onCall)
 			return QObject::eventFilter(watched, event);
 		auto* mouse = dynamic_cast<QMouseEvent*>(event);
+		if (event->type() == QEvent::MouseMove && mouse && !(mouse->buttons() & Qt::LeftButton)) {
+			auto* edit = qobject_cast<QPlainTextEdit*>(watched->parent());
+			auto* view = qobject_cast<QWidget*>(watched);
+			if (edit && view) {
+				const int at = edit->cursorForPosition(mouse->position().toPoint()).position();
+				view->setCursor(rxLinkAt(edit, at).isEmpty() ? Qt::IBeamCursor : Qt::PointingHandCursor);
+			}
+			return QObject::eventFilter(watched, event);
+		}
 		if (event->type() == QEvent::MouseButtonPress && mouse
 			&& mouse->button() == Qt::LeftButton) {
 			m_down = true;
@@ -2746,6 +2789,12 @@ public:
 		if ((pos - m_press).manhattanLength() > 4)
 			return QObject::eventFilter(watched, event);
 		const int cursor = edit->cursorForPosition(pos).position();
+		const QString mark = rxLinkAt(edit, cursor);
+		if (!mark.isEmpty()) {
+			if (onMark)
+				onMark(mark);
+			return QObject::eventFilter(watched, event);
+		}
 		const QString call = callAtText(edit->toPlainText(), cursor);
 		if (!call.isEmpty())
 			onCall(call);
@@ -3345,6 +3394,16 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	head->addWidget(qrzRow, 0, 3, 2, 1, Qt::AlignVCenter);
 	auto* rxCalls = new RxCallFilter(m_rx);
 	rxCalls->onCall = [qrzRow](const QString& call) { qrzApplyCall(qrzRow, call); };
+	rxCalls->onMark = [this](const QString& mark) {
+		if (!engine_up()) {
+			holdStatus(QStringLiteral("Marks work only while the receiver is running."));
+			if (m_statusTimer)
+				m_statusTimer->start(4000);
+			return;
+		}
+		engine_rx_mark_click(mark.toUtf8().constData());
+	};
+	m_rx->viewport()->setMouseTracking(true);
 	m_rx->viewport()->installEventFilter(rxCalls);
 	browserPane->setCallHandler([qrzRow](const QString& call) {
 		qrzApplyCall(qrzRow, call);
@@ -4206,17 +4265,19 @@ namespace {
 
 // Marks each run in the receive pane with its ENGINE_RX_* kind so a color
 // change can find the text it applies to.
-const int kRxKindProperty = QTextFormat::UserProperty + 1;
 
 QTextCharFormat rxKindFormat(QTextCharFormat format, int kind, const QColor& rx, const QColor& tx)
 {
 	format.setProperty(kRxKindProperty, kind);
+	// Clickable marks look like links: the theme's link color, underlined.
 	const QColor color = kind == ENGINE_RX_RECV ? rx
-		: kind == ENGINE_RX_XMIT ? tx : QColor();
+		: kind == ENGINE_RX_XMIT ? tx
+		: kind == ENGINE_RX_LINK ? QApplication::palette().color(QPalette::Link) : QColor();
 	if (color.isValid())
 		format.setForeground(color);
 	else
 		format.clearForeground();
+	format.setFontUnderline(kind == ENGINE_RX_LINK);
 	return format;
 }
 

@@ -210,7 +210,7 @@ plugged in, and the optional ONNX backend added.
 | 2 Classification | done 2026-10-24 | Family 93% and group 92% at 3 dB; see the Phase 2 notes |
 | 3 Look-alikes | done 2026-10-24 | 90–95% exact in groups with a check; see the Phase 3 notes |
 | 4 FLTK marks | done 2026-10-24 | Marks, click target, SigID toggle (FLTK and Qt), settings page; see the Phase 4 notes |
-| 5 Qt shell | not started | |
+| 5 Qt shell | 5a done 2026-10-25; 5b not started | Clickable marks in Qt (5a); Qt preferences and review left (5b); see the Phase 5 notes |
 | 6 Waterfall and polish | not started | |
 | 7 Upstream | not started | |
 
@@ -656,6 +656,38 @@ approval for commands. The user has since said Grok may use
 Scores are in line with Phase 3. At 10 dB: exact 83%, group 97%, family
 98%. At 3 dB: 80%, 93%, 93%. Segmentation on the tilted set improved
 (whole 97%, center 96%, width 90%).
+
+## Phase 5 notes
+
+Phase 5 was split in two so each half fits a session.
+
+**5a, clickable marks in the Qt receive pane (2026-10-25).**
+- `TCIDIGI_RX_LINK` (and `ENGINE_RX_LINK`, checked by the static_assert)
+  is a new receive kind. `rx_kind()` in `FTextRXTX.cxx` returns it for any
+  attribute from `FTextBase::CLICK_START` up, so RsID and SigID marks both
+  arrive in Qt as links. FLTK is unchanged.
+- `engine_rx_mark_click(text)` calls `activate_qrg_mark()`, the same code an
+  FLTK click runs. It returns 0 when the engine is down or the text is not a
+  mark.
+- In `mainwindow.cpp`, link runs use the palette's link color, underlined.
+  `RxCallFilter` joins the link fragments around the clicked character into
+  the whole `<<...>>` text and passes it on; any other word still goes to the
+  call-sign lookup. The pointer becomes a hand over a link.
+- Fixed in passing: the Qt SigID toggle never looked checked, because the
+  theme's checked style listed `#rxId` and `#txId` but not `#sigId`.
+- Live test with the Qt app, a throwaway config, and `tci_fake.py` playing
+  THOR22 (1257 Hz) mixed with Cont-4/250 (1967 Hz) at 10 dB. Both marks
+  appeared as links. A temporary hook (removed) sent a real mouse press and
+  release to the viewport on the THOR22 mark: the mode went to THOR22, the
+  fake VFO went from 14,070,000 to 14,069,752, and the carrier sat at 1500.
+  No TX frames. The fake server does not shift audio when its VFO moves, so
+  its waterfall still shows the signal where it was.
+- Not tested live: clicking an RsID mark in Qt (same `activate_qrg_mark`
+  path, the qrg_marks branch), and the hand pointer.
+
+**5b, still to do.** A SigID section in the Qt preferences with the six
+settings from the FLTK IDs/SigID page, a Grok review of the Phase 5 diff,
+and these notes.
 
 ## Appendix: native mode signal parameters
 

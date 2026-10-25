@@ -2265,6 +2265,8 @@ char rx_kind(int attr)
 		return TCIDIGI_RX_RECV;
 	if (attr == FTextBase::XMIT)
 		return TCIDIGI_RX_XMIT;
+	if (attr >= FTextBase::CLICK_START && attr < FTextBase::NATTR)
+		return TCIDIGI_RX_LINK;
 	return TCIDIGI_RX_NOTE;
 }
 

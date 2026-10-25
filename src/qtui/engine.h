@@ -77,9 +77,15 @@ void engine_view(EngineView* out);
 
 // Newly received bytes. Returns -1 when the receive buffer was cleared.
 // kinds gets one byte per byte of buf: ENGINE_RX_RECV, ENGINE_RX_XMIT for
-// the echo of sent text, or ENGINE_RX_NOTE for anything else.
-enum { ENGINE_RX_RECV = 0, ENGINE_RX_XMIT = 1, ENGINE_RX_NOTE = 2 };
+// the echo of sent text, ENGINE_RX_LINK for a clickable mark (RsID or
+// SigID "<<...>>"; pass its whole text to engine_rx_mark_click), or
+// ENGINE_RX_NOTE for anything else.
+enum { ENGINE_RX_RECV = 0, ENGINE_RX_XMIT = 1, ENGINE_RX_NOTE = 2, ENGINE_RX_LINK = 3 };
 int engine_rx_delta(char* buf, char* kinds, int cap);
+// Acts on a clickable mark by its text, as clicking it in fldigi does:
+// switches to its mode and moves to the signal. Returns 0 when the text is
+// not a known mark or the engine is down.
+int engine_rx_mark_click(const char* text);
 void engine_clear_rx();
 void engine_clear_tx();
 int engine_tx_text(char* buf, int cap);
