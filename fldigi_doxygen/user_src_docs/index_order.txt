@@ -20,6 +20,7 @@ configDomEX.txt \
 configFSQ.txt \
 configFH.txt \
 ConfigID.txt \
+SigID.txt \
 configIFKP.txt \
 ConfigMisc.txt \
 configMT63.txt \

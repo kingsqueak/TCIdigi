@@ -3034,25 +3034,32 @@ progdefaults.changed = true;}
           tooltip {Click a mark to switch to that mode and move to the signal} xywh {236 78 330 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.sigid_marks);}
         }
+        Fl_Check_Button chkSigIDWfLabels {
+          label {Show labels on the waterfall}
+          callback {progdefaults.sigid_wf_labels = o->value();
+progdefaults.changed = true;}
+          tooltip {A tab with the mode above each signal SigID names; click it to go to that signal} xywh {236 106 330 20} down_box DOWN_BOX
+          code0 {o->value(progdefaults.sigid_wf_labels);}
+        }
         Fl_Check_Button chkSigIDAmbiguous {
           label {Mark look-alike modes before they are told apart}
           callback {progdefaults.sigid_ambiguous = o->value();
 progdefaults.changed = true;}
-          tooltip {Modes that are the same signal on the air (THOR or DominoEX, Olivia or Contestia) are marked as "A or B" until SigID decodes enough to tell} xywh {236 108 400 20} down_box DOWN_BOX
+          tooltip {Modes that are the same signal on the air (THOR or DominoEX, Olivia or Contestia) are marked as "A or B" until SigID decodes enough to tell} xywh {236 134 400 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.sigid_ambiguous);}
         }
         Fl_Check_Button chkSigIDCenter {
           label {Clicking a mark tunes the rig so the signal sits at}
           callback {progdefaults.sigid_center = o->value();
 progdefaults.changed = true;}
-          tooltip {Without rig control, or with this off, only the audio carrier moves} xywh {236 138 360 20} down_box DOWN_BOX
+          tooltip {Without rig control, or with this off, only the audio carrier moves} xywh {236 162 360 20} down_box DOWN_BOX
           code0 {o->value(progdefaults.sigid_center);}
         }
         Fl_Counter cntSigIDCenterHz {
           label Hz
           callback {progdefaults.sigid_center_hz = (int)o->value();
 progdefaults.changed = true;}
-          xywh {600 138 110 21} align 8 minimum 200 maximum 3500 step 10
+          xywh {600 162 110 21} align 8 minimum 200 maximum 3500 step 10
           code0 {o->value(progdefaults.sigid_center_hz);}
           code1 {o->lstep(100);}
         }
@@ -3060,7 +3067,7 @@ progdefaults.changed = true;}
           label {Lowest confidence to mark (%)}
           callback {progdefaults.sigid_min_conf = (int)o->value();
 progdefaults.changed = true;}
-          tooltip {How far SigID's best match must lead the next unrelated mode} xywh {236 178 110 21} align 8 minimum 0 maximum 100 step 1
+          tooltip {How far SigID's best match must lead the next unrelated mode} xywh {236 198 110 21} align 8 minimum 0 maximum 100 step 1
           code0 {o->value(progdefaults.sigid_min_conf);}
           code1 {o->lstep(10);}
         }
@@ -3068,13 +3075,13 @@ progdefaults.changed = true;}
           label {Mark the same signal again after (seconds)}
           callback {progdefaults.sigid_repeat_s = (int)o->value();
 progdefaults.changed = true;}
-          xywh {236 213 110 21} align 8 minimum 10 maximum 3600 step 10
+          xywh {236 230 110 21} align 8 minimum 10 maximum 3600 step 10
           code0 {o->value(progdefaults.sigid_repeat_s);}
           code1 {o->lstep(60);}
         }
         Fl_Box {} {
           label {SigID names signals without an RsID or TxID: every mode fldigi can receive. A signal you are already receiving is not marked. Look-alike modes are told apart by decoding a few seconds of the signal.}
-          xywh {236 250 520 60} align 149
+          xywh {236 262 520 60} align 149
         }
       }
     }

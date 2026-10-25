@@ -60,6 +60,26 @@ void WaterfallView::setTxLock(bool locked, int txHz)
 	update();
 }
 
+void WaterfallView::setSigidLabels(const QVector<SigidTab>& labels)
+{
+	if (labels.size() == m_sigidLabels.size()) {
+		bool same = true;
+		for (int i = 0; i < labels.size(); ++i) {
+			const SigidTab& a = labels.at(i);
+			const SigidTab& b = m_sigidLabels.at(i);
+			if (a.mode != b.mode || a.lo != b.lo || a.hi != b.hi
+				|| a.center != b.center || a.text != b.text) {
+				same = false;
+				break;
+			}
+		}
+		if (same)
+			return;
+	}
+	m_sigidLabels = labels;
+	update();
+}
+
 // The hidden waterfall is a short strip. Stretching this pane used to scale
 // those rows. Keep each spectrum one pixel tall and scroll the older rows down.
 void WaterfallView::remember(const QImage& image)
@@ -146,6 +166,19 @@ void WaterfallView::paintSpectrum(QPainter& painter, const QRect& plot) const
 	}
 }
 
+int WaterfallView::sigidTabAt(const QPoint& pos) const
+{
+	// The TX tab is painted over a name. Those pixels still tune.
+	if (m_txTab.contains(pos))
+		return -1;
+	// Later tabs are painted on top, so they win a shared pixel.
+	for (int i = m_sigidHits.size() - 1; i >= 0; --i) {
+		if (m_sigidHits.at(i).rect.contains(pos))
+			return i;
+	}
+	return -1;
+}
+
 int WaterfallView::hzAt(int x) const
 {
 	const bool live = !m_frame.isNull();
@@ -168,8 +201,14 @@ void WaterfallView::mousePressEvent(QMouseEvent* event)
 		return;
 	if (event->button() != Qt::LeftButton)
 		return;
-	const QRect plot = plotRect();
 	const QPoint pos = event->position().toPoint();
+	// A tab sits on the plot. That click goes to the named signal.
+	const int tab = sigidTabAt(pos);
+	if (tab >= 0) {
+		emit sigidClicked(m_sigidHits.at(tab).label.mode, m_sigidHits.at(tab).label.center);
+		return;
+	}
+	const QRect plot = plotRect();
 	if (!plot.contains(pos))
 		return;
 	const int hz = hzAt(pos.x());
@@ -189,18 +228,22 @@ void WaterfallView::mouseMoveEvent(QMouseEvent* event)
 		}
 		return;
 	}
+	const QPoint pos = event->position().toPoint();
+	const bool onTab = sigidTabAt(pos) >= 0;
 	const QRect plot = plotRect();
-	const int x = event->position().toPoint().x();
-	if (x < plot.left() || x > plot.right()) {
+	const int x = pos.x();
+	if (!onTab && (x < plot.left() || x > plot.right())) {
+		// Drop the hand from a name once the pointer leaves the plot.
+		unsetCursor();
 		if (m_hoverHz >= 0) {
 			m_hoverHz = -1;
-			unsetCursor();
 			update();
 		}
 		return;
 	}
-	const QPoint pos = event->position().toPoint();
-	if (plot.contains(pos))
+	// A name is clickable even where it hangs into the scale. Leaving it
+	// returns to the tune cursor, or the arrow once the pointer is off the plot.
+	if (onTab || plot.contains(pos))
 		setCursor(Qt::PointingHandCursor);
 	else
 		unsetCursor();
@@ -222,6 +265,9 @@ void WaterfallView::leaveEvent(QEvent*)
 
 void WaterfallView::paintEvent(QPaintEvent*)
 {
+	// Rebuilt below. Cleared first so the scope, which returns early, has none.
+	m_sigidHits.clear();
+	m_txTab = QRect();
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing, false);
 	const QRect area = rect();
@@ -355,6 +401,55 @@ void WaterfallView::paintEvent(QPaintEvent*)
 		vline(centerHz, center);
 	};
 	drawSpan(carrier, QColor(255, 0, 0), mark);
+	// Named signals. Lines first, so a span does not strike through a name.
+	// A name that would cover one already drawn drops a row, and is left
+	// off after three. The TX tab is painted next and stays on top.
+	const QColor sigidTeal(0, 170, 190);
+	const int tabH = fm.height() + 2;
+	for (const SigidTab& label : m_sigidLabels) {
+		if (label.center < hzLow || label.center > hzHigh)
+			continue;
+		int x0 = xOf(qMin(label.lo, label.hi));
+		int x1 = xOf(qMax(label.lo, label.hi));
+		x0 = qBound(plot.left(), x0, plot.right());
+		x1 = qBound(plot.left(), x1, plot.right());
+		if (x1 >= x0)
+			p.fillRect(x0, plot.top(), x1 - x0 + 1, 2, sigidTeal);
+	}
+	QVector<QRect> stacked;
+	for (const SigidTab& label : m_sigidLabels) {
+		if (label.center < hzLow || label.center > hzHigh)
+			continue;
+		const int tw = fm.horizontalAdvance(label.text) + 8;
+		int tx = xOf(label.center) - tw / 2;
+		tx = qBound(plot.left(), tx, qMax(plot.left(), plot.right() - tw + 1));
+		QRect tab;
+		bool fits = false;
+		for (int row = 0; row < 3; ++row) {
+			tab = QRect(tx, plot.top() + row * tabH, tw, tabH);
+			bool overlap = false;
+			for (const QRect& have : stacked) {
+				if (have.intersects(tab)) {
+					overlap = true;
+					break;
+				}
+			}
+			if (!overlap) {
+				fits = true;
+				break;
+			}
+		}
+		if (!fits)
+			continue;
+		stacked.append(tab);
+		p.fillRect(tab, sigidTeal);
+		p.setPen(QColor(0, 0, 0));
+		p.drawText(tab, Qt::AlignCenter, label.text);
+		SigidHit hit;
+		hit.rect = tab;
+		hit.label = label;
+		m_sigidHits.append(hit);
+	}
 	// Lk: amber span where transmit is held, and a TX tab at the top so the
 	// lock still shows when receive sits on the same spot.
 	if (m_locked && live && m_txHz >= hzLow && m_txHz <= hzHigh) {
@@ -367,6 +462,7 @@ void WaterfallView::paintEvent(QPaintEvent*)
 		int tx = xOf(m_txHz) - tw / 2;
 		tx = qBound(plot.left(), tx, qMax(plot.left(), plot.right() - tw + 1));
 		const QRect tab(tx, plot.top(), tw, th);
+		m_txTab = tab;
 		p.fillRect(tab, amber);
 		p.setPen(QColor(0, 0, 0));
 		p.drawText(tab, Qt::AlignCenter, tag);

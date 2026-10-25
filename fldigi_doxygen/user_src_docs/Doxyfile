@@ -61,6 +61,7 @@ configFH.txt \
 configFSQ.txt \
 configIFKP.txt \
 ConfigID.txt \
+SigID.txt \
 configIO.txt \
 configPSM.txt \
 ConfigMisc.txt \

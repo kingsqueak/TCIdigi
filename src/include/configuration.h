@@ -125,6 +125,9 @@
         ELEM_(int, sigid_repeat_s, "SIGIDREPEAT",                                       \
               "Seconds before the same signal is marked again",                         \
               300)                                                                      \
+        ELEM_(bool, sigid_wf_labels, "SIGIDWFLABELS",                                   \
+              "Show a label with the mode on the waterfall at each signal SigID names", \
+              true)                                                                     \
         ELEM_(bool, TransmitRSid, "TRANSMITRSID",                                       \
               "Send RSID at beginning and end of transmission",                         \
               false)                                                                    \

@@ -1676,6 +1676,11 @@ void editSigid(QWidget* parent)
 	marks->setToolTip(QStringLiteral(
 		"Click a mark to switch to that mode and move to the signal"));
 	marks->setChecked(current.marks != 0);
+	auto* wfLabels = new QCheckBox(QStringLiteral("Show labels on the waterfall"));
+	wfLabels->setObjectName(QStringLiteral("sigidWfLabels"));
+	wfLabels->setToolTip(QStringLiteral(
+		"A tab with the mode above each signal SigID names; click it to go to that signal"));
+	wfLabels->setChecked(current.wf_labels != 0);
 	auto* ambiguous = new QCheckBox(QStringLiteral(
 		"Mark look-alike modes before they are told apart"));
 	ambiguous->setObjectName(QStringLiteral("sigidAmbiguous"));
@@ -1724,6 +1729,7 @@ void editSigid(QWidget* parent)
 
 	form->addRow(enable);
 	form->addRow(marks);
+	form->addRow(wfLabels);
 	form->addRow(ambiguous);
 	form->addRow(centerRow);
 	form->addRow(QStringLiteral("Lowest confidence to mark"), minConf);
@@ -1741,6 +1747,7 @@ void editSigid(QWidget* parent)
 		EngineSigid prefs;
 		prefs.enable = enable->isChecked() ? 1 : 0;
 		prefs.marks = marks->isChecked() ? 1 : 0;
+		prefs.wf_labels = wfLabels->isChecked() ? 1 : 0;
 		prefs.ambiguous = ambiguous->isChecked() ? 1 : 0;
 		prefs.center = center->isChecked() ? 1 : 0;
 		prefs.center_hz = centerHz->value();
@@ -3442,6 +3449,9 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 		const bool exact = (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier) != 0;
 		engine_set_carrier(hz, exact ? 0 : 1);
 	});
+	connect(waterfall, &WaterfallView::sigidClicked, this, [](int mode, int hz) {
+		engine_sigid_go(mode, hz);
+	});
 	auto* signal = new SignalColumn;
 	scopeRow->addWidget(waterfall, 1);
 	scopeRow->addWidget(signal);
@@ -4244,6 +4254,20 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 				waterfall->setFrame(frame.copy(), view.hz_low, view.hz_high,
 					view.carrier_hz, view.bandwidth_hz, view.wf_mode);
 			}
+			EngineSigidLabel sigidRaw[32];
+			const int sigidN = engine_sigid_labels(sigidRaw, 32);
+			QVector<WaterfallView::SigidTab> sigidLabels;
+			sigidLabels.reserve(sigidN);
+			for (int i = 0; i < sigidN; ++i) {
+				WaterfallView::SigidTab tab;
+				tab.mode = sigidRaw[i].mode;
+				tab.lo = sigidRaw[i].lo;
+				tab.hi = sigidRaw[i].hi;
+				tab.center = sigidRaw[i].center;
+				tab.text = QString::fromUtf8(sigidRaw[i].text);
+				sigidLabels.append(tab);
+			}
+			waterfall->setSigidLabels(sigidLabels);
 			waterfall->setTxLock(view.locked != 0, view.tx_carrier_hz);
 			m_applying = false;
 		});

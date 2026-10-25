@@ -2468,6 +2468,13 @@ static void cb_chkSigIDMarks(Fl_Check_Button* o, void*) {
   progdefaults.changed = true;
 }
 
+Fl_Check_Button *chkSigIDWfLabels=(Fl_Check_Button *)0;
+
+static void cb_chkSigIDWfLabels(Fl_Check_Button* o, void*) {
+  progdefaults.sigid_wf_labels = o->value();
+  progdefaults.changed = true;
+}
+
 Fl_Check_Button *chkSigIDAmbiguous=(Fl_Check_Button *)0;
 
 static void cb_chkSigIDAmbiguous(Fl_Check_Button* o, void*) {
@@ -11448,20 +11455,27 @@ Fl_Double_Window* ConfigureDialog() {
           chkSigIDMarks->callback((Fl_Callback*)cb_chkSigIDMarks);
           o->value(progdefaults.sigid_marks);
         } // Fl_Check_Button* chkSigIDMarks
-        { Fl_Check_Button* o = chkSigIDAmbiguous = new Fl_Check_Button(236, 108, 400, 20, gettext("Mark look-alike modes before they are told apart"));
+        { Fl_Check_Button* o = chkSigIDWfLabels = new Fl_Check_Button(236, 106, 330, 20, gettext("Show labels on the waterfall"));
+          chkSigIDWfLabels->tooltip(gettext("A tab with the mode above each signal SigID names; click it to go to that sig"
+"nal"));
+          chkSigIDWfLabels->down_box(FL_DOWN_BOX);
+          chkSigIDWfLabels->callback((Fl_Callback*)cb_chkSigIDWfLabels);
+          o->value(progdefaults.sigid_wf_labels);
+        } // Fl_Check_Button* chkSigIDWfLabels
+        { Fl_Check_Button* o = chkSigIDAmbiguous = new Fl_Check_Button(236, 134, 400, 20, gettext("Mark look-alike modes before they are told apart"));
           chkSigIDAmbiguous->tooltip(gettext("Modes that are the same signal on the air (THOR or DominoEX, Olivia or Contes"
 "tia) are marked as \"A or B\" until SigID decodes enough to tell"));
           chkSigIDAmbiguous->down_box(FL_DOWN_BOX);
           chkSigIDAmbiguous->callback((Fl_Callback*)cb_chkSigIDAmbiguous);
           o->value(progdefaults.sigid_ambiguous);
         } // Fl_Check_Button* chkSigIDAmbiguous
-        { Fl_Check_Button* o = chkSigIDCenter = new Fl_Check_Button(236, 138, 360, 20, gettext("Clicking a mark tunes the rig so the signal sits at"));
+        { Fl_Check_Button* o = chkSigIDCenter = new Fl_Check_Button(236, 162, 360, 20, gettext("Clicking a mark tunes the rig so the signal sits at"));
           chkSigIDCenter->tooltip(gettext("Without rig control, or with this off, only the audio carrier moves"));
           chkSigIDCenter->down_box(FL_DOWN_BOX);
           chkSigIDCenter->callback((Fl_Callback*)cb_chkSigIDCenter);
           o->value(progdefaults.sigid_center);
         } // Fl_Check_Button* chkSigIDCenter
-        { Fl_Counter* o = cntSigIDCenterHz = new Fl_Counter(600, 138, 110, 21, gettext("Hz"));
+        { Fl_Counter* o = cntSigIDCenterHz = new Fl_Counter(600, 162, 110, 21, gettext("Hz"));
           cntSigIDCenterHz->minimum(200);
           cntSigIDCenterHz->maximum(3500);
           cntSigIDCenterHz->step(10);
@@ -11470,7 +11484,7 @@ Fl_Double_Window* ConfigureDialog() {
           o->value(progdefaults.sigid_center_hz);
           o->lstep(100);
         } // Fl_Counter* cntSigIDCenterHz
-        { Fl_Counter* o = cntSigIDMinConf = new Fl_Counter(236, 178, 110, 21, gettext("Lowest confidence to mark (%)"));
+        { Fl_Counter* o = cntSigIDMinConf = new Fl_Counter(236, 198, 110, 21, gettext("Lowest confidence to mark (%)"));
           cntSigIDMinConf->tooltip(gettext("How far SigID\'s best match must lead the next unrelated mode"));
           cntSigIDMinConf->minimum(0);
           cntSigIDMinConf->maximum(100);
@@ -11480,7 +11494,7 @@ Fl_Double_Window* ConfigureDialog() {
           o->value(progdefaults.sigid_min_conf);
           o->lstep(10);
         } // Fl_Counter* cntSigIDMinConf
-        { Fl_Counter* o = cntSigIDRepeat = new Fl_Counter(236, 213, 110, 21, gettext("Mark the same signal again after (seconds)"));
+        { Fl_Counter* o = cntSigIDRepeat = new Fl_Counter(236, 230, 110, 21, gettext("Mark the same signal again after (seconds)"));
           cntSigIDRepeat->minimum(10);
           cntSigIDRepeat->maximum(3600);
           cntSigIDRepeat->step(10);
@@ -11489,7 +11503,7 @@ Fl_Double_Window* ConfigureDialog() {
           o->value(progdefaults.sigid_repeat_s);
           o->lstep(60);
         } // Fl_Counter* cntSigIDRepeat
-        { Fl_Box* o = new Fl_Box(236, 250, 520, 60, gettext("SigID names signals without an RsID or TxID: every mode fldigi can receive. A"
+        { Fl_Box* o = new Fl_Box(236, 262, 520, 60, gettext("SigID names signals without an RsID or TxID: every mode fldigi can receive. A"
 " signal you are already receiving is not marked. Look-alike modes are told apa"
 "rt by decoding a few seconds of the signal."));
           o->align(Fl_Align(133|FL_ALIGN_INSIDE));

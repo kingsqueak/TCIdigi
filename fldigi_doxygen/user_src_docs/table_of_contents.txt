@@ -69,6 +69,7 @@
 	<li>\ref config_psm_page</li>
 	<li>\ref id_configuration_page</li>
 	<ul><li>\ref subsec_reed_solomon_id</li>
+		<li>\ref sigid_page</li>
 		<li>\ref subsec_video_text</li>
 		<li>\ref subsec_cw_postamble</li>
 	</ul>
@@ -322,6 +323,7 @@
 	</ul>
 	<li>\ref notifier_page</li>
 	<li>\ref signal_browser_page</li>
+	<li>\ref sigid_page</li>
 	<li>\ref spectrum_viewer_page</li>
 	<li>\ref xchar_page</li>
 </ul>

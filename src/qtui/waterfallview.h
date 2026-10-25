@@ -15,6 +15,8 @@
 #define FLDIGI_QTUI_WATERFALLVIEW_H
 
 #include <QImage>
+#include <QString>
+#include <QVector>
 #include <QWidget>
 
 class QMouseEvent;
@@ -34,8 +36,21 @@ public:
 	// Lk holds transmit at txHz. The view marks it while locked.
 	void setTxLock(bool locked, int txHz);
 
+	// A signal SigID has named. center is where the tab sits.
+	struct SigidTab {
+		int mode = 0;
+		int lo = 0;
+		int hi = 0;
+		int center = 0;
+		QString text;
+	};
+	// Repaints only when the list differs from the one already shown.
+	void setSigidLabels(const QVector<SigidTab>& labels);
+
 signals:
 	void tuned(int hz);
+	// A left click on a SigID tab. hz is that label's center.
+	void sigidClicked(int mode, int hz);
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
@@ -46,8 +61,15 @@ protected:
 private:
 	QRect plotRect() const;
 	int hzAt(int x) const;
+	int sigidTabAt(const QPoint& pos) const;
 	void remember(const QImage& image);
 	void paintSpectrum(QPainter& painter, const QRect& plot) const;
+
+	// A tab painted last frame, kept so a click can find it.
+	struct SigidHit {
+		QRect rect;
+		SigidTab label;
+	};
 
 	QImage m_frame;
 	QImage m_history;
@@ -59,6 +81,11 @@ private:
 	int m_hoverHz = -1;
 	bool m_locked = false;
 	int m_txHz = 0;
+	// Where the TX tab was painted. Empty when it is not showing. A click
+	// there tunes, since that tab is drawn on top of a SigID name.
+	QRect m_txTab;
+	QVector<SigidTab> m_sigidLabels;
+	QVector<SigidHit> m_sigidHits;
 };
 
 #endif

@@ -426,7 +426,17 @@ static bool plausible_comb(const region &r)
 	return r.parts >= 4 || (r.parts >= 2 && r.unit_hz >= 200.0);
 }
 
-void merge_regions(std::vector<region> &rs, const short_history &h)
+// A veto that covers the gap between two pieces.
+static bool vetoed(const region &a, const region &b, const std::vector<comb_veto> &vetoes)
+{
+	for (size_t i = 0; i < vetoes.size(); i++)
+		if (vetoes[i].lo_hz <= a.hi_hz && vetoes[i].hi_hz >= b.lo_hz)
+			return true;
+	return false;
+}
+
+void merge_regions(std::vector<region> &rs, const short_history &h,
+	const std::vector<comb_veto> &vetoes)
 {
 	if (rs.empty())
 		return;
@@ -456,7 +466,7 @@ void merge_regions(std::vector<region> &rs, const short_history &h)
 		size_t j = i + 1;
 		if (chain.parts == 1) {
 			while (j < out.size() && out[j].lo_hz - chain.hi_hz <= COMB_GAP_HZ
-			       && continues_comb(chain, out[j])) {
+			       && continues_comb(chain, out[j]) && !vetoed(chain, out[j], vetoes)) {
 				double step = (out[j].lo_hz + out[j].hi_hz) / 2 - chain.last_center_hz;
 				if (chain.parts == 1)
 					chain.pitch_hz = step;

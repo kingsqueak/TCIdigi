@@ -83,6 +83,12 @@ static const double VOTE_WEIGHT = 0.4;
 static const double VERIFY_RETRY_S = 4.0;
 static const double VERIFY_EVERY_S = 12.0;
 static const double VERIFY_SKIP_S = 2.0;
+// A comb of two or three wide pieces that classification names as some
+// other family this many passes running was two signals side by side: no
+// comb is joined there for COMB_VETO_S. Short-lived, so a real comb that
+// was misread at low SNR joins again.
+static const int COMB_VETO_AFTER = 2;
+static const double COMB_VETO_S = 30.0;
 
 struct track {
 	int id;
@@ -92,6 +98,11 @@ struct track {
 	double first_s;
 	double last_s;
 	int parts;
+	// Joined as a comb of carriers, and classification passes in a row
+	// that named another family; vetoed tracks are dropped.
+	bool comb;
+	int not_comb;
+	bool vetoed;
 	double next_classify_s;
 	std::vector<double> votes;
 	classification cls;
@@ -130,6 +141,7 @@ struct sigid_impl {
 	short_history history;
 
 	std::vector<track> tracks;
+	std::vector<comb_veto> vetoes;
 	int next_id;
 
 	// Last KEEP_S seconds of 8 kHz audio.
@@ -168,6 +180,7 @@ struct sigid_impl {
 		frames_since_segment = 0;
 		history.clear();
 		tracks.clear();
+		vetoes.clear();
 		ring_at = ring_have = 0;
 		if (src)
 			src_reset(src);
@@ -252,7 +265,11 @@ struct sigid_impl {
 			excess[k] = pdb[k] - floor_db[k];
 		std::vector<region> regions;
 		find_regions(excess, kmin, kmax, regions);
-		merge_regions(regions, history);
+		double t = now_s();
+		for (size_t i = vetoes.size(); i-- > 0;)
+			if (vetoes[i].until_s < t)
+				vetoes.erase(vetoes.begin() + i);
+		merge_regions(regions, history, vetoes);
 		update_tracks(regions);
 		classify_tracks();
 	}
@@ -304,6 +321,18 @@ struct sigid_impl {
 				tr.votes[k] += VOTE_WEIGHT * (scores[k] - tr.votes[k]);
 		int before = tr.cls.index;
 		decide(tr.votes, tr.cls);
+		if (tr.comb && tr.cls.index >= 0) {
+			tr.not_comb = signatures[tr.cls.index].fam == FAM_PSK_MULTI ? 0 : tr.not_comb + 1;
+			if (tr.not_comb >= COMB_VETO_AFTER) {
+				comb_veto v = { tr.lo_hz, tr.hi_hz, t + COMB_VETO_S };
+				vetoes.push_back(v);
+				tr.vetoed = true;
+				if (trace)
+					fprintf(stderr, "  comb %.0f-%.0f Hz is %s: split\n",
+						tr.lo_hz, tr.hi_hz, signatures[tr.cls.index].name);
+				return;
+			}
+		}
 		tr.same_index = tr.cls.index == before ? tr.same_index + 1 : 0;
 		// Settled means the same answer, clearly ahead and clearly a
 		// match: a lone weak score has full confidence but proves little.
@@ -358,7 +387,9 @@ struct sigid_impl {
 
 	// A region continues the track it overlaps most, when they overlap by
 	// more than half of the narrower one. Any other track it overlaps that
-	// much was the same signal seen in pieces, and is dropped.
+	// much was the same signal seen in pieces, and is dropped, unless it
+	// has been classified: then it is a signal of its own that the region
+	// ran into for a moment, and it waits the usual DROP_AFTER_S.
 	void update_tracks(const std::vector<region> &regions)
 	{
 		double t = now_s();
@@ -370,6 +401,8 @@ struct sigid_impl {
 			double best_overlap = 0;
 			for (size_t j = 0; j < tracks.size(); j++) {
 				const track &tr = tracks[j];
+				if (tr.vetoed)
+					continue;
 				double ov = std::min(tr.hi_hz, r.hi_hz) - std::max(tr.lo_hz, r.lo_hz);
 				double narrow = std::min(tr.hi_hz - tr.lo_hz, r.hi_hz - r.lo_hz);
 				if (ov <= 0.5 * narrow)
@@ -398,6 +431,7 @@ struct sigid_impl {
 			tr.hi_hz = r.hi_hz;
 			tr.snr = r.excess_db;
 			tr.parts = r.parts;
+			tr.comb = r.pitch_hz > 0 && r.parts <= 3;
 			tr.last_s = t;
 			if (best >= 0)
 				tracks[best] = tr;
@@ -406,7 +440,8 @@ struct sigid_impl {
 		}
 		std::vector<track> kept;
 		for (size_t j = 0; j < tracks.size(); j++)
-			if (!retire[j] && t - tracks[j].last_s <= DROP_AFTER_S)
+			if (!(retire[j] && tracks[j].cls.index < 0) && !tracks[j].vetoed
+			    && t - tracks[j].last_s <= DROP_AFTER_S)
 				kept.push_back(tracks[j]);
 		kept.insert(kept.end(), born.begin(), born.end());
 		tracks.swap(kept);

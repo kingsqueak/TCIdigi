@@ -157,6 +157,7 @@ void engine_set_tci(int enable, int audio, const char* host, const char* port, i
 struct EngineSigid {
 	int enable;
 	int marks;
+	int wf_labels;
 	int ambiguous;
 	int center;
 	int center_hz;
@@ -169,6 +170,20 @@ void engine_sigid(EngineSigid* out);
 // Applies and saves them, keeping the FLTK page and both SigID buttons in
 // step. Out-of-range numbers are clamped to the FLTK page's limits.
 void engine_set_sigid_prefs(const EngineSigid* in);
+
+// One waterfall label. Hz are rounded from the core's doubles.
+struct EngineSigidLabel {
+	int mode;
+	int lo;
+	int hi;
+	int center;
+	char text[48];
+};
+
+// Copies up to max labels. 0 when the modem is down.
+int engine_sigid_labels(EngineSigidLabel* out, int max);
+// Switches to mode and moves to hz, as clicking a SigID mark does.
+void engine_sigid_go(int mode, int hz);
 
 void engine_set_squelch(int value);
 void engine_set_viewer_sql(double db);

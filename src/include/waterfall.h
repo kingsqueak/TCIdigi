@@ -37,6 +37,8 @@
 
 #include <samplerate.h>
 
+#include <vector>
+
 enum {
 	WF_FFT_RECTANGULAR, WF_FFT_BLACKMAN, WF_FFT_HAMMING,
 	WF_FFT_HANNING, WF_FFT_TRIANGULAR
@@ -187,6 +189,15 @@ public:
 	void defaultColors();
 
 private:
+	// SigID labels as last drawn, for clicks: screen rectangle, mode and
+	// the signal's audio frequency.
+	struct sigid_tab {
+		int x, y, w, h;
+		int mode;
+		int hz;
+	};
+	std::vector<sigid_tab> sigid_tabs;
+
 	int disp_width;
 	int fixed_width;
 	int image_width;
@@ -247,6 +258,8 @@ private:
 	void makeScale();
 	void drawScale();
 	void drawMarker();
+	void drawSigidLabels();
+	int sigidTabAt(int x, int y) const;
 
 	int	 log2disp(int v);
 	void drawcolorWF();

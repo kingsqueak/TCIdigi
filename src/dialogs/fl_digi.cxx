@@ -10387,6 +10387,18 @@ static void activate_sigid_mark(const sigid_mark_t &k)
 	qsy(next, actual);
 }
 
+void sigid_go(trx_mode mode, double audio_freq)
+{
+	if (!wf || !active_modem || mode >= NUM_MODES)
+		return;
+	sigid_mark_t k;
+	k.mode = mode;
+	k.heard = (int)floor(audio_freq + 0.5);
+	k.dial = 0;	// heard just now, at the current dial
+	k.usb = wf->USB();
+	activate_sigid_mark(k);
+}
+
 // Acts on a clickable mark (RsID's "<<... MODE @ freq>>" or SigID's) by
 // its text: switches to its mode and moves to its frequency. Returns false
 // for text that is not a mark. Shared by the FLTK receive pane and the Qt

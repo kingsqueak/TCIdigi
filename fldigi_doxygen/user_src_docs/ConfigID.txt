@@ -73,6 +73,14 @@ The mode to identifier relationships are selected by pressing the associated
 \image html config-id-xmt-modes.png "Transmit Modes"
 \image latex config-id-xmt-modes.png "Transmit Modes" width=2.37in
 
+\section subsec_sigid Signal Identification (SigID)
+<br>
+
+\ref sigid_page "SigID" names signals in the passband that were sent
+without an RsID or TxID. The SigID button beside RxID turns it on.
+Its settings are on the IDs/SigID tab of this configuration dialog.
+<br>
+
 \section subsec_video_text Video Text
 <br>
 

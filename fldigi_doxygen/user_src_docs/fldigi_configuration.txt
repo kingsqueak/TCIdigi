@@ -55,6 +55,7 @@ program:
 	<li> \subpage rx_monitor_page </li>
 	<li> \subpage autostart_configuration_page </li>
 	<li> \subpage id_configuration_page </li>
+	<li> \subpage sigid_page </li>
 	<li> \subpage psk_mail_configuation_page </li>
 	<li> \subpage touch_page </li>
 	<li> \subpage ui_configuration_browser_page </li>

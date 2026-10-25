@@ -503,7 +503,7 @@ See \ref configuration_page Page
 <br>
 
 <HR>
-\subsection s_other Spot, Tx RSID, Rx RSID, and Tune Buttons
+\subsection s_other Spot, SigID, Tx RSID, Rx RSID, and Tune Buttons
 <center>
 \image html menu-linux.png "Menu"
 \image latex menu-linux.png "Menu" width=6.0in
@@ -516,6 +516,8 @@ See \ref configuration_page Page
 	is active, i.e., if it is displayed and the current modem is PSK.
 	See <a href="Spotter.html">PskReporter</a>
 	and <a href="Notifier.html">Notifier</a>.
+	<li>SigID button - toggles \ref sigid_page "signal identification".
+	The button sits beside RxID.</li>
 	<li>RxID button - toggles the detection
 	of \ref id_configuration_page "Reed Solomon Identification" codes.</li>
 	<li>TxID button - toggles the transmission of the RSID signal.</li>

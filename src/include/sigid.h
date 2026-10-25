@@ -128,6 +128,22 @@ void sigid_stop();
 void sigid_receive(const float *buf, size_t len, int samplerate);
 // Switches SigID on or off from the GUI; on starts it from a clean slate.
 void sigid_enable(bool on);
+// A label for the waterfall: a signal SigID has named, where it is, and
+// the short text to show.
+struct sigid_label {
+	trx_mode mode;
+	double lo;
+	double hi;
+	double center;
+	char text[48];
+};
+// The labels to show now: up to max into out, returning how many. Empty
+// when SigID or its labels are off, or when the receiver has not fed SigID
+// for a few seconds (while transmitting). Any thread.
+size_t sigid_labels(sigid_label *out, size_t max);
+// Switches to mode and moves to the signal at audio_freq, as clicking its
+// mark does. GUI thread; defined in fl_digi.cxx.
+void sigid_go(trx_mode mode, double audio_freq);
 // Writes a clickable mark for a signal SigID named into the receive pane.
 // GUI thread; defined in fl_digi.cxx. Clicking it switches to mode and
 // moves to the signal, so that it sits at the SigID center frequency when

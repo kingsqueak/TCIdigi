@@ -61,6 +61,7 @@
 
 #include "fldigi-config.h"
 #include "configuration.h"
+#include "sigid.h"
 #include "ui_colors.h"
 #include "status.h"
 #include "squelch_status.h"
@@ -1515,6 +1516,66 @@ void WFdisp::drawsignal() {
 	fl_draw_image_mono(pixmap, x(), y(), disp_width, h(), 1, IMAGE_WIDTH);
 }
 
+// A tab with the mode over each signal SigID names, and a line across the
+// top of the image showing how wide it is. Tabs that would overlap move
+// down a row; past three rows they are left out.
+void WFdisp::drawSigidLabels() {
+	sigid_tabs.clear();
+	sigid_label labels[32];
+	size_t n = sigid_labels(labels, 32);
+	if (!n)
+		return;
+	const int top = y() + WFSCALE + WFMARKER + WFTEXT;
+	const int st = step > 0 ? step : 1;
+	const Fl_Color teal = fl_rgb_color(0, 170, 190);
+	fl_font(progdefaults.WaterfallFontnbr, progdefaults.WaterfallFontsize);
+	const int th = fl_height() + 2;
+	fl_push_clip(x(), top, w(), image_height);
+	for (size_t i = 0; i < n; i++) {
+		int xlo = x() + (int)((labels[i].lo - offset) / st);
+		int xhi = x() + (int)((labels[i].hi - offset) / st);
+		int xc = x() + (int)((labels[i].center - offset) / st);
+		if (xhi < x() || xlo > x() + w())
+			continue;
+		fl_color(teal);
+		fl_rectf(xlo, top, std::max(1, xhi - xlo), 2);
+		int tw = (int)fl_width(labels[i].text) + 8;
+		int tx = std::max(x(), std::min(xc - tw / 2, x() + w() - tw));
+		int row = 0;
+		for (; row < 3; row++) {
+			int ty = top + 2 + row * th;
+			bool clear = true;
+			for (size_t k = 0; k < sigid_tabs.size(); k++) {
+				const sigid_tab &t = sigid_tabs[k];
+				if (tx < t.x + t.w && t.x < tx + tw && ty < t.y + t.h && t.y < ty + th)
+					clear = false;
+			}
+			if (clear)
+				break;
+		}
+		if (row == 3)
+			continue;
+		sigid_tab t = { tx, top + 2 + row * th, tw, th, (int)labels[i].mode,
+			(int)floor(labels[i].center + 0.5) };
+		sigid_tabs.push_back(t);
+		fl_color(teal);
+		fl_rectf(t.x, t.y, t.w, t.h);
+		fl_color(FL_BLACK);
+		fl_draw(labels[i].text, t.x, t.y, t.w, t.h, FL_ALIGN_CENTER);
+	}
+	fl_pop_clip();
+}
+
+// Index of the SigID tab under the point, or -1.
+int WFdisp::sigidTabAt(int px, int py) const {
+	for (size_t i = 0; i < sigid_tabs.size(); i++) {
+		const sigid_tab &t = sigid_tabs[i];
+		if (px >= t.x && px < t.x + t.w && py >= t.y && py < t.y + t.h)
+			return (int)i;
+	}
+	return -1;
+}
+
 void WFdisp::draw() {
 
 	checkoffset();
@@ -1523,6 +1584,7 @@ void WFdisp::draw() {
 	if (progdefaults.show_psm_btn && progStatus.kpsql_enabled) {
 		drawcolorWF();
 		drawMarker();
+		drawSigidLabels();
 		return;
 	}
 
@@ -1530,14 +1592,17 @@ void WFdisp::draw() {
 	case SPECTRUM :
 		drawspectrum();
 		drawMarker();
+		drawSigidLabels();
 		break;
 	case SCOPE :
+		sigid_tabs.clear();
 		drawsignal();
 		break;
 	case WATERFALL :
 	default:
 		drawcolorWF();
 		drawMarker();
+		drawSigidLabels();
 	}
 }
 
@@ -2490,6 +2555,18 @@ static void find_signal_text(void)
 int WFdisp::handle(int event)
 {
 	static int pxpos, push;
+	// A press on a SigID tab owns its drag and release, which would
+	// otherwise tune the waterfall as an ordinary click.
+	static bool on_sigid_tab = false;
+	if (on_sigid_tab && (event == FL_DRAG || event == FL_RELEASE)) {
+		if (event == FL_RELEASE)
+			on_sigid_tab = false;
+		return 1;
+	}
+	// The hand over a tab is put back even while transmitting, when the
+	// rest of this handler ignores events.
+	if (event == FL_LEAVE && cursor == FL_CURSOR_HAND)
+		window()->cursor(cursor = FL_CURSOR_DEFAULT);
 	if (!(event == FL_LEAVE || Fl::event_inside(this))) {
 		if (event == FL_RELEASE)
 			push = 0;
@@ -2511,6 +2588,27 @@ int WFdisp::handle(int event)
 			set_ref_freq_value(nuf);
 		}
 		return 1;
+	}
+
+	// A SigID label: the hand over it, and a left click goes to its signal.
+	int tab = sigidTabAt(Fl::event_x(), Fl::event_y());
+	if (tab >= 0 && (event == FL_MOVE || event == FL_PUSH)) {
+		if (event == FL_PUSH && Fl::event_button() == FL_LEFT_MOUSE) {
+			on_sigid_tab = true;
+			killMacroTimer();
+			sigid_go((trx_mode)sigid_tabs[tab].mode, sigid_tabs[tab].hz);
+			return 1;
+		}
+		if (event == FL_MOVE) {
+			Fl::remove_timeout(hide_cursor, this);
+			if (cursor != FL_CURSOR_HAND)
+				window()->cursor(cursor = FL_CURSOR_HAND);
+			if (wantcursor) {
+				wantcursor = false;
+				makeMarker();
+			}
+			return 1;
+		}
 	}
 
 	switch (event) {

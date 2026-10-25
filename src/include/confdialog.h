@@ -252,6 +252,7 @@ extern Fl_Check_Button *chkRSidWideSearch;
 extern Fl_Button *btn_rsid_default_bw;
 extern Fl_Check_Button *chkSigID;
 extern Fl_Check_Button *chkSigIDMarks;
+extern Fl_Check_Button *chkSigIDWfLabels;
 extern Fl_Check_Button *chkSigIDAmbiguous;
 extern Fl_Check_Button *chkSigIDCenter;
 extern Fl_Counter *cntSigIDCenterHz;

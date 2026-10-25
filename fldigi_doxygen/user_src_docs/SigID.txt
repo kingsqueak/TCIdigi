@@ -1,0 +1,98 @@
+/**
+\page sigid_page Signal Identification (SigID)
+
+\tableofcontents
+
+SigID names the mode of signals in the receive passband, for every mode
+fldigi can receive, without an RsID or TxID. It is off by default,
+because it uses some CPU: on a recent Mac, about 1.5% of one core for
+one signal and about 5% with six signals in the passband.
+Turn it on with the SigID button beside RxID, or with
+"Identify the signals in the passband" on Configure > IDs/SigID.
+The settings below are on that same tab.
+<br>
+
+Marks in the receive pane, labels on the waterfall, marks for look-alike
+modes, and tuning the rig on a click all start out on. Each has its own
+setting, described below.
+<br>
+
+\section sigid_marks Marks in the receive pane
+
+Each named signal gets a clickable mark in the receive pane, like an
+RsID mark:
+<br>
+
+<tt>\<\<2026-10-24T14:02:06Z SigID: THOR22 at 1252 Hz (74%)\>\></tt>
+<br>
+
+The time is UTC. The number in parentheses is SigID's confidence.
+Clicking the mark switches to that mode and moves to the signal.
+With "Clicking a mark tunes the rig so the signal sits at" on, and a
+rig fldigi can tune, the dial moves so the signal sits at the audio
+frequency beside that control (1500 Hz by default). With that control
+off, or with no rig fldigi can tune, only the audio carrier moves.
+<br>
+
+"Mark each signal in the receive pane" turns the marks off.
+A signal you are already receiving, in that mode and at that frequency,
+is not marked and gets no waterfall tab.
+<br>
+
+\section sigid_waterfall Labels on the waterfall
+
+A short tab with the mode name is drawn above each named signal. The
+tab follows the signal. Clicking a tab does the same as clicking its
+mark. "Show labels on the waterfall" turns the tabs off.
+<br>
+
+\section sigid_lookalikes Look-alike modes
+
+Some modes cannot be told apart from the spectrum alone. These include
+THOR and DominoEX at the same speed, Olivia and Contestia, BPSK and
+PSK-R, PSK63 and PSK63F, and others. SigID decodes a few seconds of the
+signal to decide. Until then the mark shows both names, as in
+<tt>THOR22 or DOMX22</tt>, and the waterfall tab shows
+<tt>THOR22/DOMX22</tt>. A click selects the first of the two names.
+"Mark look-alike modes before they are told apart" turns those early
+marks and tabs off. The signal is then shown only after one mode has
+been chosen. A new mark is written when the pair becomes a single mode.
+While both names are still shown, a signal you are already receiving
+in either of those modes is left unmarked.
+<br>
+
+Some groups stay "A or B". SigID has no check yet for MT63 short and
+long interleave, MFSK64 and MFSK64L, MFSK128 and MFSK128L, 8PSK with
+and without FEC, the multi-carrier PSK modes with and without FEC, and
+NAVTEX and SITOR-B. Contestia and Olivia at the slowest speeds, and
+THOR Micro and DominoEX Micro, stay a pair as well. With the early
+marks turned off, a pair that is never split is not shown.
+<br>
+
+\section sigid_settings Other settings
+
+"Lowest confidence to mark (%)" is how far SigID's best match must lead
+the next unrelated mode before a signal is marked or labeled. The
+percentage in the mark is that figure. The control starts at 10.
+<br>
+
+"Mark the same signal again after (seconds)" is the wait before the
+same signal, still with the same name, is marked again. The control
+starts at 300 seconds.
+<br>
+
+\section sigid_limits Limits
+
+SigID works best within a normal 3 kHz passband. It needs a few seconds
+of signal, and slow modes need longer. Accuracy drops below about
+3 dB SNR. Two signals very close together can be taken as one.
+The squelch does not affect it: SigID listens before the squelch.
+<br>
+
+\ref sigid_page "Return to Top of Page"
+<br>
+\ref id_configuration_page "Return to RSID / Video / ID"
+<br>
+\ref main_page "Return to Main Page"
+
+*/

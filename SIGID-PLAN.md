@@ -211,7 +211,7 @@ plugged in, and the optional ONNX backend added.
 | 3 Look-alikes | done 2026-10-24 | 90–95% exact in groups with a check; see the Phase 3 notes |
 | 4 FLTK marks | done 2026-10-24 | Marks, click target, SigID toggle (FLTK and Qt), settings page; see the Phase 4 notes |
 | 5 Qt shell | done 2026-10-25 | Clickable marks (5a), Configure → SigID… dialog and review fixes (5b); see the Phase 5 notes |
-| 6 Waterfall and polish | not started | |
+| 6 Waterfall and polish | done 2026-10-25 (Linux CPU not measured) | Labels in both shells, comb vetoes, help page; see the Phase 6 notes |
 | 7 Upstream | not started | |
 
 ### Phase 0 notes (2026-10-24)
@@ -719,6 +719,82 @@ Phase 5 was split in two so each half fits a session.
   because `QCoreApplication::quit` was cancelled by the hidden browser
   window refusing to close. Tested: toggling SigID and RxID, quitting, and
   restarting kept both on in `fldigi_def.xml`.
+
+## Phase 6 notes
+
+**Waterfall labels.** `sigid_trx.cxx` rebuilds a list of labels once a
+second on the trx thread, with the same filter as marks
+(`worth_showing`: stable, at least the minimum confidence, the look-alike
+setting, and not the signal already being received). The GUI reads it
+with `sigid_labels()` under a mutex. A list older than 3 s reads as
+empty, so labels go away while transmitting and when SigID is off.
+New setting SIGIDWFLABELS ("Show labels on the waterfall", on by
+default) on the FLTK page and in the Qt dialog.
+- FLTK: `WFdisp::drawSigidLabels` draws a teal tab with the mode over each
+  signal and a 2 px line across its width at the top of the image. Tabs
+  that would overlap move down a row, and none go past three rows. A left
+  click on a tab calls `sigid_go(mode, hz)` in `fl_digi.cxx`, which tunes as a mark
+  click does but from the current dial; the pointer is a hand over a tab.
+- Qt (Grok drafted it in a Terminal tab, and Claude checked it):
+  `engine_sigid_labels` / `engine_sigid_go`, `WaterfallView::setSigidLabels`,
+  tabs drawn in the same style, and `sigidClicked`. The TX tab stays on
+  top and stays clickable.
+- Live tests on the fake TCI server with THOR22 and Cont-4/250, with a
+  temporary hook (removed) that clicked the THOR22 tab through the real
+  event path: FLTK moved the dial 14,070,000 → 14,069,751 and Qt to
+  14,069,760, both switched to THOR22 with the carrier at 1500, and no TX
+  frames.
+
+**False combs split.** Six signals side by side (Olivia 8/500, THOR22,
+Cont-4/250, MFSK16, BPSK63, BPSK31; clean clips plus one noise source,
+about 10 dB each) showed the comb rule joining two neighbouring wide
+signals into one "2-carrier comb" (Olivia + THOR22 → "MFSK64", Contestia
++ MFSK16 → "THOR32"). Three spectral tests could not tell a real 2–3
+carrier comb from that: step over width, the share of power in the middle
+of each piece, and spectral ripple all overlapped. So the classifier
+confirms the comb instead: a track joined as a comb of 2–3 pieces whose
+winner is not a multi-carrier PSK mode twice in a row is dropped, and its
+span is vetoed for comb joins for 30 s, so the next segmentation sees the
+two signals. The veto expires, so a real comb misread at low SNR joins
+again.
+
+Found in the same mix: a region that briefly ran into a neighbour
+retired the neighbour's established track (BPSK63, named at 90% for
+10 s), which then started over. Classified tracks are no longer retired
+that way; they wait the usual 3 s.
+
+With both changes all six signals stay separate. Corpus scores went up
+slightly everywhere (exact / group / family):
+
+| Set | Phase 4 | Phase 6 |
+|---|---|---|
+| AWGN 10 dB | 83 / 97 / 98 | 84 / 97 / 99 |
+| AWGN 3 dB | 80 / 93 / 93 | 81 / 94 / 94 |
+| AWGN 3 dB, tilt | 79 / 91 / 91 | 79 / 92 / 92 |
+| AWGN 0 dB | 68 / 76 / 81 | 69 / 77 / 81 |
+
+**CPU (Mac).** The six-signal mix offline: 0.78 s per 19.3 s (4.0% of a
+core), down from 1.23 s before the split, since wrongly joined signals
+went through the wide-signal checks. Live, on the fake TCI server with
+the same six signals, SigID adds 5.7% (FLTK) and 4.9% (Qt) of a core,
+measured as process CPU with SigID on minus off over 40 s. One signal
+is about 1.4%. Most of the rest is the Olivia and IFK checks. Linux was
+not measured.
+
+**Review.** Grok reviewed the Phase 6 diff and found two FLTK bugs, both
+fixed. A press on a tab still let its drag and release reach the ordinary
+waterfall handling, so a small movement re-tuned the carrier off 1500 (the
+tab now owns the gesture, and the press stops the macro timer as other
+waterfall clicks do; checked live with press, 40 px drag, release). The
+hand cursor was hidden by the one-second cursor timeout and could stay
+a hand when transmit began over a tab (both handled). It found the
+threading, coordinates, comb veto, swallowed tracks and help page fine.
+Left as is: Qt skips a tab whose centre is off a zoomed view, where FLTK
+clamps it to the edge.
+
+**Help.** `fldigi_doxygen/user_src_docs/SigID.txt` (Grok drafted it),
+linked from the IDs page, the configuration list, the contents and
+Menus, and listed in the Doxyfile and the index order.
 
 ## Appendix: native mode signal parameters
 

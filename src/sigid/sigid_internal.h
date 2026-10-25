@@ -92,9 +92,19 @@ void noise_floor(const double *pdb, int kmin, int kmax, double *floor_db);
 // excess_db: power over the floor per bin. Appends each occupied run.
 void find_regions(const double *excess_db, int kmin, int kmax, std::vector<region> &out);
 
+// A stretch of the passband where classification found that what looked
+// like a comb of PSK carriers was not one: no comb is joined across it.
+struct comb_veto {
+	double lo_hz;
+	double hi_hz;
+	double until_s;
+};
+
 // Joins runs that belong to one signal: close neighbours, tones that take
-// turns, and the evenly spaced carriers of multi-carrier PSK.
-void merge_regions(std::vector<region> &regions, const short_history &history);
+// turns, and the evenly spaced carriers of multi-carrier PSK, except across
+// a veto.
+void merge_regions(std::vector<region> &regions, const short_history &history,
+	const std::vector<comb_veto> &vetoes);
 
 double correlation(const std::vector<double> &a, const std::vector<double> &b);
 

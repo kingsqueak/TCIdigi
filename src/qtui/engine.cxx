@@ -793,6 +793,7 @@ void engine_sigid(EngineSigid* out)
 		return;
 	out->enable = progdefaults.sigid ? 1 : 0;
 	out->marks = progdefaults.sigid_marks ? 1 : 0;
+	out->wf_labels = progdefaults.sigid_wf_labels ? 1 : 0;
 	out->ambiguous = progdefaults.sigid_ambiguous ? 1 : 0;
 	out->center = progdefaults.sigid_center ? 1 : 0;
 	out->center_hz = progdefaults.sigid_center_hz;
@@ -821,6 +822,7 @@ void engine_set_sigid_prefs(const EngineSigid* in)
 		repeat_s = 3600;
 
 	progdefaults.sigid_marks = in->marks != 0;
+	progdefaults.sigid_wf_labels = in->wf_labels != 0;
 	progdefaults.sigid_ambiguous = in->ambiguous != 0;
 	progdefaults.sigid_center = in->center != 0;
 	progdefaults.sigid_center_hz = center_hz;
@@ -828,6 +830,8 @@ void engine_set_sigid_prefs(const EngineSigid* in)
 	progdefaults.sigid_repeat_s = repeat_s;
 	if (chkSigIDMarks)
 		chkSigIDMarks->value(progdefaults.sigid_marks ? 1 : 0);
+	if (chkSigIDWfLabels)
+		chkSigIDWfLabels->value(progdefaults.sigid_wf_labels ? 1 : 0);
 	if (chkSigIDAmbiguous)
 		chkSigIDAmbiguous->value(progdefaults.sigid_ambiguous ? 1 : 0);
 	if (chkSigIDCenter)
@@ -843,6 +847,31 @@ void engine_set_sigid_prefs(const EngineSigid* in)
 		engine_set_sigid(in->enable ? 1 : 0);
 	// The Qt shell does not save on exit, so save now, as tci_apply does.
 	progdefaults.saveDefaults();
+}
+
+int engine_sigid_labels(EngineSigidLabel* out, int max)
+{
+	if (!g_up || !out || max < 1)
+		return 0;
+	std::vector<sigid_label> got((size_t)max);
+	const size_t n = sigid_labels(got.data(), (size_t)max);
+	const int count = (int)std::min(n, (size_t)max);
+	for (int i = 0; i < count; ++i) {
+		const sigid_label& src = got[(size_t)i];
+		out[i].mode = (int)src.mode;
+		out[i].lo = (int)std::lround(src.lo);
+		out[i].hi = (int)std::lround(src.hi);
+		out[i].center = (int)std::lround(src.center);
+		std::snprintf(out[i].text, sizeof out[i].text, "%s", src.text);
+	}
+	return count;
+}
+
+void engine_sigid_go(int mode, int hz)
+{
+	if (!g_up || mode < 0 || mode >= NUM_MODES)
+		return;
+	sigid_go((trx_mode)mode, hz);
 }
 
 void engine_set_txid(int on)
