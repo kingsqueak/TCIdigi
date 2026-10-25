@@ -210,7 +210,7 @@ plugged in, and the optional ONNX backend added.
 | 2 Classification | done 2026-10-24 | Family 93% and group 92% at 3 dB; see the Phase 2 notes |
 | 3 Look-alikes | done 2026-10-24 | 90–95% exact in groups with a check; see the Phase 3 notes |
 | 4 FLTK marks | done 2026-10-24 | Marks, click target, SigID toggle (FLTK and Qt), settings page; see the Phase 4 notes |
-| 5 Qt shell | 5a done 2026-10-25; 5b not started | Clickable marks in Qt (5a); Qt preferences and review left (5b); see the Phase 5 notes |
+| 5 Qt shell | done 2026-10-25 | Clickable marks (5a), Configure → SigID… dialog and review fixes (5b); see the Phase 5 notes |
 | 6 Waterfall and polish | not started | |
 | 7 Upstream | not started | |
 
@@ -685,9 +685,36 @@ Phase 5 was split in two so each half fits a session.
 - Not tested live: clicking an RsID mark in Qt (same `activate_qrg_mark`
   path, the qrg_marks branch), and the hand pointer.
 
-**5b, still to do.** A SigID section in the Qt preferences with the six
-settings from the FLTK IDs/SigID page, a Grok review of the Phase 5 diff,
-and these notes.
+**5b, Qt settings and review (2026-10-25).**
+- The Qt shell has no preferences window, only small dialogs under
+  Configure. SigID got its own, Configure → SigID…, next to TCI…. It has
+  the FLTK IDs/SigID page's seven controls, labels, tooltips and ranges.
+  Grok drafted it in a worktree from a written brief, and Claude checked and
+  merged it.
+- `EngineSigid`, `engine_sigid()` and `engine_set_sigid_prefs()` carry the
+  settings. Setting them clamps to the FLTK limits, updates the FLTK page's
+  widgets, changes the enable state only through `engine_set_sigid` (which
+  keeps both SigID buttons in step), and saves at once. The Qt shell never
+  saves the configuration on exit (`engine_stop` has no `saveDefaults`), so
+  this follows `tci_apply`, which also saves when applied.
+- Live test with a throwaway config: the dialog opened with the current
+  values; a hook changed four of them and pressed Save; `fldigi_def.xml`
+  had all seven SIGID* keys with the new values straight away.
+- Grok reviewed 5a and 5b and found one real bug, now fixed: changing the
+  receive font merged a whole `QFont` over the pane, which set the
+  underline style to none on marks, and the color refresh could not put it
+  back. The font merge now carries only family, size, weight and slant, and
+  `rxKindFormat` sets the underline style itself. Checked live: a font with
+  underline off and bold on, then a color refresh, left the mark underlined.
+  Grok checked the rest and found it fine: mark text joining, no trimming
+  of the pane, the thread, the cursor, and drag-select not QSYing.
+- Differences from FLTK, left as they are: Qt QSYs on release rather than
+  press, so a drag-select never QSYs; Qt ignores "Single-click to capture"
+  (`rxtext_clicks_qso_data`), as its call-sign clicks already did.
+- Found, not SigID's to fix: because the Qt shell does not save on exit,
+  the RxID, TxID and SigID buttons (and anything else that only sets
+  `progdefaults.changed`) are forgotten when TCIdigi restarts. Found by
+  reading the code, not tested.
 
 ## Appendix: native mode signal parameters
 

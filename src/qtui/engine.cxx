@@ -779,6 +779,67 @@ void engine_set_sigid(int on)
 		show_qt_status("SigID is off.", 4.0);
 }
 
+void engine_sigid(EngineSigid* out)
+{
+	if (!out)
+		return;
+	std::memset(out, 0, sizeof *out);
+	if (!g_up)
+		return;
+	out->enable = progdefaults.sigid ? 1 : 0;
+	out->marks = progdefaults.sigid_marks ? 1 : 0;
+	out->ambiguous = progdefaults.sigid_ambiguous ? 1 : 0;
+	out->center = progdefaults.sigid_center ? 1 : 0;
+	out->center_hz = progdefaults.sigid_center_hz;
+	out->min_conf = progdefaults.sigid_min_conf;
+	out->repeat_s = progdefaults.sigid_repeat_s;
+}
+
+void engine_set_sigid_prefs(const EngineSigid* in)
+{
+	if (!g_up || !in)
+		return;
+	int center_hz = in->center_hz;
+	if (center_hz < 200)
+		center_hz = 200;
+	if (center_hz > 3500)
+		center_hz = 3500;
+	int min_conf = in->min_conf;
+	if (min_conf < 0)
+		min_conf = 0;
+	if (min_conf > 100)
+		min_conf = 100;
+	int repeat_s = in->repeat_s;
+	if (repeat_s < 10)
+		repeat_s = 10;
+	if (repeat_s > 3600)
+		repeat_s = 3600;
+
+	progdefaults.sigid_marks = in->marks != 0;
+	progdefaults.sigid_ambiguous = in->ambiguous != 0;
+	progdefaults.sigid_center = in->center != 0;
+	progdefaults.sigid_center_hz = center_hz;
+	progdefaults.sigid_min_conf = min_conf;
+	progdefaults.sigid_repeat_s = repeat_s;
+	if (chkSigIDMarks)
+		chkSigIDMarks->value(progdefaults.sigid_marks ? 1 : 0);
+	if (chkSigIDAmbiguous)
+		chkSigIDAmbiguous->value(progdefaults.sigid_ambiguous ? 1 : 0);
+	if (chkSigIDCenter)
+		chkSigIDCenter->value(progdefaults.sigid_center ? 1 : 0);
+	if (cntSigIDCenterHz)
+		cntSigIDCenterHz->value(center_hz);
+	if (cntSigIDMinConf)
+		cntSigIDMinConf->value(min_conf);
+	if (cntSigIDRepeat)
+		cntSigIDRepeat->value(repeat_s);
+	// Posts a status line and syncs both SigID buttons, so only when it changes.
+	if ((in->enable != 0) != progdefaults.sigid)
+		engine_set_sigid(in->enable ? 1 : 0);
+	// The Qt shell does not save on exit, so save now, as tci_apply does.
+	progdefaults.saveDefaults();
+}
+
 void engine_set_txid(int on)
 {
 	set_txid(on != 0);

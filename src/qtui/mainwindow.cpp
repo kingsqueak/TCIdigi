@@ -1649,6 +1649,110 @@ void editTci(QWidget* parent, bool welcome = false)
 	dialog.exec();
 }
 
+// The IDs/SigID page: what to mark, and where a click puts the signal.
+void editSigid(QWidget* parent)
+{
+	if (!engine_up()) {
+		QMessageBox::information(parent, QStringLiteral("SigID"),
+			QStringLiteral("The modem is not running yet."));
+		return;
+	}
+	EngineSigid current;
+	engine_sigid(&current);
+
+	QDialog dialog(parent);
+	dialog.setObjectName(QStringLiteral("sigidDialog"));
+	dialog.setWindowTitle(QStringLiteral("SigID"));
+	dialog.setMinimumWidth(520);
+	auto* form = new QFormLayout(&dialog);
+
+	auto* enable = new QCheckBox(QStringLiteral("Identify the signals in the passband"));
+	enable->setObjectName(QStringLiteral("sigidEnable"));
+	enable->setToolTip(QStringLiteral(
+		"Also the SigID button beside RxID. Uses some CPU, so it is off by default."));
+	enable->setChecked(current.enable != 0);
+	auto* marks = new QCheckBox(QStringLiteral("Mark each signal in the receive pane"));
+	marks->setObjectName(QStringLiteral("sigidMarks"));
+	marks->setToolTip(QStringLiteral(
+		"Click a mark to switch to that mode and move to the signal"));
+	marks->setChecked(current.marks != 0);
+	auto* ambiguous = new QCheckBox(QStringLiteral(
+		"Mark look-alike modes before they are told apart"));
+	ambiguous->setObjectName(QStringLiteral("sigidAmbiguous"));
+	ambiguous->setToolTip(QStringLiteral(
+		"Modes that are the same signal on the air (THOR or DominoEX, Olivia or Contestia) "
+		"are marked as \"A or B\" until SigID decodes enough to tell"));
+	ambiguous->setChecked(current.ambiguous != 0);
+
+	auto* center = new QCheckBox(QStringLiteral(
+		"Clicking a mark tunes the rig so the signal sits at"));
+	center->setObjectName(QStringLiteral("sigidCenter"));
+	center->setToolTip(QStringLiteral(
+		"Without rig control, or with this off, only the audio carrier moves"));
+	center->setChecked(current.center != 0);
+	auto* centerHz = new QSpinBox;
+	centerHz->setObjectName(QStringLiteral("sigidCenterHz"));
+	centerHz->setRange(200, 3500);
+	centerHz->setSingleStep(10);
+	centerHz->setSuffix(QStringLiteral(" Hz"));
+	centerHz->setValue(current.center_hz);
+	centerHz->setEnabled(center->isChecked());
+	QObject::connect(center, &QCheckBox::toggled, centerHz, &QWidget::setEnabled);
+	auto* centerRow = new QWidget;
+	auto* centerLayout = new QHBoxLayout(centerRow);
+	centerLayout->setContentsMargins(0, 0, 0, 0);
+	centerLayout->addWidget(center);
+	centerLayout->addWidget(centerHz);
+	centerLayout->addStretch(1);
+
+	auto* minConf = new QSpinBox;
+	minConf->setObjectName(QStringLiteral("sigidMinConf"));
+	minConf->setRange(0, 100);
+	minConf->setSuffix(QStringLiteral(" %"));
+	minConf->setToolTip(QStringLiteral(
+		"How far SigID's best match must lead the next unrelated mode"));
+	minConf->setValue(current.min_conf);
+	auto* repeat = new QSpinBox;
+	repeat->setObjectName(QStringLiteral("sigidRepeat"));
+	repeat->setRange(10, 3600);
+	repeat->setSingleStep(10);
+	repeat->setSuffix(QStringLiteral(" s"));
+	repeat->setValue(current.repeat_s);
+	// Number boxes stay their own size, like the Hz box beside its tick box.
+	minConf->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	repeat->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+	form->addRow(enable);
+	form->addRow(marks);
+	form->addRow(ambiguous);
+	form->addRow(centerRow);
+	form->addRow(QStringLiteral("Lowest confidence to mark"), minConf);
+	form->addRow(QStringLiteral("Mark the same signal again after"), repeat);
+	auto* note = new QLabel(QStringLiteral(
+		"SigID names signals without an RsID or TxID: every mode fldigi can receive. "
+		"A signal you are already receiving is not marked. "
+		"Look-alike modes are told apart by decoding a few seconds of the signal."));
+	note->setWordWrap(true);
+	form->addRow(note);
+
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Close);
+	form->addRow(buttons);
+	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, [&] {
+		EngineSigid prefs;
+		prefs.enable = enable->isChecked() ? 1 : 0;
+		prefs.marks = marks->isChecked() ? 1 : 0;
+		prefs.ambiguous = ambiguous->isChecked() ? 1 : 0;
+		prefs.center = center->isChecked() ? 1 : 0;
+		prefs.center_hz = centerHz->value();
+		prefs.min_conf = minConf->value();
+		prefs.repeat_s = repeat->value();
+		engine_set_sigid_prefs(&prefs);
+		dialog.accept();
+	});
+	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	dialog.exec();
+}
+
 bool editQrzAccount(QWidget* parent)
 {
 	const QrzAccount current = qrzAccount();
@@ -4216,6 +4320,9 @@ void MainWindow::buildMenus()
 	configureMenu->addAction(QStringLiteral("TCI…"), this, [this] {
 		editTci(this);
 	});
+	configureMenu->addAction(QStringLiteral("SigID…"), this, [this] {
+		editSigid(this);
+	});
 	configureMenu->addAction(QStringLiteral("Text font and colors…"), this, [this] {
 		chooseTextFont();
 	});
@@ -4277,7 +4384,9 @@ QTextCharFormat rxKindFormat(QTextCharFormat format, int kind, const QColor& rx,
 		format.setForeground(color);
 	else
 		format.clearForeground();
-	format.setFontUnderline(kind == ENGINE_RX_LINK);
+	// The style, not just the font flag: Qt draws by the style when it is set.
+	format.setUnderlineStyle(kind == ENGINE_RX_LINK ? QTextCharFormat::SingleUnderline
+		: QTextCharFormat::NoUnderline);
 	return format;
 }
 
@@ -4388,6 +4497,18 @@ void MainWindow::notConnected(const QString& what)
 		m_statusTimer->start(4000);
 }
 
+// The font to merge over text already in a pane: family, size, weight and
+// slant only. A whole QFont would also overwrite the underline on marks.
+static QTextCharFormat textFontFormat(const QFont& font)
+{
+	QTextCharFormat format;
+	format.setFontFamilies(QStringList{ font.family() });
+	format.setFontPointSize(font.pointSizeF());
+	format.setFontWeight(font.weight());
+	format.setFontItalic(font.italic());
+	return format;
+}
+
 void MainWindow::applyTextFont(const QFont& font)
 {
 	QFont sized = font;
@@ -4418,9 +4539,7 @@ void MainWindow::applyTextFont(const QFont& font)
 			edit->document()->setDefaultFont(sized);
 			QTextCursor cursor(edit->document());
 			cursor.select(QTextCursor::Document);
-			QTextCharFormat format;
-			format.setFont(sized);
-			cursor.mergeCharFormat(format);
+			cursor.mergeCharFormat(textFontFormat(sized));
 		}
 		widget->update();
 	};
@@ -4469,9 +4588,7 @@ void MainWindow::chooseTextFont()
 			edit->document()->setDefaultFont(snap.documentFont);
 			QTextCursor cursor(edit->document());
 			cursor.select(QTextCursor::Document);
-			QTextCharFormat format;
-			format.setFont(snap.documentFont);
-			cursor.mergeCharFormat(format);
+			cursor.mergeCharFormat(textFontFormat(snap.documentFont));
 			snap.widget->update();
 		}
 	};

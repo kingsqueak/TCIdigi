@@ -152,6 +152,24 @@ struct EngineTci {
 
 void engine_tci(EngineTci* out);
 void engine_set_tci(int enable, int audio, const char* host, const char* port, int rx);
+
+// SigID settings, the same fields as the IDs/SigID page.
+struct EngineSigid {
+	int enable;
+	int marks;
+	int ambiguous;
+	int center;
+	int center_hz;
+	int min_conf;
+	int repeat_s;
+};
+
+// All zeros when the modem is down.
+void engine_sigid(EngineSigid* out);
+// Applies and saves them, keeping the FLTK page and both SigID buttons in
+// step. Out-of-range numbers are clamped to the FLTK page's limits.
+void engine_set_sigid_prefs(const EngineSigid* in);
+
 void engine_set_squelch(int value);
 void engine_set_viewer_sql(double db);
 // search arms acquisition. A waterfall click passes 1. A typed carrier passes 0.
