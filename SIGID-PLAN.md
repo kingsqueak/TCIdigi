@@ -711,10 +711,14 @@ Phase 5 was split in two so each half fits a session.
 - Differences from FLTK, left as they are: Qt QSYs on release rather than
   press, so a drag-select never QSYs; Qt ignores "Single-click to capture"
   (`rxtext_clicks_qso_data`), as its call-sign clicks already did.
-- Found, not SigID's to fix: because the Qt shell does not save on exit,
-  the RxID, TxID and SigID buttons (and anything else that only sets
-  `progdefaults.changed`) are forgotten when TCIdigi restarts. Found by
-  reading the code, not tested.
+- Found and fixed (TCIdigi, not SigID): the Qt shell never saved the
+  configuration on exit, so the RxID, TxID and SigID buttons, and anything
+  else that only set `progdefaults.changed`, were lost on restart.
+  `engine_stop()` now saves when something changed and SAVECONFIG is on,
+  without FLTK's prompt. `--exit-after` now closes the window as Quit does,
+  because `QCoreApplication::quit` was cancelled by the hidden browser
+  window refusing to close. Tested: toggling SigID and RxID, quitting, and
+  restarting kept both on in `fldigi_def.xml`.
 
 ## Appendix: native mode signal parameters
 

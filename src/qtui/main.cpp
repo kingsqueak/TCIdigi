@@ -179,7 +179,10 @@ int main(int argc, char* argv[])
 	window.show();
 
 	if (exit_after > 0)
-		QTimer::singleShot(exit_after * 1000, &app, &QCoreApplication::quit);
+		// Close the window as Quit does. QCoreApplication::quit asks every
+		// window to close, and the hidden browser window refuses, which
+		// cancels the quit.
+		QTimer::singleShot(exit_after * 1000, &window, &QWidget::close);
 
 	const int rc = app.exec();
 	engine_stop();

@@ -358,6 +358,11 @@ void engine_stop()
 		trx_receive();
 		MilliSleep(200);
 	}
+	// fldigi asks "Save changed configuration?" on exit. The Qt shell has
+	// no such prompt, so it saves whatever changed, unless saving on exit
+	// is turned off. Macros are written when they are edited.
+	if (progdefaults.changed && progdefaults.SaveConfig)
+		progdefaults.saveDefaults();
 	tci_stop();
 	trx_close();
 }
