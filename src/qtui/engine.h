@@ -153,23 +153,43 @@ struct EngineTci {
 void engine_tci(EngineTci* out);
 void engine_set_tci(int enable, int audio, const char* host, const char* port, int rx);
 
-// SigID settings, the same fields as the IDs/SigID page.
-struct EngineSigid {
-	int enable;
-	int marks;
-	int wf_labels;
-	int ambiguous;
-	int center;
-	int center_hz;
-	int min_conf;
-	int repeat_s;
+// fldigi settings by the name of the FLTK widget that edits them on its
+// configuration dialog (the list is settings_widgets.h). Setting one sets
+// that widget and runs its callback, so fldigi's own code applies it.
+enum {
+	ENGINE_PREF_NONE = 0,	// not a known widget, or of a kind not handled
+	ENGINE_PREF_CHECK,		// value 0 or 1
+	ENGINE_PREF_RADIO,		// value 1 when chosen; setting 1 clears its group
+	ENGINE_PREF_NUMBER,		// value within lo..hi, in steps of step
+	ENGINE_PREF_CHOICE,		// value is the index into choices
+	ENGINE_PREF_TEXT		// text
 };
-
-// All zeros when the modem is down.
-void engine_sigid(EngineSigid* out);
-// Applies and saves them, keeping the FLTK page and both SigID buttons in
-// step. Out-of-range numbers are clamped to the FLTK page's limits.
-void engine_set_sigid_prefs(const EngineSigid* in);
+struct EnginePref {
+	int kind;
+	int active;			// 0 while fldigi has the widget greyed out
+	double value;
+	double lo;
+	double hi;
+	double step;
+	char text[256];
+	char choices[4096];	// CHOICE items, one per line
+	char label[160];	// the FLTK label, without shortcut marks
+	char tip[1024];
+};
+// 0 when the engine is down or the name is not in the list.
+int engine_pref(const char* widget, EnginePref* out);
+// value for CHECK, RADIO, NUMBER and CHOICE; text for TEXT.
+int engine_set_pref(const char* widget, double value, const char* text);
+// Mode sets by configuration name: rsid_rx_modes, rsid_tx_modes,
+// cwid_modes, videoid_modes. flags gets '1' or '0' for every mode fldigi
+// knows, operating modes and the rest (RsID's end of transmission among
+// them), in fldigi's order; returns how many, 0 for an unknown name.
+int engine_mode_set(const char* name, char* flags, int cap);
+void engine_set_mode_set(const char* name, const char* flags);
+// The name of mode i in that order.
+int engine_mode_set_label(int i, char* buf, int cap);
+// Writes fldigi's configuration now.
+void engine_save_prefs();
 
 // One waterfall label. Hz are rounded from the core's doubles.
 struct EngineSigidLabel {

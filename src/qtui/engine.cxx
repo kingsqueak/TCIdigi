@@ -29,8 +29,14 @@
 #include "tcidigi_rx.h"
 #include "main.h"
 #include "sigid.h"
+#include "combo.h"
 
 #include <FL/Fl.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Choice.H>
+#include <FL/Fl_Input_.H>
+#include <FL/Fl_Spinner.H>
+#include <FL/Fl_Valuator.H>
 
 // Private FLTK timer pump. Fl::check() enters the Cocoa event loop and
 // deadlocks there once Qt has called [NSApp run].
@@ -784,69 +790,195 @@ void engine_set_sigid(int on)
 		show_qt_status("SigID is off.", 4.0);
 }
 
-void engine_sigid(EngineSigid* out)
+// The FLTK configuration widgets a Qt settings page may read and change,
+// found by name. Each is reached through a function because fldigi
+// creates them after this table is built.
+namespace {
+struct pref_widget {
+	const char* name;
+	Fl_Widget* (*get)();
+};
+#define SETTINGS_WIDGET(w) { #w, []() -> Fl_Widget* { return w; } },
+const pref_widget pref_widgets[] = {
+#include "settings_widgets.h"
+};
+#undef SETTINGS_WIDGET
+
+Fl_Widget* pref_widget_named(const char* name)
 {
-	if (!out)
-		return;
-	std::memset(out, 0, sizeof *out);
-	if (!g_up)
-		return;
-	out->enable = progdefaults.sigid ? 1 : 0;
-	out->marks = progdefaults.sigid_marks ? 1 : 0;
-	out->wf_labels = progdefaults.sigid_wf_labels ? 1 : 0;
-	out->ambiguous = progdefaults.sigid_ambiguous ? 1 : 0;
-	out->center = progdefaults.sigid_center ? 1 : 0;
-	out->center_hz = progdefaults.sigid_center_hz;
-	out->min_conf = progdefaults.sigid_min_conf;
-	out->repeat_s = progdefaults.sigid_repeat_s;
+	if (!name)
+		return nullptr;
+	for (const pref_widget& p : pref_widgets)
+		if (std::strcmp(p.name, name) == 0)
+			return p.get();
+	return nullptr;
 }
 
-void engine_set_sigid_prefs(const EngineSigid* in)
+// An FLTK label without its shortcut marks (&) or the ':' some end with.
+void plain_label(const char* in, char* out, int cap)
 {
-	if (!g_up || !in)
-		return;
-	int center_hz = in->center_hz;
-	if (center_hz < 200)
-		center_hz = 200;
-	if (center_hz > 3500)
-		center_hz = 3500;
-	int min_conf = in->min_conf;
-	if (min_conf < 0)
-		min_conf = 0;
-	if (min_conf > 100)
-		min_conf = 100;
-	int repeat_s = in->repeat_s;
-	if (repeat_s < 10)
-		repeat_s = 10;
-	if (repeat_s > 3600)
-		repeat_s = 3600;
+	std::string s;
+	for (const char* c = in ? in : ""; *c; ++c) {
+		if (*c == '&' && c[1] != '&')
+			continue;
+		s += *c;
+	}
+	while (!s.empty() && (s.back() == ':' || s.back() == ' '))
+		s.pop_back();
+	copy_str(out, cap, s.c_str());
+}
 
-	progdefaults.sigid_marks = in->marks != 0;
-	progdefaults.sigid_wf_labels = in->wf_labels != 0;
-	progdefaults.sigid_ambiguous = in->ambiguous != 0;
-	progdefaults.sigid_center = in->center != 0;
-	progdefaults.sigid_center_hz = center_hz;
-	progdefaults.sigid_min_conf = min_conf;
-	progdefaults.sigid_repeat_s = repeat_s;
-	if (chkSigIDMarks)
-		chkSigIDMarks->value(progdefaults.sigid_marks ? 1 : 0);
-	if (chkSigIDWfLabels)
-		chkSigIDWfLabels->value(progdefaults.sigid_wf_labels ? 1 : 0);
-	if (chkSigIDAmbiguous)
-		chkSigIDAmbiguous->value(progdefaults.sigid_ambiguous ? 1 : 0);
-	if (chkSigIDCenter)
-		chkSigIDCenter->value(progdefaults.sigid_center ? 1 : 0);
-	if (cntSigIDCenterHz)
-		cntSigIDCenterHz->value(center_hz);
-	if (cntSigIDMinConf)
-		cntSigIDMinConf->value(min_conf);
-	if (cntSigIDRepeat)
-		cntSigIDRepeat->value(repeat_s);
-	// Posts a status line and syncs both SigID buttons, so only when it changes.
-	if ((in->enable != 0) != progdefaults.sigid)
-		engine_set_sigid(in->enable ? 1 : 0);
-	// The Qt shell does not save on exit, so save now, as tci_apply does.
-	progdefaults.saveDefaults();
+mode_set_t* mode_set_named(const char* name)
+{
+	if (!name)
+		return nullptr;
+	if (!std::strcmp(name, "rsid_rx_modes"))
+		return &progdefaults.rsid_rx_modes;
+	if (!std::strcmp(name, "rsid_tx_modes"))
+		return &progdefaults.rsid_tx_modes;
+	if (!std::strcmp(name, "cwid_modes"))
+		return &progdefaults.cwid_modes;
+	if (!std::strcmp(name, "videoid_modes"))
+		return &progdefaults.videoid_modes;
+	return nullptr;
+}
+} // namespace
+
+int engine_pref(const char* widget, EnginePref* out)
+{
+	if (!out)
+		return 0;
+	std::memset(out, 0, sizeof *out);
+	Fl_Widget* w = g_up ? pref_widget_named(widget) : nullptr;
+	if (!w)
+		return 0;
+	out->active = w->active() ? 1 : 0;
+	plain_label(w->label(), out->label, (int)sizeof out->label);
+	copy_str(out->tip, (int)sizeof out->tip, w->tooltip() ? w->tooltip() : "");
+	if (auto* box = dynamic_cast<Fl_ComboBox*>(w)) {
+		// The list is read by stepping through it; nothing is called back.
+		out->kind = ENGINE_PREF_CHOICE;
+		const int at = box->index();
+		std::string items;
+		for (int i = 0; i < box->lsize(); ++i) {
+			box->index(i);
+			items += box->value() ? box->value() : "";
+			items += '\n';
+		}
+		box->index(at);
+		copy_str(out->choices, (int)sizeof out->choices, items.c_str());
+		out->value = at;
+	} else if (auto* choice = dynamic_cast<Fl_Choice*>(w)) {
+		out->kind = ENGINE_PREF_CHOICE;
+		std::string items;
+		for (int i = 0; i < choice->size() - 1; ++i) {
+			const char* t = choice->text(i);
+			items += t ? t : "";
+			items += '\n';
+		}
+		copy_str(out->choices, (int)sizeof out->choices, items.c_str());
+		out->value = choice->value();
+	} else if (auto* spin = dynamic_cast<Fl_Spinner*>(w)) {
+		out->kind = ENGINE_PREF_NUMBER;
+		out->value = spin->value();
+		out->lo = std::min(spin->minimum(), spin->maximum());
+		out->hi = std::max(spin->minimum(), spin->maximum());
+		out->step = spin->step();
+	} else if (auto* val = dynamic_cast<Fl_Valuator*>(w)) {
+		out->kind = ENGINE_PREF_NUMBER;
+		out->value = val->value();
+		out->lo = std::min(val->minimum(), val->maximum());
+		out->hi = std::max(val->minimum(), val->maximum());
+		out->step = val->step();
+		// Some counters leave the range open.
+		if (out->lo == out->hi) {
+			out->lo = -1e9;
+			out->hi = 1e9;
+		}
+	} else if (auto* button = dynamic_cast<Fl_Button*>(w)) {
+		out->kind = button->type() == FL_RADIO_BUTTON ? ENGINE_PREF_RADIO : ENGINE_PREF_CHECK;
+		out->value = button->value();
+	} else if (auto* input = dynamic_cast<Fl_Input_*>(w)) {
+		out->kind = ENGINE_PREF_TEXT;
+		copy_str(out->text, (int)sizeof out->text, input->value() ? input->value() : "");
+	}
+	return out->kind != ENGINE_PREF_NONE;
+}
+
+int engine_set_pref(const char* widget, double value, const char* text)
+{
+	Fl_Widget* w = g_up ? pref_widget_named(widget) : nullptr;
+	if (!w)
+		return 0;
+	if (auto* box = dynamic_cast<Fl_ComboBox*>(w)) {
+		const int i = (int)value;
+		if (i < 0 || i >= box->lsize())
+			return 0;
+		box->index(i);
+	} else if (auto* choice = dynamic_cast<Fl_Choice*>(w)) {
+		const int i = (int)value;
+		if (i < 0 || i >= choice->size() - 1)
+			return 0;
+		choice->value(i);
+	} else if (auto* spin = dynamic_cast<Fl_Spinner*>(w)) {
+		spin->value(value);
+	} else if (auto* val = dynamic_cast<Fl_Valuator*>(w)) {
+		val->value(val->clamp(val->round(value)));
+	} else if (auto* button = dynamic_cast<Fl_Button*>(w)) {
+		if (button->type() == FL_RADIO_BUTTON) {
+			// Only the chosen one of a group is set; the rest follow.
+			if (value == 0)
+				return 1;
+			button->setonly();
+		} else
+			button->value(value != 0);
+	} else if (auto* input = dynamic_cast<Fl_Input_*>(w)) {
+		input->value(text ? text : "");
+	} else
+		return 0;
+	// fldigi's callback applies the setting (and may restart the modem).
+	w->do_callback();
+	progdefaults.changed = true;
+	return 1;
+}
+
+int engine_mode_set(const char* name, char* flags, int cap)
+{
+	mode_set_t* set = mode_set_named(name);
+	const int n = (int)NUM_MODES;
+	if (!set || !flags || cap < n + 1)
+		return 0;
+	for (int i = 0; i < n; ++i)
+		flags[i] = set->test(i) ? '1' : '0';
+	flags[n] = 0;
+	return n;
+}
+
+void engine_set_mode_set(const char* name, const char* flags)
+{
+	mode_set_t* set = mode_set_named(name);
+	if (!set || !flags)
+		return;
+	for (int i = 0; i < (int)NUM_MODES && flags[i]; ++i)
+		set->set(i, flags[i] == '1');
+	progdefaults.changed = true;
+}
+
+int engine_mode_set_label(int i, char* buf, int cap)
+{
+	if (!buf || cap < 1 || i < 0 || i >= (int)NUM_MODES)
+		return 0;
+	const char* label = mode_info[i].name;
+	if (!label || !label[0])
+		label = mode_info[i].sname;
+	copy_str(buf, cap, label ? label : "");
+	return 1;
+}
+
+void engine_save_prefs()
+{
+	if (g_up)
+		progdefaults.saveDefaults();
 }
 
 int engine_sigid_labels(EngineSigidLabel* out, int max)

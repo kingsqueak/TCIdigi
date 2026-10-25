@@ -16,6 +16,7 @@
 #include "engine.h"
 #include "eqslclient.h"
 #include "qrzclient.h"
+#include "settingsdialog.h"
 #include "waterfallview.h"
 #include "tcidigi_version.h"
 #include "htmlstrings.h"
@@ -1649,117 +1650,6 @@ void editTci(QWidget* parent, bool welcome = false)
 	dialog.exec();
 }
 
-// The IDs/SigID page: what to mark, and where a click puts the signal.
-void editSigid(QWidget* parent)
-{
-	if (!engine_up()) {
-		QMessageBox::information(parent, QStringLiteral("SigID"),
-			QStringLiteral("The modem is not running yet."));
-		return;
-	}
-	EngineSigid current;
-	engine_sigid(&current);
-
-	QDialog dialog(parent);
-	dialog.setObjectName(QStringLiteral("sigidDialog"));
-	dialog.setWindowTitle(QStringLiteral("SigID"));
-	dialog.setMinimumWidth(520);
-	auto* form = new QFormLayout(&dialog);
-
-	auto* enable = new QCheckBox(QStringLiteral("Identify the signals in the passband"));
-	enable->setObjectName(QStringLiteral("sigidEnable"));
-	enable->setToolTip(QStringLiteral(
-		"Also the SigID button beside RxID. Uses some CPU, so it is off by default."));
-	enable->setChecked(current.enable != 0);
-	auto* marks = new QCheckBox(QStringLiteral("Mark each signal in the receive pane"));
-	marks->setObjectName(QStringLiteral("sigidMarks"));
-	marks->setToolTip(QStringLiteral(
-		"Click a mark to switch to that mode and move to the signal"));
-	marks->setChecked(current.marks != 0);
-	auto* wfLabels = new QCheckBox(QStringLiteral("Show labels on the waterfall"));
-	wfLabels->setObjectName(QStringLiteral("sigidWfLabels"));
-	wfLabels->setToolTip(QStringLiteral(
-		"A tab with the mode above each signal SigID names; click it to go to that signal"));
-	wfLabels->setChecked(current.wf_labels != 0);
-	auto* ambiguous = new QCheckBox(QStringLiteral(
-		"Mark look-alike modes before they are told apart"));
-	ambiguous->setObjectName(QStringLiteral("sigidAmbiguous"));
-	ambiguous->setToolTip(QStringLiteral(
-		"Modes that are the same signal on the air (THOR or DominoEX, Olivia or Contestia) "
-		"are marked as \"A or B\" until SigID decodes enough to tell"));
-	ambiguous->setChecked(current.ambiguous != 0);
-
-	auto* center = new QCheckBox(QStringLiteral(
-		"Clicking a mark tunes the rig so the signal sits at"));
-	center->setObjectName(QStringLiteral("sigidCenter"));
-	center->setToolTip(QStringLiteral(
-		"Without rig control, or with this off, only the audio carrier moves"));
-	center->setChecked(current.center != 0);
-	auto* centerHz = new QSpinBox;
-	centerHz->setObjectName(QStringLiteral("sigidCenterHz"));
-	centerHz->setRange(200, 3500);
-	centerHz->setSingleStep(10);
-	centerHz->setSuffix(QStringLiteral(" Hz"));
-	centerHz->setValue(current.center_hz);
-	centerHz->setEnabled(center->isChecked());
-	QObject::connect(center, &QCheckBox::toggled, centerHz, &QWidget::setEnabled);
-	auto* centerRow = new QWidget;
-	auto* centerLayout = new QHBoxLayout(centerRow);
-	centerLayout->setContentsMargins(0, 0, 0, 0);
-	centerLayout->addWidget(center);
-	centerLayout->addWidget(centerHz);
-	centerLayout->addStretch(1);
-
-	auto* minConf = new QSpinBox;
-	minConf->setObjectName(QStringLiteral("sigidMinConf"));
-	minConf->setRange(0, 100);
-	minConf->setSuffix(QStringLiteral(" %"));
-	minConf->setToolTip(QStringLiteral(
-		"How far SigID's best match must lead the next unrelated mode"));
-	minConf->setValue(current.min_conf);
-	auto* repeat = new QSpinBox;
-	repeat->setObjectName(QStringLiteral("sigidRepeat"));
-	repeat->setRange(10, 3600);
-	repeat->setSingleStep(10);
-	repeat->setSuffix(QStringLiteral(" s"));
-	repeat->setValue(current.repeat_s);
-	// Number boxes stay their own size, like the Hz box beside its tick box.
-	minConf->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	repeat->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-
-	form->addRow(enable);
-	form->addRow(marks);
-	form->addRow(wfLabels);
-	form->addRow(ambiguous);
-	form->addRow(centerRow);
-	form->addRow(QStringLiteral("Lowest confidence to mark"), minConf);
-	form->addRow(QStringLiteral("Mark the same signal again after"), repeat);
-	auto* note = new QLabel(QStringLiteral(
-		"SigID names signals without an RsID or TxID: every mode fldigi can receive. "
-		"A signal you are already receiving is not marked. "
-		"Look-alike modes are told apart by decoding a few seconds of the signal."));
-	note->setWordWrap(true);
-	form->addRow(note);
-
-	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Close);
-	form->addRow(buttons);
-	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, [&] {
-		EngineSigid prefs;
-		prefs.enable = enable->isChecked() ? 1 : 0;
-		prefs.marks = marks->isChecked() ? 1 : 0;
-		prefs.wf_labels = wfLabels->isChecked() ? 1 : 0;
-		prefs.ambiguous = ambiguous->isChecked() ? 1 : 0;
-		prefs.center = center->isChecked() ? 1 : 0;
-		prefs.center_hz = centerHz->value();
-		prefs.min_conf = minConf->value();
-		prefs.repeat_s = repeat->value();
-		engine_set_sigid_prefs(&prefs);
-		dialog.accept();
-	});
-	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	dialog.exec();
-}
-
 bool editQrzAccount(QWidget* parent)
 {
 	const QrzAccount current = qrzAccount();
@@ -2877,7 +2767,9 @@ public:
 			auto* view = qobject_cast<QWidget*>(watched);
 			if (edit && view) {
 				const int at = edit->cursorForPosition(mouse->position().toPoint()).position();
-				view->setCursor(rxLinkAt(edit, at).isEmpty() ? Qt::IBeamCursor : Qt::PointingHandCursor);
+				EnginePref clicks;
+				const bool off = engine_pref("btnRXClicks", &clicks) && clicks.value == 0;
+				view->setCursor(off || rxLinkAt(edit, at).isEmpty() ? Qt::IBeamCursor : Qt::PointingHandCursor);
 			}
 			return QObject::eventFilter(watched, event);
 		}
@@ -2898,6 +2790,10 @@ public:
 			return QObject::eventFilter(watched, event);
 		const QPoint pos = mouse->position().toPoint();
 		if ((pos - m_press).manhattanLength() > 4)
+			return QObject::eventFilter(watched, event);
+		// fldigi's "Single-click to capture" gates both, as in its pane.
+		EnginePref clicks;
+		if (engine_pref("btnRXClicks", &clicks) && clicks.value == 0)
 			return QObject::eventFilter(watched, event);
 		const int cursor = edit->cursorForPosition(pos).position();
 		const QString mark = rxLinkAt(edit, cursor);
@@ -4344,8 +4240,11 @@ void MainWindow::buildMenus()
 	configureMenu->addAction(QStringLiteral("TCI…"), this, [this] {
 		editTci(this);
 	});
-	configureMenu->addAction(QStringLiteral("SigID…"), this, [this] {
-		editSigid(this);
+	configureMenu->addAction(QStringLiteral("Modems…"), this, [this] {
+		editSettings(this, QStringLiteral("Modems"), modemSettingPages());
+	});
+	configureMenu->addAction(QStringLiteral("IDs…"), this, [this] {
+		editSettings(this, QStringLiteral("IDs"), idSettingPages());
 	});
 	configureMenu->addAction(QStringLiteral("Text font and colors…"), this, [this] {
 		chooseTextFont();
@@ -4670,6 +4569,19 @@ void MainWindow::chooseTextFont()
 	layout->addLayout(colorBox);
 	layout->addWidget(note);
 
+	// fldigi's "Single-click to capture": a left click on a call fills the
+	// QSO fields and on a mark moves to its signal. Off, a click only
+	// places the cursor, which suits selecting text to copy.
+	EnginePref clicks;
+	const bool haveClicks = engine_pref("btnRXClicks", &clicks) != 0;
+	auto* clickBox = new QCheckBox(QStringLiteral("Click a call or a mark in the receive pane to use it"));
+	clickBox->setObjectName(QStringLiteral("rxClicks"));
+	clickBox->setToolTip(QStringLiteral(
+		"A click on a call sign looks it up; a click on an RsID or SigID mark moves to that signal."));
+	clickBox->setChecked(!haveClicks || clicks.value != 0);
+	clickBox->setEnabled(haveClicks);
+	layout->addWidget(clickBox);
+
 	const auto pick = [&, paintButtons](QColor* target, const QString& title) {
 		const QColor before = *target;
 		QColorDialog picker(before.isValid() ? before
@@ -4723,6 +4635,10 @@ void MainWindow::chooseTextFont()
 		m_rxColor.isValid() ? m_rxColor.name() : QString());
 	settings.setValue(QStringLiteral("textColor/tx"),
 		m_txColor.isValid() ? m_txColor.name() : QString());
+	if (haveClicks && clickBox->isChecked() != (clicks.value != 0)) {
+		engine_set_pref("btnRXClicks", clickBox->isChecked() ? 1 : 0, nullptr);
+		engine_save_prefs();
+	}
 }
 
 #include "mainwindow.moc"

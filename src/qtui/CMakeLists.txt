@@ -61,6 +61,9 @@ qt_add_executable(fldigi-qt
   eqslclient.cpp
   waterfallview.h
   waterfallview.cpp
+  settingsdialog.h
+  settingsdialog.cpp
+  settingspages.cpp
   ${FLDIGI_MODEM_OBJECTS}
 )
 
