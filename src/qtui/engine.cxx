@@ -369,6 +369,11 @@ void engine_stop()
 	// is turned off. Macros are written when they are edited.
 	if (progdefaults.changed && progdefaults.SaveConfig)
 		progdefaults.saveDefaults();
+	// fldigi.prefs: the last mode and carrier, squelch, AFC, transmit
+	// level, waterfall and the last RTTY/Olivia/Contestia settings, which
+	// startup puts back. fldigi writes it on every clean exit; so does
+	// this shell. The hidden FLTK windows it also records still exist.
+	progStatus.saveLastState();
 	tci_stop();
 	trx_close();
 }

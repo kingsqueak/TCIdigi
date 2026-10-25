@@ -160,6 +160,8 @@ std::vector<SettingPage> modemSettingPages()
 			{ SettingItem::Pref, "selBits", "Bits per character", nullptr, nullptr },
 			{ SettingItem::Pref, "selParity", "Parity", nullptr, nullptr },
 			{ SettingItem::Pref, "selStopBits", "Stop bits", nullptr, nullptr },
+			{ SettingItem::Pref, "chk_shaped_rtty", "Shape the transmit signal",
+				"Rounds the keying edges so the transmitted signal stays narrow.", nullptr },
 			{ SettingItem::Pref, "cnt_TTY_LTRS", "Letter-shift characters at the start",
 				"Puts the other station into letters before the text.", " characters" },
 			{ SettingItem::Heading, nullptr, "Text", nullptr, nullptr },
