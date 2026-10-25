@@ -3756,7 +3756,7 @@ static void cb_btn_CW_noise1(Fl_Check_Button* o, void*) {
 Fl_Check_Button *btn_CW_noise2=(Fl_Check_Button *)0;
 
 static void cb_btn_CW_noise2(Fl_Check_Button* o, void*) {
-  progdefaults.CW_noise = o->value();
+  progdefaults.CW_noise = o->value() ? '_' : 0;
   if (o->value()) {
     btn_CW_noise0->value(0);
     btn_CW_noise1->value(0);

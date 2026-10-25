@@ -4791,7 +4791,7 @@ progdefaults.changed = true;}
         }
         Fl_Check_Button btn_CW_noise2 {
           label { Display '_' character for unknown MORSE symbol}
-          callback {progdefaults.CW_noise = o->value();
+          callback {progdefaults.CW_noise = o->value() ? '_' : 0;
 if (o->value()) {
   btn_CW_noise0->value(0);
   btn_CW_noise1->value(0);

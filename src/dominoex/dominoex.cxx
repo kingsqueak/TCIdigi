@@ -448,7 +448,7 @@ int dominoex::harddecode()
 			int p = pipeptr - j;
 			if (p < 0) p += twosym;
 			cwmag = abs(pipe[j].vector[i])/numtests;
-			if (cwmag >= 50.0 * (1.0 - progdefaults.ThorCWI) * avg) count++;
+			if (cwmag >= 50.0 * (1.0 - progdefaults.DomCWI) * avg) count++;
 		}
 		cwi[i] = (count == numtests);
 	}
