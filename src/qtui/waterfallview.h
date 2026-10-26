@@ -51,15 +51,36 @@ signals:
 	void tuned(int hz);
 	// A left click on a SigID tab. hz is that label's center.
 	void sigidClicked(int mode, int hz);
+	// Left press or drag that started on the frequency scale. deltaHz is
+	// the audio change since the previous event, positive toward a higher
+	// frequency. The press reports 0.
+	void scaleDragged(int deltaHz, int hz);
+	// Right button. phase 0 press, 1 drag, 2 release.
+	void rightClicked(int phase, int hz);
+	// Ctrl left-click on the picture. Does not move the carrier.
+	void ctrlLeftClicked(int hz);
+	// Left button released, other than a SigID tab. clicks is 1 for a
+	// double-click.
+	void leftReleased(int clicks);
+	// Middle button.
+	void afcToggled();
+	// Option+Control. hz is the audio frequency under the pointer.
+	void notchToggled(int hz);
+	// area 0 is the picture, 1 the scale. steps is positive for wheel down.
+	void wheeled(int area, int steps, int hz);
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
+	void mouseDoubleClickEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
+	void wheelEvent(QWheelEvent* event) override;
 	void leaveEvent(QEvent* event) override;
 
 private:
 	QRect plotRect() const;
+	bool onScale(const QPoint& pos) const;
 	int hzAt(int x) const;
 	int sigidTabAt(const QPoint& pos) const;
 	void remember(const QImage& image);
@@ -79,6 +100,17 @@ private:
 	int m_carrier = 1500;
 	int m_bandwidth = 31;
 	int m_hoverHz = -1;
+	// Which left or right gesture is in progress. A SigID press owns its
+	// drag and release, so those do not tune or insert text.
+	bool m_leftArmed = false;
+	bool m_plotPress = false;
+	bool m_scaleDrag = false;
+	bool m_rightDown = false;
+	bool m_sigidPress = false;
+	bool m_double = false;
+	int m_dragHz = 0;
+	int m_rightHz = -1;
+	int m_wheelAcc = 0;
 	bool m_locked = false;
 	int m_txHz = 0;
 	// Where the TX tab was painted. Empty when it is not showing. A click

@@ -18,6 +18,18 @@
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <QWheelEvent>
+
+// fldigi's Ctrl is the Control key. Qt reports that key as Meta on macOS
+// and as Control on other systems. Command is Meta there, and is not Ctrl.
+static bool controlDown(Qt::KeyboardModifiers mods)
+{
+#if defined(Q_OS_MACOS)
+	return (mods & Qt::MetaModifier) != 0;
+#else
+	return (mods & Qt::ControlModifier) != 0;
+#endif
+}
 
 WaterfallView::WaterfallView(QWidget* parent)
 	: QWidget(parent)
@@ -25,9 +37,18 @@ WaterfallView::WaterfallView(QWidget* parent)
 	setAutoFillBackground(false);
 	setMinimumHeight(96);
 	setMouseTracking(true);
+	// Control-click is a history replay. A context menu would take that click.
+	setContextMenuPolicy(Qt::PreventContextMenu);
 	setToolTip(QStringLiteral(
 		"Click to tune the modem. On PSK it searches nearby for a signal. "
-		"Shift-click tunes to that exact spot. Each row stays one pixel tall."));
+		"Shift-click tunes to that exact spot. "
+		"Drag the frequency scale to move the radio dial, when that is enabled. "
+		"The wheel on the scale steps the dial. "
+		"Right-click listens there until you release. "
+		"Control-click replays the recent audio. "
+		"Option-Control toggles a notch marker. "
+		"The middle button toggles AFC. "
+		"Each row stays one pixel tall."));
 }
 
 void WaterfallView::setFrame(const QImage& image, int hzLow, int hzHigh, int carrierHz, int bandwidthHz, int mode)
@@ -179,6 +200,16 @@ int WaterfallView::sigidTabAt(const QPoint& pos) const
 	return -1;
 }
 
+bool WaterfallView::onScale(const QPoint& pos) const
+{
+	if (m_mode == 2)
+		return false;
+	const QRect plot = plotRect();
+	if (pos.x() < plot.left() || pos.x() > plot.right())
+		return false;
+	return pos.y() > plot.bottom();
+}
+
 int WaterfallView::hzAt(int x) const
 {
 	const bool live = !m_frame.isNull();
@@ -199,23 +230,150 @@ void WaterfallView::mousePressEvent(QMouseEvent* event)
 {
 	if (m_mode == 2)
 		return;
-	if (event->button() != Qt::LeftButton)
+	// While the right button holds a listen, other buttons wait: its
+	// release must still put the saved carrier back.
+	if (m_rightDown && event->button() != Qt::RightButton)
 		return;
 	const QPoint pos = event->position().toPoint();
-	// A tab sits on the plot. That click goes to the named signal.
+	const int hz = hzAt(pos.x());
+	m_leftArmed = false;
+	m_plotPress = false;
+	m_scaleDrag = false;
+	m_rightDown = false;
+	m_sigidPress = false;
+
+	if (event->button() == Qt::MiddleButton) {
+		emit afcToggled();
+		return;
+	}
+	if (event->button() == Qt::RightButton) {
+		m_rightDown = true;
+		m_rightHz = hz;
+		emit rightClicked(0, hz);
+		return;
+	}
+	if (event->button() != Qt::LeftButton)
+		return;
+	// A tab sits on the plot. That click goes to the named signal, and the
+	// drag and release stay with it.
 	const int tab = sigidTabAt(pos);
 	if (tab >= 0) {
+		m_sigidPress = true;
 		emit sigidClicked(m_sigidHits.at(tab).label.mode, m_sigidHits.at(tab).label.center);
 		return;
 	}
-	const QRect plot = plotRect();
-	if (!plot.contains(pos))
+	const bool over = onScale(pos) || plotRect().contains(pos);
+	if (!over)
 		return;
-	const int hz = hzAt(pos.x());
+	m_leftArmed = true;
+	// Option+Control toggles the notch. fldigi stamps that dashed column
+	// into the image this view already paints, so the click is not a tune.
+	const Qt::KeyboardModifiers mods = event->modifiers();
+	if ((mods & Qt::AltModifier) && controlDown(mods)) {
+		emit notchToggled(hz);
+		return;
+	}
+	// The scale owns the press even with Control held. The engine moves the
+	// dial when that setting is on, and otherwise treats it as a history click.
+	if (onScale(pos)) {
+		m_scaleDrag = true;
+		m_dragHz = hz;
+		setCursor(Qt::SizeHorCursor);
+		emit scaleDragged(0, hz);
+		return;
+	}
+	if (controlDown(mods)) {
+		emit ctrlLeftClicked(hz);
+		return;
+	}
+	m_plotPress = true;
 	m_carrier = hz;
 	m_hoverHz = hz;
 	update();
 	emit tuned(hz);
+}
+
+void WaterfallView::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	if (m_mode == 2 || event->button() != Qt::LeftButton)
+		return;
+	const QPoint pos = event->position().toPoint();
+	// The second press does not tune. Release drops a frequency mark
+	// instead of the click text. A tab still owns that release.
+	if (sigidTabAt(pos) >= 0) {
+		m_sigidPress = true;
+		m_leftArmed = false;
+		return;
+	}
+	if (!onScale(pos) && !plotRect().contains(pos))
+		return;
+	m_double = true;
+	m_leftArmed = true;
+}
+
+void WaterfallView::mouseReleaseEvent(QMouseEvent* event)
+{
+	if (m_mode == 2)
+		return;
+	if (event->button() == Qt::RightButton && m_rightDown) {
+		m_rightDown = false;
+		emit rightClicked(2, hzAt(event->position().toPoint().x()));
+		return;
+	}
+	if (event->button() != Qt::LeftButton)
+		return;
+	const bool sigid = m_sigidPress;
+	const bool wasScale = m_scaleDrag;
+	m_sigidPress = false;
+	m_scaleDrag = false;
+	m_plotPress = false;
+	const bool armed = m_leftArmed;
+	m_leftArmed = false;
+	if (wasScale)
+		unsetCursor();
+	if (sigid || !armed)
+		return;
+	const int clicks = m_double ? 1 : 0;
+	m_double = false;
+	emit leftReleased(clicks);
+}
+
+void WaterfallView::wheelEvent(QWheelEvent* event)
+{
+	if (m_mode == 2) {
+		event->ignore();
+		return;
+	}
+	// angleDelta is 120 per notch, positive for wheel up; high-resolution
+	// mice send parts of a notch, which add up. A trackpad sends pixels,
+	// with an angle of only a unit or two that would never reach a notch,
+	// so its pixels are used instead. One event is capped so a flick
+	// cannot walk the dial across the band.
+	const QPoint pixels = event->pixelDelta();
+	int dy = 0;
+	if (!pixels.isNull())
+		dy = (pixels.y() != 0 ? pixels.y() : pixels.x()) * 3;
+	else {
+		const QPoint angle = event->angleDelta();
+		dy = angle.y() != 0 ? angle.y() : angle.x();
+	}
+	m_wheelAcc += dy;
+	int stepsUp = 0;
+	while (m_wheelAcc >= 120 && stepsUp < 30) {
+		stepsUp += 1;
+		m_wheelAcc -= 120;
+	}
+	while (m_wheelAcc <= -120 && stepsUp > -30) {
+		stepsUp -= 1;
+		m_wheelAcc += 120;
+	}
+	if (stepsUp >= 30 || stepsUp <= -30)
+		m_wheelAcc = 0;
+	event->accept();
+	if (stepsUp == 0)
+		return;
+	const QPoint pos = event->position().toPoint();
+	emit wheeled(onScale(pos) ? 1 : 0, -stepsUp, hzAt(pos.x()));
 }
 
 void WaterfallView::mouseMoveEvent(QMouseEvent* event)
@@ -229,12 +387,36 @@ void WaterfallView::mouseMoveEvent(QMouseEvent* event)
 		return;
 	}
 	const QPoint pos = event->position().toPoint();
+	const int hz = hzAt(pos.x());
+	const bool left = (event->buttons() & Qt::LeftButton) != 0;
+	if (m_sigidPress)
+		return;
+	if (m_scaleDrag && left) {
+		setCursor(Qt::SizeHorCursor);
+		const int delta = hz - m_dragHz;
+		if (delta != 0) {
+			m_dragHz = hz;
+			emit scaleDragged(delta, hz);
+		}
+	} else if (m_plotPress && left && !controlDown(event->modifiers())) {
+		if (hz != m_carrier) {
+			m_carrier = hz;
+			emit tuned(hz);
+			update();
+		}
+	}
+	if (m_rightDown && (event->buttons() & Qt::RightButton) && hz != m_rightHz) {
+		m_rightHz = hz;
+		emit rightClicked(1, hz);
+	}
 	const bool onTab = sigidTabAt(pos) >= 0;
 	const QRect plot = plotRect();
 	const int x = pos.x();
 	if (!onTab && (x < plot.left() || x > plot.right())) {
 		// Drop the hand from a name once the pointer leaves the plot.
-		unsetCursor();
+		// A scale drag keeps the sideways cursor until the button is up.
+		if (!m_scaleDrag)
+			unsetCursor();
 		if (m_hoverHz >= 0) {
 			m_hoverHz = -1;
 			update();
@@ -243,11 +425,12 @@ void WaterfallView::mouseMoveEvent(QMouseEvent* event)
 	}
 	// A name is clickable even where it hangs into the scale. Leaving it
 	// returns to the tune cursor, or the arrow once the pointer is off the plot.
-	if (onTab || plot.contains(pos))
-		setCursor(Qt::PointingHandCursor);
-	else
-		unsetCursor();
-	const int hz = hzAt(x);
+	if (!m_scaleDrag) {
+		if (onTab || plot.contains(pos))
+			setCursor(Qt::PointingHandCursor);
+		else
+			unsetCursor();
+	}
 	if (hz != m_hoverHz) {
 		m_hoverHz = hz;
 		update();

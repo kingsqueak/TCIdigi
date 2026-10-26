@@ -30,8 +30,12 @@
 #include "main.h"
 #include "sigid.h"
 #include "combo.h"
+#include "colorbox.h"
+#include "ui_colors.h"
+#include "waterfall.h"
 
 #include <FL/Fl.H>
+#include <FL/fl_utf8.h>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Input_.H>
@@ -46,6 +50,7 @@ public:
 };
 
 #include <algorithm>
+#include <dirent.h>
 #include <cmath>
 #include <cstdio>
 #include <chrono>
@@ -332,6 +337,115 @@ int engine_browser_count()
 	if (!g_up)
 		return MAXCHANNELS;
 	return std::max(1, std::min((int)MAXCHANNELS, progdefaults.VIEWERchannels));
+}
+
+void engine_palette(int* rgb27)
+{
+	if (!rgb27)
+		return;
+	for (int i = 0; i < 9; ++i) {
+		rgb27[3 * i] = palette[i].R;
+		rgb27[3 * i + 1] = palette[i].G;
+		rgb27[3 * i + 2] = palette[i].B;
+	}
+}
+
+void engine_set_palette(const int* rgb27, const char* name)
+{
+	if (!g_up || !rgb27)
+		return;
+	for (int i = 0; i < 9; ++i) {
+		palette[i].R = (unsigned char)std::max(0, std::min(255, rgb27[3 * i]));
+		palette[i].G = (unsigned char)std::max(0, std::min(255, rgb27[3 * i + 1]));
+		palette[i].B = (unsigned char)std::max(0, std::min(255, rgb27[3 * i + 2]));
+	}
+	// As fldigi's Load: recolour the waterfall and its (hidden) buttons.
+	if (wf)
+		wf->setcolors();
+	setColorButtons();
+	if (name && *name)
+		progdefaults.PaletteName = std::string("Palette: ") + name;
+	progdefaults.changed = true;
+}
+
+int engine_palette_name(char* buf, int cap)
+{
+	std::string name = progdefaults.PaletteName;
+	const std::string prefix = "Palette: ";
+	if (name.compare(0, prefix.size(), prefix) == 0)
+		name.erase(0, prefix.size());
+	copy_str(buf, cap, name.c_str());
+	return 1;
+}
+
+// A palette file name kept inside the palettes folder.
+static bool palette_path(const char* file, std::string& path)
+{
+	if (!file || !*file)
+		return false;
+	std::string name = file;
+	if (name.find('/') != std::string::npos || name.find('\\') != std::string::npos
+	    || name == "." || name == "..")
+		return false;
+	if (name.size() < 4 || name.compare(name.size() - 4, 4, ".pal") != 0)
+		name += ".pal";
+	path = PalettesDir + name;
+	return true;
+}
+
+int engine_palette_files(char* buf, int cap)
+{
+	std::vector<std::string> names;
+	if (DIR* dir = opendir(PalettesDir.c_str())) {
+		while (struct dirent* e = readdir(dir)) {
+			std::string n = e->d_name;
+			if (n.size() > 4 && n.compare(n.size() - 4, 4, ".pal") == 0)
+				names.push_back(n);
+		}
+		closedir(dir);
+	}
+	std::sort(names.begin(), names.end());
+	std::string all;
+	for (const std::string& n : names)
+		all += n + "\n";
+	copy_str(buf, cap, all.c_str());
+	return (int)names.size();
+}
+
+int engine_read_palette(const char* file, int* rgb27)
+{
+	std::string path;
+	if (!rgb27 || !palette_path(file, path))
+		return 0;
+	FILE* f = fl_fopen(path.c_str(), "r");
+	if (!f)
+		return 0;
+	int ok = 1;
+	for (int i = 0; i < 9 && ok; ++i)
+		if (std::fscanf(f, "%d;%d;%d\n", &rgb27[3 * i], &rgb27[3 * i + 1], &rgb27[3 * i + 2]) != 3)
+			ok = 0;
+	std::fclose(f);
+	return ok;
+}
+
+int engine_write_palette(const char* file, const int* rgb27)
+{
+	std::string path;
+	if (!rgb27 || !palette_path(file, path))
+		return 0;
+	// Written beside it and renamed over it, so a failed write cannot
+	// leave a palette half written.
+	const std::string temp = path + ".tmp";
+	FILE* f = fl_fopen(temp.c_str(), "w");
+	if (!f)
+		return 0;
+	for (int i = 0; i < 9; ++i)
+		std::fprintf(f, "%3d;%3d;%3d\n", rgb27[3 * i], rgb27[3 * i + 1], rgb27[3 * i + 2]);
+	if (std::fclose(f) != 0 || fl_rename(temp.c_str(), path.c_str()) != 0) {
+		fl_unlink(temp.c_str());
+		return 0;
+	}
+	return 1;
 }
 
 int engine_take_alert(char* buf, int cap)
@@ -999,8 +1113,12 @@ int engine_mode_set_label(int i, char* buf, int cap)
 
 void engine_save_prefs()
 {
-	if (g_up)
-		progdefaults.saveDefaults();
+	if (!g_up)
+		return;
+	// saveDefaults copies the palette into ui_colors; the colours file is
+	// otherwise written only with the status on exit.
+	progdefaults.saveDefaults();
+	ui_colors.save("fldigi_UI_colors");
 }
 
 int engine_sigid_labels(EngineSigidLabel* out, int max)

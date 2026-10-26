@@ -14,8 +14,10 @@
 #include "mainwindow.h"
 
 #include "engine.h"
+#include "engine_wf.h"
 #include "eqslclient.h"
 #include "qrzclient.h"
+#include "palettedialog.h"
 #include "settingsdialog.h"
 #include "waterfallview.h"
 #include "tcidigi_version.h"
@@ -3349,13 +3351,94 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 	scopeRow->setContentsMargins(0, 0, 0, 0);
 	scopeRow->setSpacing(6);
 	auto* waterfall = new WaterfallView;
-	connect(waterfall, &WaterfallView::tuned, this, [this](int hz) {
-		if (!engine_up()) {
-			notConnected(QStringLiteral("Waterfall"));
+	// fldigi's Ctrl is the Control key. On macOS Qt calls that key Meta
+	// and calls the Command key Control. Command counts as Meta, with Option.
+	const auto wfMods = [] {
+		const Qt::KeyboardModifiers mods = QGuiApplication::keyboardModifiers();
+		int bits = 0;
+#if defined(Q_OS_MACOS)
+		if (mods & Qt::MetaModifier)
+			bits |= 1;
+		if (mods & (Qt::AltModifier | Qt::ControlModifier))
+			bits |= 2;
+#else
+		if (mods & Qt::ControlModifier)
+			bits |= 1;
+		if (mods & (Qt::AltModifier | Qt::MetaModifier))
+			bits |= 2;
+#endif
+		if (mods & Qt::ShiftModifier)
+			bits |= 4;
+		return bits;
+	};
+	const auto wfReady = [this] {
+		if (engine_up())
+			return true;
+		notConnected(QStringLiteral("Waterfall"));
+		return false;
+	};
+	connect(waterfall, &WaterfallView::tuned, this, [this, wfMods, wfReady](int hz) {
+		if (!wfReady())
+			return;
+		// As fldigi's waterfall: no clicks while transmitting, which would
+		// move the tone already on the air.
+		EngineView now{};
+		engine_view(&now);
+		if (now.transmitting)
+			return;
+		const int mods = wfMods();
+		// Frequency Measurement Test takes the click before a normal tune.
+		if (engine_wf_fmt(hz, mods))
+			return;
+		engine_set_carrier(hz, (mods & 4) ? 0 : 1);
+		engine_wf_left_history();
+	});
+	connect(waterfall, &WaterfallView::scaleDragged, this, [this, wfMods, wfReady](int delta, int hz) {
+		if (!wfReady())
+			return;
+		const int mods = wfMods();
+		if (engine_wf_fmt(hz, mods))
+			return;
+		// Moving the dial owns the gesture when that setting is on.
+		// Otherwise Control replays, and a plain press tunes.
+		if (engine_wf_qsy_drag(delta))
+			return;
+		if (mods & 1) {
+			engine_wf_ctrl_left(hz, mods);
 			return;
 		}
-		const bool exact = (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier) != 0;
-		engine_set_carrier(hz, exact ? 0 : 1);
+		engine_set_carrier(hz, (mods & 4) ? 0 : 1);
+		engine_wf_left_history();
+	});
+	connect(waterfall, &WaterfallView::rightClicked, this, [this, wfMods, wfReady](int phase, int hz) {
+		if (!wfReady())
+			return;
+		engine_wf_right(phase, hz, wfMods());
+	});
+	connect(waterfall, &WaterfallView::ctrlLeftClicked, this, [this, wfMods, wfReady](int hz) {
+		if (!wfReady())
+			return;
+		engine_wf_ctrl_left(hz, wfMods());
+	});
+	connect(waterfall, &WaterfallView::leftReleased, this, [this, wfMods, wfReady](int clicks) {
+		if (!wfReady())
+			return;
+		engine_wf_left_release(wfMods(), clicks);
+	});
+	connect(waterfall, &WaterfallView::afcToggled, this, [this, wfReady] {
+		if (!wfReady())
+			return;
+		engine_wf_toggle_afc();
+	});
+	connect(waterfall, &WaterfallView::notchToggled, this, [this, wfMods, wfReady](int hz) {
+		if (!wfReady())
+			return;
+		engine_wf_notch(hz, wfMods());
+	});
+	connect(waterfall, &WaterfallView::wheeled, this, [this, wfMods, wfReady](int area, int steps, int hz) {
+		if (!wfReady())
+			return;
+		engine_wf_wheel(area, steps, hz, wfMods());
 	});
 	connect(waterfall, &WaterfallView::sigidClicked, this, [](int mode, int hz) {
 		engine_sigid_go(mode, hz);
@@ -4289,6 +4372,9 @@ void MainWindow::buildMenus()
 	});
 	configureMenu->addAction(QStringLiteral("General…"), this, [this] {
 		editSettings(this, QStringLiteral("General"), generalSettingPages());
+	});
+	configureMenu->addAction(QStringLiteral("Waterfall colors…"), this, [this] {
+		editWaterfallPalette(this);
 	});
 	configureMenu->addAction(QStringLiteral("Text font and colors…"), this, [this] {
 		chooseTextFont();

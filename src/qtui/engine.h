@@ -251,6 +251,20 @@ void engine_set_qso(const char* call, const char* name, const char* qth,
 int engine_browser_line(int row, char* buf, int cap);
 // How many channels the signal browser watches (Configure, General).
 int engine_browser_count();
+
+// The waterfall palette: nine colours from weakest to strongest signal,
+// as r,g,b triples (27 ints). engine_set_palette applies them at once and
+// they are saved with the configuration; name is the label fldigi keeps
+// ("" leaves it). Palette files are fldigi's .pal files in the
+// configuration's palettes folder, named without the folder.
+void engine_palette(int* rgb27);
+void engine_set_palette(const int* rgb27, const char* name);
+int engine_palette_name(char* buf, int cap);
+// The .pal file names, one per line, sorted. Returns how many.
+int engine_palette_files(char* buf, int cap);
+int engine_read_palette(const char* file, int* rgb27);
+// Writes rgb27 as file (".pal" added when missing). 0 on failure.
+int engine_write_palette(const char* file, const int* rgb27);
 void engine_browser_pick(int row);
 void engine_browser_clear_line(int row);
 void engine_browser_clear();

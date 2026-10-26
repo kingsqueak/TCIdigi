@@ -257,6 +257,11 @@ SETTINGS_WIDGET(wf_latency)
 SETTINGS_WIDGET(cntr_drop_speed)
 SETTINGS_WIDGET(btnViewXmtSignal)
 SETTINGS_WIDGET(valTxMonitorLevel)
+SETTINGS_WIDGET(btnWaterfallHistoryDefault)
+SETTINGS_WIDGET(btnWaterfallQSY)
+SETTINGS_WIDGET(btnWaterfallClickInsert)
+SETTINGS_WIDGET(inpWaterfallClickText)
+SETTINGS_WIDGET(listboxWaterfallWheelAction)
 
 // Signal browser
 SETTINGS_WIDGET(cntChannels)

@@ -37,6 +37,7 @@ set_source_files_properties(${FLDIGI_MODEM_OBJECTS} PROPERTIES
 add_library(fldigi_qt_entry OBJECT
   "${FLDIGI_SRC}/main.cxx"
   engine.cxx
+  engine_wf.cxx
 )
 set_target_properties(fldigi_qt_entry PROPERTIES
   AUTOMOC OFF
@@ -64,6 +65,8 @@ qt_add_executable(fldigi-qt
   settingsdialog.h
   settingsdialog.cpp
   settingspages.cpp
+  palettedialog.h
+  palettedialog.cpp
   ${FLDIGI_MODEM_OBJECTS}
 )
 
