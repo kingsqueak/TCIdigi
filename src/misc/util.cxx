@@ -608,12 +608,24 @@ int fork_process( const char * cmd )
 	case -1:
 		return -1 ;
 	case 0:
+		close_inherited_fds();
 		execl("/bin/sh", "sh", "-c", cmd, NULL );
 		fprintf(stderr,"execl failed with %s", strerror(errno) );
 		/// Ideally we should warn the main process.
 		exit(EXIT_FAILURE);
 	}
 	return newpid ;
+#endif
+}
+
+void close_inherited_fds()
+{
+#ifndef __WOE32__
+	long max = sysconf(_SC_OPEN_MAX);
+	if (max < 0 || max > 65536)
+		max = 65536;
+	for (int fd = 3; fd < max; fd++)
+		close(fd);
 #endif
 }
 

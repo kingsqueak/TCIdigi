@@ -1388,9 +1388,16 @@ size_t SoundTCI::Read(float* buf, size_t count)
 	return count;
 }
 
+// fldigi's character-timing tests run the modem without keying; their
+// audio must not head for the radio (SoundNull::Write skips it too).
+static bool tci_cps_test()
+{
+	return PERFORM_CPS_TEST || (active_modem && active_modem->XMLRPC_CPS_TEST);
+}
+
 size_t SoundTCI::Write(double* buf, size_t count)
 {
-	if (!buf || count == 0)
+	if (!buf || count == 0 || tci_cps_test())
 		return count;
 
 	int modem = sample_frequency > 0 ? sample_frequency : 8000;
@@ -1465,6 +1472,8 @@ size_t SoundTCI::Write(double* buf, size_t count)
 
 size_t SoundTCI::Write_stereo(double* left, double* right, size_t count)
 {
+	if (tci_cps_test())
+		return count;
 	std::vector<double> mix(count);
 	for (size_t i = 0; i < count; i++)
 		mix[i] = 0.5 * (left[i] + right[i]);

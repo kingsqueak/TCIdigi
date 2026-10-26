@@ -183,13 +183,14 @@ void invoke_flmsg()
 		ap[n++] = "-title"; ap[n++] = dttm;
 		ap[n++] = "--flmsg-dir"; ap[n++] = FLMSG_dir;
 		if (progdefaults.open_flmsg_print && progdefaults.open_flmsg)
-			ap[n++] = " --b";//params = " --b";
+			ap[n++] = "--b";	// an argument of its own: no leading space
 		else if (progdefaults.open_flmsg_print)
-			ap[n++] = " --p";//params = " --p";
+			ap[n++] = "--p";
 		ap[n++] = outfilename;
 
 		switch (fork()) {
 		case 0:
+			close_inherited_fds();
 #  ifndef NDEBUG
 			unsetenv("MALLOC_CHECK_");
 			unsetenv("MALLOC_PERTURB_");
@@ -279,7 +280,11 @@ void invoke_flmsg()
 			}
 			exit(EXIT_FAILURE);
 		case -1:
-			fl_alert2(_("Could not start flmsg"));
+			if (fltk_dialogs_hidden) {
+				LOG_ERROR("Could not start flmsg");
+				put_status(_("Could not start flmsg"), 10.0);
+			} else
+				fl_alert2(_("Could not start flmsg"));
 		}
 #endif
 	}
@@ -306,10 +311,15 @@ void start_flmsg()
 #else
 	switch (fork()) {
 	case 0:
+		close_inherited_fds();
 		execlp((char*)cmd.c_str(), (char*)cmd.c_str(), (char*)0, (char*)0);
 		exit(EXIT_FAILURE);
 	case -1:
-		fl_alert2(_("Could not start flmsg"));
+		if (fltk_dialogs_hidden) {
+				LOG_ERROR("Could not start flmsg");
+				put_status(_("Could not start flmsg"), 10.0);
+			} else
+				fl_alert2(_("Could not start flmsg"));
 	default: ;
 	}
 #endif

@@ -887,6 +887,7 @@ static void notify_notify(const notify_t& n)
 		default:
 			break;
 		case 0:
+			close_inherited_fds();
 #endif
 			char var[] = "FLDIGI_NOTIFY_STR_0";
 			std::string val;

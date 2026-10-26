@@ -869,6 +869,10 @@ extern void  start_deadman();
 // alert, after transmit has been stopped (the Qt shell, where an FLTK
 // modal dialog cannot run).
 extern void (*tx_timeout_notice)(const char *msg);
+// True when fldigi's FLTK windows are hidden behind another UI (the Qt
+// shell): no FLTK event loop runs, so a modal FLTK dialog cannot be
+// answered. Code that would ask takes its safe answer and says so instead.
+extern bool fltk_dialogs_hidden;
 extern void  stop_deadman();
 extern void  disable_deadman();
 

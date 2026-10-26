@@ -213,6 +213,12 @@ int test_process(int pid);
 
 /// Starts a process and returns its pid, and -1 if error. Returns 0 if this cannot be made.
 int fork_process( const char * cmd );
+// In a child after fork(), before exec: close the files it inherited
+// above stderr. Otherwise a program fldigi starts (flmsg, flamp, a
+// browser) keeps fldigi's listening sockets (XML-RPC 7362, ARQ 7322) and
+// devices open, and a restarted fldigi cannot bind its ports while that
+// program runs.
+void close_inherited_fds();
 
 /// Returns NULL if no error.
 const char * create_directory( const char * dir );

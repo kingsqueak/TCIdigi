@@ -1810,7 +1810,9 @@ void init_modem(trx_mode mode, int freq)
 			LOG_INFO("Invaild Modem for KISS I/O (%s)",  mode_info[mode].sname);
 
 			int _yes = false;
-			if(!progdefaults.kiss_io_modem_change_inhibit)
+			if (fltk_dialogs_hidden)
+				put_status(_("Mode not valid for KISS I/O; kept the current mode"), 10.0);
+			else if(!progdefaults.kiss_io_modem_change_inhibit)
 				_yes = fl_choice2(_("Switch to ARQ I/O"), _("No"), _("Yes"), NULL);
 
 			if(_yes) {
@@ -2654,6 +2656,7 @@ void cb_mnuVisitURL(Fl_Widget*, void* arg)
 	};
 	switch (fork()) {
 	case 0:
+		close_inherited_fds();
 #  ifndef NDEBUG
 		unsetenv("MALLOC_CHECK_");
 		unsetenv("MALLOC_PERTURB_");
@@ -4676,6 +4679,8 @@ void save_on_exit() {
 bool first_use = false;
 
 bool bEXITING = false;
+
+bool fltk_dialogs_hidden = false;
 
 bool clean_exit(bool ask) {
 	if (ask && first_use) {

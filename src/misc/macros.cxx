@@ -4362,6 +4362,8 @@ static void pEXEC(std::string &s, size_t &i, size_t endbracket)
 				exit(EXIT_FAILURE);
 			}
 			close(pfd[1]);
+			// After the pipe is on stdout: it would be closed with the rest.
+			close_inherited_fds();
 			set_macro_env();
 			execl("/bin/sh", "sh", "-c", execstr.c_str(), (char *)NULL);
 			perror("execl");

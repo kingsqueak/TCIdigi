@@ -601,6 +601,7 @@ void start_process(string executable)
 				break;
 
 			case 0:
+				close_inherited_fds();
 				execl("/bin/sh", "sh", "-c", executable.c_str(), (char *)NULL);
 				perror("execl");
 				exit(EXIT_FAILURE);
