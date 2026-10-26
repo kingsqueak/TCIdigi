@@ -274,6 +274,17 @@ SETTINGS_WIDGET(cntPTT_on_delay)
 SETTINGS_WIDGET(cntPTT_off_delay)
 SETTINGS_WIDGET(btn_tx_lowercase)
 
+// NBEMS (flmsg, flamp)
+SETTINGS_WIDGET(chkAutoExtract)
+SETTINGS_WIDGET(chk_transfer__to_open_flmsg)
+SETTINGS_WIDGET(chk_open_flmsg)
+SETTINGS_WIDGET(chk_open_flmsg_print)
+SETTINGS_WIDGET(chk_open_wrap_folder)
+SETTINGS_WIDGET(sldr_extract_timeout)
+SETTINGS_WIDGET(txt_flmsg_pathname)
+SETTINGS_WIDGET(btn_flamp_auto_enable)
+SETTINGS_WIDGET(txt_auto_flamp_pathname)
+
 // Startup and exit
 SETTINGS_WIDGET(btnTXLEVEL_by_mode)
 SETTINGS_WIDGET(btnSQLCH_by_mode)

@@ -50,7 +50,9 @@ public:
 };
 
 #include <algorithm>
+#include <cctype>
 #include <dirent.h>
+#include <unistd.h>
 #include <cmath>
 #include <cstdio>
 #include <chrono>
@@ -457,10 +459,78 @@ int engine_take_alert(char* buf, int cap)
 	return 1;
 }
 
+#ifdef __APPLE__
+// The newest /Applications/<prefix>*.app's program, or "" when none.
+static std::string find_mac_app(const char* prefix, const char* binary)
+{
+	std::vector<std::string> found;
+	if (DIR* dir = opendir("/Applications")) {
+		const size_t n = std::strlen(prefix);
+		while (struct dirent* e = readdir(dir)) {
+			const std::string name = e->d_name;
+			if (name.compare(0, n, prefix) == 0 && name.size() > 4
+			    && name.compare(name.size() - 4, 4, ".app") == 0)
+				found.push_back(name);
+		}
+		closedir(dir);
+	}
+	// Newest by version number: flmsg-4.0.24 is newer than flmsg-4.0.9.
+	const auto version = [n = std::strlen(prefix)](const std::string& name) {
+		std::vector<long> parts;
+		const char* p = name.c_str() + n;
+		while (*p) {
+			if (std::isdigit((unsigned char)*p))
+				parts.push_back(std::strtol(p, const_cast<char**>(&p), 10));
+			else
+				++p;
+		}
+		return parts;
+	};
+	std::sort(found.begin(), found.end(),
+		[&](const std::string& a, const std::string& b) { return version(a) < version(b); });
+	for (size_t i = found.size(); i-- > 0;) {
+		const std::string path = "/Applications/" + found[i] + "/Contents/MacOS/" + binary;
+		if (access(path.c_str(), X_OK) == 0)
+			return path;
+	}
+	return "";
+}
+#endif
+
+#ifdef __APPLE__
+// An empty path, or one into an /Applications/<prefix>*.app bundle (as
+// this fills in), follows the newest installed app; a path the user set
+// anywhere else is kept.
+static void follow_mac_app(std::string& path, Fl_Input* field, const char* prefix, const char* binary)
+{
+	const std::string ours = std::string("/Applications/") + prefix;
+	if (!path.empty() && (path.compare(0, ours.size(), ours) != 0
+	                      || path.find(".app/Contents/MacOS/") == std::string::npos))
+		return;
+	const std::string found = find_mac_app(prefix, binary);
+	if (found.empty() || found == path)
+		return;
+	path = found;
+	if (field)
+		field->value(path.c_str());
+}
+#endif
+
+// flmsg opens a received form, and flamp can start with the program, only
+// when fldigi knows where they are.
+static void find_nbems_apps()
+{
+#ifdef __APPLE__
+	follow_mac_app(progdefaults.flmsg_pathname, txt_flmsg_pathname, "flmsg", "flmsg");
+	follow_mac_app(progdefaults.auto_flamp_pathname, txt_auto_flamp_pathname, "flamp", "flamp");
+#endif
+}
+
 int engine_start(int argc, char** argv)
 {
 	g_mode_n = -1;
 	tx_timeout_notice = note_tx_timeout;
+	fltk_dialogs_hidden = true;
 	int rc = fldigi_start(argc, argv, 1);
 	g_up = (rc == 0) ? 1 : 0;
 	if (g_up) {
@@ -474,6 +544,7 @@ int engine_start(int argc, char** argv)
 		if (wf)
 			wf->setFixedWidth(WF_SAMPLERATE / 2 / 4);
 		psk_browser_keep_text(true);
+		find_nbems_apps();
 		stopMacroTimer();
 		macro_idle_on = false;
 		progStatus.skip_sked_macro = false;
