@@ -1,0 +1,30 @@
+<html>
+<body>
+<h1>Lookup and logging</h1>
+<p>Call sign lookup uses QRZ. Logging sends the contact to the QRZ logbook when a QRZ logbook key is set, and to eQSL when that is turned on. The accounts are under the Log menu: QRZ account, and eQSL account. The line next to the signal reports shows the result from each one.</p>
+
+<h2>The fields</h2>
+<p>Call is the station to look up and log. Lookup asks QRZ. Enter in the Call box does the same. Name, QTH, and grid are filled from the answer. You can edit them before you log. Name is the name, QTH is the city and state, and grid is the Maidenhead locator. Sent and Rcvd are the RST you sent and the RST you received. They start at 599.</p>
+<p>While QRZ is working, the status says Looking up…. When it finishes, the status shows the call and the country. If that call is already in your QRZ logbook, the status adds "worked before" and the Call box is marked. The time of a successful lookup is the time used when you log. Editing the call clears that time and the worked-before mark. Name, QTH, and grid stay. After that time is cleared, the log uses the moment you press Log. Clicking a different call into the box clears the name, QTH, grid, and the lookup time.</p>
+<p>Double-click the status line to type comments. The comments are sent with this contact when you log it to QRZ. They stay until the contact is logged. Clearing the call clears a comment that was waiting.</p>
+<p>A click on a call sign in the receive pane, or in the signal browser, puts that call in the Call box. Turn the receive-pane click off under Configure, Text font and colors.</p>
+
+<h2>QRZ account</h2>
+<p>Log, QRZ account takes your QRZ username and password, used for the lookup, and the QRZ XML API key, used for the logbook. On QRZ the key is under My Logbook, then Settings, then QRZ Logbook API. Choose Show, and paste the key. Test key checks the logbook key and writes the result in the dialog. Save stores the account.</p>
+<p>If Lookup is clicked and the username or password is missing, the QRZ account dialog opens. The station call, grid, and antenna are not in this dialog. They are under Configure, Station.</p>
+
+<h2>Log</h2>
+<p>Log sends the contact. It uses the call, name, QTH, grid, the sent and received reports, the mode, and the dial frequency. Your call and grid on the entry come from Configure, Station.</p>
+<ul>
+<li>With a QRZ logbook key, the contact goes to that QRZ logbook.</li>
+<li>With Send to eQSL when logging turned on, and an eQSL user and password, it also goes to eQSL.</li>
+<li>If Send to eQSL is on but the eQSL user or password is missing, the eQSL account dialog opens and nothing is sent yet.</li>
+<li>If there is nowhere to send it, the QRZ account dialog opens so you can add a logbook key.</li>
+</ul>
+<p>The status shows each result, such as Logged to QRZ or eQSL sent. A failure from either one is shown there too.</p>
+
+<h2>eQSL account</h2>
+<p>Log, eQSL account has Send to eQSL when logging, the eQSL user ID (usually your call), the password, an optional QTH nickname, and a QSL message. The nickname picks the eQSL location when the account has more than one. In the message, {CALL}, {NAME}, and {MODE} are filled in from the contact. The message box starts from the example "Tnx {NAME} for the {MODE} QSO" when no message is saved yet. The upload is the one fldigi makes, sent over https.</p>
+<p><a href="index.html">Help contents</a></p>
+</body>
+</html>

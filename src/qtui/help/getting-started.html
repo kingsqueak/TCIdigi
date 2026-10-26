@@ -1,0 +1,22 @@
+<html>
+<body>
+<h1>Getting started</h1>
+<p>The first time a configuration has no station details, the Station dialog opens. If TCI is not turned on, the TCI dialog opens after that and says that TCIdigi needs a connection to the radio. Enable starts ticked. Check the host and port, then Save. Closing either dialog without Save asks again the next time you start.</p>
+
+<h2>Connect the radio</h2>
+<p>Configure, TCI is the same dialog. TCI talks to a Zeus or ExpertSDR3 radio. Turn on Enable TCI for the dial, the radio mode, and the filter. Turn on Use TCI for receive and transmit audio. Audio then comes over TCI instead of a sound card. This program has no sound-card input.</p>
+<p>Host is the TCI server, usually 127.0.0.1 when the radio software is on this computer. Port is usually 40001. Use the host and port that the radio's TCI server is set to. Receiver is which receiver to use, from 0 to 15. The line under the fields is the connection status. Save is refused until the host is filled in and the port is a number from 1 to 65535.</p>
+
+<h2>Station</h2>
+<p>Configure, Station holds the operator and the station. Name, QTH, and call are what macros such as your own call and location use. The grid is a 6-character Maidenhead locator, such as FN43cb, or leave it empty. Antenna is a short description. PSK Reporter, further down the same dialog, is what the Spot button reports. See <a href="logging.html">Lookup and logging</a> for QRZ and eQSL, which are separate.</p>
+
+<h2>Receive a signal</h2>
+<p>When TCI is connected, the frequency readout follows the radio. Pick a mode from the mode menu. Click a trace on the waterfall. The number next to QSY is the audio frequency of that spot. With SQL on, text is printed in the receive pane when the signal passes the squelch mark on the meter beside the waterfall. The bar turns green when it does. See <a href="receive-transmit.html">Receiving and transmitting</a> and <a href="waterfall.html">The waterfall</a>.</p>
+
+<h2>Transmit safely</h2>
+<p>The Tx box at the lower right is the transmit level, in dB, from -30 to 0. It starts at -6 if you have not saved another value. 0 leaves the level unchanged. A more negative number turns the audio down. Set this before you transmit.</p>
+<p>TUNE sends a steady tune tone. Click TUNE again to stop. The tone stays on the air until you stop it.</p>
+<p>The transmit timeout stops a transmitter that is left keyed with nothing to send, such as a stuck macro or TUNE left on. It starts at 5 minutes. Each character that is sent starts the count again, so a long contact is not cut off. Zero turns the timeout off. Change it under Configure, General, Transmit. When it fires, transmit has already stopped and a warning names the timeout.</p>
+<p><a href="index.html">Help contents</a></p>
+</body>
+</html>

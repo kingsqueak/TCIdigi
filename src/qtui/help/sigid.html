@@ -1,0 +1,28 @@
+<html>
+<body>
+<h1>Signal identification (SigID)</h1>
+<p>SigID names the mode of signals in the receive passband, for every mode this program can receive, without an RsID or a TxID. It starts off, because it uses some CPU. On a recent Mac that is about 1.5% of one core for one signal and about 5% with six signals in the passband.</p>
+
+<h2>Turn it on</h2>
+<p>Click SigID, next to RxID. The status line says when it is naming signals and when it is off. The same switch is Identify the signals in the passband under Configure, IDs, SigID. The other SigID settings are on that page. Marks in the receive pane, labels on the waterfall, marks for look-alike modes, and moving the radio when you click a mark all start on.</p>
+
+<h2>Marks in the receive pane</h2>
+<p>Each named signal gets a clickable mark in the receive pane, the same kind of underlined line an RsID leaves. The time is UTC. The number in parentheses is SigID's confidence. A mark looks like this:</p>
+<p><code>&lt;&lt;2026-10-24T14:02:06Z SigID: THOR22 at 1252 Hz (74%)&gt;&gt;</code></p>
+<p>Click the mark to switch to that mode and move to the signal. With Clicking a mark or label tunes the rig to center the signal turned on, and with TCI connected so the dial can move, the radio tunes so the signal sits at the audio frequency next to that control. That frequency starts at 1500 Hz. With centering off, or with no TCI connection, only the audio cursor moves.</p>
+<p>Mark each signal in the receive pane turns the marks off. A signal you are already receiving, in that mode and at that frequency, is not marked and gets no waterfall tab. The text of every mark stays in the pane. Only the latest 500 still respond to a click.</p>
+<p>Lowest confidence to mark is how far the best match must lead the next unrelated mode before a signal is marked or labeled. It starts at 10%. The percentage in the mark is that figure. Mark the same signal again after is the wait before the same signal, still with the same name, is marked again. It starts at 300 seconds.</p>
+
+<h2>Labels on the waterfall</h2>
+<p>A short tab with the mode name is drawn on each named signal. The tab follows the signal. Clicking a tab does the same as clicking its mark: it changes mode and tunes. If the amber TX tab from the transmit lock covers a name, that click tunes instead. Show labels on the waterfall turns the tabs off. Names that would cover each other drop to a lower row. After three rows, a name that still does not fit is left off.</p>
+
+<h2>Look-alike modes</h2>
+<p>Some modes cannot be told apart from the spectrum alone. These include THOR and DominoEX at the same speed, Olivia and Contestia, BPSK and PSK-R, PSK63 and PSK63F, and others. SigID decodes a few seconds of the signal to decide. Until then the mark shows both names, as in <b>THOR22 or DOMX22</b>, and the waterfall tab shows <b>THOR22/DOMX22</b>. A click selects the first of the two names.</p>
+<p>Mark look-alike modes before they are told apart turns those early marks and tabs off. The signal is then shown only after one mode has been chosen. A new mark is written when the pair becomes a single mode. While both names are still shown, a signal you are already receiving in either of those modes is left unmarked.</p>
+<p>Some groups stay "A or B". SigID has no check yet for MT63 short and long interleave, MFSK64 and MFSK64L, MFSK128 and MFSK128L, 8PSK with and without FEC, the multi-carrier PSK modes with and without FEC, and NAVTEX and SITOR-B. Contestia and Olivia at the slowest speeds, and THOR Micro and DominoEX Micro, stay a pair as well. With the early marks turned off, a pair that is never split is not shown.</p>
+
+<h2>Limits</h2>
+<p>SigID works best within a normal 3 kHz passband. It needs a few seconds of signal, and slow modes need longer. Accuracy drops below about 3 dB signal to noise. Two signals very close together can be taken as one. The squelch does not affect it. SigID listens to the audio whether or not the squelch is open. At most 32 names are shown at once.</p>
+<p><a href="index.html">Help contents</a></p>
+</body>
+</html>

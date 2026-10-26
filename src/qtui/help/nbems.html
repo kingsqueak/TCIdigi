@@ -1,0 +1,23 @@
+<html>
+<body>
+<h1>flmsg, flamp and flarq</h1>
+<p>flmsg, flamp, and flarq connect to TCIdigi the same way they connect to fldigi. XML-RPC is on port 7362. The ARQ socket is on port 7322. Both listen on this computer. Start TCIdigi before flarq. flarq connects as it starts. If TCIdigi is not running when flarq starts, flarq cannot connect and closes (flarq 4.3.8 can crash at that point). Start TCIdigi first.</p>
+<p>The switches are under Configure, General, on the page NBEMS (flmsg, flamp). Save writes them.</p>
+
+<h2>Received flmsg forms</h2>
+<p>Pick out received flmsg messages starts on. TCIdigi watches the received text for a message between [WRAP:beg] and [WRAP:end], saves that message, and then does what the rest of the page says. Turning this off turns all of that off.</p>
+<p>The file is saved in the NBEMS receive folder, WRAP/recv under the NBEMS folder. That folder is ~/.nbems/WRAP/recv unless you have pointed NBEMS somewhere else.</p>
+<ul>
+<li><b>Hand them to a running flmsg</b> starts on. When flmsg is already running and connected, the message goes straight to it, and the steps below do not run.</li>
+<li><b>Open flmsg with each message</b> starts on. TCIdigi starts flmsg with the received message, unless the message was just handed to a running flmsg. If handing off is turned off, each message starts its own flmsg.</li>
+<li><b>Open the message ready to print</b> starts on. flmsg opens the printable view in your web browser.</li>
+<li><b>Open the receive folder in Finder</b> starts off. It shows the folder the message was saved in, unless the message was just handed to a running flmsg.</li>
+</ul>
+<p>Give up on a message after is how long to wait when nothing more of the message arrives. It starts at 2 seconds. Each received character starts the wait again.</p>
+<p>The flmsg program box is the program to start. Leave it empty, or point it at an flmsg app in /Applications, and TCIdigi follows the newest flmsg installed there.</p>
+
+<h2>Start flamp with TCIdigi</h2>
+<p>Start flamp starts off. When it is on, flamp starts when TCIdigi starts, and the ARQ socket is selected for it. The flamp program box works like the flmsg box: empty, or an app in /Applications, follows the newest flamp installed there.</p>
+<p><a href="index.html">Help contents</a></p>
+</body>
+</html>

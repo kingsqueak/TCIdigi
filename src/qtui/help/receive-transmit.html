@@ -1,0 +1,41 @@
+<html>
+<body>
+<h1>Receiving and transmitting</h1>
+
+<h2>Tune a signal</h2>
+<p>Click the trace on the waterfall. On PSK the modem then searches nearby for the signal. Hold Shift while you click to tune to that exact spot. You can also type the audio frequency into the number next to QSY, from 16 to 4000 Hz. That number does not search. Ctr puts it at 1500 Hz.</p>
+<p>QSY moves the radio so the signal sits at the sweet spot for the current mode, in the middle of the passband, and turns the transmit lock off. The sweet spots are under Configure, Modems, Sweet spots.</p>
+<p>The dial itself is the readout at the top. Scroll a digit, or double-click and type kHz. The radio mode and the filter width are the two menus under the readout.</p>
+<p>A left click on the waterfall does nothing while you are transmitting, so the tone already on the air is not moved by the mouse.</p>
+
+<h2>AFC and squelch</h2>
+<p>AFC tracks a signal that is locked. Turn it on with the AFC button, or with the middle mouse button on the waterfall. Modes with no AFC show the button off and greyed out.</p>
+<p>SQL turns the squelch on and off. The level is the slider on the vertical meter beside the waterfall. Text is held back until the signal passes that mark. The filled bar turns green when it has. Shift and the wheel over the picture also move the squelch. See <a href="waterfall.html">The waterfall</a>.</p>
+<p>RxID can open the squelch for a few seconds after it hears an RsID, and an end-of-transmission RsID can close it. Those times are under Configure, IDs, RsID.</p>
+
+<h2>RsID</h2>
+<p>RxID listens for an RsID and follows that mode and audio frequency. Turning the RxID button on searches the whole waterfall. The status line says when RxID is searching and when it is off.</p>
+<p>A received RsID can leave a mark in the receive pane. The mark is an underlined line in double angle brackets. Click it to go back to the mode and frequency it names. Clicking marks can be turned off under Configure, Text font and colors.</p>
+<p>TxID sends an RsID at the start of your transmission. CW, BPSK-31, and RTTY do not send one. Which modes send, and whether one is also sent at the end, are under Configure, IDs, RsID.</p>
+
+<h2>Send text</h2>
+<p>Type in the transmit box. With that box focused:</p>
+<ul>
+<li><b>Control-T</b> transmits. On a Mac that is the Control key, not the Command key. If you are already transmitting or tuning, Control-T does not start a second transmission.</li>
+<li><b>Control-R</b> returns to receive. It also stops a tune tone.</li>
+</ul>
+<p>No other modifier key may be held. The T/R button does the same thing: click to transmit, click again to receive. A macro can also switch to transmit. The text it produces is shown in the transmit box.</p>
+
+<h2>Stop transmitting</h2>
+<p>Press Escape, then Escape again within one second. Do this with no Shift, Control, Option, or Command held. It works anywhere in the main window, not only in the transmit box. Transmit or TUNE stops at once. A macro that is counting down to repeat is cancelled too, even if the radio is already back on receive. The first Escape by itself does nothing.</p>
+<p>T/R and Control-R also return to receive. Clicking the seconds button, when a macro is waiting to repeat, stops that macro and returns to receive. Clearing the transmit box while transmitting or tuning returns to receive as well.</p>
+
+<h2>TUNE</h2>
+<p>TUNE sends a steady tune tone so you can set the transmitter level. Click TUNE again to stop, or use Escape twice, or click T/R. The Tx box is the transmit attenuator, from -30 dB to 0 dB. Set it before you leave a tone running. The transmit timeout will also stop a tone that is left on with nothing being sent. See <a href="getting-started.html">Getting started</a>.</p>
+
+<h2>Transmit lock and reverse</h2>
+<p>Lk locks the transmit frequency where it is. You can tune the receiver to another spot. Transmit stays on the locked frequency. An amber span and a TX tab mark it on the waterfall when it is not the same as the receive cursor. Clicking the TX tab tunes, even if a SigID name is underneath it. Turning Lk off lets transmit follow the receive cursor again. An RsID that moves the receive frequency can be set to keep this lock. That choice is under Configure, IDs, RsID.</p>
+<p>Rv reverses the modem for a signal that is upside down. Whether reverse is remembered for each mode and band is under Configure, General, Startup and exit.</p>
+<p><a href="index.html">Help contents</a></p>
+</body>
+</html>

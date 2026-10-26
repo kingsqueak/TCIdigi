@@ -17,6 +17,7 @@
 #include "engine_wf.h"
 #include "eqslclient.h"
 #include "qrzclient.h"
+#include "helpwindow.h"
 #include "palettedialog.h"
 #include "settingsdialog.h"
 #include "waterfallview.h"
@@ -51,6 +52,8 @@
 #include <QImage>
 #include <QKeyEvent>
 #include <QKeySequence>
+#include <QUrl>
+#include <QDesktopServices>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -4381,6 +4384,21 @@ void MainWindow::buildMenus()
 	});
 
 	auto* helpMenu = menuBar()->addMenu(QStringLiteral("Help"));
+	auto* helpContents = helpMenu->addAction(QStringLiteral("TCIdigi Help"), this, [this] {
+		showHelp(this, QStringLiteral("index.html"));
+	});
+#ifdef Q_OS_MACOS
+	// Command-? on a Mac. Elsewhere the standard key is F1, which runs the
+	// first macro here, so help has no shortcut there.
+	helpContents->setShortcut(QKeySequence::HelpContents);
+#endif
+	helpMenu->addAction(QStringLiteral("Keyboard shortcuts"), this, [this] {
+		showHelp(this, QStringLiteral("shortcuts.html"));
+	});
+	helpMenu->addAction(QStringLiteral("fldigi manual (web)"), this, [] {
+		QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.w1hkj.org/FldigiHelp/index.html")));
+	});
+	helpMenu->addSeparator();
 	helpMenu->addAction(QStringLiteral("About"), this, [this] {
 		// szAbout in dialogs/htmlstrings.cxx is the About text. Its body
 		// colors are for the FLTK help window, so the theme's are used here.

@@ -67,7 +67,17 @@ qt_add_executable(fldigi-qt
   settingspages.cpp
   palettedialog.h
   palettedialog.cpp
+  helpwindow.h
+  helpwindow.cpp
   ${FLDIGI_MODEM_OBJECTS}
+)
+
+# The help pages, built in so help works offline (shown at qrc:/help/).
+file(GLOB TCIDIGI_HELP_PAGES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/help/*.html")
+qt_add_resources(fldigi-qt "qtui_help"
+  PREFIX "/help"
+  BASE help
+  FILES ${TCIDIGI_HELP_PAGES}
 )
 
 qt_add_resources(fldigi-qt "qtui_icons"

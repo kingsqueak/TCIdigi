@@ -1,0 +1,40 @@
+<html>
+<body>
+<h1>The waterfall</h1>
+<p>The picture under the macro buttons is the audio in the receiver passband. A brighter trace is a stronger signal. In the waterfall view each new row is one pixel tall and the older rows scroll down. The frequency scale is along the bottom. A line marks the tuned frequency, with the edges of the mode's bandwidth. Moving the pointer draws the same lines in white.</p>
+<p>The WF button under the picture cycles three views. WF is the waterfall. FFT is a spectrum of the newest row, as bars. SIG is a scope, a time display. The scope has no frequency scale, and the mouse does nothing on it. x1, x2, and x4 magnify the waterfall and the spectrum. That button is off while the scope is showing. &lt; and &gt; move the view 100 Hz. || centers the view on the signal. NORM cycles the speed: NORM, FAST, PAUSE, and SLOW. How much slower SLOW is, and the lower frequency the picture starts at, are under Configure, General, Waterfall.</p>
+<p>The two numbers to the right of WF are the upper signal level, in dB, and how many dB the colors cover. Waterfall colors are under Configure, Waterfall colors. See <a href="modes-settings.html">Modes and settings</a>.</p>
+
+<h2>Click to tune</h2>
+<p>Click a trace to tune the modem there. On PSK it then searches nearby for the signal. Hold Shift to tune to that exact spot and not search. You can drag across the picture to follow a trace. A click does not tune while you are transmitting.</p>
+<p>A plain left click can also insert text into the receive pane. That is off until you turn on Insert text on a left click, under Configure, General, Waterfall. The text to insert is on that page. &lt;FREQ&gt; in it becomes the mode and frequency. Shift, Control, Option, or Command skips the insert. A double-click, with no modifier key, inserts a frequency mark instead.</p>
+<p>Turn on Replay audio on click if a left click should also play the recent audio. A right click then replays too, and the previous frequency returns when you release the button.</p>
+
+<h2>SigID tabs</h2>
+<p>When SigID is on, a tab with the mode name sits on each named signal. Click the tab to change to that mode and tune to the signal, the same as clicking its mark in the receive pane. See <a href="sigid.html">Signal identification (SigID)</a>. If the amber TX tab from the transmit lock covers a name, that click tunes to the locked transmit frequency instead.</p>
+
+<h2>The scale and the radio</h2>
+<p>Dragging the frequency scale moves the radio only when Dragging the scale moves the radio is on, under Configure, General, Waterfall. It starts off. With it on, the audio cursor stays put and the dial moves. On USB, dragging toward a higher audio frequency lowers the dial. On LSB it raises the dial, so the mark you grabbed stays under the pointer. The wheel on the scale then steps the dial by 500 Hz. Wheel down lowers the dial.</p>
+<p>With that setting off, a click or drag on the scale tunes the modem, the same as a click on the picture. The wheel on the scale then does what the wheel on the picture does.</p>
+
+<h2>Mouse buttons</h2>
+<p>These are ignored on the scope, and they do not retune while you are transmitting.</p>
+<ul>
+<li><b>Right-click</b> listens at that spot until you release the button, then the cursor goes back. Dragging follows the pointer. Hold Control as well and the drag stays put. Release with Control held and the radio moves so the signal sits on the sweet spot, instead of restoring the old cursor. Control here is the Control key. On a Mac that is not the same as a right-click, and it is not the Command key.</li>
+<li><b>Control-click</b> (Control and the left button) replays the recent audio at the current cursor and does not move it. This works even when Replay audio on click is off.</li>
+<li><b>Option-Control click</b> toggles a notch at the audio frequency under the pointer. On Linux that click is Alt and Control. A dashed line marks it. A second click with those keys clears the notch, wherever the pointer is.</li>
+<li><b>Middle button</b> turns AFC on or off.</li>
+</ul>
+
+<h2>The wheel</h2>
+<p>Over the picture, with no key held, the wheel does what Wheel over the picture is set to. It starts as the modem carrier, one hertz per notch. Wheel down lowers the carrier. Wheel up raises it.</p>
+<p>On a Mac, hold one of these keys:</p>
+<ul>
+<li><b>Control</b> is the AFC range or bandwidth. On CW the bandwidth changes by 10 Hz per notch, kept between 10 and 800 Hz, and the status line shows the new width. On PSK the status line shows the search range, and on Hell it shows the bandwidth. The wheel does not change those. Other modes ignore this key.</li>
+<li><b>Option or Command</b> searches for a signal. Wheel down searches down. Wheel up searches up.</li>
+<li><b>Shift</b> moves the squelch one step per notch. Wheel down lowers it.</li>
+</ul>
+<p>On Linux the same three actions are Control, Alt or the Windows or Super key, and Shift. If Control is held, that action is the one that runs.</p>
+<p><a href="index.html">Help contents</a></p>
+</body>
+</html>

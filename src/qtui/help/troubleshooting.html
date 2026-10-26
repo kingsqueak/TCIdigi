@@ -1,0 +1,29 @@
+<html>
+<body>
+<h1>Troubleshooting</h1>
+
+<h2>"can't be opened" on macOS</h2>
+<p>The Mac download needs macOS 26.0 or newer on Apple silicon. The app is not notarized, so macOS can refuse to open it with "can't be opened". Clear the download quarantine once from Terminal, then open TCIdigi as usual. Use the version in the app's name:</p>
+<p><code>xattr -dr com.apple.quarantine /Applications/TCIdigi-&lt;version&gt;.app</code></p>
+
+<h2>No TCI connection</h2>
+<p>Open Configure, TCI. Turn on Enable TCI. Set Host and Port to the radio software's TCI server. On this computer that is often 127.0.0.1 and 40001. Set Receiver to the receiver you want, from 0 to 15. The line in the dialog is the connection status. Save is refused if the host is empty or the port is not from 1 to 65535. The radio's TCI server has to be running.</p>
+<p>If the status line at the bottom of the main window says Modem not connected, the modem itself did not start. Buttons then say they are not connected in this window. That is separate from a radio that is simply not answering TCI.</p>
+
+<h2>No receive audio</h2>
+<p>Turn on Use TCI for receive and transmit audio in Configure, TCI. This program has no sound-card input. Check the receiver number. The Rx box at the lower right, shown while TCI audio is in use, is an attenuator from -50 dB to 0 dB. 0 leaves the level unchanged. A large negative number makes a fixed receiver output quiet. With SQL on, text stays hidden until the signal passes the squelch mark on the meter beside the waterfall. Click the trace so the cursor is on the signal.</p>
+
+<h2>No transmit</h2>
+<p>TCI has to be enabled and connected, and Use TCI for receive and transmit audio has to be on. The Tx box is the transmit attenuator, from -30 dB to 0 dB. A level near -30 is very quiet. Transmit from the transmit box with Control-T, or with the T/R button. TUNE sends a tone if you only want a carrier. If a transmission stops by itself and a warning names the transmit timeout, the radio was keyed with nothing being sent. Each character starts that timer again. Zero on Configure, General, Transmit turns the timeout off. It starts at 5 minutes.</p>
+
+<h2>Where settings are</h2>
+<p>With no other folder chosen, settings are in ~/.tcidigi. TCIdigi does not read ~/.fldigi, and it does not write fldigi's settings. A folder whose path contains fldigi-bak is refused.</p>
+<p>From a shell, <code>--config-dir</code> followed by a folder uses that folder instead. <code>--appearance</code> followed by <code>system</code>, <code>light</code>, or <code>dark</code> is the appearance for that run only. <code>--help</code> prints the options. <code>--exit-after</code> followed by a number of seconds quits when that time is up, and does not ask. Other arguments are passed on to the modem.</p>
+
+<h2>The fldigi manual</h2>
+<p>Modes, and the full list of macro tags, are documented in the fldigi manual:</p>
+<p><a href="https://www.w1hkj.org/FldigiHelp/">https://www.w1hkj.org/FldigiHelp/</a></p>
+<p>Help, fldigi manual (web) opens that page. These help pages are only the TCIdigi window.</p>
+<p><a href="index.html">Help contents</a></p>
+</body>
+</html>

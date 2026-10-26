@@ -1,0 +1,52 @@
+<html>
+<body>
+<h1>Modes and settings</h1>
+
+<h2>Pick a mode</h2>
+<p>Use the mode button at the top. Hover or click to open a group, then pick the mode. The groups are BPSK, Contestia, CW, DominoEX, Hell, MFSK, MT63, Olivia, QPSK, RTTY, and Thor. BPSK in that menu is BPSK-31 through BPSK-1000. The button shows the group. Its tip shows the mode. The mode name at the lower left steps to the next mode in the menu.</p>
+<p>Modes outside those groups are not listed on their own. That includes the multi-carrier and PSK-R modes, 8PSK, OFDM, THROB, SCAMP, FSQ, IFKP, NAVTEX, SITOR-B, and WEFAX. If the receiver is already in one of them, that mode is added under Other. A received RsID or a SigID click can still change to a mode that is not on the menu.</p>
+<p>A new mode starts at that mode's sweet spot. The spots start at 1500 Hz. Turn this off, or change the spots, under Configure, Modems, Sweet spots. How a mode behaves on the air is in the <a href="https://www.w1hkj.org/FldigiHelp/">fldigi manual</a>.</p>
+
+<h2>Configure</h2>
+<p>The Configure menu opens one dialog at a time. Modems, IDs, and General have a page list on the left. Save writes the changes. Close leaves them as they were.</p>
+
+<h3>Station</h3>
+<p>Operator name, a call if the operator's call is not the station call, and QTH. Station call, a 6-character grid, and a short antenna. PSK Reporter host, port, and whether each report includes the dial frequency. The Spot button uses the station call, the grid, and the antenna. Macros use the operator and station text. See <a href="macros.html">Macros</a>.</p>
+
+<h3>TCI</h3>
+<p>The radio connection: enable TCI, use TCI for receive and transmit audio, host, port, and receiver number. The status line in the dialog says whether the radio is reached. See <a href="getting-started.html">Getting started</a>.</p>
+
+<h3>Modems</h3>
+<p>One page of receiver and transmitter choices for each family: CW, RTTY, PSK, Olivia and Contestia, MT63, THOR and DominoEX, MFSK and IFKP, FSQ, SCAMP, Hellschreiber, and NAVTEX and WEFAX. Sweet spots is where CW, RTTY, and the other modes open on the waterfall, and whether a new mode jumps there. That page also has the shaping applied to the start and end of some transmissions.</p>
+
+<h3>IDs</h3>
+<p>Four pages.</p>
+<ul>
+<li><b>RsID</b> is reception and transmit of the Reed-Solomon identifier: whether a received ID only notifies you, whether it changes frequency, which modes are listened for, which modes send an ID, a tone before the ID, and an ID at the end.</li>
+<li><b>SigID</b> names signals with no ID. See <a href="sigid.html">Signal identification (SigID)</a>.</li>
+<li><b>Video ID</b> paints the mode name, and a short text such as CQ, on the waterfall at the start of a transmission, and chooses which modes do that.</li>
+<li><b>CW ID</b> sends your call in Morse at the end of a transmission, with the speed and the modes that do it.</li>
+</ul>
+
+<h3>General</h3>
+<p>Five pages.</p>
+<ul>
+<li><b>Waterfall</b> is the frequency limits, the picture, and the mouse: replay audio on a click, dragging the scale to move the radio, inserting text on a click, and what the wheel does. See <a href="waterfall.html">The waterfall</a>.</li>
+<li><b>Signal browser</b> is how many channels are watched and how long a quiet channel keeps its text.</li>
+<li><b>Transmit</b> is the transmit timeout, the wait after keying before the audio starts, the wait after the audio before the radio unkeys, and sending everything in lower case. The waits apply to TCI.</li>
+<li><b>NBEMS (flmsg, flamp)</b> is received flmsg forms and starting flamp with TCIdigi. See <a href="nbems.html">flmsg, flamp and flarq</a>.</li>
+<li><b>Startup and exit</b> chooses what is remembered for each mode on each band: transmit level, squelch, AFC, and reverse. On quit, a configuration that has changed is saved when Save a changed configuration is on, which it is to start with. Ask before quitting makes Quit ask first. It starts on.</li>
+</ul>
+
+<h3>Waterfall colors</h3>
+<p>Nine colors, from the weakest signal on the left to the strongest on the right. The waterfall shows each change at once. Pick a saved palette from the list, click a color to change it, or Save as file to keep a palette and pick it again later. Save keeps the colors. Cancel puts the previous palette back.</p>
+
+<h3>Text font and colors</h3>
+<p>The font used for received text, the transmit box, and the signal browser. Received text is the color of incoming text in the receive pane. Transmitted text is the color of sent text in the receive pane and of the transmit box. Default colors follows the theme for received text and uses red for transmitted text. Notices such as an RsID keep the theme text color. The font and colors change as you edit them. Cancel puts them back. Save keeps them.</p>
+<p>The same dialog has Click a call or a mark in the receive pane to use it. On, a click on a call sign looks it up and a click on an RsID or SigID mark moves to that signal. Off, a click only places the cursor.</p>
+
+<h2>Appearance</h2>
+<p>View, Appearance is System, Light, or Dark. The choice is kept. A single run can use another one from the command line. See <a href="troubleshooting.html">Troubleshooting</a>.</p>
+<p><a href="index.html">Help contents</a></p>
+</body>
+</html>

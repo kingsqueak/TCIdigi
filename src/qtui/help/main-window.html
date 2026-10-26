@@ -1,0 +1,72 @@
+<html>
+<body>
+<h1>The main window</h1>
+<p>From the top: the dial and the radio, the mode and the logging fields, the receive and transmit text, the macro buttons, the waterfall, then the level and status line. Drag the bar between receive and transmit to resize those two panes. Drag the bar above the waterfall to give more room to the text or to the waterfall.</p>
+
+<h2>Frequency, radio mode, and filter</h2>
+<p>The large readout is the dial in kHz. Scroll a digit to change that place. Double-click the readout to type a frequency in kHz, such as 14070.000.</p>
+<p>The menu under the readout is the radio mode: USB, LSB, DIGU, DIGL, CWU, CWL, AM, SAM, FM, NFM, or DSB. A mode the radio reports that is not in that list is added. The menu beside it is the filter width in Hz, such as 0-4000 or 80-3000. A width the radio reports is added the same way. Both are sent to the radio over TCI.</p>
+
+<h2>Mode menu</h2>
+<p>The wide button beside Browser is the mode group. It shows the group name, such as BPSK or Olivia. Hover or click it. The groups are BPSK, Contestia, CW, DominoEX, Hell, MFSK, MT63, Olivia, QPSK, RTTY, and Thor. BPSK in that list is BPSK-31 through BPSK-1000. The button's tip is the mode that is selected. The same mode name is the button at the lower left of the window. A left click there steps to the next mode in the menu.</p>
+<p>Modes outside those groups are not listed on their own. That includes the multi-carrier and PSK-R modes, 8PSK, OFDM, THROB, SCAMP, FSQ, IFKP, NAVTEX, SITOR-B, and WEFAX. If the receiver is already in one of them, that mode is added under Other. RxID and SigID can still switch to a mode that is not on the menu.</p>
+
+<h2>Call, name, QTH, and grid</h2>
+<p>Between the mode button and the buttons on the right:</p>
+<ul>
+<li>Call, then Lookup. Name and QTH are on the same row.</li>
+<li>Grid, then Log. Sent and Rcvd are the RST reports. They start at 599. You can edit them before you log.</li>
+</ul>
+<p>The call is the station to look up and log. Name, QTH, and grid are filled from QRZ and can be edited. The line beside the reports is the lookup and log result. Double-click it to add comments for this contact. Lookup, Log, and the accounts are described in <a href="logging.html">Lookup and logging</a>.</p>
+
+<h2>Buttons on the right</h2>
+<p>Two rows. A number appears at the left of the top row only while a macro is waiting to repeat. It is the seconds left. Click it to stop the macro and return to receive.</p>
+<ul>
+<li><b>TxID</b> sends an RsID at the start of a transmission. CW, BPSK-31, and RTTY do not send one. If the current mode does not send RsID, TxID stays on for modes that do, and the status line says so.</li>
+<li><b>TUNE</b> sends a tune tone. Click again to stop.</li>
+<li><b>SigID</b> names the signals in the passband without an RsID. It uses some CPU, so it starts off. See <a href="sigid.html">Signal identification (SigID)</a>.</li>
+<li><b>RxID</b> listens for an RsID across the waterfall and follows that mode and audio frequency. Turning it on searches the whole waterfall.</li>
+<li><b>Spot</b> sends received call signs to PSK Reporter. Click again to stop. The station call, a 6-character grid, and the antenna come from Configure, Station. If the report cannot start, the button turns off and a message says why.</li>
+</ul>
+
+<h2>Receive pane</h2>
+<p>The upper text area is received text. It is read-only. A click on a call sign puts that call in the Call box. A click on a mark moves to that signal. Marks are the underlined lines wrapped in double angle brackets, from RxID or from SigID. Both clicks can be turned off under Configure, Text font and colors, which suits selecting text to copy. The box starts with clicks on.</p>
+<p>Right-click the pane and choose Clear to empty it. In a Hell mode the pane is a picture of the received characters instead of text. Right-click that picture and choose Clear to wipe it.</p>
+
+<h2>Transmit box</h2>
+<p>The lower text area is the text to send. With that box focused, Control-T transmits and Control-R returns to receive. On a Mac, Control is the Control key, not the Command key. Escape twice stops transmit at once. Right-click and choose Clear to empty the box. Clearing it while you are transmitting or tuning also returns the radio to receive, so an empty box does not leave the radio keyed. Typing updates the text the modem will send. See <a href="receive-transmit.html">Receiving and transmitting</a>.</p>
+
+<h2>Macro buttons</h2>
+<p>Under the text, twelve buttons are one set of macros. The number at the right of the row is the set, 1 to 4. Click it for the next set. Right-click it for the previous set. Click a button to run that macro. Right-click it to edit it. F1 through F12 run the twelve buttons on screen, left to right. See <a href="macros.html">Macros</a>.</p>
+
+<h2>Waterfall row</h2>
+<p>The picture is the waterfall, with the signal meter on its right. Mouse actions are in <a href="waterfall.html">The waterfall</a>. The controls under the picture, from left to right:</p>
+<ul>
+<li><b>WF</b> cycles the view: WF is the waterfall, FFT is the spectrum, SIG is the scope.</li>
+<li>The first number is the upper signal level in dB, from -80 to 0. The second is how many dB the colors cover, from 6 to 90.</li>
+<li><b>x1</b> cycles the magnification x1, x2, and x4. It is off while the scope is showing.</li>
+<li><b>&lt;</b> moves the view 100 Hz lower. <b>||</b> centers the view on the signal. <b>&gt;</b> moves the view 100 Hz higher.</li>
+<li><b>NORM</b> cycles the drop speed: NORM, FAST, PAUSE, SLOW.</li>
+<li>The next number is the cursor frequency in Hz, from 16 to 4000. Editing it tunes to that exact frequency.</li>
+<li><b>QSY</b> centers the signal in the passband. The radio moves so the audio cursor sits on the sweet spot for the mode, and the transmit lock is turned off.</li>
+<li><b>Ctr</b> puts the cursor at 1500 Hz.</li>
+<li><b>Store</b> stores the mode and the frequency. The status line confirms it, or says it was already stored. Right-click Store to recall a stored spot. Recalling a different dial frequency moves the radio. Recalling the same dial only moves the audio frequency and, if needed, changes the mode. If you are transmitting or tuning, recall returns to receive first. Clear on that menu empties the list. The list is kept for the next time you start, and it holds up to 30 spots.</li>
+<li><b>Lk</b> locks the transmit frequency. Receive can move. Transmit stays. While it is on, an amber TX tab marks that spot on the waterfall.</li>
+<li><b>Rv</b> reverses the modem, for a signal that is inverted.</li>
+<li><b>AFC</b> tracks a locked signal. A click on the waterfall also searches nearby on PSK. Shift-click tunes to the exact spot. The button is greyed out, and says so, when the mode has no AFC.</li>
+<li><b>SQL</b> is the squelch. The slider on the meter beside the waterfall is the squelch level.</li>
+<li><b>T/R</b> transmits. Click again to receive. It also stops a tune tone.</li>
+</ul>
+
+<h2>Signal level and status</h2>
+<p>The meter beside the waterfall is the detected signal, from -80 dB at the bottom to +20 dB at the top, with marks at -60, -40, -20, and 0. Drag the squelch mark. The bar turns green when the signal passes it.</p>
+<p>The wide meter at the bottom is the same level drawn across: blue up to -50 dB, green from -50 to -5, and red from -5 to +20. The scale runs from -80 to +20.</p>
+<p>The bottom row also has the mode button, the signal report, the modem status, and the status line. The status line shows what the modem is doing, and short notes such as a stored frequency. At the right, Rx is the TCI receive attenuator in dB, from -50 to 0. It lowers a hot fixed receiver output. 0 leaves the level unchanged. It is shown only while audio is coming over TCI. Tx is the transmit attenuator, from -30 to 0.</p>
+
+<h2>Signal browser</h2>
+<p>Browser, next to the mode menu, opens the signal browser to the left of the text. Drag the bar between them to resize it. Undock lifts it into its own window, titled Signal Browser. Dock puts it back. Closing that window hides the browser.</p>
+<p>Each row is a channel. Click a row to tune to it. Click a call sign in a row to fill the Call box. Right-click a row to clear that line. Clear removes the text from every row. The seek box is a regular expression. Matching text turns blue, and the match ignores case. The channel number and the audio frequency at the start of the line are not part of the search.</p>
+<p>The slider under the list is the browser squelch. A higher setting hides weaker channels. PSK, RTTY, and CW each keep their own level. The slider is off for a mode that does not use it. How many channels, and how long a quiet channel keeps its text, are under Configure, General, Signal browser. It starts with 30 channels, and a quiet channel keeps its text for 300 seconds.</p>
+<p><a href="index.html">Help contents</a></p>
+</body>
+</html>
