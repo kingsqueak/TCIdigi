@@ -110,6 +110,19 @@ jobs:
       - name: Build the Windows zip
         run: ./scripts/make-windows.sh
 
+      # Start the packaged program once, off screen, from a throwaway
+      # configuration whose TCI points at an unused local port: every DLL
+      # must load and the engine must start and quit cleanly.
+      - name: Start TCIdigi once
+        run: |
+          mkdir -p smoke
+          printf '[station]\nname=CI\n' > smoke/tcidigi.ini
+          printf '<FLDIGI_DEFS>\n<CONFIRMEXIT>0</CONFIRMEXIT>\n<TCI_ENABLE>1</TCI_ENABLE>\n<TCI_HOST>127.0.0.1</TCI_HOST>\n<TCI_PORT>50999</TCI_PORT>\n</FLDIGI_DEFS>\n' > smoke/fldigi_def.xml
+          exe=$(ls dist/TCIdigi-*/TCIdigi.exe)
+          QT_QPA_PLATFORM=offscreen timeout 180 "$exe" \
+            --config-dir "$(cygpath -m "$PWD/smoke")" --exit-after 15
+          echo "TCIdigi started and quit: exit $?"
+
       - uses: actions/upload-artifact@v4
         with:
           name: tcidigi-windows
