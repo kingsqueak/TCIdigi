@@ -153,8 +153,8 @@ static bool worth_showing(const sigid_candidate &c)
 		return false;
 	if (c.ambiguous && !progdefaults.sigid_ambiguous)
 		return false;
-	double near = std::max(25.0, (c.hi - c.lo) / 2);
-	if (active_modem && fabs(active_modem->get_freq() - c.center) < near) {
+	double nearby = std::max(25.0, (c.hi - c.lo) / 2);
+	if (active_modem && fabs(active_modem->get_freq() - c.center) < nearby) {
 		trx_mode now = active_modem->get_mode();
 		if (now == c.mode || (c.ambiguous && now == c.alternate))
 			return false;
@@ -196,7 +196,7 @@ static void mark_new_signals(const sigid_candidate *c, size_t n, double now)
 		if (!worth_showing(c[i]))
 			continue;
 		double bw = c[i].hi - c[i].lo;
-		double near = std::max(25.0, bw / 2);
+		double nearby = std::max(25.0, bw / 2);
 		std::string label = label_of(c[i]);
 		bool seen = false;
 		for (size_t k = 0; k < marks.size(); k++) {
@@ -204,7 +204,7 @@ static void mark_new_signals(const sigid_candidate *c, size_t n, double now)
 			// The same track saying the same thing, or the same mode
 			// marked here recently (a track that came back).
 			if ((m.id == c[i].id && m.label == label)
-			    || (m.label == label && fabs(m.freq - c[i].center) < std::max(near, m.bandwidth / 2))) {
+			    || (m.label == label && fabs(m.freq - c[i].center) < std::max(nearby, m.bandwidth / 2))) {
 				seen = true;
 				break;
 			}

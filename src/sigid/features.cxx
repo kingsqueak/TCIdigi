@@ -525,14 +525,14 @@ static double shift_fit(const std::vector<cplx> &z, double fz, double shift, dou
 	// of the power must be there; several tones, or noise, spread out.
 	double best = 0;
 	for (int c = per; c <= 3 * per; c++) {
-		double near = 0;
+		double nearby = 0;
 		for (int side = -1; side <= 1; side += 2) {
 			int mid = c + side * per / 2;
 			for (int b = mid - per / 8; b <= mid + per / 8; b++)
 				if (b >= 0 && b < nb)
-					near += hist[b];
+					nearby += hist[b];
 		}
-		best = std::max(best, near / total);
+		best = std::max(best, nearby / total);
 	}
 	return std::max(0.0, std::min(1.0, (best - 0.55) / 0.35));
 }
