@@ -3,6 +3,7 @@
 
 import os
 import re
+import subprocess
 import sys
 
 
@@ -61,6 +62,28 @@ def fix_include(flag, src):
     if not os.path.isabs(path):
         path = os.path.join(src, path)
     return "-I" + os.path.normpath(path)
+
+
+def windows_path(path):
+    """On Windows, an MSYS path such as /ucrt64/lib/x.a as a native one.
+
+    The autotools build runs in an MSYS2 shell, which translates these for
+    the programs it starts; CMake and Ninja are native and are not.
+    """
+    if sys.platform != "win32" or not path.startswith("/"):
+        return path
+    try:
+        out = subprocess.run(["cygpath", "-m", path], capture_output=True, text=True, check=True)
+        return out.stdout.strip() or path
+    except (OSError, subprocess.CalledProcessError):
+        return path
+
+
+def windows_flag(flag):
+    for prefix in ("-L", "-I"):
+        if flag.startswith(prefix + "/"):
+            return prefix + windows_path(flag[len(prefix):])
+    return windows_path(flag)
 
 
 def shell_split(text):
@@ -129,14 +152,20 @@ def main():
                 flag = '-D%s="%s"' % (name, value)
         compile_flags.append(flag)
 
+    # As automake links a program: its LDFLAGS and LDADD, then $(LIBS)
+    # (configure's LIBS, such as -lwinmm on Windows).
     link_text = " ".join(
         (
             expand(values.get("fldigi_LDFLAGS", ""), values),
             expand(values.get("fldigi_LDADD", ""), values),
+            expand(values.get("LIBS", ""), values),
         )
     )
     link_text = " ".join(link_text.split())
-    link_flags = shell_split(link_text)
+    link_flags = [windows_flag(flag) for flag in shell_split(link_text)]
+    compile_flags = [windows_flag(flag) for flag in compile_flags]
+    if sys.platform == "win32":
+        link_text = " ".join(link_flags)
 
     with open(out_path, "w", encoding="utf-8") as out:
         out.write("set(FLDIGI_MODEM_OBJECTS\n")
