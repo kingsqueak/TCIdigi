@@ -29,15 +29,21 @@ windeployqt6 --release --no-translations --no-system-d3d-compiler --no-opengl-sw
 	"$OUTDIR/TCIdigi.exe"
 
 # Every MinGW DLL the program and its plugins load, from the UCRT64 tree.
+# A file with nothing left to copy is fine: grep finding no line is not
+# an error here.
 copy_deps() {
-	ntldd -R "$1" 2>/dev/null | awk '{print $3}' | tr '\\' '/' \
-		| grep -i "/ucrt64/bin/" | while read -r dll; do
+	local dlls dll
+	dlls=$(ntldd -R "$1" 2>/dev/null | awk '{print $3}' | tr '\\' '/' \
+		| grep -i "/ucrt64/bin/" || true)
+	for dll in $dlls; do
 		dll=$(cygpath -u "$dll")
 		[ -f "$OUTDIR/$(basename "$dll")" ] || cp "$dll" "$OUTDIR/"
 	done
 }
 copy_deps "$OUTDIR/TCIdigi.exe"
-find "$OUTDIR" -name "*.dll" | while read -r f; do copy_deps "$f"; done
+for f in $(find "$OUTDIR" -name "*.dll"); do
+	copy_deps "$f"
+done
 
 mkdir -p "$OUTDIR/share"
 cp data/NAVTEX_Stations.csv data/nsd_bbsss.txt data/station_table.txt \
