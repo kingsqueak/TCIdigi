@@ -122,6 +122,12 @@ jobs:
           QT_QPA_PLATFORM=offscreen timeout 180 "$exe" \
             --config-dir "$(cygpath -m "$PWD/smoke")" --exit-after 15
           echo "TCIdigi started and quit: exit $?"
+      - name: Keep the smoke-test folder
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-smoke
+          path: smoke
 
       - uses: actions/upload-artifact@v4
         with:
