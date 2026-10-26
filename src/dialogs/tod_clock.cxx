@@ -75,10 +75,15 @@ static int tx_timeout = 0;
 
 static int macro_time = -1;
 
+void (*tx_timeout_notice)(const char *msg) = 0;
+
 void kill_tx(void *)
 {
 	request_tr(false);
-	fl_alert2("TX timeout expired!\nAre you awake?");
+	if (tx_timeout_notice)
+		tx_timeout_notice("TX timeout expired!\nAre you awake?");
+	else
+		fl_alert2("TX timeout expired!\nAre you awake?");
 }
 
 void service_deadman()

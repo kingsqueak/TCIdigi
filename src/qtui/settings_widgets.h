@@ -248,3 +248,31 @@ SETTINGS_WIDGET(btnCWID)
 SETTINGS_WIDGET(sldrCWIDwpm)
 // Receive pane: single-click on a call or a mark (Text font and colors).
 SETTINGS_WIDGET(btnRXClicks)
+
+// Waterfall
+SETTINGS_WIDGET(cntLowFreqCutoff)
+SETTINGS_WIDGET(btnWFaveraging)
+SETTINGS_WIDGET(listboxFFTPrefilter)
+SETTINGS_WIDGET(wf_latency)
+SETTINGS_WIDGET(cntr_drop_speed)
+SETTINGS_WIDGET(btnViewXmtSignal)
+SETTINGS_WIDGET(valTxMonitorLevel)
+
+// Signal browser
+SETTINGS_WIDGET(cntChannels)
+SETTINGS_WIDGET(cntTimeout)
+SETTINGS_WIDGET(btnAscend)
+
+// Transmit
+SETTINGS_WIDGET(val_tx_timeout)
+SETTINGS_WIDGET(cntPTT_on_delay)
+SETTINGS_WIDGET(cntPTT_off_delay)
+SETTINGS_WIDGET(btn_tx_lowercase)
+
+// Startup and exit
+SETTINGS_WIDGET(btnTXLEVEL_by_mode)
+SETTINGS_WIDGET(btnSQLCH_by_mode)
+SETTINGS_WIDGET(btnAFC_by_mode)
+SETTINGS_WIDGET(btnREVERSE_by_mode)
+SETTINGS_WIDGET(btn_save_config_on_exit)
+SETTINGS_WIDGET(btn2_confirm_exit)

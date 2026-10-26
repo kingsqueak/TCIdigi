@@ -58,9 +58,11 @@ struct SettingPage {
 	std::vector<SettingItem> items;
 };
 
-// The pages of Configure > Modems and Configure > IDs (settingspages.cpp).
+// The pages of Configure > Modems, Configure > IDs, and the general
+// pages (settingspages.cpp).
 std::vector<SettingPage> modemSettingPages();
 std::vector<SettingPage> idSettingPages();
+std::vector<SettingPage> generalSettingPages();
 
 // A dialog with the pages listed on the left. Save applies what changed,
 // in page order, then saves fldigi's configuration; Close drops it.

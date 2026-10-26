@@ -318,9 +318,35 @@ void engine_eqsl_account(char* user, int user_cap, char* password, int pass_cap,
 		*when_logged = progdefaults.eqsl_when_logged ? 1 : 0;
 }
 
+// fldigi's transmit-timeout alert, kept for the Qt window to show.
+static std::string g_alert;
+
+static void note_tx_timeout(const char* msg)
+{
+	g_alert = msg ? msg : "";
+	put_status("Transmit timed out and was stopped.", 30.0);
+}
+
+int engine_browser_count()
+{
+	if (!g_up)
+		return MAXCHANNELS;
+	return std::max(1, std::min((int)MAXCHANNELS, progdefaults.VIEWERchannels));
+}
+
+int engine_take_alert(char* buf, int cap)
+{
+	if (g_alert.empty() || !buf || cap < 1)
+		return 0;
+	copy_str(buf, cap, g_alert.c_str());
+	g_alert.clear();
+	return 1;
+}
+
 int engine_start(int argc, char** argv)
 {
 	g_mode_n = -1;
+	tx_timeout_notice = note_tx_timeout;
 	int rc = fldigi_start(argc, argv, 1);
 	g_up = (rc == 0) ? 1 : 0;
 	if (g_up) {
@@ -334,15 +360,6 @@ int engine_start(int argc, char** argv)
 		if (wf)
 			wf->setFixedWidth(WF_SAMPLERATE / 2 / 4);
 		psk_browser_keep_text(true);
-		// Saved configs clear a channel after 15 seconds. Keep the QSO text for
-		// 5 minutes. The PSK viewer still searches again after 15 seconds
-		// without a signal (VDECODEHOLD); only the text is kept longer.
-		// RTTY does the same. CW channels sit on fixed frequencies and never stop
-		// decoding, so there the timeout only clears text.
-		if (progdefaults.VIEWERtimeout != 300) {
-			progdefaults.VIEWERtimeout = 300;
-			progdefaults.changed = true;
-		}
 		stopMacroTimer();
 		macro_idle_on = false;
 		progStatus.skip_sked_macro = false;

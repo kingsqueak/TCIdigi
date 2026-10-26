@@ -182,7 +182,10 @@ int main(int argc, char* argv[])
 		// Close the window as Quit does. QCoreApplication::quit asks every
 		// window to close, and the hidden browser window refuses, which
 		// cancels the quit.
-		QTimer::singleShot(exit_after * 1000, &window, &QWidget::close);
+		QTimer::singleShot(exit_after * 1000, &window, [&window] {
+			qApp->setProperty("tcidigiTimedExit", true);
+			window.close();
+		});
 
 	const int rc = app.exec();
 	engine_stop();

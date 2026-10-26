@@ -190,6 +190,9 @@ void engine_set_mode_set(const char* name, const char* flags);
 int engine_mode_set_label(int i, char* buf, int cap);
 // Writes fldigi's configuration now.
 void engine_save_prefs();
+// A message fldigi would have shown in an alert (the transmit timeout),
+// once: copies it and returns 1, or returns 0 when there is none.
+int engine_take_alert(char* buf, int cap);
 
 // One waterfall label. Hz are rounded from the core's doubles.
 struct EngineSigidLabel {
@@ -246,6 +249,8 @@ void engine_set_operator(const char* call, const char* locator, const char* ante
 void engine_set_qso(const char* call, const char* name, const char* qth,
 	const char* locator, const char* rst_out, const char* rst_in);
 int engine_browser_line(int row, char* buf, int cap);
+// How many channels the signal browser watches (Configure, General).
+int engine_browser_count();
 void engine_browser_pick(int row);
 void engine_browser_clear_line(int row);
 void engine_browser_clear();

@@ -1167,6 +1167,17 @@ public:
 		m_clearAll = std::move(clearAll);
 	}
 
+	// The rows follow fldigi's channel count (Configure, General, Signal
+	// browser); a smaller count drops the rows past it.
+	void setChannelCount(int count)
+	{
+		count = qBound(1, count, kChannels);
+		if (count == m_count)
+			return;
+		m_count = count;
+		refill();
+	}
+
 	void setChannelText(int row, const QString& text)
 	{
 		if (!m_list || row < 0 || row >= m_list->count())
@@ -1234,7 +1245,7 @@ private:
 	void refill()
 	{
 		m_list->clear();
-		for (int i = 1; i <= kChannels; ++i)
+		for (int i = 1; i <= m_count; ++i)
 			m_list->addItem(channelLabel(i));
 		m_list->clearSelection();
 	}
@@ -1246,6 +1257,7 @@ private:
 	std::function<void()> m_clearAll;
 	std::function<void()> m_undockToggle;
 	QListWidget* m_list = nullptr;
+	int m_count = kChannels;
 	QLineEdit* m_seek = nullptr;
 	QRegularExpression m_seekRe;
 	QSlider* m_squelch = nullptr;
@@ -4129,7 +4141,9 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 				}
 			}
 			if ((ticks % 5) == 1) {
-				for (int row = 0; row < 30; ++row) {
+				const int channels = engine_browser_count();
+				browserPane->setChannelCount(channels);
+				for (int row = 0; row < channels; ++row) {
 					char line[4600];
 					engine_browser_line(row, line, (int)sizeof line);
 					browserPane->setChannelText(row, QString::fromUtf8(line));
@@ -4164,6 +4178,17 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 				sigidLabels.append(tab);
 			}
 			waterfall->setSigidLabels(sigidLabels);
+			// fldigi's transmit timeout: transmit is already stopped; say so
+			// without blocking the window.
+			char alert[256];
+			if (engine_take_alert(alert, (int)sizeof alert)) {
+				auto* box = new QMessageBox(QMessageBox::Warning, QStringLiteral("Transmit timeout"),
+					QStringLiteral("Transmit was stopped by the transmit timeout (Configure, General, Transmit).\n\n%1")
+						.arg(QString::fromUtf8(alert)),
+					QMessageBox::Ok, this);
+				box->setAttribute(Qt::WA_DeleteOnClose);
+				box->open();
+			}
 			waterfall->setTxLock(view.locked != 0, view.tx_carrier_hz);
 			m_applying = false;
 		});
@@ -4194,6 +4219,22 @@ MainWindow::MainWindow(Theme* theme, QWidget* parent)
 			});
 		}
 	}
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+	// --exit-after quits without asking, so a timed run never waits on it.
+	const bool timed = qApp->property("tcidigiTimedExit").toBool();
+	EnginePref confirm;
+	if (!timed && engine_pref("btn2_confirm_exit", &confirm) && confirm.value != 0) {
+		const auto answer = QMessageBox::question(this, QStringLiteral("Quit TCIdigi"),
+			QStringLiteral("Quit TCIdigi?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+		if (answer != QMessageBox::Yes) {
+			event->ignore();
+			return;
+		}
+	}
+	QMainWindow::closeEvent(event);
 }
 
 void MainWindow::showEvent(QShowEvent* event)
@@ -4245,6 +4286,9 @@ void MainWindow::buildMenus()
 	});
 	configureMenu->addAction(QStringLiteral("IDs…"), this, [this] {
 		editSettings(this, QStringLiteral("IDs"), idSettingPages());
+	});
+	configureMenu->addAction(QStringLiteral("General…"), this, [this] {
+		editSettings(this, QStringLiteral("General"), generalSettingPages());
 	});
 	configureMenu->addAction(QStringLiteral("Text font and colors…"), this, [this] {
 		chooseTextFont();

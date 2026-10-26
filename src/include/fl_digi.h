@@ -865,6 +865,10 @@ extern Fl_Double_Window *nano_calibration_dialog();;
 extern void  TOD_init();
 extern void  TOD_close();
 extern void  start_deadman();
+// When set, a transmit timeout reports through this instead of an FLTK
+// alert, after transmit has been stopped (the Qt shell, where an FLTK
+// modal dialog cannot run).
+extern void (*tx_timeout_notice)(const char *msg);
 extern void  stop_deadman();
 extern void  disable_deadman();
 

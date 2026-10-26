@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// settingspages.cpp -- modem and ID pages for the Qt settings dialog
+// settingspages.cpp -- modem, ID and general pages for the Qt settings dialog
 //
 // Copyright (C) 2026
 //
@@ -468,6 +468,69 @@ std::vector<SettingPage> idSettingPages()
 				"Speed of that Morse identification.", " WPM" },
 			{ SettingItem::ModeSet, "cwid_modes", "Modes that send a CW ID",
 				"A mode that is not ticked does not send a Morse identification.", nullptr },
+		} },
+	};
+}
+
+std::vector<SettingPage> generalSettingPages()
+{
+	return {
+		{ "Waterfall", {
+			{ SettingItem::Heading, nullptr, "Frequency and FFT", nullptr, nullptr },
+			{ SettingItem::Pref, "cntLowFreqCutoff", "Lower limit",
+				"Audio below this is left black, and the published picture starts here. The signal browser's first channel is this frequency.", " Hz" },
+			{ SettingItem::Pref, "btnWFaveraging", "FFT averaging",
+				"Each pixel is the average of the neighbouring frequency bins. Off keeps the strongest bin.", nullptr },
+			{ SettingItem::Pref, "listboxFFTPrefilter", "FFT window",
+				"Window applied to the samples before the transform.", nullptr },
+			// The latency loop is overwritten by a full-length window. Only the
+			// gain term, vscale *= sqrt(16/latency), remains.
+			{ SettingItem::Pref, "wf_latency", "FFT level",
+				"A higher value makes the picture quieter. The extra samples are overwritten, so this adds no delay and averages no more of the signal.", nullptr },
+			{ SettingItem::Pref, "cntr_drop_speed", "Slow speed",
+				"How many times longer the Slow waterfall waits between rows. Normal and Fast ignore it.", nullptr },
+			{ SettingItem::Heading, nullptr, "Transmitted signal", nullptr, nullptr },
+			{ SettingItem::Pref, "btnViewXmtSignal", "Show the transmitted audio",
+				"The audio being sent is drawn on the waterfall.", nullptr },
+			{ SettingItem::Pref, "valTxMonitorLevel", "Transmit monitor level",
+				"Gain applied to that audio before it is drawn. Used while the monitor above is on.", " dB" },
+		} },
+		{ "Signal browser", {
+			{ SettingItem::Note, nullptr,
+				"The first channel is the waterfall lower limit. The rest are 100 Hz apart. Channel width is the mode's bandwidth.",
+				nullptr, nullptr },
+			{ SettingItem::Pref, "cntChannels", "Number of channels",
+				"How many signals are watched, from 5 to 30. The first sits at the waterfall lower limit.", nullptr },
+			{ SettingItem::Pref, "cntTimeout", "Keep channel text for",
+				"How long a quiet channel keeps its text. Above 15 seconds a quiet PSK or RTTY channel searches again after 15 and keeps the text this long; at 15 or less both happen at this time. CW keeps decoding, and this only clears its text.", " s" },
+			{ SettingItem::Pref, "btnAscend", "Lowest frequency at the bottom",
+				"The rows run from low to high. Clearing a line uses that order.", nullptr },
+		} },
+		{ "Transmit", {
+			{ SettingItem::Pref, "val_tx_timeout", "Transmit timeout",
+				"Stops a transmitter left keyed with nothing to send (a stuck macro, or tune left on) after this many minutes, and shows a warning. Each character sent starts the count again, so a long QSO is not cut off. Zero turns it off.", " min" },
+			{ SettingItem::Pref, "cntPTT_on_delay", "Delay after keying",
+				"After the radio is keyed, wait this long before the audio starts. Applies to TCI.", " ms" },
+			{ SettingItem::Pref, "cntPTT_off_delay", "Delay before unkeying",
+				"After the audio stops, wait this long before the radio is unkeyed. Applies to TCI.", " ms" },
+			{ SettingItem::Pref, "btn_tx_lowercase", "Send lower case",
+				"Every character sent is turned to lower case.", nullptr },
+		} },
+		{ "Startup and exit", {
+			{ SettingItem::Heading, nullptr, "Remembered for each mode and band", nullptr, nullptr },
+			{ SettingItem::Pref, "btnTXLEVEL_by_mode", "Transmit level",
+				"The transmit level is stored for each mode on each band and put back when the mode or band changes.", nullptr },
+			{ SettingItem::Pref, "btnSQLCH_by_mode", "Squelch",
+				"The squelch level and whether it is open are stored for each mode on each band and put back when the mode or band changes.", nullptr },
+			{ SettingItem::Pref, "btnAFC_by_mode", "AFC",
+				"AFC on or off is stored for each mode on each band and put back when the mode or band changes.", nullptr },
+			{ SettingItem::Pref, "btnREVERSE_by_mode", "Reverse",
+				"Reverse sideband is stored for each mode on each band and put back when the mode or band changes.", nullptr },
+			{ SettingItem::Heading, nullptr, "When the program exits", nullptr, nullptr },
+			{ SettingItem::Pref, "btn_save_config_on_exit", "Save a changed configuration",
+				"On quit, a configuration that has changed is written, with no question. Off leaves the file as it was.", nullptr },
+			{ SettingItem::Pref, "btn2_confirm_exit", "Ask before quitting",
+				"Quit asks for confirmation first. Timed runs (--exit-after) never ask.", nullptr },
 		} },
 	};
 }

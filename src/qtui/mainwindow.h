@@ -39,6 +39,8 @@ public:
 
 protected:
 	void showEvent(QShowEvent* event) override;
+	// Asks first when fldigi's "Confirm exit" is on.
+	void closeEvent(QCloseEvent* event) override;
 
 private:
 	void buildMenus();
