@@ -122,7 +122,8 @@ jobs:
           printf '<FLDIGI_DEFS>\n<CONFIRMEXIT>0</CONFIRMEXIT>\n<TCI_ENABLE>1</TCI_ENABLE>\n<TCI_HOST>127.0.0.1</TCI_HOST>\n<TCI_PORT>50999</TCI_PORT>\n</FLDIGI_DEFS>\n' > smoke/fldigi_def.xml
           exe=$(ls dist/TCIdigi-*/TCIdigi.exe)
           PATH=/usr/bin:/c/Windows/system32:/c/Windows \
-            "$exe" --config-dir "$(cygpath -m "$PWD/smoke")" --exit-after 15 &
+            "$exe" --config-dir "$(cygpath -m "$PWD/smoke")" --exit-after 15 \
+            > smoke/run.txt 2>&1 &
           pid=$!
           for i in $(seq 120); do
             kill -0 $pid 2>/dev/null || break
@@ -134,12 +135,18 @@ jobs:
             echo "DLLs not found:"
             PATH=/usr/bin:/c/Windows/system32 /ucrt64/bin/ntldd -R "$exe" | grep -i "not found" || echo "(none)"
             kill $pid
+            cat smoke/run.txt
             exit 1
           fi
-          wait $pid
-          echo "TCIdigi started and quit: exit $?"
+          wait $pid || true
+          cat smoke/run.txt
+          if grep -q "Aborting" smoke/run.txt; then
+            tail -n 40 smoke/status_log.txt 2>/dev/null || true
+            exit 1
+          fi
+          echo "TCIdigi started and quit"
       - name: Keep the smoke-test folder
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: windows-smoke
