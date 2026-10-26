@@ -6,10 +6,11 @@ include hamlib, rigCAT, flrig, or the sound-card backends.
 
 ![TCIdigi receiving on 20 meters](docs/screenshot-0.29.png)
 
-Version 0.29 · Based on fldigi 4.2.13 · Licensed under the [GPL-3.0](COPYING).
+Version 0.30 · Based on fldigi 4.2.13 · Licensed under the [GPL-3.0](COPYING).
 
 The About box says "Based on fldigi." This repository is TCIdigi. It is not
 the upstream fldigi project. Downloads are on the
+[GitHub releases page](https://github.com/kingsqueak/TCIdigi/releases) and the
 [SourceForge files page](https://sourceforge.net/projects/tcidigi/files/).
 
 ## Features
@@ -20,6 +21,28 @@ the upstream fldigi project. Downloads are on the
 - The radio and the audio both go over TCI. Point it at a TCI server, such
   as 590Ctrl on `127.0.0.1:50001`
 - Settings are kept in `~/.tcidigi`. TCIdigi does not read `~/.fldigi`
+- Configure, Modems, IDs and General hold fldigi's settings for each mode,
+  RsID, video and CW ID, the waterfall, the signal browser, transmit and
+  exit. Waterfall colors picks or edits the waterfall palette
+- The waterfall does fldigi's mouse actions: click to tune, drag or wheel on
+  the scale to move the radio, right-click to listen, wheel actions with
+  Control, Option/Command and Shift
+- Help, TCIdigi Help (Command-? on a Mac) is built in and works offline
+
+**Signal identification (SigID)**
+- Names the mode of the signals in the passband without an RsID, for every
+  mode TCIdigi can receive. Off by default; the SigID button turns it on
+- Each signal gets a clickable mark in the receive pane and a tab on the
+  waterfall. A click switches mode and moves the radio so the signal sits at
+  1500 Hz
+- Look-alike modes (THOR or DominoEX, Olivia or Contestia, BPSK or PSK-R)
+  are told apart by decoding a few seconds of the signal
+
+**flmsg, flamp and flarq**
+- They connect to TCIdigi as they do to fldigi: XML-RPC on port 7362 and the
+  ARQ socket on port 7322
+- A received flmsg form is saved and opened in flmsg. The flmsg and flamp
+  in /Applications are found on a Mac (Configure, General, NBEMS)
 
 **Lookup and logging**
 - Call sign lookup uses QRZ (Log, QRZ account)
@@ -34,7 +57,8 @@ the upstream fldigi project. Downloads are on the
 
 ## Installing on macOS
 
-`TCIdigi-0.29.dmg` is on the
+`TCIdigi-0.30.dmg` is on the
+[GitHub releases page](https://github.com/kingsqueak/TCIdigi/releases) and the
 [SourceForge files page](https://sourceforge.net/projects/tcidigi/files/).
 It needs macOS 26.0 or newer on Apple silicon. Drag TCIdigi into
 Applications.
@@ -43,24 +67,36 @@ The app is not notarized, so macOS can refuse the first open. Clear the
 download quarantine once, then open it as usual:
 
 ```sh
-xattr -dr com.apple.quarantine /Applications/TCIdigi-0.29.app
+xattr -dr com.apple.quarantine /Applications/TCIdigi-0.30.app
 ```
 
 ## Installing on Ubuntu
 
 Packages for Ubuntu 26.04 LTS are on the
+[GitHub releases page](https://github.com/kingsqueak/TCIdigi/releases) and the
 [SourceForge files page](https://sourceforge.net/projects/tcidigi/files/).
 They use that release's Qt 6 and FLTK, which apt installs with the package.
 
-- `tcidigi_0.29-1_amd64.deb` for Intel and AMD PCs
-- `tcidigi_0.29-1_arm64.deb` for arm64
+- `tcidigi_0.30-1_amd64.deb` for Intel and AMD PCs
+- `tcidigi_0.30-1_arm64.deb` for arm64
 
 ```sh
-sudo apt install ./tcidigi_0.29-1_amd64.deb
+sudo apt install ./tcidigi_0.30-1_amd64.deb
 ```
 
 The program is `/usr/bin/TCIdigi`. Station tables for NAVTEX and weather
 modes are installed in `/usr/share/tcidigi`.
+
+## Windows (first build)
+
+`TCIdigi-0.30-windows-x64.zip` is on the
+[GitHub releases page](https://github.com/kingsqueak/TCIdigi/releases). It is
+a portable folder for 64-bit Windows 10 or 11: unzip it anywhere and run
+`TCIdigi.exe`. Nothing is installed. Settings are kept in `.tcidigi` in your
+user folder.
+
+This is the first Windows build. It is built and started once on GitHub's
+Windows runner, but it has not been used on the air yet. Reports are welcome.
 
 ## Building from source
 
@@ -110,8 +146,11 @@ under the configure prefix (`/usr/local/bin` by default).
 `confdialog.fl` unless you mean to regenerate that file.
 
 Linux can use the same steps when Qt 6 and FLTK are installed. An Ubuntu
-package is built by `scripts/make-deb.sh` on Ubuntu 26.04. A Windows build
-from this tree has not been made.
+package is built by `scripts/make-deb.sh` on Ubuntu 26.04. On Windows,
+`scripts/make-windows.sh` builds the portable zip in an MSYS2 UCRT64 shell,
+and on a macOS 26 system `scripts/make-dmg.sh` builds the DMG from
+Homebrew. The Packages workflow runs all of these on GitHub Actions for a
+`v*` tag.
 
 Generated configure output, object files, and `build-qt/` are gitignored.
 
