@@ -328,14 +328,18 @@ void show_band_mode_change()
 
 	if (progdefaults.reverse_by_mode) {
 		progStatus.reverse = modeband.get_mode_reverse();
+		bool rev = false;
 		if (active_modem->get_cap() & modem::CAP_REV) {
-			wf->btnRev->value(progStatus.reverse);
+			rev = progStatus.reverse;
 			wf->btnRev->activate();
 		}
-		else {
-			wf->btnRev->value(0);
+		else
 			wf->btnRev->deactivate();
-		}
+		// As the Rv button does, so the sideband really changes, not only
+		// the button. Not stored again: this is the stored value.
+		wf->btnRev->value(rev);
+		wf->Reverse(rev);
+		active_modem->set_reverse(rev);
 		wf->btnRev->redraw();
 	}
 
