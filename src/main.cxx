@@ -828,8 +828,10 @@ int main (int argc, char *argv[])
 #endif
 
 #ifdef __WOE32__
-	size_t p = appdir.rfind("fldigi.exe");
-	appdir.erase(p);
+	// The folder the program is in, whatever the program is called
+	// (TCIdigi.exe is not fldigi.exe).
+	size_t p = appdir.find_last_of("\\/");
+	appdir.erase(p == string::npos ? 0 : p + 1);
 	p = appdir.find("FL_APPS\\");
 	if (p != string::npos) {
 		BaseDir.assign(appdir.substr(0, p + 8));
