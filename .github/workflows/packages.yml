@@ -110,17 +110,33 @@ jobs:
       - name: Build the Windows zip
         run: ./scripts/make-windows.sh
 
-      # Start the packaged program once, off screen, from a throwaway
-      # configuration whose TCI points at an unused local port: every DLL
-      # must load and the engine must start and quit cleanly.
+      # Start the packaged program once from a throwaway configuration
+      # whose TCI points at an unused local port: every DLL must load from
+      # the zip's folder (not MSYS2's), and the engine must start and quit
+      # cleanly. An error box would wait forever, so a run that has not
+      # quit after two minutes lists the open windows and missing DLLs.
       - name: Start TCIdigi once
         run: |
           mkdir -p smoke
           printf '[station]\nname=CI\n' > smoke/tcidigi.ini
           printf '<FLDIGI_DEFS>\n<CONFIRMEXIT>0</CONFIRMEXIT>\n<TCI_ENABLE>1</TCI_ENABLE>\n<TCI_HOST>127.0.0.1</TCI_HOST>\n<TCI_PORT>50999</TCI_PORT>\n</FLDIGI_DEFS>\n' > smoke/fldigi_def.xml
           exe=$(ls dist/TCIdigi-*/TCIdigi.exe)
-          QT_QPA_PLATFORM=offscreen timeout 180 "$exe" \
-            --config-dir "$(cygpath -m "$PWD/smoke")" --exit-after 15
+          PATH=/usr/bin:/c/Windows/system32:/c/Windows \
+            "$exe" --config-dir "$(cygpath -m "$PWD/smoke")" --exit-after 15 &
+          pid=$!
+          for i in $(seq 120); do
+            kill -0 $pid 2>/dev/null || break
+            sleep 1
+          done
+          if kill -0 $pid 2>/dev/null; then
+            echo "TCIdigi is still running after 120 s. Open windows:"
+            powershell -NoProfile -Command 'Get-Process | Where-Object { $_.MainWindowTitle } | Format-Table Id,ProcessName,MainWindowTitle -AutoSize | Out-String -Width 300'
+            echo "DLLs not found:"
+            PATH=/usr/bin:/c/Windows/system32 /ucrt64/bin/ntldd -R "$exe" | grep -i "not found" || echo "(none)"
+            kill $pid
+            exit 1
+          fi
+          wait $pid
           echo "TCIdigi started and quit: exit $?"
       - name: Keep the smoke-test folder
         if: failure()
