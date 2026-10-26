@@ -92,7 +92,6 @@ private:
 	trx_mode mode_in_use;
 	int band_in_use;
 
-	bool band_changed();
 	bool mode_changed();
 
 	void init();
@@ -100,6 +99,9 @@ private:
 	bool loaded;
 
 public:
+	// True once when the rig's frequency is on a different band; tci.cxx
+	// uses it to bring back the per-mode state for the new band.
+	bool band_changed();
 	ModeBand() {
 		mode_in_use = -1;
 		band_in_use = -1;

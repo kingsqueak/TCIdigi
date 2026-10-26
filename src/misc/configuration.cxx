@@ -610,6 +610,7 @@ int configuration::setDefaults()
 	valPSKsweetspot->value(PSKsweetspot);
 	btnWaterfallHistoryDefault->value(WaterfallHistoryDefault);
 	btnWaterfallQSY->value(WaterfallQSY);
+	btnWaterfallClickInsert->value(WaterfallClickInsert);
 
 	inpWaterfallClickText->input_type(FL_MULTILINE_INPUT);
 	inpWaterfallClickText->value(WaterfallClickText.c_str());

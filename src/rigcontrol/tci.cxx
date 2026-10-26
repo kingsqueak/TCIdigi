@@ -58,6 +58,7 @@
 #include "debug.h"
 #include "fl_digi.h"
 #include "gettext.h"
+#include "squelch_status.h"
 #include "macros.h"
 #include "status.h"
 #include "modem.h"
@@ -1206,6 +1207,11 @@ static void tci_ui_tick(void*)
 			wf->rfcarrier(hz);
 			wf->movetocenter();
 			show_frequency(hz);
+			// A new band (the radio's first report at startup, or a band
+			// change at the radio) brings back what was remembered for this
+			// mode on that band, as typing a frequency does.
+			if (modeband.band_changed())
+				modeband.band_mode_change();
 		}
 		if (mode_dirty && !mode.empty())
 			wf->USB(!mode_is_lsb(mode));
