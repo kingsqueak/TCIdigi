@@ -34,6 +34,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <csignal>
+#include <exception>
 
 #include <FL/fl_utf8.h>
 
@@ -79,6 +80,17 @@ void diediedie(void)
 	{
 		if (signum)
 			std::cerr << "\nCaught signal " << signum;
+		else if (std::exception_ptr e = std::current_exception()) {
+			// std::terminate: name the exception nobody caught.
+			try {
+				std::rethrow_exception(e);
+			} catch (const std::exception& x) {
+				std::cerr << "\nUncaught exception: " << x.what();
+			} catch (...) {
+				std::cerr << "\nUncaught exception of an unknown type";
+			}
+		} else
+			std::cerr << "\nstd::terminate with no exception (a running std::thread destroyed?)";
 		std::cerr << CRASH_HEADER;
 #if !HAVE_DBG_STACK
 		pstack(STDERR_FILENO);
