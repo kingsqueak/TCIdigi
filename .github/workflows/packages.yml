@@ -65,7 +65,10 @@ jobs:
           path: dist/*.dmg
           if-no-files-found: error
 
+  # Not released yet: TCIdigi starts on Windows but crashes on exit.
+  # Built on ci-* branches and by hand, not for a release tag.
   windows:
+    if: github.ref_type != 'tag'
     runs-on: windows-latest
     defaults:
       run:
@@ -106,6 +109,7 @@ jobs:
             mingw-w64-ucrt-x86_64-libjpeg-turbo
             mingw-w64-ucrt-x86_64-gettext
             mingw-w64-ucrt-x86_64-ntldd
+            mingw-w64-ucrt-x86_64-gdb
 
       - name: Build the Windows zip
         run: ./scripts/make-windows.sh
@@ -145,6 +149,19 @@ jobs:
             exit 1
           fi
           echo "TCIdigi started and quit"
+      # The unstripped build under gdb, stopped where fldigi's crash
+      # handler is entered. An exception nothing catches is not unwound,
+      # so the backtrace shows where it was thrown.
+      - name: Backtrace of the crash
+        if: failure()
+        run: |
+          rm -rf smoke-gdb && mkdir smoke-gdb
+          cp smoke/tcidigi.ini smoke/fldigi_def.xml smoke-gdb/
+          exe=$(find build-qt -maxdepth 1 -name "TCIdigi*.exe" | head -1)
+          timeout 300 gdb -batch -ex "set pagination off" -ex "break diediedie" \
+            -ex run -ex "bt 40" -ex "thread apply all bt 12" \
+            --args "$exe" --config-dir "$(cygpath -m "$PWD/smoke-gdb")" --exit-after 15 \
+            2>&1 | grep -v "^\[New Thread\|^\[Thread .* exited" | tail -n 300 || true
       - name: Keep the smoke-test folder
         if: always()
         uses: actions/upload-artifact@v4

@@ -87,17 +87,6 @@ sudo apt install ./tcidigi_0.30-1_amd64.deb
 The program is `/usr/bin/TCIdigi`. Station tables for NAVTEX and weather
 modes are installed in `/usr/share/tcidigi`.
 
-## Windows (first build)
-
-`TCIdigi-0.30-windows-x64.zip` is on the
-[GitHub releases page](https://github.com/kingsqueak/TCIdigi/releases). It is
-a portable folder for 64-bit Windows 10 or 11: unzip it anywhere and run
-`TCIdigi.exe`. Nothing is installed. Settings are kept in `.tcidigi` in your
-user folder.
-
-This is the first Windows build. It is built and started once on GitHub's
-Windows runner, but it has not been used on the air yet. Reports are welcome.
-
 ## Building from source
 
 One build from this tree produces two programs:
@@ -146,11 +135,11 @@ under the configure prefix (`/usr/local/bin` by default).
 `confdialog.fl` unless you mean to regenerate that file.
 
 Linux can use the same steps when Qt 6 and FLTK are installed. An Ubuntu
-package is built by `scripts/make-deb.sh` on Ubuntu 26.04. On Windows,
-`scripts/make-windows.sh` builds the portable zip in an MSYS2 UCRT64 shell,
-and on a macOS 26 system `scripts/make-dmg.sh` builds the DMG from
-Homebrew. The Packages workflow runs all of these on GitHub Actions for a
-`v*` tag.
+package is built by `scripts/make-deb.sh` on Ubuntu 26.04, and on a
+macOS 26 system `scripts/make-dmg.sh` builds the DMG from Homebrew. The
+Packages workflow runs both on GitHub Actions for a `v*` tag. A Windows
+build (`scripts/make-windows.sh`, in an MSYS2 UCRT64 shell) is in progress
+and not released yet.
 
 Generated configure output, object files, and `build-qt/` are gitignored.
 
