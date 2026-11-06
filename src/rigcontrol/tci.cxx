@@ -681,8 +681,8 @@ static void handle_binary(const unsigned char* data, size_t n)
 			return;
 		if (!tci_lineout_logged) {
 			tci_lineout_logged = 1;
-			LOG_INFO("TCI line-out frame rate %u fmt %u len %u ch %u bytes %zu",
-				rate, fmt, length, ch, n);
+			LOG_INFO("TCI line-out frame rate %u fmt %u len %u ch %u bytes %llu",
+				rate, fmt, length, ch, static_cast<unsigned long long>(n));
 		}
 		type = TCI_RX_AUDIO;
 		lineout = true;

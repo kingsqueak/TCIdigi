@@ -65,3 +65,4 @@ MILESTONES.md
 /scripts/tests/*.log
 /scripts/tests/*.trs
 __pycache__/
+/dist/
