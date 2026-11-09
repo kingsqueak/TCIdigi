@@ -1,3 +1,5 @@
+<img src="src/qtui/icons/TCIdigi.png" alt="" width="128" align="right">
+
 # TCIdigi
 
 A Qt 6 interface on fldigi's modems. Radio control and modem audio use TCI,

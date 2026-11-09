@@ -84,6 +84,10 @@ qt_add_resources(fldigi-qt "qtui_icons"
   PREFIX "/"
   FILES chevron.svg chevron-up.svg icons/TCIdigi.png
 )
+# The .exe's own icon on Windows. (icons/TCIdigi.* are made by scripts/make-icon.py.)
+if(WIN32)
+  target_sources(fldigi-qt PRIVATE icons/TCIdigi.rc)
+endif()
 
 target_include_directories(fldigi-qt PRIVATE "${FLDIGI_SRC}/include")
 target_link_libraries(fldigi-qt PRIVATE fldigi_qt_entry Qt6::Widgets Qt6::Network)
